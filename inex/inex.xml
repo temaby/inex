@@ -246,5 +246,24 @@
             <param name="mode">Import data mode (FENTURY, INEX)</param>
             <param name="file">File with data</param>
         </member>
+        <member name="T:inex.Extensions.DatabaseExtensions">
+            <summary>
+            Extension methods for database initialization and migration
+            </summary>
+        </member>
+        <member name="M:inex.Extensions.DatabaseExtensions.EnsureDatabaseInitialized(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            Ensures the database is created and all migrations are applied.
+            Call this in Configure() method during application startup for Production environments.
+            </summary>
+            <param name="app">The application builder</param>
+            <returns>The application builder for chaining</returns>
+        </member>
+        <member name="M:inex.Extensions.DatabaseExtensions.EnsureDatabaseCreated(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            Ensures the database is created (for development).
+            This does not apply migrations, just ensures the database exists.
+            </summary>
+        </member>
     </members>
 </doc>

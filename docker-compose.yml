@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: inex-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/mysql_data:/var/lib/mysql
+      - ./docker/mysql/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 5s
+    networks:
+      - inex-network
+    restart: unless-stopped
+
+  # ASP.NET Core API with embedded React SPA
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    container_name: inex-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # Connection string using Docker service name 'mysql'
+      ConnectionStrings__InExConnection: "Server=mysql;Port=3306;Database=${DB_NAME};Uid=${DB_USER};Pwd=${DB_PASSWORD};Convert Zero Datetime=True;"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:80
+      ExchangeApiSettings__ApiKey: ${EXCHANGE_API_KEY}
+    ports:
+      - "5000:80"
+    networks:
+      - inex-network
+    restart: unless-stopped
+
+networks:
+  inex-network:
+    driver: bridge

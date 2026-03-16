@@ -1,0 +1,21 @@
+# .NET
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+
+# FE
+**/node_modules/
+**/ClientApp/build/
+**/ClientApp/dist/
+.ntvs_analysis.dat
+
+# Docker & Env
+.env
+.env.local
+docker/mysql/mysql_data/
+docker/mysql/backup/
+
+# IDE
+.vs/
+.vscode/

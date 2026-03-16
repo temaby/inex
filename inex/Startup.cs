@@ -9,6 +9,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using inex.Models.App;
+using inex.Data;
+using inex.Extensions;
 using inex.Services.Extensions;
 using inex.Services.Models.App;
 using inex.Services.Services;
@@ -71,6 +73,9 @@ public class Startup
         {
             configuration.RootPath = "ClientApp/build";
         });
+
+        services.AddHealthChecks()
+            .AddDbContextCheck<InExDbContext>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -99,6 +104,8 @@ public class Startup
             app.UseHttpsRedirection();
         }
 
+        app.EnsureDatabaseInitialized();
+
         app.UseStaticFiles();
         app.UseSpaStaticFiles();
 
@@ -106,6 +113,7 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapHealthChecks("/health");
             endpoints.MapControllerRoute(
                 name: "default",
                 pattern: "{controller}/{action=Index}/{id?}");
