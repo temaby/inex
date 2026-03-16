@@ -1,0 +1,14 @@
+node_modules
+.vs
+.vscode
+bin
+obj
+appsettings.*.json
+*.local.json
+.env
+.env.local
+user-secrets/
+*.csproj.user
+ClientApp/build
+scripts
+docs

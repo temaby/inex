@@ -1,0 +1,250 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>inex</name>
+    </assembly>
+    <members>
+        <member name="M:inex.Controllers.AccountsController.Single(System.Int32)">
+            <summary>
+            Get account details
+            </summary>
+            <param name="id">Account id</param>
+            <returns>
+            Account details
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.AccountsController.List(System.String)">
+            <summary>
+            Get list of accounts for a user
+            </summary>
+            <param name="mode">Activity mode (all, active, inactive)</param>       
+            <returns>
+            List of accounts with pagination metadata
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.AccountsController.DetailsForList(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Get details for a list of accounts for a user
+            </summary>
+            <param name="ids">Account ids</param>       
+            <returns>
+            List of accounts with status
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.AccountsController.Add(inex.Services.Models.Records.Account.AccountCreateDTO)">
+            <summary>
+            Add a new account
+            </summary>
+            <param name="itemDTO">Account details</param>
+            <returns>
+            Id of a new account
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.AccountsController.Update(System.Int32,inex.Services.Models.Records.Account.AccountUpdateDTO)">
+            <summary>
+            Update an existing account with new details
+            </summary>
+            <param name="id">Account id</param>
+            <param name="itemDTO">Account details</param>
+            <returns>
+            Updated account details
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.AccountsController.Delete(System.Int32)">
+            <summary>
+            Delete an account
+            </summary>
+            <param name="id">Account id</param>
+        </member>
+        <member name="M:inex.Controllers.AccountsController.DeleteList(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Delete an account
+            </summary>
+            <param name="ids">Account ids</param>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.Single(System.Int32)">
+            <summary>Get budget details</summary>
+            <param name="id">Budget id</param>
+            <returns>Budget details</returns>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.List(System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>Get list of budgets for a user</summary>
+            <returns>List of budgets with pagination metadata</returns>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.Add(inex.Services.Models.Records.Budget.BudgetCreateDTO)">
+            <summary>Add a new budget</summary>
+            <param name="itemDTO">Budget details</param>
+            <returns>Id of a new budget</returns>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.Copy(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>Copy budgets from one month to another</summary>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.Update(System.Int32,inex.Services.Models.Records.Budget.BudgetUpdateDTO)">
+            <summary>Update an existing budget with new details</summary>
+            <param name="id">Budget id</param>
+            <param name="itemDTO">Budget details</param>
+            <returns>Updated budget details</returns>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.Delete(System.Int32)">
+            <summary>Delete a budget</summary>
+            <param name="id">Budget id</param>
+        </member>
+        <member name="M:inex.Controllers.BudgetsController.DeleteList(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>Delete a list of budgets</summary>
+            <param name="ids">List of budget ids</param>
+        </member>
+        <member name="M:inex.Controllers.CategoriesController.Single(System.Int32)">
+            <summary>
+            Get category details
+            </summary>
+            <param name="id">Category id</param>
+            <returns>
+            Category details
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.CategoriesController.List(System.String)">
+            <summary>
+            Get list of categories for a user
+            </summary>
+            <param name="mode">Activity mode (all, active, inactive)</param>
+            <returns>
+            List of categories with pagination metadata
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.CategoriesController.Add(inex.Services.Models.Records.Category.CategoryCreateDTO)">
+            <summary>
+            Add a new category
+            </summary>
+            <param name="itemDTO">Category details</param>
+            <returns>
+            Id of a new category
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.CategoriesController.Update(System.Int32,inex.Services.Models.Records.Category.CategoryUpdateDTO)">
+            <summary>
+            Update an existing category with new details
+            </summary>
+            <param name="id">Category id</param>
+            <param name="itemDTO">Category details</param>
+            <returns>
+            Updated category details
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.CategoriesController.Delete(System.Int32)">
+            <summary>
+            Delete a category
+            </summary>
+            <param name="id">Category id</param>
+        </member>
+        <member name="M:inex.Controllers.CategoriesController.DeleteList(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Delete a category
+            </summary>
+            <param name="ids">Category ids</param>
+        </member>
+        <member name="M:inex.Controllers.ExchangeRateController.Get(System.DateTime)">
+            <summary>
+            Get exchange rates for a date
+            </summary>
+            <param name="date">Date</param>
+            <returns>
+            List of supported exchange rates
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.ReportBudgetController.GetComparison(System.Int32,System.Int32,System.String)">
+            <summary>
+            Get budget comparison report
+            </summary>
+            <param name="year">Year</param>
+            <param name="month">Month</param>
+            <param name="currency">Currency</param>
+            <returns>Budget comparison report</returns>
+        </member>
+        <member name="M:inex.Controllers.ReportsController.GetCategoryReport(System.String,System.String)">
+             <summary>
+             Get category report details
+             </summary>        
+            <param name="currency">Currency for report</param>
+             <param name="filter">Filter items (filter=field1:value;field2:value2). Supported fields: Start, End</param>
+             <returns>
+             Category report details
+             </returns>
+        </member>
+        <member name="M:inex.Controllers.ReportsController.GetMonthlyHistory(System.Int32,System.String)">
+            <summary>
+            Get monthly history report
+            </summary>
+            <param name="year">Year for report</param>
+            <param name="currency">Currency for report</param>
+            <returns>Monthly history details</returns>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.Single(System.Int32)">
+            <summary>
+            Get transaction details
+            </summary>
+            <param name="id">Transaction id</param>
+            <returns>
+            Transaction details
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.List(System.String,System.Int32,System.Int32,System.String)">
+            <summary>
+            Get list of transactions for a user
+            </summary>
+            <param name="mode">Activity mode (all, active, inactive)</param>
+            <param name="pageSize">Amount of items per page</param>
+            <param name="pageNumber">Current page number</param>
+            <param name="filter">Filter items (filter=field1:value;field2:value2). Supported fields: AccountId, CategoryId, Start, End</param>
+            <returns>
+            List of transactions with pagination metadata
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.TransactionCreateDTO)">
+            <summary>
+            Add a new transaction
+            </summary>
+            <param name="itemDTO">Transaction details</param>
+            <returns>
+            Id of a new transaction
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.TransferCreateDTO)">
+            <summary>
+            Add a new transfer transaction
+            </summary>
+            <param name="itemDTO">Transfer details</param>
+            <returns>
+            Id of a new transaction
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.Update(System.Int32,inex.Services.Models.Records.Transaction.TransactionUpdateDTO)">
+            <summary>
+            Update an existing transaction with new details
+            </summary>
+            <param name="id">Transaction id</param>
+            <param name="itemDTO">Transaction details</param>
+            <returns>
+            Updated transaction details
+            </returns>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.Delete(System.Int32)">
+            <summary>
+            Delete a transaction
+            </summary>
+            <param name="id">Transaction id</param>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.DeleteList(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Delete a transaction
+            </summary>
+            <param name="ids">Transaction ids</param>
+        </member>
+        <member name="M:inex.Controllers.TransactionsController.ImportTransactions(System.String,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Imports transactions from a file
+            </summary> 
+            <param name="mode">Import data mode (FENTURY, INEX)</param>
+            <param name="file">File with data</param>
+        </member>
+    </members>
+</doc>

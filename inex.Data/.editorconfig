@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+dotnet_diagnostic.nullable.severity = error
+csharp_style_namespace_declarations = file_scoped:warning
+
+[Migrations/**.cs]
+generated_code = true
+dotnet_diagnostic.nullable.severity = none
+# IDE0005: Using directive is unnecessary.
+dotnet_diagnostic.IDE0005.severity = none
