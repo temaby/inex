@@ -80,11 +80,13 @@ public class TransactionService : InExService, ITransactionService
         Transaction transactionFrom = Mapper.Map<Transaction>(transferFrom);
         transactionFrom.UserId = userId;
         transactionFrom.CreatedBy = userId;
+        transactionFrom.CategoryId = transferCategory.Id;
         transactionFrom.Comment = $"В {accountTo.Name} {transactionFrom.Comment}";
 
         Transaction transactionTo = Mapper.Map<Transaction>(transferTo);
         transactionTo.UserId = userId;
         transactionTo.CreatedBy = userId;
+        transactionTo.CategoryId = transferCategory.Id;
         transactionTo.Comment = $"Из {accountFrom.Name} {transactionTo.Comment}";
 
         EntityEntry<Transaction> resultFrom = await DbInEx.TransactionRepository.CreateAsync(transactionFrom);
@@ -109,7 +111,7 @@ public class TransactionService : InExService, ITransactionService
         // get item to update
         var source = await DbInEx.TransactionRepository.GetAsync(id)
             ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
-            
+
         // update item with new details
         source = Mapper.Map(itemDTO, source);
         source.UpdatedBy = userId;
