@@ -3,7 +3,6 @@ using System;
 using inex.Services.Models.Exceptions;
 using inex.Services.Models.Exceptions.Base;
 using inex.Services.Models.Records.Base;
-using inex.Models;
 using inex.Services.Models.Enums;
 
 namespace inex.Controllers.Base;

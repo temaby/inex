@@ -218,6 +218,7 @@ public class TransactionsController : ApiControllerBase
     /// <param name="file">File with data</param>
     [HttpPost]
     [Route(PostImportRoute)]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ResponseDTO), StatusCodes.Status200OK)]
     public async Task<ActionResult> ImportTransactions(string mode, [FromForm] IFormFile file)
     {
