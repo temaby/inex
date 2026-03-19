@@ -11,6 +11,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace inex.Services.Services;
 
+/// <summary>
+/// Handles retrieval and synchronization of exchange rates.
+/// Rates for past dates are fetched on-demand from the external currency API and cached in the database.
+/// Rates for today are never fetched from the provider (live rates are unsupported);
+/// instead, a temporary copy of the latest known rates is created as a placeholder.
+/// </summary>
 public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
@@ -24,6 +30,13 @@ public class ExchangeRateService : Service, IExchangeRateService
 
     #region Public Interface
 
+    /// <summary>
+    /// Returns exchange rates for every day in the inclusive range [<paramref name="start"/>, <paramref name="end"/>].
+    /// Past dates are synced from the provider if not yet cached.
+    /// Today's slot is filled with temporary rates copied from the latest available date.
+    /// Future dates are silently skipped.
+    /// </summary>
+    /// <exception cref="InExException">Thrown when <paramref name="end"/> is before <paramref name="start"/>.</exception>
     public async Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "")
     {
         if (end < start)
@@ -58,24 +71,21 @@ public class ExchangeRateService : Service, IExchangeRateService
         return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
     }
 
-    public async Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "")
-    {
-        baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
-        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(baseCurrency);
-
-        // provider does not support today's rates; use yesterday
-        DateTime effectiveDate = date.Date == DateTime.UtcNow.Date ? date.Date.AddDays(-1) : date.Date;
-
-        await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes);
-
-        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created == effectiveDate);
-        return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
-    }
+    /// <summary>
+    /// Returns exchange rates for a single <paramref name="date"/>.
+    /// Delegates to the range overload with <c>start == end == date</c>.
+    /// </summary>
+    public Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "")
+        => Get(userId, date, date, baseCurrency);
 
     #endregion Public Interface
 
     #region Private Methods
 
+    /// <summary>
+    /// Returns the base currency for the given user.
+    /// Falls back to the user's profile currency when <paramref name="baseCurrency"/> is empty.
+    /// </summary>
     private string ResolveBaseCurrency(int userId, string? baseCurrency)
     {
         if (string.IsNullOrEmpty(baseCurrency))
@@ -86,6 +96,10 @@ public class ExchangeRateService : Service, IExchangeRateService
         return baseCurrency;
     }
 
+    /// <summary>
+    /// Returns all currency codes that are not the base currency — these are the target codes
+    /// for which rates will be fetched.
+    /// </summary>
     private async Task<IList<string>> ResolveTargetCurrencyCodes(string baseCurrency)
     {
         return await DbInEx.CurrencyRepository.Get(true)
@@ -94,6 +108,11 @@ public class ExchangeRateService : Service, IExchangeRateService
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Ensures actual (non-temporary) rates exist in the database for the given date.
+    /// Skipped when the cache already has a full set of actual rates.
+    /// Calls the provider and upserts the results if rates are missing or incomplete.
+    /// </summary>
     private async Task SyncRatesForDate(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
     {
         DateTime requestedDate = date.Date;
@@ -121,6 +140,10 @@ public class ExchangeRateService : Service, IExchangeRateService
         }
     }
 
+    /// <summary>
+    /// Calls the external currency API for the given date.
+    /// Returns <see langword="null"/> when there are no target currencies to fetch.
+    /// </summary>
     private async Task<CurrencyApiResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
     {
         if (targetCurrencyCodes.Count == 0)
@@ -131,6 +154,11 @@ public class ExchangeRateService : Service, IExchangeRateService
         return await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
     }
 
+    /// <summary>
+    /// Inserts or updates exchange rates for the given date from the provider response.
+    /// Existing temporary rates are overwritten with actual values.
+    /// Returns <see langword="true"/> if any record was inserted or updated (caller must save).
+    /// </summary>
     private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, CurrencyApiResponse response)
     {
         DateTime createdDate = date.Date;
@@ -177,6 +205,11 @@ public class ExchangeRateService : Service, IExchangeRateService
         return hasChanges;
     }
 
+    /// <summary>
+    /// Creates temporary placeholder rates for today if none exist yet,
+    /// by copying the most recent available rates from a prior date and marking them as temporary.
+    /// Does nothing when rates already exist for today, or when no prior rates are found.
+    /// </summary>
     private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency)
     {
         DateTime today = date.Date;
@@ -189,6 +222,7 @@ public class ExchangeRateService : Service, IExchangeRateService
             return;
         }
 
+        // Find the most recent date before today that has rates for this base currency.
         DateTime? latestDate = DbInEx.ExchangeRateRepository.Get(true)
             .Where(i => i.Created < today && i.FromCode == baseCurrency)
             .OrderByDescending(i => i.Created)
