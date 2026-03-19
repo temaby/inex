@@ -79,6 +79,17 @@ public class ExchangeRateServiceTests
             .Returns(UsersFor(1, baseCurrency));
 
         // Single-date delegates to the range overload which always calls ResolveTargetCurrencyCodes.
+        _currencyRepoMock.Setup(r => r.Get(true, null))
+            .Returns(CurrenciesFor(targetCode));
+
+        // Cache already contains a non-temporary rate for this date — sync should be skipped.
+        _exchangeRateRepoMock.Setup(r => r.Get(true, null))
+            .Returns(RatesFor(pastDate, baseCurrency, targetCode));
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.Get(1, pastDate);
 
         // Assert — provider must NOT have been called because rates were already present
         _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>()), Times.Never);

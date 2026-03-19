@@ -50,6 +50,7 @@ public class ExchangeRateService : Service, IExchangeRateService
         DateTime startDate = start.Date;
         DateTime endDate = end.Date;
         DateTime today = DateTime.UtcNow.Date;
+        endDate = endDate <= today ? endDate : today;
 
         for (DateTime effectiveDate = startDate; effectiveDate <= endDate; effectiveDate = effectiveDate.AddDays(1))
         {
@@ -67,7 +68,7 @@ public class ExchangeRateService : Service, IExchangeRateService
             await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes);
         }
 
-        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate);
+        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate && i.FromCode == baseCurrency);
         return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
     }
 
