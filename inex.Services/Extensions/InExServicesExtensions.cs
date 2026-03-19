@@ -3,7 +3,8 @@ using inex.Data.Extensions;
 using inex.Services.Services.Base;
 using inex.Services.Services;
 using Microsoft.Extensions.Configuration;
-using inex.Services.Models.App;
+using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
+using Microsoft.Extensions.Options;
 
 namespace inex.Services.Extensions;
 
@@ -29,6 +30,14 @@ public static class InExServicesExtensions
         services.AddScoped<IExchangeRateService, ExchangeRateService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IBudgetReportService, BudgetReportService>();
+        services.AddHttpClient<ICurrencyApiClient, CurrencyApiClient>((serviceProvider, client) =>
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<ExchangeApiSettings>>().Value;
+            if (string.IsNullOrEmpty(settings.BaseUrl))
+                throw new InvalidOperationException("CurrencyAPI BaseUrl is not configured.");
+            client.BaseAddress = new Uri(settings.BaseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
 
         return services;
     }

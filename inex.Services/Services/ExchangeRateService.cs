@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
-using inex.Services.Models.App;
+using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using inex.Services.Models.Exceptions;
 using inex.Services.Models.Exceptions.Base;
 using inex.Services.Models.Records.Data;
