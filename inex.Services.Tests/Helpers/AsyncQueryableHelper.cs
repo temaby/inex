@@ -4,8 +4,8 @@ using System.Linq.Expressions;
 namespace inex.Services.Tests.Helpers;
 
 /// <summary>
-/// Wraps an in-memory sequence so it satisfies both IQueryable&lt;T&gt; (for sync LINQ)
-/// and IAsyncEnumerable&lt;T&gt; (for ToListAsync / FirstOrDefaultAsync etc.).
+/// Wraps an in-memory sequence so it satisfies both IQueryable<T> (for sync LINQ)
+/// and IAsyncEnumerable<T> (for async enumeration and APIs that consume IAsyncEnumerable<T> such as ToListAsync).
 /// </summary>
 internal static class AsyncQueryableExtensions
 {

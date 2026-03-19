@@ -54,11 +54,6 @@ public class ExchangeRateService : Service, IExchangeRateService
 
         for (DateTime effectiveDate = startDate; effectiveDate <= endDate; effectiveDate = effectiveDate.AddDays(1))
         {
-            if (effectiveDate > today)
-            {
-                break;
-            }
-
             if (effectiveDate == today)
             {
                 await CreateTemporaryRatesForTodayIfNeeded(userId, effectiveDate, baseCurrency);
