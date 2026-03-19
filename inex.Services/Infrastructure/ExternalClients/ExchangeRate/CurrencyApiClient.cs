@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using inex.Services.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace inex.Services.Infrastructure.ExternalClients.ExchangeRate;

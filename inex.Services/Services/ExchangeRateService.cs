@@ -7,13 +7,7 @@ using inex.Services.Models.Exceptions.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Services.Base;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace inex.Services.Services;
 
@@ -21,9 +15,9 @@ public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
 
-    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, IOptions<ExchangeApiSettings> settings) : base(uowInEx, mapper)
+    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, ICurrencyApiClient apiClient) : base(uowInEx, mapper)
     {
-        _apiKey = settings.Value.ApiKey;
+        _apiClient = apiClient;
     }
 
     #endregion Constructors
@@ -36,159 +30,45 @@ public class ExchangeRateService : Service, IExchangeRateService
         {
             throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error) });
         }
-        /*else if (end == start)
+
+        baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
+        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(baseCurrency);
+
+        DateTime startDate = start.Date;
+        DateTime endDate = end.Date;
+        DateTime today = DateTime.UtcNow.Date;
+
+        for (DateTime effectiveDate = startDate; effectiveDate <= endDate; effectiveDate = effectiveDate.AddDays(1))
         {
-            return await Get(userId, start, baseCurrency);
-        }*/
-        else
-        {
-            // get current base currenc yfor the user
-            baseCurrency = string.IsNullOrEmpty(baseCurrency) ? DbInEx.UserRepository.Get(true, null, i => i.Currency).First(i => i.Id == userId).Currency.Key : baseCurrency;
-            // get an actual list of currencies for the user
-            IEnumerable<string> currencyCodes = DbInEx.CurrencyRepository.Get(true).Where(i => i.Key != baseCurrency).Select(i => i.Key);
-
-            // get a list of existing non-temporary rates from database
-            // rate is marked as temporary in case API does not have information for the date and the rate is based on another day rate
-            IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= start && i.Created <= end && !i.IsTemporary);
-
-            // get a list of dates that have actual rate information
-            IEnumerable<DateTime> datesExisting = rates.Select(i => i.Created.Date).Distinct().ToList();
-
-            for (DateTime date = start; date <= end; date = date.AddDays(1))
+            if (effectiveDate > today)
             {
-                // exit in case date is from future
-                if (date.Date > DateTime.UtcNow.Date)
-                {
-                    break;
-                }
-                // current free version of API provider does not support rates for today
-                // logic below creates a temporary rate based on yesterday info
-                else if (date.Date == DateTime.UtcNow.Date)
-                {
-                    // check if rates for today already exist
-                    bool ratesExist = DbInEx.ExchangeRateRepository.Get(true).Any(i => i.Created == date.Date);
-
-                    if (!ratesExist)
-                    {
-                        // get most recent date with rate details
-                        DateTime? latestDate = DbInEx.ExchangeRateRepository.Get(true)
-                            .Where(i => i.Created < date.Date && i.FromCode == baseCurrency)
-                            .OrderByDescending(i => i.Created)
-                            .Select(i => (DateTime?)i.Created)
-                            .FirstOrDefault();
-
-                        if (latestDate.HasValue)
-                        {
-                            // get rate details from the most recent date
-                            IEnumerable<ExchangeRate> ratesExisting = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created == latestDate.Value && i.FromCode == baseCurrency);
-                            // create temporary rates based on latest info
-                            IEnumerable<ExchangeRate> ratesNew = ratesExisting.Select(i => new ExchangeRate() { FromCode = i.FromCode, ToCode = i.ToCode, Rate = i.Rate, IsTemporary = true, CreatedBy = userId, Created = date.Date });
-                            // add temporary rates to the database
-                            foreach (ExchangeRate rate in ratesNew)
-                            {
-                                await DbInEx.ExchangeRateRepository.CreateAsync(rate);
-                            }
-                            // apply database changes
-                            await DbInEx.SaveAsync();
-                        }
-                    }
-                }
-                // rates are not populated automatically ATM, so sometimes some dates may be skipped
-                // logic below receives a list of rates from the API for a skipped date
-                // actual rates should be either added to the database or replace existing temporary rates
-                else if (!datesExisting.Any(i => i == date.Date))
-                {
-                    // build a list of user currencies for API request
-                    string currencies = string.Join(",", currencyCodes);
-
-                    // build API request url
-                    string responseStr = string.Empty;
-                    string url = $"https://api.currencyapi.com/v3/historical?date={date.Date.ToString("yyyy-MM-dd")}&apikey={_apiKey}&base_currency={baseCurrency}&currencies={currencies}";
-
-                    // get API response string
-                    using (HttpClient client = new HttpClient())
-                    {
-                        responseStr = await client.GetStringAsync(url);
-                    }
-
-                    if (responseStr.Length > 0)
-                    {
-                        // get exchanges rates information from response
-                        ExchangeResponseDTO response = JsonConvert.DeserializeObject<ExchangeResponseDTO>(responseStr)!;
-                        // check if there are temporary rates info for the date
-                        IEnumerable<ExchangeRate> ratesExisting = DbInEx.ExchangeRateRepository.Get(false).Where(i => i.Created == date.Date && i.IsTemporary);
-
-                        // in case temporary rates exist just update the records with actual information and remove temporary marker
-                        if (ratesExisting.Any())
-                        {
-                            foreach (ExchangeRate rate in ratesExisting)
-                            {
-                                rate.Rate = response.Data.First(i => i.Value.Code == rate.ToCode).Value.Value;
-                                rate.IsTemporary = false;
-                                DbInEx.ExchangeRateRepository.Update(rate);
-                            }
-
-                            await DbInEx.SaveAsync();
-                        }
-                        // in case no temporary rates exist add rates information to the database
-                        else
-                        {
-                            IEnumerable<ExchangeRate> ratesNew = response.Data.Select(i => new ExchangeRate() { FromCode = baseCurrency, ToCode = i.Value.Code, Rate = i.Value.Value, CreatedBy = userId, Created = response.Meta.last_updated_at.Date });
-                            foreach (ExchangeRate rate in ratesNew)
-                            {
-                                await DbInEx.ExchangeRateRepository.CreateAsync(rate);
-                            }
-
-                            await DbInEx.SaveAsync();
-                        }
-                    }
-                }
+                break;
             }
 
-            // get actual exchange rates information
-            rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= start && i.Created <= end);
-            return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
+            if (effectiveDate == today)
+            {
+                await CreateTemporaryRatesForTodayIfNeeded(userId, effectiveDate, baseCurrency);
+                continue;
+            }
+
+            await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes);
         }
+
+        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate);
+        return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
     }
 
     public async Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "")
     {
-        baseCurrency = string.IsNullOrEmpty(baseCurrency) ? DbInEx.UserRepository.Get(true, null, i => i.Currency).First(i => i.Id == userId).Currency.Key : baseCurrency;
-        IEnumerable<string> currencyCodes = DbInEx.CurrencyRepository.Get(true).Where(i => i.Key != baseCurrency).Select(i => i.Key);
+        baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
+        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(baseCurrency);
 
-        // fix for rates API as rates are not available for today
-        date = date.Date == DateTime.UtcNow.Date ? date.Date.AddDays(-1) : date;
+        // provider does not support today's rates; use yesterday
+        DateTime effectiveDate = date.Date == DateTime.UtcNow.Date ? date.Date.AddDays(-1) : date.Date;
 
-        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created == date.Date);
+        await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes);
 
-        if (!rates.Any() || rates.Count() < currencyCodes.Count())
-        {
-            string currencies = string.Join(",", currencyCodes);
-
-            string responseStr = string.Empty;
-            string url = $"https://api.currencyapi.com/v3/historical?date={date.ToString("yyyy-MM-dd")}&apikey={_apiKey}&base_currency={baseCurrency}&currencies={currencies}";
-
-            using (HttpClient client = new HttpClient())
-            {
-                responseStr = await client.GetStringAsync(url);
-            }
-
-            if (responseStr.Length > 0)
-            {
-                ExchangeResponseDTO response = JsonConvert.DeserializeObject<ExchangeResponseDTO>(responseStr)!;
-
-                IEnumerable<ExchangeRate> ratesNew = response.Data.Select(i => new ExchangeRate() { FromCode = baseCurrency, ToCode = i.Value.Code, Rate = i.Value.Value, CreatedBy = userId, Created = response.Meta.last_updated_at.Date });
-                foreach (ExchangeRate rate in ratesNew)
-                {
-                    await DbInEx.ExchangeRateRepository.CreateAsync(rate);
-                }
-
-                await DbInEx.SaveAsync();
-            }
-
-            rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created == date);
-        }
-
+        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created == effectiveDate);
         return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
     }
 
@@ -196,45 +76,158 @@ public class ExchangeRateService : Service, IExchangeRateService
 
     #region Private Methods
 
-    private class ExchangeData
+    private string ResolveBaseCurrency(int userId, string? baseCurrency)
     {
-        public string Code { get; set; } = null!;
-        public decimal Value { get; set; }
+        if (string.IsNullOrEmpty(baseCurrency))
+        {
+            baseCurrency = DbInEx.UserRepository.Get(true, null, i => i.Currency).First(i => i.Id == userId).Currency.Key;
+        }
+
+        return baseCurrency;
     }
 
-    private class ExchangeMeta
+    private async Task<IList<string>> ResolveTargetCurrencyCodes(string baseCurrency)
     {
-        public DateTime last_updated_at { get; set; }
+        return await DbInEx.CurrencyRepository.Get(true)
+            .Where(i => i.Key != baseCurrency)
+            .Select(i => i.Key)
+            .ToListAsync();
     }
 
-    private class ExchangeResponseDTO
+    private async Task SyncRatesForDate(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
     {
-        public ExchangeMeta Meta { get; set; } = null!;
-        public Dictionary<string, ExchangeData> Data { get; set; } = null!;
+        DateTime requestedDate = date.Date;
+
+        int actualRatesCount = DbInEx.ExchangeRateRepository.Get(true)
+            .Count(i => i.Created == requestedDate && i.FromCode == baseCurrency && !i.IsTemporary);
+
+        if (actualRatesCount >= targetCurrencyCodes.Count)
+        {
+            return;
+        }
+
+        CurrencyApiResponse? response = await FetchRatesForDate(requestedDate, baseCurrency, targetCurrencyCodes);
+
+        if (response?.Data is null || response.Data.Count == 0)
+        {
+            return;
+        }
+
+        bool hasChanges = await UpsertRatesForDate(userId, requestedDate, baseCurrency, response);
+
+        if (hasChanges)
+        {
+            await DbInEx.SaveAsync();
+        }
+    }
+
+    private async Task<CurrencyApiResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
+    {
+        if (targetCurrencyCodes.Count == 0)
+        {
+            return null;
+        }
+
+        return await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
+    }
+
+    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, CurrencyApiResponse response)
+    {
+        DateTime createdDate = date.Date;
+
+        List<ExchangeRate> existingRates = DbInEx.ExchangeRateRepository.Get(false)
+            .Where(i => i.Created == createdDate && i.FromCode == baseCurrency)
+            .ToList();
+
+        bool hasChanges = false;
+
+        foreach (KeyValuePair<string, CurrencyData> item in response.Data)
+        {
+            string toCode = string.IsNullOrWhiteSpace(item.Value.Code) ? item.Key : item.Value.Code;
+            decimal value = item.Value.Value;
+
+            ExchangeRate? existingRate = existingRates.FirstOrDefault(i => i.ToCode == toCode);
+
+            if (existingRate is null)
+            {
+                await DbInEx.ExchangeRateRepository.CreateAsync(new ExchangeRate()
+                {
+                    FromCode = baseCurrency,
+                    ToCode = toCode,
+                    Rate = value,
+                    IsTemporary = false,
+                    CreatedBy = userId,
+                    Created = createdDate
+                });
+
+                hasChanges = true;
+                continue;
+            }
+
+            if (existingRate.Rate != value || existingRate.IsTemporary)
+            {
+                existingRate.Rate = value;
+                existingRate.IsTemporary = false;
+                DbInEx.ExchangeRateRepository.Update(existingRate);
+
+                hasChanges = true;
+            }
+        }
+
+        return hasChanges;
+    }
+
+    private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency)
+    {
+        DateTime today = date.Date;
+
+        bool ratesExist = DbInEx.ExchangeRateRepository.Get(true)
+            .Any(i => i.Created == today && i.FromCode == baseCurrency);
+
+        if (ratesExist)
+        {
+            return;
+        }
+
+        DateTime? latestDate = DbInEx.ExchangeRateRepository.Get(true)
+            .Where(i => i.Created < today && i.FromCode == baseCurrency)
+            .OrderByDescending(i => i.Created)
+            .Select(i => (DateTime?)i.Created)
+            .FirstOrDefault();
+
+        if (!latestDate.HasValue)
+        {
+            return;
+        }
+
+        List<ExchangeRate> latestRates = DbInEx.ExchangeRateRepository.Get(true)
+            .Where(i => i.Created == latestDate.Value && i.FromCode == baseCurrency)
+            .ToList();
+
+        foreach (ExchangeRate rate in latestRates)
+        {
+            await DbInEx.ExchangeRateRepository.CreateAsync(new ExchangeRate()
+            {
+                FromCode = rate.FromCode,
+                ToCode = rate.ToCode,
+                Rate = rate.Rate,
+                IsTemporary = true,
+                CreatedBy = userId,
+                Created = today
+            });
+        }
+
+        if (latestRates.Count > 0)
+        {
+            await DbInEx.SaveAsync();
+        }
     }
 
     #endregion Private Methods
 
     #region Private Fields
 
-    private readonly string _apiKey;
+    private readonly ICurrencyApiClient _apiClient;
 
     #endregion Private Fields
-
-    /*
-     {
-"success":true,
-"timestamp":1363478399,
-"historical":true,
-"base":"EUR",
-"date":"2013-03-16",
-"rates":{
-"USD":1.307716,
-"AUD":1.256333,
-"CAD":1.333812,
-"PLN":4.150819,
-"MXN":16.259128
-}
-}
-     */
 }
