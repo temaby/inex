@@ -15,5 +15,4 @@ public interface ITransactionService : IInExService
     Task<ResponseCreateDTO> CreateAsync(TransactionCreateDTO itemDTO, int userId);
     Task<ResponseTransferDTO> CreateAsync(TransferCreateDTO itemDTO, int userId);
     Task<TransactionDetailsDTO> UpdateAsync(int id, TransactionUpdateDTO itemDTO, int userId);
-    Task ImportFenturyTransactionsAsync(IEnumerable<TransactionFenturyCSVRecordDTO> transactions, int userId);
 }

@@ -239,13 +239,6 @@
             </summary>
             <param name="ids">Transaction ids</param>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.ImportTransactions(System.String,Microsoft.AspNetCore.Http.IFormFile)">
-            <summary>
-            Imports transactions from a file
-            </summary> 
-            <param name="mode">Import data mode (FENTURY, INEX)</param>
-            <param name="file">File with data</param>
-        </member>
         <member name="T:inex.Extensions.DatabaseExtensions">
             <summary>
             Extension methods for database initialization and migration
