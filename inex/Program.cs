@@ -4,29 +4,18 @@ using Microsoft.Extensions.Hosting;
 using inex.Data;
 using inex.Extensions;
 using inex.Services.Extensions;
+using System.Security.Cryptography;
+using System.Text;
 using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Compact;
 
 // ── 1. BUILDER PHASE ──
 
-// Configure Serilog
+// Configure bootstrap logger to capture early startup failures before host is built.
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-    .MinimumLevel.Override("System", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .Enrich.WithProcessId()
-    .Enrich.WithThreadId()
-    .Enrich.WithMachineName()
     .WriteTo.Console(
         outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
-    .WriteTo.File(
-        new CompactJsonFormatter(),
-        "logs/inex-.log",
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30)
-    .CreateLogger();
+    .CreateBootstrapLogger();
 
 try
 {
@@ -34,8 +23,12 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog to use the logger we created
-    builder.Host.UseSerilog();
+    // Upgrade from bootstrap logger to full logger from configuration/services.
+    builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+        loggerConfiguration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext());
 
     builder.Services.AddInExServices(builder.Configuration);
 
@@ -67,13 +60,17 @@ try
     // Add Serilog request logging middleware
     app.UseSerilogRequestLogging(options =>
     {
+        var isProduction = app.Environment.IsProduction();
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
         {
             diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
             diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-            diagnosticContext.Set("RemoteIP", httpContext.Connection.RemoteIpAddress);
-            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+            var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+
+            diagnosticContext.Set("RemoteIP", isProduction ? HashForLog(remoteIp) : remoteIp ?? string.Empty);
+            diagnosticContext.Set("UserAgent", isProduction ? HashForLog(userAgent) : userAgent);
         };
     });
 
@@ -111,4 +108,15 @@ finally
 {
     Log.Information("Shutting down InEx application");
     Log.CloseAndFlush();
+}
+
+static string HashForLog(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return string.Empty;
+    }
+
+    var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+    return Convert.ToHexString(bytes[..8]);
 }
