@@ -32,7 +32,6 @@ public class TransactionsController : ApiControllerBase
 
     public const string PostAddRoute = "";
     public const string PostAddTransferRoute = "transfer";
-    public const string PostImportRoute = "import/{mode}";
 
     public const string PutUpdateRoute = "{id}";
 
@@ -43,9 +42,8 @@ public class TransactionsController : ApiControllerBase
 
     #region Constructors
 
-    public TransactionsController(ITransactionService transactionService, ICSVService csvService)
+    public TransactionsController(ITransactionService transactionService)
     {
-        _csvService = csvService;
         _transactionService = transactionService;
     }
 
@@ -211,55 +209,8 @@ public class TransactionsController : ApiControllerBase
         }
     }
 
-    /// <summary>
-    /// Imports transactions from a file
-    /// </summary> 
-    /// <param name="mode">Import data mode (FENTURY, INEX)</param>
-    /// <param name="file">File with data</param>
-    [HttpPost]
-    [Route(PostImportRoute)]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(ResponseDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> ImportTransactions(string mode, [FromForm] IFormFile file)
-    {
-        int size;
-        IList<string> extensions;
-        try
-        {
-            switch (mode.ToEnum(ImportMode.NONE))
-            {
-                case ImportMode.FENTURY:
-                    {
-                        // supported file size (5 Mb)
-                        size = 5 * 1024 * 1024;
-                        // supported file extensions
-                        extensions = new List<string> { ".tsv" };
-
-                        await _transactionService.ImportFenturyTransactionsAsync(_csvService.ParseFenturyCSVTransactions(file.ValidateAndOpenReadStream(size, extensions), "\t").OrderBy(i => i.Date), CurrentUserId);
-
-                        return Ok(new ResponseDTO());
-                    }
-                case ImportMode.INEX:
-                    {
-                        size = 1;
-                        extensions = new List<string> { ".csv" };
-                        throw new NotImplementedException("Import type not supported");
-                    }
-                default:
-                    {
-                        throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.UploadFailed, MessageSeverity.Error, string.Format(InExMessage.GetText(MessageCode.UploadFailed))) });
-                    }
-            }
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.UploadFailed, e: e));
-        }
-    }
-
     #region Private Fields
 
-    private readonly ICSVService _csvService;
     private readonly ITransactionService _transactionService;
 
     #endregion Private Fields

@@ -24,7 +24,6 @@ public static class InExServicesExtensions
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IBudgetService, BudgetService>();
         services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<ICSVService, CSVService>();
         services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<IExchangeRateService, ExchangeRateService>();
