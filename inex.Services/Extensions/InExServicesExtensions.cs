@@ -17,8 +17,8 @@ public static class InExServicesExtensions
         string inexConnectionString = config.GetConnectionString("InExConnection")
         ?? throw new InvalidOperationException("InExConnection connection string is not configured.");
 
-        services.AddOptions<ExchangeApiSettings>().BindConfiguration("ExchangeApiSettings").ValidateDataAnnotations().ValidateOnStart();
-        services.AddOptions<FrankfurterApiSettings>().BindConfiguration("FrankfurterApiSettings").ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<ExchangeApiSettings>().BindConfiguration(ExchangeApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<FrankfurterApiSettings>().BindConfiguration(FrankfurterApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddAutoMapper(typeof(InExServicesExtensions).Assembly);
 
