@@ -16,14 +16,16 @@ namespace inex.Services.Services;
 /// Rates for past dates are fetched on-demand from the external currency API and cached in the database.
 /// Rates for today are never fetched from the provider (live rates are unsupported);
 /// instead, a temporary copy of the latest known rates is created as a placeholder.
+/// Supports multiple currency API providers with automatic fallback for resilience.
 /// </summary>
 public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
 
-    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, ICurrencyApiClient apiClient) : base(uowInEx, mapper)
+    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, ICurrencyApiClient apiClient, ICurrencyApiClient fallbackClient) : base(uowInEx, mapper)
     {
         _apiClient = apiClient;
+        _fallbackClient = fallbackClient;
     }
 
     #endregion Constructors
@@ -138,7 +140,8 @@ public class ExchangeRateService : Service, IExchangeRateService
 
     /// <summary>
     /// Calls the external currency API for the given date.
-    /// Returns <see langword="null"/> when there are no target currencies to fetch.
+    /// If the primary provider fails or returns no data, attempts to use the fallback provider.
+    /// Returns <see langword="null"/> when there are no target currencies to fetch or when both providers fail.
     /// </summary>
     private async Task<CurrencyApiResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
     {
@@ -147,7 +150,30 @@ public class ExchangeRateService : Service, IExchangeRateService
             return null;
         }
 
-        return await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
+        // Try primary provider first
+        try
+        {
+            var response = await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
+            if (response?.Data is not null && response.Data.Count > 0)
+            {
+                return response;
+            }
+        }
+        catch
+        {
+            // Log error in production - swallow for now and try fallback
+        }
+
+        // Try fallback provider
+        try
+        {
+            return await _fallbackClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
+        }
+        catch
+        {
+            // Log error in production - swallow and return null
+            return null;
+        }
     }
 
     /// <summary>
@@ -258,6 +284,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     #region Private Fields
 
     private readonly ICurrencyApiClient _apiClient;
+    private readonly ICurrencyApiClient _fallbackClient;
 
     #endregion Private Fields
 }
