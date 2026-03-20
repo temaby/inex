@@ -16,6 +16,7 @@ public static class InExServicesExtensions
         ?? throw new InvalidOperationException("InExConnection connection string is not configured.");
 
         services.AddOptions<ExchangeApiSettings>().BindConfiguration("ExchangeApiSettings").ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<FrankfurterApiSettings>().BindConfiguration("FrankfurterApiSettings").ValidateDataAnnotations().ValidateOnStart();
 
         services.AddAutoMapper(typeof(InExServicesExtensions).Assembly);
 
@@ -34,6 +35,14 @@ public static class InExServicesExtensions
             var settings = serviceProvider.GetRequiredService<IOptions<ExchangeApiSettings>>().Value;
             if (string.IsNullOrEmpty(settings.BaseUrl))
                 throw new InvalidOperationException("CurrencyAPI BaseUrl is not configured.");
+            client.BaseAddress = new Uri(settings.BaseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
+        services.AddHttpClient<FrankfurterApiClient>((serviceProvider, client) =>
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<FrankfurterApiSettings>>().Value;
+            if (string.IsNullOrEmpty(settings.BaseUrl))
+                throw new InvalidOperationException("Frankfurter API BaseUrl is not configured.");
             client.BaseAddress = new Uri(settings.BaseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
