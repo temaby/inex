@@ -5,6 +5,8 @@ using inex.Services.Services;
 using Microsoft.Extensions.Configuration;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using Microsoft.Extensions.Options;
+using AutoMapper;
+using inex.Data.Repositories.Base;
 
 namespace inex.Services.Extensions;
 
@@ -27,10 +29,11 @@ public static class InExServicesExtensions
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddScoped<ITransactionService, TransactionService>();
-        services.AddScoped<IExchangeRateService, ExchangeRateService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IBudgetReportService, BudgetReportService>();
-        services.AddHttpClient<ICurrencyApiClient, CurrencyApiClient>((serviceProvider, client) =>
+
+        // Register both currency API clients
+        services.AddHttpClient<CurrencyApiClient>((serviceProvider, client) =>
         {
             var settings = serviceProvider.GetRequiredService<IOptions<ExchangeApiSettings>>().Value;
             if (string.IsNullOrEmpty(settings.BaseUrl))
@@ -45,6 +48,16 @@ public static class InExServicesExtensions
                 throw new InvalidOperationException("Frankfurter API BaseUrl is not configured.");
             client.BaseAddress = new Uri(settings.BaseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
+
+        // Register ExchangeRateService with manual resolution of both clients
+        services.AddScoped<IExchangeRateService>(serviceProvider =>
+        {
+            var uow = serviceProvider.GetRequiredService<IInExUnitOfWork>();
+            var mapper = serviceProvider.GetRequiredService<IMapper>();
+            var primaryClient = serviceProvider.GetRequiredService<CurrencyApiClient>();
+            var fallbackClient = serviceProvider.GetRequiredService<FrankfurterApiClient>();
+            return new ExchangeRateService(uow, mapper, primaryClient, fallbackClient);
         });
 
         return services;

@@ -18,6 +18,7 @@ public class ExchangeRateServiceTests
     private readonly Mock<IInExUnitOfWork> _uowMock = new();
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<ICurrencyApiClient> _clientMock = new();
+    private readonly Mock<ICurrencyApiClient> _fallbackClientMock = new();
     private readonly Mock<IEditableRepository<ExchangeRate>> _exchangeRateRepoMock = new();
     private readonly Mock<IRepository<Currency>> _currencyRepoMock = new();
     private readonly Mock<IEditableRepository<User>> _userRepoMock = new();
@@ -34,7 +35,7 @@ public class ExchangeRateServiceTests
     // --- Helpers ---
 
     private ExchangeRateService CreateSut() =>
-        new ExchangeRateService(_uowMock.Object, _mapperMock.Object, _clientMock.Object);
+        new ExchangeRateService(_uowMock.Object, _mapperMock.Object, _clientMock.Object, _fallbackClientMock.Object);
 
     // AsAsyncQueryable() wraps a plain IEnumerable<T> so it satisfies both
     // IQueryable<T> (sync LINQ) and IAsyncEnumerable<T> (EF ToListAsync etc.).
@@ -263,6 +264,94 @@ public class ExchangeRateServiceTests
         // Assert — existing temporary rate was updated in-place, not recreated
         _exchangeRateRepoMock.Verify(r => r.Update(It.Is<ExchangeRate>(e => !e.IsTemporary && e.Rate == 1.5m)), Times.Once);
         _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.IsAny<ExchangeRate>()), Times.Never);
+        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_SingleDate_WhenPrimaryProviderFails_UsesFallbackProvider()
+    {
+        // Arrange
+        var pastDate = new DateTime(2026, 3, 15); // any past date, not today
+        var baseCurrency = "EUR";
+        var targetCode = "USD";
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
+            .Returns(UsersFor(1, baseCurrency));
+
+        _currencyRepoMock.Setup(r => r.Get(true, null))
+            .Returns(CurrenciesFor(targetCode));
+
+        // No rates cached — SyncRatesForDate will call the provider.
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(EmptyRates());
+
+        // Primary provider throws an exception (e.g., network error, rate limit)
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+            .ThrowsAsync(new HttpRequestException("Rate limit exceeded"));
+
+        // Fallback provider returns valid data
+        _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+            .ReturnsAsync(new CurrencyApiResponse
+            {
+                Data = new Dictionary<string, CurrencyData>
+                {
+                    [targetCode] = new CurrencyData { Code = targetCode, Value = 1.2m }
+                }
+            });
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.Get(1, pastDate);
+
+        // Assert — both providers were called, fallback succeeded
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.2m)), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_SingleDate_WhenPrimaryReturnsNull_UsesFallbackProvider()
+    {
+        // Arrange
+        var pastDate = new DateTime(2026, 3, 15); // any past date, not today
+        var baseCurrency = "EUR";
+        var targetCode = "USD";
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
+            .Returns(UsersFor(1, baseCurrency));
+
+        _currencyRepoMock.Setup(r => r.Get(true, null))
+            .Returns(CurrenciesFor(targetCode));
+
+        // No rates cached
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(EmptyRates());
+
+        // Primary provider returns null or empty response
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+            .ReturnsAsync((CurrencyApiResponse?)null);
+
+        // Fallback provider returns valid data
+        _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+            .ReturnsAsync(new CurrencyApiResponse
+            {
+                Data = new Dictionary<string, CurrencyData>
+                {
+                    [targetCode] = new CurrencyData { Code = targetCode, Value = 1.15m }
+                }
+            });
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.Get(1, pastDate);
+
+        // Assert — both providers were called, fallback succeeded
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.15m)), Times.Once);
         _uowMock.Verify(u => u.SaveAsync(), Times.Once);
     }
 }
