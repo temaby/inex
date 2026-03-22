@@ -43,10 +43,10 @@ public static class InExServicesExtensions
                 throw new InvalidOperationException("CurrencyAPI BaseUrl is not configured.");
             client.BaseAddress = new Uri(settings.BaseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = Timeout.InfiniteTimeSpan; // Rely on Polly timeout policy
         })
-        .AddPolicyHandler((services, request) => GetRetryPolicy(services, "CurrencyApiClient"))
-        .AddPolicyHandler((services, request) => GetCircuitBreakerPolicy(services, "CurrencyApiClient"))
+        .AddPolicyHandler((serviceProvider, _) => GetRetryPolicy(serviceProvider, "CurrencyApiClient"))
+        .AddPolicyHandler((serviceProvider, _) => GetCircuitBreakerPolicy(serviceProvider, "CurrencyApiClient"))
         .AddPolicyHandler(GetTimeoutPolicy());
 
         services.AddHttpClient<FrankfurterApiClient>((serviceProvider, client) =>
@@ -56,10 +56,10 @@ public static class InExServicesExtensions
                 throw new InvalidOperationException("Frankfurter API BaseUrl is not configured.");
             client.BaseAddress = new Uri(settings.BaseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = Timeout.InfiniteTimeSpan; // Rely on Polly timeout policy
         })
-        .AddPolicyHandler((services, request) => GetRetryPolicy(services, "FrankfurterApiClient"))
-        .AddPolicyHandler((services, request) => GetCircuitBreakerPolicy(services, "FrankfurterApiClient"))
+        .AddPolicyHandler((serviceProvider, _) => GetRetryPolicy(serviceProvider, "FrankfurterApiClient"))
+        .AddPolicyHandler((serviceProvider, _) => GetCircuitBreakerPolicy(serviceProvider, "FrankfurterApiClient"))
         .AddPolicyHandler(GetTimeoutPolicy());
 
         // Register ExchangeRateService with manual resolution of both clients
@@ -80,8 +80,10 @@ public static class InExServicesExtensions
     /// Retries up to 3 times with delays of 2s, 4s, and 8s respectively.
     /// Handles 5xx errors, 408 Request Timeout, and 429 Too Many Requests.
     /// </summary>
-    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider services, string clientName)
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, string clientName)
     {
+        var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("InEx.Resilience");
+
         return HttpPolicyExtensions
             .HandleTransientHttpError() // Handles 5xx and 408
             .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests) // 429
@@ -90,8 +92,6 @@ public static class InExServicesExtensions
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 onRetry: (outcome, timespan, retryCount, context) =>
                 {
-                    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("InEx.Resilience");
                     logger.LogWarning(
                         "Retry {RetryCount} for {ClientName} after {Delay}ms due to {Reason}. Status: {StatusCode}",
                         retryCount,
@@ -108,8 +108,10 @@ public static class InExServicesExtensions
     /// Circuit stays open for 30 seconds before attempting to close.
     /// Prevents overwhelming a failing service with requests.
     /// </summary>
-    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IServiceProvider services, string clientName)
+    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IServiceProvider serviceProvider, string clientName)
     {
+        var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("InEx.Resilience");
+
         return HttpPolicyExtensions
             .HandleTransientHttpError()
             .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
@@ -118,8 +120,6 @@ public static class InExServicesExtensions
                 durationOfBreak: TimeSpan.FromSeconds(30),
                 onBreak: (outcome, duration) =>
                 {
-                    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("InEx.Resilience");
                     logger.LogError(
                         "Circuit breaker opened for {ClientName} for {Duration}s due to {Reason}. Status: {StatusCode}",
                         clientName,
@@ -130,14 +130,10 @@ public static class InExServicesExtensions
                 },
                 onReset: () =>
                 {
-                    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("InEx.Resilience");
                     logger.LogInformation("Circuit breaker reset for {ClientName}", clientName);
                 },
                 onHalfOpen: () =>
                 {
-                    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("InEx.Resilience");
                     logger.LogInformation("Circuit breaker half-open for {ClientName}, testing service", clientName);
                 });
     }
