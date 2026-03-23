@@ -8,6 +8,7 @@ using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Services.Base;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace inex.Services.Services;
 
@@ -22,10 +23,11 @@ public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
 
-    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, ICurrencyApiClient apiClient, ICurrencyApiClient fallbackClient) : base(uowInEx, mapper)
+    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, IExchangeRateClient apiClient, IExchangeRateClient fallbackClient, ILogger<ExchangeRateService> logger) : base(uowInEx, mapper)
     {
         _apiClient = apiClient;
         _fallbackClient = fallbackClient;
+        _logger = logger;
     }
 
     #endregion Constructors
@@ -123,7 +125,7 @@ public class ExchangeRateService : Service, IExchangeRateService
             return;
         }
 
-        CurrencyApiResponse? response = await FetchRatesForDate(requestedDate, baseCurrency, targetCurrencyCodes);
+        ExchangeRateResponse? response = await FetchRatesForDate(requestedDate, baseCurrency, targetCurrencyCodes);
 
         if (response?.Data is null || response.Data.Count == 0)
         {
@@ -143,7 +145,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// If the primary provider fails or returns no data, attempts to use the fallback provider.
     /// Returns <see langword="null"/> when there are no target currencies to fetch or when both providers fail.
     /// </summary>
-    private async Task<CurrencyApiResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
+    private async Task<ExchangeRateResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
     {
         if (targetCurrencyCodes.Count == 0)
         {
@@ -159,9 +161,9 @@ public class ExchangeRateService : Service, IExchangeRateService
                 return response;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Log error in production - swallow for now and try fallback
+            _logger.LogError(ex, "Primary currency API failed for {Date}/{BaseCurrency}. Trying fallback.", date.Date, baseCurrency);
         }
 
         // Try fallback provider
@@ -169,9 +171,9 @@ public class ExchangeRateService : Service, IExchangeRateService
         {
             return await _fallbackClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
         }
-        catch
+        catch (Exception ex)
         {
-            // Log error in production - swallow and return null
+            _logger.LogError(ex, "Fallback currency API failed for {Date}/{BaseCurrency}. No rates available.", date.Date, baseCurrency);
             return null;
         }
     }
@@ -181,7 +183,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Existing temporary rates are overwritten with actual values.
     /// Returns <see langword="true"/> if any record was inserted or updated (caller must save).
     /// </summary>
-    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, CurrencyApiResponse response)
+    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, ExchangeRateResponse response)
     {
         DateTime createdDate = date.Date;
 
@@ -191,7 +193,7 @@ public class ExchangeRateService : Service, IExchangeRateService
 
         bool hasChanges = false;
 
-        foreach (KeyValuePair<string, CurrencyData> item in response.Data)
+        foreach (KeyValuePair<string, ExchangeDateData> item in response.Data)
         {
             string toCode = string.IsNullOrWhiteSpace(item.Value.Code) ? item.Key : item.Value.Code;
             decimal value = item.Value.Value;
@@ -283,8 +285,9 @@ public class ExchangeRateService : Service, IExchangeRateService
 
     #region Private Fields
 
-    private readonly ICurrencyApiClient _apiClient;
-    private readonly ICurrencyApiClient _fallbackClient;
+    private readonly IExchangeRateClient _apiClient;
+    private readonly IExchangeRateClient _fallbackClient;
+    private readonly ILogger<ExchangeRateService> _logger;
 
     #endregion Private Fields
 }

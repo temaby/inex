@@ -1,11 +1,11 @@
 namespace inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 
-public class CurrencyApiResponse
+public class ExchangeRateResponse
 {
-    public Dictionary<string, CurrencyData> Data { get; set; } = new();
+    public Dictionary<string, ExchangeDateData> Data { get; set; } = new();
 }
 
-public class CurrencyData
+public class ExchangeDateData
 {
     public string Code { get; set; } = string.Empty;
     public decimal Value { get; set; }
