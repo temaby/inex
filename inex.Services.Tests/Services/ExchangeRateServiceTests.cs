@@ -5,6 +5,7 @@ using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using inex.Services.Models.Exceptions;
 using inex.Services.Services;
 using inex.Services.Tests.Helpers;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace inex.Services.Tests.Services;
@@ -17,8 +18,8 @@ public class ExchangeRateServiceTests
 {
     private readonly Mock<IInExUnitOfWork> _uowMock = new();
     private readonly Mock<IMapper> _mapperMock = new();
-    private readonly Mock<ICurrencyApiClient> _clientMock = new();
-    private readonly Mock<ICurrencyApiClient> _fallbackClientMock = new();
+    private readonly Mock<IExchangeRateClient> _clientMock = new();
+    private readonly Mock<IExchangeRateClient> _fallbackClientMock = new();
     private readonly Mock<IEditableRepository<ExchangeRate>> _exchangeRateRepoMock = new();
     private readonly Mock<IRepository<Currency>> _currencyRepoMock = new();
     private readonly Mock<IEditableRepository<User>> _userRepoMock = new();
@@ -35,7 +36,7 @@ public class ExchangeRateServiceTests
     // --- Helpers ---
 
     private ExchangeRateService CreateSut() =>
-        new ExchangeRateService(_uowMock.Object, _mapperMock.Object, _clientMock.Object, _fallbackClientMock.Object);
+        new ExchangeRateService(_uowMock.Object, _mapperMock.Object, _clientMock.Object, _fallbackClientMock.Object, NullLogger<ExchangeRateService>.Instance);
 
     // AsAsyncQueryable() wraps a plain IEnumerable<T> so it satisfies both
     // IQueryable<T> (sync LINQ) and IAsyncEnumerable<T> (EF ToListAsync etc.).
@@ -115,7 +116,7 @@ public class ExchangeRateServiceTests
 
         // Provider returns null (e.g. network error or unsupported date).
         _clientMock.Setup(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>()))
-            .ReturnsAsync((CurrencyApiResponse?)null);
+            .ReturnsAsync((ExchangeRateResponse?)null);
 
         var sut = CreateSut();
 
@@ -175,11 +176,11 @@ public class ExchangeRateServiceTests
 
         // Provider returns one rate for the requested date.
         _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
-            .ReturnsAsync(new CurrencyApiResponse
+            .ReturnsAsync(new ExchangeRateResponse
             {
-                Data = new Dictionary<string, CurrencyData>
+                Data = new Dictionary<string, ExchangeDateData>
                 {
-                    [targetCode] = new CurrencyData { Code = targetCode, Value = 1.2m }
+                    [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.2m }
                 }
             });
 
@@ -248,11 +249,11 @@ public class ExchangeRateServiceTests
 
         // Provider returns the actual rate for the date.
         _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
-            .ReturnsAsync(new CurrencyApiResponse
+            .ReturnsAsync(new ExchangeRateResponse
             {
-                Data = new Dictionary<string, CurrencyData>
+                Data = new Dictionary<string, ExchangeDateData>
                 {
-                    [targetCode] = new CurrencyData { Code = targetCode, Value = 1.5m }
+                    [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.5m }
                 }
             });
 
@@ -291,11 +292,11 @@ public class ExchangeRateServiceTests
 
         // Fallback provider returns valid data
         _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
-            .ReturnsAsync(new CurrencyApiResponse
+            .ReturnsAsync(new ExchangeRateResponse
             {
-                Data = new Dictionary<string, CurrencyData>
+                Data = new Dictionary<string, ExchangeDateData>
                 {
-                    [targetCode] = new CurrencyData { Code = targetCode, Value = 1.2m }
+                    [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.2m }
                 }
             });
 
@@ -331,15 +332,15 @@ public class ExchangeRateServiceTests
 
         // Primary provider returns null or empty response
         _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
-            .ReturnsAsync((CurrencyApiResponse?)null);
+            .ReturnsAsync((ExchangeRateResponse?)null);
 
         // Fallback provider returns valid data
         _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
-            .ReturnsAsync(new CurrencyApiResponse
+            .ReturnsAsync(new ExchangeRateResponse
             {
-                Data = new Dictionary<string, CurrencyData>
+                Data = new Dictionary<string, ExchangeDateData>
                 {
-                    [targetCode] = new CurrencyData { Code = targetCode, Value = 1.15m }
+                    [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.15m }
                 }
             });
 
