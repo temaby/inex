@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 
 namespace inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 
-public class FrankfurterApiClient : ICurrencyApiClient
+public class FrankfurterApiClient : IExchangeRateClient
 {
     private readonly HttpClient _httpClient;
 
@@ -11,7 +11,7 @@ public class FrankfurterApiClient : ICurrencyApiClient
         _httpClient = httpClient;
     }
 
-    public async Task<CurrencyApiResponse?> GetRatesAsync(DateTime date, string baseCurrency, string[] targetCurrencies)
+    public async Task<ExchangeRateResponse?> GetRatesAsync(DateTime date, string baseCurrency, string[] targetCurrencies)
     {
         var symbols = string.Join(",", targetCurrencies);
         var url = $"v1/{date:yyyy-MM-dd}?base={baseCurrency}&symbols={symbols}";
@@ -23,12 +23,12 @@ public class FrankfurterApiClient : ICurrencyApiClient
             return null;
         }
 
-        // Convert Frankfurter response format to our standard CurrencyApiResponse format
-        return new CurrencyApiResponse
+        // Convert Frankfurter response format to our standard ExchangeRateResponse format
+        return new ExchangeRateResponse
         {
             Data = response.Rates.ToDictionary(
                 kvp => kvp.Key,
-                kvp => new CurrencyData { Code = kvp.Key, Value = kvp.Value }
+                kvp => new ExchangeDateData { Code = kvp.Key, Value = kvp.Value }
             )
         };
     }

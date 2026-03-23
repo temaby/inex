@@ -1,25 +1,21 @@
 using System.Net.Http.Json;
-using Microsoft.Extensions.Configuration;
 
 namespace inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 
-public class CurrencyApiClient : ICurrencyApiClient
+public class CurrencyApiClient : IExchangeRateClient
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
 
-    public CurrencyApiClient(HttpClient httpClient, IConfiguration config)
+    public CurrencyApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _apiKey = config["ExchangeApiSettings:ApiKey"]
-                  ?? throw new ArgumentNullException("ExchangeApiSettings:ApiKey is missing");
     }
 
-    public async Task<CurrencyApiResponse?> GetRatesAsync(DateTime date, string baseCurrency, string[] targetCurrencies)
+    public async Task<ExchangeRateResponse?> GetRatesAsync(DateTime date, string baseCurrency, string[] targetCurrencies)
     {
         var codes = string.Join(",", targetCurrencies);
-        var url = $"historical?date={date:yyyy-MM-dd}&base_currency={baseCurrency}&currencies={codes}&apikey={_apiKey}";
+        var url = $"historical?date={date:yyyy-MM-dd}&base_currency={baseCurrency}&currencies={codes}";
 
-        return await _httpClient.GetFromJsonAsync<CurrencyApiResponse>(url);
+        return await _httpClient.GetFromJsonAsync<ExchangeRateResponse>(url);
     }
 }
