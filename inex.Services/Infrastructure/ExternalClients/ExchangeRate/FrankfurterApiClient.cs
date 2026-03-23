@@ -23,7 +23,7 @@ public class FrankfurterApiClient : IExchangeRateClient
             return null;
         }
 
-        // Convert Frankfurter response format to our standard CurrencyApiResponse format
+        // Convert Frankfurter response format to our standard ExchangeRateResponse format
         return new ExchangeRateResponse
         {
             Data = response.Rates.ToDictionary(
