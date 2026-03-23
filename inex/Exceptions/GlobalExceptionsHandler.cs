@@ -6,20 +6,13 @@ namespace inex.Exceptions;
 
 /// <summary>
 /// Generic global exception handler that converts all unhandled exceptions to RFC 7807 Problem Details.
-/// 
-/// SIMPLIFIED DESIGN: Handler is now decoupled from specific exception types.
-/// - Exceptions implement IHttpMappable to define their own mapping
-/// - Handler just orchestrates: log → map → serialize → respond
-/// - No dependency on InExException, MessageCode, or domain-specific classes
-/// 
-/// LEARNING: Strategy pattern (IHttpMappable) is more flexible than type-checking with switch.
 /// </summary>
-public class GlobalExceptionHandler : IExceptionHandler
+public class GlobalExceptionsHandler : IExceptionHandler
 {
-    private readonly ILogger<GlobalExceptionHandler> _logger;
+    private readonly ILogger<GlobalExceptionsHandler> _logger;
     private readonly IHostEnvironment _env;
 
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IHostEnvironment env)
+    public GlobalExceptionsHandler(ILogger<GlobalExceptionsHandler> logger, IHostEnvironment env)
     {
         _logger = logger;
         _env = env;
@@ -71,8 +64,12 @@ public class GlobalExceptionHandler : IExceptionHandler
         httpContext.Response.StatusCode = errorMapping.StatusCode;
         httpContext.Response.ContentType = "application/problem+json";
 
-        // Write Problem Details as JSON
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        // Write Problem Details as JSON with correct RFC 7807 content type
+        await httpContext.Response.WriteAsJsonAsync(
+            problemDetails,
+            options: null,
+            contentType: "application/problem+json",
+            cancellationToken: cancellationToken);
 
         return true;
     }
