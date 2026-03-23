@@ -35,11 +35,11 @@ try
     builder.Services.AddInExServices(builder.Configuration);
 
     // Register the global exception handler
-    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddExceptionHandler<GlobalExceptionsHandler>();
     builder.Services.AddProblemDetails();
 
     // Configure API behavior to return Problem Details for validation/model-binding errors
-    // This ensures 400 Bad Request for invalid input is also RFC 7807 compliant
+    // This ensures 422 Unprocessable Entity for invalid input is also RFC 7807 compliant
     builder.Services.Configure<ApiBehaviorOptions>(options =>
     {
         options.InvalidModelStateResponseFactory = context =>

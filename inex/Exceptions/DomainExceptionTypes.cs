@@ -3,8 +3,6 @@ namespace inex.Exceptions;
 /// <summary>
 /// Generic mapping abstraction: Any exception can define how it maps to HTTP.
 /// This decouples the handler from knowing specific exception types.
-/// 
-/// LEARNING: Strategy pattern allows exceptions to be responsible for their own mapping.
 /// </summary>
 public record HttpErrorMapping
 {
@@ -43,7 +41,6 @@ public abstract class DomainException : Exception, IHttpMappable
 /// Example: Concrete domain exceptions that don't need MessageCode enum.
 /// Each exception type knows its own HTTP semantics.
 /// </summary>
-/// 
 public class ResourceNotFoundException : DomainException
 {
     public string? ResourceType { get; }
