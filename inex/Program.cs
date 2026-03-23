@@ -7,6 +7,8 @@ using inex.Services.Extensions;
 using System.Security.Cryptography;
 using System.Text;
 using Serilog;
+using Microsoft.AspNetCore.Mvc;
+using inex.Exceptions;
 
 // ── 1. BUILDER PHASE ──
 
@@ -31,6 +33,36 @@ try
             .Enrich.FromLogContext());
 
     builder.Services.AddInExServices(builder.Configuration);
+
+    // Register the global exception handler
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
+
+    // Configure API behavior to return Problem Details for validation/model-binding errors
+    // This ensures 400 Bad Request for invalid input is also RFC 7807 compliant
+    builder.Services.Configure<ApiBehaviorOptions>(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var problemDetails = new ValidationProblemDetails(context.ModelState)
+            {
+                Type = "/errors/validation-failed",
+                Title = "One or more validation errors occurred.",
+                Status = StatusCodes.Status422UnprocessableEntity,
+                Detail = "See the errors field for details.",
+                Instance = context.HttpContext.Request.Path,
+            };
+
+            // Add trace ID for correlation
+            problemDetails.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id
+                ?? context.HttpContext.TraceIdentifier;
+
+            return new UnprocessableEntityObjectResult(problemDetails)
+            {
+                ContentTypes = { "application/problem+json" }
+            };
+        };
+    });
 
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
     builder.Services.AddCors(options =>
@@ -74,9 +106,10 @@ try
         };
     });
 
+    app.UseExceptionHandler();
+
     if (app.Environment.IsDevelopment())
     {
-        app.UseDeveloperExceptionPage();
         app.UseInExSwagger();
     }
     else
@@ -85,7 +118,11 @@ try
         app.UseHttpsRedirection();
         app.EnsureDatabaseInitialized();
     }
-    app.UseStaticFiles();
+    // Avoid noisy warning when wwwroot is not present in this SPA-hosted setup.
+    if (Directory.Exists(app.Environment.WebRootPath))
+    {
+        app.UseStaticFiles();
+    }
     app.UseSpaStaticFiles();
 
     app.UseRouting();

@@ -239,6 +239,90 @@
             </summary>
             <param name="ids">Transaction ids</param>
         </member>
+        <member name="T:inex.Exceptions.HttpErrorMapping">
+            <summary>
+            Generic mapping abstraction: Any exception can define how it maps to HTTP.
+            This decouples the handler from knowing specific exception types.
+            
+            LEARNING: Strategy pattern allows exceptions to be responsible for their own mapping.
+            </summary>
+        </member>
+        <member name="T:inex.Exceptions.IHttpMappable">
+            <summary>
+            Contract: Any exception can implement this to define its HTTP error mapping.
+            The handler calls this without needing to know the specific exception type.
+            </summary>
+        </member>
+        <member name="M:inex.Exceptions.IHttpMappable.ToHttpErrorMapping(System.Boolean)">
+            <summary>
+            Convert this exception into its HTTP Problem Details representation.
+            </summary>
+        </member>
+        <member name="T:inex.Exceptions.DomainException">
+            <summary>
+            Base class for domain exceptions that can be mapped to HTTP responses.
+            Simpler than InExException if you want a fresh start with fewer dependencies.
+            </summary>
+        </member>
+        <member name="T:inex.Exceptions.ResourceNotFoundException">
+            <summary>
+            Example: Concrete domain exceptions that don't need MessageCode enum.
+            Each exception type knows its own HTTP semantics.
+            </summary>
+            
+        </member>
+        <member name="T:inex.Exceptions.ExceptionMappingPolicy">
+            <summary>
+            Maps domain exceptions and message codes to HTTP status codes and RFC 7807 Problem Details.
+            This class serves as the contract for how errors are translated at the API boundary.
+            </summary>
+        </member>
+        <member name="M:inex.Exceptions.ExceptionMappingPolicy.MapMessageCodeToStatus(inex.Services.Models.Exceptions.MessageCode)">
+            <summary>
+            Mapping policy documentation:
+            - DataInvalid (101) -> 422 Unprocessable Entity (client data failed validation)
+            - NotFound (106) -> 404 Not Found (resource doesn't exist)
+            - AccessDenied (104) -> 403 Forbidden (user lacks permission)
+            - NotSupported (102) -> 400 Bad Request (operation not allowed)
+            - UploadFailed (103) -> 400 Bad Request (file upload issue)
+            - InternalError (105) -> 500 Internal Server Error (runtime/unexpected)
+            </summary>
+        </member>
+        <member name="M:inex.Exceptions.ExceptionMappingPolicy.GetPrimaryMessageCode(inex.Services.Models.Exceptions.InExException)">
+            <summary>
+            Get the primary (first/highest-severity) message code from an InExException.
+            </summary>
+        </member>
+        <member name="M:inex.Exceptions.ExceptionMappingPolicy.ExtractDomainErrors(inex.Services.Models.Exceptions.InExException)">
+            <summary>
+            Extract domain error details for extension field when multiple errors exist.
+            </summary>
+        </member>
+        <member name="M:inex.Exceptions.ExceptionMappingPolicy.MapExceptionTypeToStatus(System.Exception)">
+            <summary>
+            Map other exception types to status and title.
+            </summary>
+        </member>
+        <member name="T:inex.Exceptions.GlobalExceptionHandler">
+            <summary>
+            Generic global exception handler that converts all unhandled exceptions to RFC 7807 Problem Details.
+            
+            SIMPLIFIED DESIGN: Handler is now decoupled from specific exception types.
+            - Exceptions implement IHttpMappable to define their own mapping
+            - Handler just orchestrates: log → map → serialize → respond
+            - No dependency on InExException, MessageCode, or domain-specific classes
+            
+            LEARNING: Strategy pattern (IHttpMappable) is more flexible than type-checking with switch.
+            </summary>
+        </member>
+        <member name="M:inex.Exceptions.GlobalExceptionHandler.GetErrorMapping(System.Exception)">
+            <summary>
+            Get HTTP error mapping from exception.
+            Priority:
+            1. If exception is IHttpMappable, use its mapping
+            2. Otherwise, use default mapping for unknown exception
+            </summary>
+        </member>
         <member name="T:inex.Extensions.DatabaseExtensions">
             <summary>
             Extension methods for database initialization and migration
