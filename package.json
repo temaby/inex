@@ -1,0 +1,11 @@
+{
+  "name": "moitracrew",
+  "version": "1.0.0",
+  "description": "A Python project for MoitraCrew",
+  "main": "main.py",
+  "scripts": {
+    "test": "echo \"No tests specified for this Python project\" && exit 0"
+  },
+  "author": "",
+  "license": "ISC"
+}
