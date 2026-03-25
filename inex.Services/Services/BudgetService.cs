@@ -1,8 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
-using inex.Services.Models.Exceptions.Base;
-using inex.Services.Models.Exceptions;
+using inex.Services.Exceptions;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
@@ -30,7 +29,7 @@ public class BudgetService : InExService, IBudgetService
     public async Task<BudgetDetailsDTO> GetAsync(int id)
     {
         var budget = await DbInEx.BudgetRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         return Mapper.Map<BudgetDetailsDTO>(budget);
     }
 
@@ -86,15 +85,14 @@ public class BudgetService : InExService, IBudgetService
 
     public async Task<BudgetDetailsDTO> UpdateAsync(int id, BudgetUpdateDTO itemDTO, int userId)
     {
-        // check update details are valid
         if (itemDTO.Id != id)
         {
-            throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error) });
+            throw new ValidationFailedException($"Request body id ({itemDTO.Id}) does not match route id ({id}).");
         }
 
         // get item to update with categories loaded
         var source = await DbInEx.BudgetRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         // update item with new details
         source = Mapper.Map(itemDTO, source);
         source.UpdatedBy = userId;
@@ -224,7 +222,7 @@ public class BudgetService : InExService, IBudgetService
         await DbInEx.SaveAsync();
     }
 
-    private void ValidateCategoryUniqueness(int userId, int year, int month, IEnumerable<int> categoryIds, int? excludeBudgetId = null)
+    private void ValidateCategoryUniqueness(int userId, int year, int month, IEnumerable<int>? categoryIds, int? excludeBudgetId = null)
     {
         if (categoryIds == null || !categoryIds.Any()) return;
 
@@ -245,9 +243,9 @@ public class BudgetService : InExService, IBudgetService
                 .Select(c => c.Name)
                 .ToList();
 
-            throw new InExException(new List<IMessage>() {
-                    new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error, $"Categories already assigned in this period: {string.Join(", ", categoryNames)}")
-                });
+            throw new DomainRuleException(
+                "category-uniqueness",
+                $"Categories already assigned in this period: {string.Join(", ", categoryNames)}");
         }
     }
 

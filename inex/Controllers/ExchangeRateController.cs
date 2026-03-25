@@ -1,5 +1,4 @@
-﻿using inex.Controllers.Base;
-using inex.Services.Models.Exceptions;
+using inex.Controllers.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Services.Base;
@@ -35,27 +34,16 @@ public class ExchangeRateController : ApiControllerBase
 
     #region Public Interface
 
-    /// <summary>
-    /// Get exchange rates for a date
-    /// </summary>
+    /// <summary>Get exchange rates for a date</summary>
     /// <param name="date">Date</param>
-    /// <returns>
-    /// List of supported exchange rates
-    /// </returns>
+    /// <returns>List of supported exchange rates</returns>
     [HttpGet]
     [Route(GetDateRatesRoute)]
     [ProducesResponseType(typeof(IEnumerable<ExchangeRateDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult> Get(DateTime date)
     {
-        try
-        {
-            ResponseDataDTO<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date);
-            return Ok(resultsDTO);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        ResponseDataDTO<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date);
+        return Ok(resultsDTO);
     }
 
     #endregion Public Interface

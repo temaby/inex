@@ -1,33 +1,9 @@
-namespace inex.Exceptions;
+using inex.Services.Models.Common;
+
+namespace inex.Services.Exceptions;
 
 /// <summary>
-/// Generic mapping abstraction: Any exception can define how it maps to HTTP.
-/// This decouples the handler from knowing specific exception types.
-/// </summary>
-public record HttpErrorMapping
-{
-    public int StatusCode { get; init; }
-    public string Title { get; init; } = string.Empty;
-    public string TypeUri { get; init; } = string.Empty;
-    public string? Detail { get; init; }
-    public Dictionary<string, object>? Extensions { get; init; }
-}
-
-/// <summary>
-/// Contract: Any exception can implement this to define its HTTP error mapping.
-/// The handler calls this without needing to know the specific exception type.
-/// </summary>
-public interface IHttpMappable
-{
-    /// <summary>
-    /// Convert this exception into its HTTP Problem Details representation.
-    /// </summary>
-    HttpErrorMapping ToHttpErrorMapping(bool isDevelopment);
-}
-
-/// <summary>
-/// Base class for domain exceptions that can be mapped to HTTP responses.
-/// Simpler than InExException if you want a fresh start with fewer dependencies.
+/// Base class for domain exceptions that self-describe their HTTP mapping via IHttpMappable.
 /// </summary>
 public abstract class DomainException : Exception, IHttpMappable
 {
@@ -37,10 +13,7 @@ public abstract class DomainException : Exception, IHttpMappable
     public abstract HttpErrorMapping ToHttpErrorMapping(bool isDevelopment);
 }
 
-/// <summary>
-/// Example: Concrete domain exceptions that don't need MessageCode enum.
-/// Each exception type knows its own HTTP semantics.
-/// </summary>
+/// <summary>Resource was not found (404).</summary>
 public class ResourceNotFoundException : DomainException
 {
     public string? ResourceType { get; }
@@ -55,7 +28,7 @@ public class ResourceNotFoundException : DomainException
 
     public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
     {
-        StatusCode = StatusCodes.Status404NotFound,
+        StatusCode = 404,
         Title = "Resource Not Found",
         TypeUri = "/errors/not-found",
         Detail = Message,
@@ -67,29 +40,49 @@ public class ResourceNotFoundException : DomainException
     };
 }
 
+/// <summary>Input failed validation (422).</summary>
 public class ValidationFailedException : DomainException
 {
     public IList<string> Errors { get; }
 
-    public ValidationFailedException(string message, IList<string> errors)
+    public ValidationFailedException(string message, IList<string>? errors = null)
         : base(message)
     {
-        Errors = errors;
+        Errors = errors ?? [];
     }
 
     public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
     {
-        StatusCode = StatusCodes.Status422UnprocessableEntity,
+        StatusCode = 422,
         Title = "Validation Failed",
         TypeUri = "/errors/validation-failed",
         Detail = Message,
-        Extensions = new()
-        {
-            { "errors", Errors }
-        }
+        Extensions = new() { { "errors", Errors } }
     };
 }
 
+/// <summary>A business rule was violated (422).</summary>
+public class DomainRuleException : DomainException
+{
+    public string Rule { get; }
+
+    public DomainRuleException(string rule, string detail)
+        : base(detail)
+    {
+        Rule = rule;
+    }
+
+    public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
+    {
+        StatusCode = 422,
+        Title = "Business Rule Violation",
+        TypeUri = "/errors/domain-rule",
+        Detail = Message,
+        Extensions = new() { { "rule", Rule } }
+    };
+}
+
+/// <summary>Access is forbidden (403).</summary>
 public class AccessDeniedException : DomainException
 {
     public string? Reason { get; }
@@ -102,7 +95,7 @@ public class AccessDeniedException : DomainException
 
     public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
     {
-        StatusCode = StatusCodes.Status403Forbidden,
+        StatusCode = 403,
         Title = "Access Denied",
         TypeUri = "/errors/access-denied",
         Detail = Message,
@@ -110,20 +103,56 @@ public class AccessDeniedException : DomainException
     };
 }
 
+/// <summary>The requested operation is not supported (400).</summary>
 public class OperationNotSupportedException : DomainException
 {
-    public OperationNotSupportedException(string message)
-        : base(message) { }
+    public OperationNotSupportedException(string message) : base(message) { }
 
     public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
     {
-        StatusCode = StatusCodes.Status400BadRequest,
+        StatusCode = 400,
         Title = "Operation Not Supported",
         TypeUri = "/errors/not-supported",
         Detail = Message
     };
 }
 
+/// <summary>File upload failed validation (400).</summary>
+public class UploadFailedException : DomainException
+{
+    public UploadFailedException(string reason) : base(reason) { }
+
+    public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
+    {
+        StatusCode = 400,
+        Title = "Upload Failed",
+        TypeUri = "/errors/upload-failed",
+        Detail = Message
+    };
+}
+
+/// <summary>A conflict with existing state was detected (409).</summary>
+public class ConflictException : DomainException
+{
+    public object? ConflictingId { get; }
+
+    public ConflictException(string message, object? conflictingId = null)
+        : base(message)
+    {
+        ConflictingId = conflictingId;
+    }
+
+    public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
+    {
+        StatusCode = 409,
+        Title = "Conflict",
+        TypeUri = "/errors/conflict",
+        Detail = Message,
+        Extensions = ConflictingId is null ? null : new() { { "conflictingId", ConflictingId } }
+    };
+}
+
+/// <summary>An unexpected internal error occurred (500).</summary>
 public class InternalServerErrorException : DomainException
 {
     public InternalServerErrorException(string message, Exception? innerException = null)
@@ -131,7 +160,7 @@ public class InternalServerErrorException : DomainException
 
     public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
     {
-        StatusCode = StatusCodes.Status500InternalServerError,
+        StatusCode = 500,
         Title = "Internal Server Error",
         TypeUri = "/errors/internal-error",
         Detail = isDevelopment ? Message : "An error occurred processing your request."

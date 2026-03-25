@@ -1,14 +1,12 @@
-﻿using inex.Controllers.Base;
-using inex.Services.Models.Exceptions;
+using inex.Controllers.Base;
+using inex.Services.Models.Records.Budget;
+using inex.Services.Models.Records.Base;
+using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System;
-using inex.Services.Models.Records.Budget;
-using inex.Services.Models.Records.Data;
 using System.Collections.Generic;
-using inex.Services.Models.Records.Base;
+using System.Threading.Tasks;
 
 namespace inex.Controllers;
 
@@ -51,33 +49,19 @@ public class BudgetsController : ApiControllerBase
     [ProducesResponseType(typeof(BudgetDetailsDTO), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id)
     {
-        try
-        {
-            BudgetDetailsDTO resultDTO = await _budgetService.GetAsync(id);
-            return Ok(resultDTO);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        BudgetDetailsDTO resultDTO = await _budgetService.GetAsync(id);
+        return Ok(resultDTO);
     }
 
     /// <summary>Get list of budgets for a user</summary>
-    /// <returns>List of budgets with pagination metadata</returns>
+    /// <returns>List of budgets</returns>
     [HttpGet]
     [Route(GetAllRoute)]
     [ProducesResponseType(typeof(IEnumerable<BudgetDetailsDTO>), StatusCodes.Status200OK)]
     public ActionResult List(int? year = null, int? month = null)
     {
-        try
-        {
-            ResponseDataDTO<BudgetDetailsDTO> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
-            return Ok(resultsDTO);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        ResponseDataDTO<BudgetDetailsDTO> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
+        return Ok(resultsDTO);
     }
 
     /// <summary>Add a new budget</summary>
@@ -88,15 +72,8 @@ public class BudgetsController : ApiControllerBase
     [ProducesResponseType(typeof(ResponseCreateDTO), StatusCodes.Status200OK)]
     public async Task<ActionResult> Add(BudgetCreateDTO itemDTO)
     {
-        try
-        {
-            ResponseCreateDTO resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId);
-            return Ok(resultDTO);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        ResponseCreateDTO resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId);
+        return Ok(resultDTO);
     }
 
     /// <summary>Copy budgets from one month to another</summary>
@@ -105,15 +82,8 @@ public class BudgetsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> Copy(int sourceYear, int sourceMonth, int targetYear, int targetMonth)
     {
-        try
-        {
-            await _budgetService.CopyBudgetsAsync(CurrentUserId, sourceYear, sourceMonth, targetYear, targetMonth);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        await _budgetService.CopyBudgetsAsync(CurrentUserId, sourceYear, sourceMonth, targetYear, targetMonth);
+        return Ok();
     }
 
     /// <summary>Update an existing budget with new details</summary>
@@ -125,15 +95,8 @@ public class BudgetsController : ApiControllerBase
     [ProducesResponseType(typeof(BudgetDetailsDTO), StatusCodes.Status200OK)]
     public async Task<ActionResult> Update(int id, BudgetUpdateDTO itemDTO)
     {
-        try
-        {
-            BudgetDetailsDTO resultDTO = await _budgetService.UpdateAsync(id, itemDTO, CurrentUserId);
-            return Ok(resultDTO);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        BudgetDetailsDTO resultDTO = await _budgetService.UpdateAsync(id, itemDTO, CurrentUserId);
+        return Ok(resultDTO);
     }
 
     /// <summary>Delete a budget</summary>
@@ -142,15 +105,8 @@ public class BudgetsController : ApiControllerBase
     [Route(DeleteRoute)]
     public async Task<ActionResult> Delete(int id)
     {
-        try
-        {
-            await _budgetService.DeleteAsync(id);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        await _budgetService.DeleteAsync(id);
+        return Ok();
     }
 
     /// <summary>Delete a list of budgets</summary>
@@ -159,15 +115,8 @@ public class BudgetsController : ApiControllerBase
     [Route(DeleteListRoute)]
     public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids)
     {
-        try
-        {
-            await _budgetService.DeleteAsync(ids);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(BuildErrorMessage(MessageCode.InternalError, e: e));
-        }
+        await _budgetService.DeleteAsync(ids);
+        return Ok();
     }
 
     #region Private Fields

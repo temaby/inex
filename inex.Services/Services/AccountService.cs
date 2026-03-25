@@ -1,9 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
+using inex.Services.Exceptions;
 using inex.Services.Models.Enums;
-using inex.Services.Models.Exceptions;
-using inex.Services.Models.Exceptions.Base;
 using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
@@ -31,7 +30,7 @@ public class AccountService : InExService, IAccountService
     public async Task<AccountDetailsDTO> GetAsync(int id)
     {
         var account = await DbInEx.AccountRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         return Mapper.Map<AccountDetailsDTO>(account);
     }
 
@@ -76,15 +75,14 @@ public class AccountService : InExService, IAccountService
 
     public async Task<AccountDetailsDTO> UpdateAsync(int id, AccountUpdateDTO itemDTO, int userId)
     {
-        // check update details are valid
         if (itemDTO.Id != id)
         {
-            throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error) });
+            throw new ValidationFailedException($"Request body id ({itemDTO.Id}) does not match route id ({id}).");
         }
 
         // get item to update
         var source = await DbInEx.AccountRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         // update item with new details
         source = Mapper.Map(itemDTO, source);
         source.UpdatedBy = userId;
