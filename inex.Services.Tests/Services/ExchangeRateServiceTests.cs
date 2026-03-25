@@ -1,8 +1,8 @@
 using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
+using inex.Services.Exceptions;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
-using inex.Services.Models.Exceptions;
 using inex.Services.Services;
 using inex.Services.Tests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -66,7 +66,7 @@ public class ExchangeRateServiceTests
         var start = new DateTime(2026, 3, 10);
         var end = new DateTime(2026, 3, 5); // end before start — invalid range
 
-        await Assert.ThrowsAsync<InExException>(() => sut.Get(1, start, end));
+        await Assert.ThrowsAsync<ValidationFailedException>(() => sut.Get(1, start, end));
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using inex.Services.Models.Common;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;

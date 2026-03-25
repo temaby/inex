@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
@@ -6,8 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
-using inex.Services.Models.Exceptions;
-using inex.Services.Models.Exceptions.Base;
+using inex.Services.Exceptions;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.Transaction;
@@ -32,7 +31,7 @@ public class TransactionService : InExService, ITransactionService
     public async Task<TransactionDetailsDTO> GetAsync(int id)
     {
         var transaction = await DbInEx.TransactionRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
         return Mapper.Map<TransactionDetailsDTO>(transaction);
     }
 
@@ -102,15 +101,14 @@ public class TransactionService : InExService, ITransactionService
 
     public async Task<TransactionDetailsDTO> UpdateAsync(int id, TransactionUpdateDTO itemDTO, int userId)
     {
-        // check update details are valid
         if (itemDTO.Id != id)
         {
-            throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error) });
+            throw new ValidationFailedException($"Request body id ({itemDTO.Id}) does not match route id ({id}).");
         }
 
         // get item to update
         var source = await DbInEx.TransactionRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
 
         // update item with new details
         source = Mapper.Map(itemDTO, source);
@@ -252,4 +250,3 @@ public class TransactionService : InExService, ITransactionService
 
     #endregion Private Methods
 }
-

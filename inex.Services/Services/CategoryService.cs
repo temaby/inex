@@ -1,9 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
+using inex.Services.Exceptions;
 using inex.Services.Models.Enums;
-using inex.Services.Models.Exceptions;
-using inex.Services.Models.Exceptions.Base;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Data;
@@ -31,7 +30,7 @@ public class CategoryService : InExService, ICategoryService
     public async Task<CategoryDetailsDTO> GetAsync(int id)
     {
         var category = await DbInEx.CategoryRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         return Mapper.Map<CategoryDetailsDTO>(category);
     }
 
@@ -64,15 +63,14 @@ public class CategoryService : InExService, ICategoryService
 
     public async Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId)
     {
-        // check update details are valid
         if (itemDTO.Id != id)
         {
-            throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error) });
+            throw new ValidationFailedException($"Request body id ({itemDTO.Id}) does not match route id ({id}).");
         }
 
         // get item to update
         var source = await DbInEx.CategoryRepository.GetAsync(id)
-            ?? throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.NotFound, MessageSeverity.Error) });
+            ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         // update item with new details
         source = Mapper.Map(itemDTO, source);
         source.UpdatedBy = userId;

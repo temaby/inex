@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
+using inex.Services.Exceptions;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
-using inex.Services.Models.Exceptions;
-using inex.Services.Models.Exceptions.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Services.Base;
@@ -40,12 +39,12 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Today's slot is filled with temporary rates copied from the latest available date.
     /// Future dates are silently skipped.
     /// </summary>
-    /// <exception cref="InExException">Thrown when <paramref name="end"/> is before <paramref name="start"/>.</exception>
+    /// <exception cref="ValidationFailedException">Thrown when <paramref name="end"/> is before <paramref name="start"/>.</exception>
     public async Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "")
     {
         if (end < start)
         {
-            throw new InExException(new List<IMessage>() { new InExMessage(MessageCode.DataInvalid, MessageSeverity.Error) });
+            throw new ValidationFailedException("End date must be on or after start date.");
         }
 
         baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
