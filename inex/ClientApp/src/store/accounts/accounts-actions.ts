@@ -1,3 +1,4 @@
+import { parseApiError } from "../../utils/parseApiError";
 import { accountsActions } from "./accounts-slice";
 
 export const fetchAccounts = (mode: string) => {
@@ -6,7 +7,7 @@ export const fetchAccounts = (mode: string) => {
       const response = await fetch(`api/accounts?mode=${mode}`);
 
       if (!response.ok) {
-        throw new Error("Could not fetch accounts");
+        throw new Error(await parseApiError(response, "Could not fetch accounts"));
       }
       const responseJSON = await response.json();
 
@@ -16,7 +17,7 @@ export const fetchAccounts = (mode: string) => {
         })
       );
     } catch (error) {
-      // todo process error
+      dispatch(accountsActions.setError((error as Error).message));
     }
   };
 };

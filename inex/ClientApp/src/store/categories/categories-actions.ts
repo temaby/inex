@@ -1,3 +1,4 @@
+import { parseApiError } from "../../utils/parseApiError";
 import { categoriesActions } from "./categories-slice";
 
 const API_BASE = "api/categories";
@@ -9,7 +10,7 @@ export const fetchCategories = (mode: string) => {
             const response = await fetch(`${API_BASE}?mode=${mode}`);
 
             if (!response.ok) {
-                throw new Error("Could not fetch accounts");
+                throw new Error(await parseApiError(response, "Could not fetch categories"));
             }
             const responseJSON = await response.json();
 
@@ -38,7 +39,7 @@ export const createCategory = (name: string, description: string, isEnabled: boo
             });
 
             if (!response.ok) {
-                throw new Error("Could not create a transaction");
+                throw new Error(await parseApiError(response, "Could not create a category"));
             }
 
             const responseJSON = await response.json();
@@ -68,7 +69,7 @@ export const updateCategory = (id: number, name: string, description: string, is
             });
 
             if (!response.ok) {
-                throw new Error("Could not update a category");
+                throw new Error(await parseApiError(response, "Could not update a category"));
             }
 
             dispatch(categoriesActions.setLastUpdate());
