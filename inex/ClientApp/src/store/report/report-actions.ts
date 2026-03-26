@@ -1,6 +1,6 @@
-import { reportActions } from "./report-slice";
-
 import moment from "moment";
+import { parseApiError } from "../../utils/parseApiError";
+import { reportActions } from "./report-slice";
 
 export const fetchReport = (type: string, filter: any) => {
   return async (dispatch: any) => {
@@ -16,7 +16,7 @@ export const fetchReport = (type: string, filter: any) => {
       const response = await fetch(`api/reports/${type}${filterStr}`);
 
       if (!response.ok) {
-        throw new Error(`Could not fetch ${type} report`);
+        throw new Error(await parseApiError(response, `Could not fetch ${type} report`));
       }
       const responseJSON = await response.json();
 
@@ -27,9 +27,10 @@ export const fetchReport = (type: string, filter: any) => {
           currency: responseJSON.metadata.currency,
         })
       );
-      dispatch(reportActions.setIsLoading({ isLoading: false }));
     } catch (error) {
-      // todo process error
+      dispatch(reportActions.setError((error as Error).message));
+    } finally {
+      dispatch(reportActions.setIsLoading({ isLoading: false }));
     }
   };
 };
@@ -42,7 +43,7 @@ export const fetchHistory = (year: number, currency: string = "USD") => {
       const response = await fetch(`api/reports/history/${year}?currency=${currency}`);
 
       if (!response.ok) {
-        throw new Error(`Could not fetch history report`);
+        throw new Error(await parseApiError(response, "Could not fetch history report"));
       }
       const responseJSON = await response.json();
 
@@ -51,9 +52,10 @@ export const fetchHistory = (year: number, currency: string = "USD") => {
           history: responseJSON.data || [],
         })
       );
-      dispatch(reportActions.setIsLoading({ isLoading: false }));
     } catch (error) {
-      // todo process error
+      dispatch(reportActions.setError((error as Error).message));
+    } finally {
+      dispatch(reportActions.setIsLoading({ isLoading: false }));
     }
   };
 };

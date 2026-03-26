@@ -13,6 +13,7 @@ const reportSlice = createSlice({
     currency: "",
     filter: defaultFilter,
     isLoading: false,
+    error: null as string | null,
   },
   reducers: {
     setDetails(state, action) {
@@ -28,6 +29,9 @@ const reportSlice = createSlice({
     },
     setIsLoading(state, action) {
       state.isLoading = action.payload.isLoading;
+    },
+    setError(state, action) {
+      state.error = action.payload;
     },
   },
 });

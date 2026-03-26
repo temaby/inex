@@ -1,6 +1,7 @@
 import moment from "moment";
 import { Moment } from "moment";
 
+import { parseApiError } from "../../utils/parseApiError";
 import { transactionsActions } from "./transactions-slice";
 
 const API_BASE = "api/transactions";
@@ -22,7 +23,7 @@ export const fetchTransactions = (pageSize: number, pageNumber: number, filter: 
             const response = await fetch(`${API_BASE}?mode=active&pageSize=${pageSize}&pageNumber=${pageNumber}${filterStr}`);
 
             if (!response.ok) {
-                throw new Error("Could not fetch transactions");
+                throw new Error(await parseApiError(response, "Could not fetch transactions"));
             }
             const responseJSON = await response.json();
 
@@ -49,7 +50,7 @@ export const fetchTransactionsSummaryForAccounts = (ids: number[]) => {
             const response = await fetch(`api/accounts/details?mode=active&${idsStr.join("&")}`);
 
             if (!response.ok) {
-                throw new Error("Could not fetch transactions summary");
+                throw new Error(await parseApiError(response, "Could not fetch transactions summary"));
             }
             const responseJSON = await response.json();
 
@@ -75,12 +76,9 @@ export const createTransaction = (accountId: number, categoryId: number, amount:
             });
 
             if (!response.ok) {
-                throw new Error("Could not create a transaction");
+                throw new Error(await parseApiError(response, "Could not create a transaction"));
             }
 
-            const responseJSON = await response.json();
-            console.log(responseJSON);
-            
             dispatch(transactionsActions.setLastUpdate());
         } catch (error) {
             dispatch(transactionsActions.setError({ error: (error as Error).message }));
@@ -106,11 +104,8 @@ export const createTransfer = (accountFromId: number, accountToId: number, amoun
             });
 
             if (!response.ok) {
-                throw new Error("Could not create a transaction");
+                throw new Error(await parseApiError(response, "Could not create a transfer"));
             }
-
-            const responseJSON = await response.json();
-            console.log(responseJSON);
 
             dispatch(transactionsActions.setLastUpdate());
         } catch (error) {
@@ -137,7 +132,7 @@ export const updateTransaction = (id: number, accountId: number, categoryId: num
             });
 
             if (!response.ok) {
-                throw new Error("Could not update a transaction");
+                throw new Error(await parseApiError(response, "Could not update a transaction"));
             }
 
             dispatch(transactionsActions.setLastUpdate());
@@ -161,7 +156,7 @@ export const removeTransaction = (id: number) => {
             });
 
             if (!response.ok) {
-                throw new Error("Could not delete a transaction");
+                throw new Error(await parseApiError(response, "Could not delete a transaction"));
             }
 
             dispatch(transactionsActions.setLastUpdate());

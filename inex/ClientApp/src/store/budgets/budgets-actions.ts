@@ -1,19 +1,7 @@
+import { parseApiError } from "../../utils/parseApiError";
 import { budgetsActions } from "./budgets-slice";
 
 const API_BASE = "api/budgets";
-
-const handleResponseError = async (response: Response, defaultMessage: string) => {
-    try {
-        const errorData = await response.json();
-        if (errorData && errorData.messages && Array.isArray(errorData.messages)) {
-            const messages = errorData.messages.map((m: any) => m.text).join('; ');
-            if (messages) return new Error(messages);
-        }
-    } catch (e) {
-        // If parsing JSON fails, fall back to default message
-    }
-    return new Error(defaultMessage);
-};
 
 export const fetchBudgets = (year?: number, month?: number) => {
     return async (dispatch: any) => {
@@ -29,7 +17,7 @@ export const fetchBudgets = (year?: number, month?: number) => {
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw await handleResponseError(response, "Could not fetch budgets");
+                throw new Error(await parseApiError(response, "Could not fetch budgets"));
             }
             const responseJSON = await response.json();
             
@@ -67,7 +55,7 @@ export const copyBudgets = (
             });
 
             if (!response.ok) {
-                throw await handleResponseError(response, "Could not copy budgets");
+                throw new Error(await parseApiError(response, "Could not copy budgets"));
             }
 
             // Trigger refresh in the view
@@ -103,10 +91,8 @@ export const createBudget = (
             });
 
             if (!response.ok) {
-                throw await handleResponseError(response, "Could not create a budget");
+                throw new Error(await parseApiError(response, "Could not create a budget"));
             }
-
-            const responseJSON = await response.json();
 
             // Trigger refresh in the view
             dispatch(budgetsActions.setLastUpdate());
@@ -142,7 +128,7 @@ export const updateBudget = (
             });
 
             if (!response.ok) {
-                throw await handleResponseError(response, "Could not update a budget");
+                throw new Error(await parseApiError(response, "Could not update a budget"));
             }
 
             // Trigger refresh in the view
@@ -164,7 +150,7 @@ export const deleteBudget = (id: number) => {
             });
 
             if (!response.ok) {
-                throw await handleResponseError(response, "Could not delete a budget");
+                throw new Error(await parseApiError(response, "Could not delete a budget"));
             }
 
             // Trigger refresh in the view
