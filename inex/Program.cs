@@ -9,6 +9,7 @@ using System.Text;
 using Serilog;
 using Microsoft.AspNetCore.Mvc;
 using inex.Exceptions;
+using Microsoft.Extensions.FileProviders;
 
 // ── 1. BUILDER PHASE ──
 
@@ -38,8 +39,24 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionsHandler>();
     builder.Services.AddProblemDetails();
 
-    // Configure API behavior to return Problem Details for validation/model-binding errors
-    // This ensures 422 Unprocessable Entity for invalid input is also RFC 7807 compliant
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowLocalhost", policy =>
+        {
+            policy.WithOrigins(allowedOrigins ?? Array.Empty<string>())
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    });
+
+    builder.Services.AddControllers()
+        .AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition
+            = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
+
+    // Configure API behavior to return Problem Details for validation/model-binding errors.
+    // Must be called AFTER AddControllers() so our factory overrides the default 400 factory
+    // registered by ApiBehaviorOptionsSetup. This ensures 422 for invalid input, not 400.
     builder.Services.Configure<ApiBehaviorOptions>(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -57,37 +74,39 @@ try
             problemDetails.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id
                 ?? context.HttpContext.TraceIdentifier;
 
-            return new UnprocessableEntityObjectResult(problemDetails)
+            // Use ContentResult to bypass MVC formatter content-negotiation, which always
+            // writes application/json regardless of ContentTypes hints on ObjectResult.
+            var json = System.Text.Json.JsonSerializer.Serialize(problemDetails,
+                new System.Text.Json.JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+
+            return new ContentResult
             {
-                ContentTypes = { "application/problem+json" }
+                StatusCode = StatusCodes.Status422UnprocessableEntity,
+                ContentType = "application/problem+json; charset=utf-8",
+                Content = json
             };
         };
     });
 
-    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowLocalhost", policy =>
-        {
-            policy.WithOrigins(allowedOrigins ?? Array.Empty<string>())
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
-    });
-
-    builder.Services.AddControllers()
-        .AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition
-            = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
-
     builder.Services.AddInExSwagger();
-    builder.Services.AddSpaStaticFiles(config => config.RootPath = "ClientApp/build");
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<InExDbContext>();
+
+    var spaPath = Path.Combine(builder.Environment.ContentRootPath, "ClientApp/build");
+    if (!Directory.Exists(spaPath))
+    {
+        Log.Warning("SPA build directory not found at {SpaPath}. Static files might not be served correctly.", spaPath);
+    }
 
     // ── 2. BUILD ──
     var app = builder.Build();
 
     // ── 3. PIPELINE PHASE ──
+
+    app.UseExceptionHandler();
 
     // Add Serilog request logging middleware
     app.UseSerilogRequestLogging(options =>
@@ -106,8 +125,6 @@ try
         };
     });
 
-    app.UseExceptionHandler();
-
     if (app.Environment.IsDevelopment())
     {
         app.UseInExSwagger();
@@ -116,14 +133,35 @@ try
     {
         app.UseHsts();
         app.UseHttpsRedirection();
-        app.EnsureDatabaseInitialized();
     }
     // Avoid noisy warning when wwwroot is not present in this SPA-hosted setup.
     if (Directory.Exists(app.Environment.WebRootPath))
     {
         app.UseStaticFiles();
     }
-    app.UseSpaStaticFiles();
+
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(spaPath),
+        OnPrepareResponse = ctx =>
+        {
+            var headers = ctx.Context.Response.Headers;
+
+            headers.Append("X-Frame-Options", "DENY");
+            headers.Append("X-Content-Type-Options", "nosniff");
+
+            // Cache static assets for 1 year, except HTML files which should not be cached to ensure users get the latest version.
+            if (!ctx.File.Name.EndsWith(".html"))
+            {
+                ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+            }
+            else
+            {
+                headers.CacheControl = "no-cache, no-store, must-revalidate";
+                headers.Pragma = "no-cache";
+            }
+        }
+    });
 
     app.UseRouting();
 
@@ -132,7 +170,10 @@ try
     app.MapHealthChecks("/health");
     app.MapControllers();
 
-    app.MapFallbackToFile("index.html");
+    app.MapFallbackToFile("index.html", new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(spaPath)
+    });
 
     // ── 4. RUN ──
     app.Run();
