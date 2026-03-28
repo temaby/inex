@@ -13,6 +13,6 @@ public class Currency : NamedEntity
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    public ICollection<User> Users { get; } = new List<User>();
+    public ICollection<AppUser> Users { get; } = new List<AppUser>();
     public ICollection<Account> Accounts { get; } = new List<Account>();
 }

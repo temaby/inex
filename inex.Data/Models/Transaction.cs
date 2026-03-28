@@ -32,7 +32,7 @@ public class Transaction : AuditableEntity
     [Column("value", TypeName = "DECIMAL(12, 2)")]
     public decimal Value { get; set; }
 
-    public User User { get; set; } = null!;
+    public AppUser User { get; set; } = null!;
     public Account Account { get; set; } = null!;
     public Category Category { get; set; } = null!;
 

@@ -19,7 +19,7 @@ public sealed partial class InExUnitOfWork : UnitOfWork, IInExUnitOfWork
     #region Properties
 
     public IRepository<Currency> CurrencyRepository => _currencyRepository ?? (_currencyRepository = new Repository<Currency>((InExDbContext)_db));
-    public IEditableRepository<User> UserRepository => _userRepository ?? (_userRepository = new EditableRepository<User>((InExDbContext)_db));
+    public IRepository<AppUser> UserRepository => _userRepository ?? (_userRepository = new Repository<AppUser>((InExDbContext)_db));
     public IEditableRepository<Category> CategoryRepository => _categoryRepository ?? (_categoryRepository = new EditableRepository<Category>((InExDbContext)_db));
     public IEditableRepository<Budget> BudgetRepository => _budgetRepository ?? (_budgetRepository = new BudgetRepository((InExDbContext)_db));
     public IEditableRepository<Account> AccountRepository => _accountRepository ?? (_accountRepository = new EditableRepository<Account>((InExDbContext)_db));
@@ -55,7 +55,7 @@ public sealed partial class InExUnitOfWork : UnitOfWork, IInExUnitOfWork
     #region Private Fields
 
     private IRepository<Currency>? _currencyRepository;
-    private IEditableRepository<User>? _userRepository;
+    private IRepository<AppUser>? _userRepository;
     private IEditableRepository<Category>? _categoryRepository;
     private IEditableRepository<Budget>? _budgetRepository;
     private IEditableRepository<Account>? _accountRepository;
