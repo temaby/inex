@@ -20,7 +20,7 @@ public class Tag : NamedEntity
     [Column("tag_type", TypeName = "VARCHAR(5)")]
     public TagType Type { get; set; }
 
-    public User User { get; set; } = null!;
+    public AppUser User { get; set; } = null!;
 
     public ICollection<TransactionTagMap> TagTransactionDetails { get; } = new List<TransactionTagMap>();
 }

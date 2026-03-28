@@ -22,7 +22,7 @@ public class ExchangeRateServiceTests
     private readonly Mock<IExchangeRateClient> _fallbackClientMock = new();
     private readonly Mock<IEditableRepository<ExchangeRate>> _exchangeRateRepoMock = new();
     private readonly Mock<IRepository<Currency>> _currencyRepoMock = new();
-    private readonly Mock<IEditableRepository<User>> _userRepoMock = new();
+    private readonly Mock<IRepository<AppUser>> _userRepoMock = new();
 
     public ExchangeRateServiceTests()
     {
@@ -53,8 +53,8 @@ public class ExchangeRateServiceTests
 
     // Currency navigation property must be pre-populated because ResolveBaseCurrency
     // calls .First(u => u.Id == userId).Currency.Key without a separate join.
-    private static IQueryable<User> UsersFor(int id, string currencyKey) =>
-        new List<User> { new User { Id = id, Currency = new Currency { Key = currencyKey } } }
+    private static IQueryable<AppUser> AppUsersFor(int id, string currencyKey) =>
+        new List<AppUser> { new AppUser { Id = id, Currency = new Currency { Key = currencyKey } } }
             .AsAsyncQueryable();
 
     // --- Tests ---
@@ -77,8 +77,8 @@ public class ExchangeRateServiceTests
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         // Single-date delegates to the range overload which always calls ResolveTargetCurrencyCodes.
         _currencyRepoMock.Setup(r => r.Get(true, null))
@@ -104,8 +104,8 @@ public class ExchangeRateServiceTests
         var pastDate = new DateTime(2026, 3, 15); // any past date, not today
         var baseCurrency = "EUR";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor("USD"));
@@ -136,8 +136,8 @@ public class ExchangeRateServiceTests
         var today = DateTime.UtcNow.Date;
         var baseCurrency = "EUR";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         // Range overload always calls ResolveTargetCurrencyCodes before the loop.
         _currencyRepoMock.Setup(r => r.Get(true, null))
@@ -164,8 +164,8 @@ public class ExchangeRateServiceTests
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));
@@ -204,8 +204,8 @@ public class ExchangeRateServiceTests
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));
@@ -236,8 +236,8 @@ public class ExchangeRateServiceTests
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));
@@ -276,8 +276,8 @@ public class ExchangeRateServiceTests
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));
@@ -320,8 +320,8 @@ public class ExchangeRateServiceTests
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
-        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<User, object>>>()))
-            .Returns(UsersFor(1, baseCurrency));
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
 
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));

@@ -24,7 +24,7 @@ public class Account : NamedEntity
     [Column("is_enabled")]
     public bool IsEnabled { get; set; }
 
-    public User User { get; set; } = null!;
+    public AppUser User { get; set; } = null!;
     public Currency Currency { get; set; } = null!;
 
     public ICollection<Transaction> Transactions { get; } = new List<Transaction>();

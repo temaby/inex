@@ -32,7 +32,7 @@ public class Category : NamedEntity
     [MaxLength(15)]
     public string? SystemCode { get; set; }
 
-    public User User { get; set; } = null!;
+    public AppUser User { get; set; } = null!;
     public Category? ParentCategory { get; set; }
 
     public ICollection<Category> SubCategories { get; } = new List<Category>();

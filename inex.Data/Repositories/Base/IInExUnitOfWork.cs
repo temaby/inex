@@ -5,7 +5,7 @@ namespace inex.Data.Repositories.Base;
 public interface IInExUnitOfWork : IUnitOfWork
 {
     IRepository<Currency> CurrencyRepository { get; }
-    IEditableRepository<User> UserRepository { get; }
+    IRepository<AppUser> UserRepository { get; }
     IEditableRepository<Category> CategoryRepository { get; }
     IEditableRepository<Budget> BudgetRepository { get; }
     IEditableRepository<Account> AccountRepository { get; }

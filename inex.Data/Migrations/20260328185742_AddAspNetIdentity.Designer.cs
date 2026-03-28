@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using inex.Data;
 
@@ -11,9 +12,11 @@ using inex.Data;
 namespace inex.Data.Migrations
 {
     [DbContext(typeof(InExDbContext))]
-    partial class InExDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328185742_AddAspNetIdentity")]
+    partial class AddAspNetIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
