@@ -1,10 +1,11 @@
 import moment from "moment";
 import { Moment } from "moment";
 
-import { parseApiError } from "../../utils/parseApiError";
+import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import { transactionsActions } from "./transactions-slice";
 
-const API_BASE = "api/transactions";
+const API_BASE = "/transactions";
 
 export const fetchTransactions = (pageSize: number, pageNumber: number, filter: any) => {
     return async (dispatch: any) => {
@@ -20,20 +21,15 @@ export const fetchTransactions = (pageSize: number, pageNumber: number, filter: 
             const filterStr: string = accountIdsStr !== "" || categoryIdsStr !== "" || tagsStr !== "" || refsStr !== "" || startStr !== "" || endStr !== "" ?
                 `&filter=${accountIdsStr}${categoryIdsStr}${startStr}${endStr}${tagsStr}${refsStr}` : "";
 
-            const response = await fetch(`${API_BASE}?mode=active&pageSize=${pageSize}&pageNumber=${pageNumber}${filterStr}`);
+            const { data } = await apiClient.get(
+                `${API_BASE}?mode=active&pageSize=${pageSize}&pageNumber=${pageNumber}${filterStr}`
+            );
 
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not fetch transactions"));
-            }
-            const responseJSON = await response.json();
-
-            dispatch(transactionsActions.setTransactions({ items: responseJSON.data || [] }));
-            dispatch(transactionsActions.setTotal({ total: responseJSON.metadata.totalItems }));
+            dispatch(transactionsActions.setTransactions({ items: data.data || [] }));
+            dispatch(transactionsActions.setTotal({ total: data.metadata.totalItems }));
         } catch (error) {
-            dispatch(transactionsActions.setError({ error: (error as Error).message }));
-            console.log(error);
-        }
-        finally {
+            dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not fetch transactions") }));
+        } finally {
             dispatch(transactionsActions.setIsLoading({ isLoading: false }));
         }
     };
@@ -42,22 +38,11 @@ export const fetchTransactions = (pageSize: number, pageNumber: number, filter: 
 export const fetchTransactionsSummaryForAccounts = (ids: number[]) => {
     return async (dispatch: any) => {
         try {
-            const idsStr: string[] = [];
-
-            for (var i = 0; i < ids.length; i++) {
-                idsStr.push(`ids[${i}]=${ids[i]}`);
-            }
-            const response = await fetch(`api/accounts/details?mode=active&${idsStr.join("&")}`);
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not fetch transactions summary"));
-            }
-            const responseJSON = await response.json();
-
-            dispatch(transactionsActions.setTransactionsSummaryForAccounts({ items: responseJSON.data || [] }));
+            const idsStr = ids.map((id, i) => `ids[${i}]=${id}`).join("&");
+            const { data } = await apiClient.get(`/accounts/details?mode=active&${idsStr}`);
+            dispatch(transactionsActions.setTransactionsSummaryForAccounts({ items: data.data || [] }));
         } catch (error) {
-            dispatch(transactionsActions.setError({ error: (error as Error).message }));
-            console.log(error);
+            dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not fetch transactions summary") }));
         }
     };
 };
@@ -67,24 +52,15 @@ export const createTransaction = (accountId: number, categoryId: number, amount:
         try {
             dispatch(transactionsActions.setIsCreating({ isCreating: true }));
 
-            const newTransaction = { accountId, categoryId, amount, comment, created: date.format("YYYY-MM-DD") };
-
-            const response: Response = await fetch("api/transactions", {
-                method: "POST",
-                body: JSON.stringify(newTransaction),
-                headers: { "Content-Type": "application/json" },
+            await apiClient.post(API_BASE, {
+                accountId, categoryId, amount, comment,
+                created: date.format("YYYY-MM-DD"),
             });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not create a transaction"));
-            }
 
             dispatch(transactionsActions.setLastUpdate());
         } catch (error) {
-            dispatch(transactionsActions.setError({ error: (error as Error).message }));
-            console.log(error);
-        }
-        finally {
+            dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not create a transaction") }));
+        } finally {
             dispatch(transactionsActions.setIsCreating({ isCreating: false }));
         }
     };
@@ -95,24 +71,15 @@ export const createTransfer = (accountFromId: number, accountToId: number, amoun
         try {
             dispatch(transactionsActions.setIsCreating({ isCreating: true }));
 
-            const newTransaction = { accountFromId, accountToId, amountFrom, amountTo, comment, created: date.format("YYYY-MM-DD") };
-
-            const response: Response = await fetch(`${API_BASE}/transfer`, {
-                method: "POST",
-                body: JSON.stringify(newTransaction),
-                headers: { "Content-Type": "application/json" },
+            await apiClient.post(`${API_BASE}/transfer`, {
+                accountFromId, accountToId, amountFrom, amountTo, comment,
+                created: date.format("YYYY-MM-DD"),
             });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not create a transfer"));
-            }
 
             dispatch(transactionsActions.setLastUpdate());
         } catch (error) {
-            dispatch(transactionsActions.setError({ error: (error as Error).message }));
-            console.log(error);
-        }
-        finally {
+            dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not create a transfer") }));
+        } finally {
             dispatch(transactionsActions.setIsCreating({ isCreating: false }));
         }
     };
@@ -123,24 +90,15 @@ export const updateTransaction = (id: number, accountId: number, categoryId: num
         try {
             dispatch(transactionsActions.setIsUpdating({ isUpdating: true }));
 
-            const updatedTransaction = { id, accountId, categoryId, amount, comment, created: date.format("YYYY-MM-DD") };
-
-            const response: Response = await fetch(`${API_BASE}/${id}`, {
-                method: "PUT",
-                body: JSON.stringify(updatedTransaction),
-                headers: { "Content-Type": "application/json" },
+            await apiClient.put(`${API_BASE}/${id}`, {
+                id, accountId, categoryId, amount, comment,
+                created: date.format("YYYY-MM-DD"),
             });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not update a transaction"));
-            }
 
             dispatch(transactionsActions.setLastUpdate());
         } catch (error) {
-            dispatch(transactionsActions.setError({ error: (error as Error).message }));
-            console.log(error);
-        }
-        finally {
+            dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not update a transaction") }));
+        } finally {
             dispatch(transactionsActions.setIsUpdating({ isUpdating: false }));
         }
     };
@@ -151,20 +109,11 @@ export const removeTransaction = (id: number) => {
         try {
             dispatch(transactionsActions.setIsDeleting({ isDeleting: true }));
 
-            const response: Response = await fetch(`${API_BASE}/${id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not delete a transaction"));
-            }
-
+            await apiClient.delete(`${API_BASE}/${id}`);
             dispatch(transactionsActions.setLastUpdate());
         } catch (error) {
-            dispatch(transactionsActions.setError({ error: (error as Error).message }));
-            console.log(error);
-        }
-        finally {
+            dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not delete a transaction") }));
+        } finally {
             dispatch(transactionsActions.setIsDeleting({ isDeleting: false }));
         }
     };

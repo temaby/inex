@@ -1,4 +1,5 @@
-import { parseApiError } from "../../utils/parseApiError";
+import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import { budgetReportActions } from "./budgetReport-slice";
 
 export const fetchBudgetReport = (year: number, month: number, currency: string = "USD") => {
@@ -7,19 +8,16 @@ export const fetchBudgetReport = (year: number, month: number, currency: string 
             dispatch(budgetReportActions.setIsLoading(true));
             dispatch(budgetReportActions.setPeriod({ year, month }));
 
-            const response = await fetch(`api/reports/budget/comparison?year=${year}&month=${month}&currency=${currency}`);
+            const { data } = await apiClient.get(
+                `/reports/budget/comparison?year=${year}&month=${month}&currency=${currency}`
+            );
 
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Failed to fetch budget report"));
-            }
-
-            const data = await response.json();
             dispatch(budgetReportActions.setReportData({
                 items: data.data,
-                metadata: data.metadata
+                metadata: data.metadata,
             }));
         } catch (error: any) {
-            dispatch(budgetReportActions.setError(error.message));
+            dispatch(budgetReportActions.setError(parseAxiosError(error, "Failed to fetch budget report")));
         } finally {
             dispatch(budgetReportActions.setIsLoading(false));
         }

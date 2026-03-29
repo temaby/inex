@@ -12,6 +12,11 @@ namespace inex.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Disable FK checks so we can drop the old user table and re-add constraints
+            // pointing to the new AspNetUsers table before the first user row is inserted.
+            // MySQL does not retroactively validate existing rows when re-enabling checks.
+            migrationBuilder.Sql("SET FOREIGN_KEY_CHECKS=0;");
+
             migrationBuilder.DropForeignKey(
                 name: "account__user__FK",
                 table: "account");
@@ -478,6 +483,8 @@ namespace inex.Data.Migrations
                 principalTable: "AspNetUsers",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.Sql("SET FOREIGN_KEY_CHECKS=1;");
         }
 
         /// <inheritdoc />
