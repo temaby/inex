@@ -1,32 +1,30 @@
-import { parseApiError } from "../../utils/parseApiError";
+import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import { budgetsActions } from "./budgets-slice";
 
-const API_BASE = "api/budgets";
+const API_BASE = "/budgets";
 
 export const fetchBudgets = (year?: number, month?: number) => {
     return async (dispatch: any) => {
         try {
             dispatch(budgetsActions.setIsLoading({ isLoading: true }));
-            
-            let url = API_BASE;
-            const params = new URLSearchParams();
-            if (year !== undefined) params.append('year', year.toString());
-            if (month !== undefined) params.append('month', month.toString());
-            if (params.toString()) url += '?' + params.toString();
-            
-            const response = await fetch(url);
 
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not fetch budgets"));
-            }
-            const responseJSON = await response.json();
-            
-            const budgetItems = Array.isArray(responseJSON.data) ? responseJSON.data : (responseJSON.data ? [responseJSON.data] : []);
-            
+            const params = new URLSearchParams();
+            if (year !== undefined) params.append("year", year.toString());
+            if (month !== undefined) params.append("month", month.toString());
+            const query = params.toString() ? `?${params.toString()}` : "";
+
+            const { data } = await apiClient.get(`${API_BASE}${query}`);
+
+            const budgetItems = Array.isArray(data.data)
+                ? data.data
+                : data.data
+                ? [data.data]
+                : [];
+
             dispatch(budgetsActions.setBudgets({ items: budgetItems }));
         } catch (error) {
-            console.error("Error fetching budgets:", error);
-            dispatch(budgetsActions.setError({ error: (error as Error).message }));
+            dispatch(budgetsActions.setError({ error: parseAxiosError(error, "Could not fetch budgets") }));
         } finally {
             dispatch(budgetsActions.setIsLoading({ isLoading: false }));
         }
@@ -43,25 +41,17 @@ export const copyBudgets = (
         try {
             dispatch(budgetsActions.setIsCreating({ isCreating: true }));
 
-            const params = new URLSearchParams();
-            params.append('sourceYear', sourceYear.toString());
-            params.append('sourceMonth', sourceMonth.toString());
-            params.append('targetYear', targetYear.toString());
-            params.append('targetMonth', targetMonth.toString());
-
-            const response: Response = await fetch(`${API_BASE}/copy?${params.toString()}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const params = new URLSearchParams({
+                sourceYear: sourceYear.toString(),
+                sourceMonth: sourceMonth.toString(),
+                targetYear: targetYear.toString(),
+                targetMonth: targetMonth.toString(),
             });
 
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not copy budgets"));
-            }
-
-            // Trigger refresh in the view
+            await apiClient.post(`${API_BASE}/copy?${params.toString()}`);
             dispatch(budgetsActions.setLastUpdate());
         } catch (error) {
-            dispatch(budgetsActions.setError({ error: (error as Error).message }));
+            dispatch(budgetsActions.setError({ error: parseAxiosError(error, "Could not copy budgets") }));
             throw error;
         } finally {
             dispatch(budgetsActions.setIsCreating({ isCreating: false }));
@@ -82,22 +72,10 @@ export const createBudget = (
         try {
             dispatch(budgetsActions.setIsCreating({ isCreating: true }));
 
-            const newBudget = { key, name, description, value, categoryIds, year, month };
-
-            const response: Response = await fetch(API_BASE, {
-                method: "POST",
-                body: JSON.stringify(newBudget),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not create a budget"));
-            }
-
-            // Trigger refresh in the view
+            await apiClient.post(API_BASE, { key, name, description, value, categoryIds, year, month });
             dispatch(budgetsActions.setLastUpdate());
         } catch (error) {
-            dispatch(budgetsActions.setError({ error: (error as Error).message }));
+            dispatch(budgetsActions.setError({ error: parseAxiosError(error, "Could not create a budget") }));
             throw error;
         } finally {
             dispatch(budgetsActions.setIsCreating({ isCreating: false }));
@@ -119,22 +97,10 @@ export const updateBudget = (
         try {
             dispatch(budgetsActions.setIsUpdating({ isUpdating: true }));
 
-            const updatedBudget = { id, key, name, description, value, categoryIds, year, month };
-
-            const response: Response = await fetch(`${API_BASE}/${id}`, {
-                method: "PUT",
-                body: JSON.stringify(updatedBudget),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not update a budget"));
-            }
-
-            // Trigger refresh in the view
+            await apiClient.put(`${API_BASE}/${id}`, { id, key, name, description, value, categoryIds, year, month });
             dispatch(budgetsActions.setLastUpdate());
         } catch (error) {
-            dispatch(budgetsActions.setError({ error: (error as Error).message }));
+            dispatch(budgetsActions.setError({ error: parseAxiosError(error, "Could not update a budget") }));
             throw error;
         } finally {
             dispatch(budgetsActions.setIsUpdating({ isUpdating: false }));
@@ -145,18 +111,10 @@ export const updateBudget = (
 export const deleteBudget = (id: number) => {
     return async (dispatch: any) => {
         try {
-            const response: Response = await fetch(`${API_BASE}/${id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not delete a budget"));
-            }
-
-            // Trigger refresh in the view
+            await apiClient.delete(`${API_BASE}/${id}`);
             dispatch(budgetsActions.setLastUpdate());
         } catch (error) {
-            dispatch(budgetsActions.setError({ error: (error as Error).message }));
+            dispatch(budgetsActions.setError({ error: parseAxiosError(error, "Could not delete a budget") }));
             throw error;
         }
     };

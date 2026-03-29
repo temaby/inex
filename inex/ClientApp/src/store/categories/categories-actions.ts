@@ -1,25 +1,19 @@
-import { parseApiError } from "../../utils/parseApiError";
+import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import { categoriesActions } from "./categories-slice";
 
-const API_BASE = "api/categories";
+const API_BASE = "/categories";
 
 export const fetchCategories = (mode: string) => {
     return async (dispatch: any) => {
         try {
             dispatch(categoriesActions.setIsLoading({ isLoading: true }));
-            const response = await fetch(`${API_BASE}?mode=${mode}`);
 
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not fetch categories"));
-            }
-            const responseJSON = await response.json();
-
-            dispatch(categoriesActions.setCategories({ items: responseJSON.data || [] }));            
+            const { data } = await apiClient.get(`${API_BASE}?mode=${mode}`);
+            dispatch(categoriesActions.setCategories({ items: data.data || [] }));
         } catch (error) {
-            dispatch(categoriesActions.setError({ error: (error as Error).message }));
-            console.log(error);
-        }
-        finally {
+            dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not fetch categories") }));
+        } finally {
             dispatch(categoriesActions.setIsLoading({ isLoading: false }));
         }
     };
@@ -30,25 +24,10 @@ export const createCategory = (name: string, description: string, isEnabled: boo
         try {
             dispatch(categoriesActions.setIsCreating({ isCreating: true }));
 
-            const newCategory = { name, description, isEnabled };
-
-            const response: Response = await fetch(API_BASE, {
-                method: "POST",
-                body: JSON.stringify(newCategory),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not create a category"));
-            }
-
-            const responseJSON = await response.json();
-            console.log(responseJSON);
-
+            await apiClient.post(API_BASE, { name, description, isEnabled });
             dispatch(categoriesActions.setLastUpdate());
         } catch (error) {
-            dispatch(categoriesActions.setError({ error: (error as Error).message }));
-            console.error(error);
+            dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not create a category") }));
         } finally {
             dispatch(categoriesActions.setIsCreating({ isCreating: false }));
         }
@@ -60,22 +39,10 @@ export const updateCategory = (id: number, name: string, description: string, is
         try {
             dispatch(categoriesActions.setIsUpdating({ isUpdating: true }));
 
-            const updatedCategory = { id, name, description, isEnabled };
-
-            const response: Response = await fetch(`${API_BASE}/${id}`, {
-                method: "PUT",
-                body: JSON.stringify(updatedCategory),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                throw new Error(await parseApiError(response, "Could not update a category"));
-            }
-
+            await apiClient.put(`${API_BASE}/${id}`, { id, name, description, isEnabled });
             dispatch(categoriesActions.setLastUpdate());
         } catch (error) {
-            dispatch(categoriesActions.setError({ error: (error as Error).message }));
-            console.error(error);
+            dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not update a category") }));
         } finally {
             dispatch(categoriesActions.setIsUpdating({ isUpdating: false }));
         }

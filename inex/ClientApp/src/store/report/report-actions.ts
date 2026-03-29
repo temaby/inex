@@ -1,5 +1,6 @@
 import moment from "moment";
-import { parseApiError } from "../../utils/parseApiError";
+import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import { reportActions } from "./report-slice";
 
 export const fetchReport = (type: string, filter: any) => {
@@ -8,27 +9,27 @@ export const fetchReport = (type: string, filter: any) => {
       dispatch(reportActions.setIsLoading({ isLoading: true }));
 
       const startStr: string =
-        filter.range.length === 2 && filter.range[0] > 0 ? `Start:${moment.unix(filter.range[0]).format("YYYY-MM-DD")};` : "";
+        filter.range.length === 2 && filter.range[0] > 0
+          ? `Start:${moment.unix(filter.range[0]).format("YYYY-MM-DD")};`
+          : "";
       const endStr: string =
-        filter.range.length === 2 && filter.range[1] > 0 ? `End:${moment.unix(filter.range[1]).format("YYYY-MM-DD")};` : "";
-      const filterStr: string = startStr !== "" || endStr !== "" ? `?filter=${startStr}${endStr}` : "";
+        filter.range.length === 2 && filter.range[1] > 0
+          ? `End:${moment.unix(filter.range[1]).format("YYYY-MM-DD")};`
+          : "";
+      const filterStr: string =
+        startStr !== "" || endStr !== "" ? `?filter=${startStr}${endStr}` : "";
 
-      const response = await fetch(`api/reports/${type}${filterStr}`);
-
-      if (!response.ok) {
-        throw new Error(await parseApiError(response, `Could not fetch ${type} report`));
-      }
-      const responseJSON = await response.json();
+      const { data } = await apiClient.get(`/reports/${type}${filterStr}`);
 
       dispatch(
         reportActions.setDetails({
-          title: responseJSON.metadata.name,
-          items: responseJSON.data || [],
-          currency: responseJSON.metadata.currency,
+          title: data.metadata.name,
+          items: data.data || [],
+          currency: data.metadata.currency,
         })
       );
     } catch (error) {
-      dispatch(reportActions.setError((error as Error).message));
+      dispatch(reportActions.setError(parseAxiosError(error, `Could not fetch ${type} report`)));
     } finally {
       dispatch(reportActions.setIsLoading({ isLoading: false }));
     }
@@ -40,20 +41,11 @@ export const fetchHistory = (year: number, currency: string = "USD") => {
     try {
       dispatch(reportActions.setIsLoading({ isLoading: true }));
 
-      const response = await fetch(`api/reports/history/${year}?currency=${currency}`);
+      const { data } = await apiClient.get(`/reports/history/${year}?currency=${currency}`);
 
-      if (!response.ok) {
-        throw new Error(await parseApiError(response, "Could not fetch history report"));
-      }
-      const responseJSON = await response.json();
-
-      dispatch(
-        reportActions.setHistory({
-          history: responseJSON.data || [],
-        })
-      );
+      dispatch(reportActions.setHistory({ history: data.data || [] }));
     } catch (error) {
-      dispatch(reportActions.setError((error as Error).message));
+      dispatch(reportActions.setError(parseAxiosError(error, "Could not fetch history report")));
     } finally {
       dispatch(reportActions.setIsLoading({ isLoading: false }));
     }
