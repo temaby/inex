@@ -152,6 +152,20 @@ public class ConflictException : DomainException
     };
 }
 
+/// <summary>Authentication failed — invalid credentials or token (401).</summary>
+public class AuthenticationFailedException : DomainException
+{
+    public AuthenticationFailedException(string message) : base(message) { }
+
+    public override HttpErrorMapping ToHttpErrorMapping(bool isDevelopment) => new()
+    {
+        StatusCode = 401,
+        Title = "Authentication Failed",
+        TypeUri = "/errors/authentication-failed",
+        Detail = Message
+    };
+}
+
 /// <summary>An unexpected internal error occurred (500).</summary>
 public class InternalServerErrorException : DomainException
 {

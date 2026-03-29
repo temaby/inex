@@ -4,6 +4,9 @@ namespace inex.Data.Models;
 
 public class AppUser : IdentityUser<int>
 {
+    /// <summary>EUR is currency id=1; user can update via profile.</summary>
+    public const int DefaultCurrencyId = 1;
+
     public int CurrencyId { get; set; }
 
     public Currency Currency { get; set; } = null!;
