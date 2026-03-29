@@ -1,3 +1,3 @@
 namespace inex.Services.Models.Records.Auth;
 
-public record UserProfileDTO(int Id, string Username, string Email);
+public record UserProfile(int Id, string Username, string Email);

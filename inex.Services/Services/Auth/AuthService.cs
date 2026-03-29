@@ -28,7 +28,7 @@ public class AuthService : IAuthService
         _jwt = jwtOptions.Value;
     }
 
-    public async Task<TokenResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResult> RegisterAsync(RegisterRequest request)
     {
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing is not null)
@@ -50,7 +50,7 @@ public class AuthService : IAuthService
         return await IssueTokenPairAsync(user);
     }
 
-    public async Task<TokenResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResult> LoginAsync(LoginRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password))
@@ -59,7 +59,7 @@ public class AuthService : IAuthService
         return await IssueTokenPairAsync(user);
     }
 
-    public async Task<TokenResponse> RefreshAsync(string refreshToken)
+    public async Task<AuthResult> RefreshAsync(string refreshToken)
     {
         var stored = await _db.RefreshTokens
             .Include(t => t.User)
@@ -76,8 +76,9 @@ public class AuthService : IAuthService
         {
             var withinGraceWindow = DateTime.UtcNow - stored.UsedAt.Value < TimeSpan.FromSeconds(_jwt.RefreshGraceWindowSeconds);
             if (withinGraceWindow && stored.ReplacedByToken is not null)
-                return new TokenResponse(
+                return new AuthResult(
                     _tokenService.GenerateAccessToken(stored.User),
+                    stored.ReplacedByToken,
                     _jwt.AccessTokenExpirySeconds);
 
             // Reuse outside grace window — potential token theft
@@ -99,8 +100,9 @@ public class AuthService : IAuthService
 
         await _db.SaveChangesAsync();
 
-        return new TokenResponse(
+        return new AuthResult(
             _tokenService.GenerateAccessToken(stored.User),
+            newRefreshToken,
             _jwt.AccessTokenExpirySeconds);
     }
 
@@ -118,7 +120,7 @@ public class AuthService : IAuthService
 
     // --- Private helpers ---
 
-    private async Task<TokenResponse> IssueTokenPairAsync(AppUser user)
+    private async Task<AuthResult> IssueTokenPairAsync(AppUser user)
     {
         var refreshToken = _tokenService.GenerateRefreshToken();
 
@@ -131,8 +133,9 @@ public class AuthService : IAuthService
 
         await _db.SaveChangesAsync();
 
-        return new TokenResponse(
+        return new AuthResult(
             _tokenService.GenerateAccessToken(user),
+            refreshToken,
             _jwt.AccessTokenExpirySeconds);
     }
 

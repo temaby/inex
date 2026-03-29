@@ -34,7 +34,7 @@ public class AccountService : InExService, IAccountService
         return Mapper.Map<AccountDetailsDTO>(account);
     }
 
-    public ResponseDataDTO<AccountDetailsDTO> Get(int userId, ActivityMode mode)
+    public ListResponse<AccountDetailsDTO> Get(int userId, ActivityMode mode)
     {
         IQueryable<Account> items = DbInEx.AccountRepository.Get(false, null, i => i.Currency).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
@@ -46,11 +46,11 @@ public class AccountService : InExService, IAccountService
         };
     }
 
-    public ResponseDataDTO<AccountListDetailsDTO> GetDetails(int userId, IEnumerable<int> ids)
+    public ListResponse<AccountListDetailsDTO> GetDetails(int userId, IEnumerable<int> ids)
     {
         IQueryable<Account> items = DbInEx.AccountRepository.Get(false, null, i => i.Currency).Where(i => i.UserId == userId && ids.Contains(i.Id)).OrderBy(i => i.Name);
         var accountDetails = DbInEx.TransactionRepository.Get(true).Where(i => ids.Contains(i.AccountId)).GroupBy(i => i.AccountId).Select(i => new { AccountId = i.Key, Value = i.Sum(j => j.Value) });
-        ResponseDataDTO<AccountListDetailsDTO> resultDTO = BuildDataResponse<Account, AccountListDetailsDTO>(items);
+        ListResponse<AccountListDetailsDTO> resultDTO = BuildDataResponse<Account, AccountListDetailsDTO>(items);
         var values = accountDetails.ToDictionary(i => i.AccountId, i => i.Value);
         return resultDTO with
         {
@@ -58,9 +58,8 @@ public class AccountService : InExService, IAccountService
         };
     }
 
-    public async Task<ResponseCreateDTO> CreateAsync(AccountCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(AccountCreateDTO itemDTO, int userId)
     {
-        ResponseCreateDTO resultDTO = new ResponseCreateDTO();
         // create an item
         Account account = Mapper.Map<Account>(itemDTO);
         account.UserId = userId;
@@ -70,7 +69,7 @@ public class AccountService : InExService, IAccountService
         // apply changes to the database
         await DbInEx.SaveAsync();
 
-        return resultDTO with { Id = result.Entity.Id };
+        return new CreatedResponse(result.Entity.Id);
     }
 
     public async Task<AccountDetailsDTO> UpdateAsync(int id, AccountUpdateDTO itemDTO, int userId)

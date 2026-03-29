@@ -9,7 +9,7 @@ namespace inex.Services.Services.Base;
 public interface ICategoryService : IInExService
 {
     Task<CategoryDetailsDTO> GetAsync(int id);
-    ResponseDataDTO<CategoryDetailsDTO> Get(int userId, ActivityMode mode);
-    Task<ResponseCreateDTO> CreateAsync(CategoryCreateDTO itemDTO, int userId);
+    ListResponse<CategoryDetailsDTO> Get(int userId, ActivityMode mode);
+    Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId);
     Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId);
 }

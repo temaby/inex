@@ -1,15 +1,20 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using inex.Data;
-using inex.Extensions;
-using inex.Services.Extensions;
 using System.Security.Cryptography;
 using System.Text;
-using Serilog;
+using inex.Data;
+using inex.Data.Models;
+using inex.Extensions;
+using inex.Infrastructure;
+using inex.Services.Extensions;
+using inex.Services.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
-using inex.Exceptions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using inex.Exceptions;
+using Serilog;
 
 // ── 1. BUILDER PHASE ──
 
@@ -34,6 +39,46 @@ try
             .Enrich.FromLogContext());
 
     builder.Services.AddInExServices(builder.Configuration);
+
+    // ── Identity (AddIdentityCore = UserManager + RoleManager only, no Cookie auth scheme) ──
+    builder.Services
+        .AddIdentityCore<AppUser>(options =>
+        {
+            options.Password.RequiredLength = 8;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireDigit = true;
+        })
+        .AddRoles<AppRole>()
+        .AddEntityFrameworkStores<InExDbContext>();
+
+    // ── JWT Authentication ──
+    var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
+    var jwtSecret = jwtSection["Secret"] ?? throw new InvalidOperationException("JwtOptions:Secret is not configured.");
+
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.MapInboundClaims = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSection["Issuer"],
+                ValidAudience = jwtSection["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+    builder.Services.AddAuthorization();
+
+    // ── ICurrentUserAccessor ──
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<ICurrentUserAccessor, HttpContextCurrentUserAccessor>();
 
     // Register the global exception handler
     builder.Services.AddExceptionHandler<GlobalExceptionsHandler>();
@@ -166,6 +211,9 @@ try
     app.UseRouting();
 
     app.UseCors("AllowLocalhost");
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapHealthChecks("/health");
     app.MapControllers();

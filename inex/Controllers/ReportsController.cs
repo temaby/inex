@@ -1,5 +1,6 @@
 using inex.Controllers.Base;
 using inex.Services.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.Report;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class ReportsController : ApiControllerBase
@@ -40,11 +42,11 @@ public class ReportsController : ApiControllerBase
     /// <returns>Category report details</returns>
     [HttpGet]
     [Route(GetCategoryReportRoute)]
-    [ProducesResponseType(typeof(ResponseDataExDTO<CategoryListDetailsDTO, ReportMetadataDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetCategoryReport(string currency = "USD", string filter = "")
     {
         IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, ReportMetadataDTO.FieldsList);
-        ResponseDataExDTO<CategoryListDetailsDTO, ReportMetadataDTO> resultsDTO = await _reportService.GetCategoriesReportData(CurrentUserId, currency, filters);
+        PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultsDTO = await _reportService.GetCategoriesReportData(CurrentUserId, currency, filters);
         return Ok(resultsDTO);
     }
 
@@ -54,7 +56,7 @@ public class ReportsController : ApiControllerBase
     /// <returns>Monthly history details</returns>
     [HttpGet]
     [Route(GetMonthlyHistoryRoute)]
-    [ProducesResponseType(typeof(ResponseDataDTO<MonthlyHistoryDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ListResponse<MonthlyHistoryDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetMonthlyHistory(int year, string currency = "USD")
     {
         return Ok(await _reportService.GetMonthlyHistory(CurrentUserId, year, currency));

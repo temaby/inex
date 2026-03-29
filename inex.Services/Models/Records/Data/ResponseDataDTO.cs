@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using inex.Services.Models.Records.Base;
+using System.Collections.Generic;
 
 namespace inex.Services.Models.Records.Data;
 
-public record ResponseDataDTO<T> : ResponseDTO
+public record ListResponse<T>
 {
     public IEnumerable<T> Data { get; init; } = new List<T>();
 }

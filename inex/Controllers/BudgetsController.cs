@@ -1,4 +1,5 @@
 using inex.Controllers.Base;
+using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Records.Budget;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class BudgetsController : ApiControllerBase
@@ -60,7 +62,7 @@ public class BudgetsController : ApiControllerBase
     [ProducesResponseType(typeof(IEnumerable<BudgetDetailsDTO>), StatusCodes.Status200OK)]
     public ActionResult List(int? year = null, int? month = null)
     {
-        ResponseDataDTO<BudgetDetailsDTO> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
+        ListResponse<BudgetDetailsDTO> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
         return Ok(resultsDTO);
     }
 
@@ -69,10 +71,10 @@ public class BudgetsController : ApiControllerBase
     /// <returns>Id of a new budget</returns>
     [HttpPost]
     [Route(PostAddRoute)]
-    [ProducesResponseType(typeof(ResponseCreateDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Add(BudgetCreateDTO itemDTO)
     {
-        ResponseCreateDTO resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId);
         return Ok(resultDTO);
     }
 

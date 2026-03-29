@@ -34,7 +34,7 @@ public class CategoryService : InExService, ICategoryService
         return Mapper.Map<CategoryDetailsDTO>(category);
     }
 
-    public ResponseDataDTO<CategoryDetailsDTO> Get(int userId, ActivityMode mode)
+    public ListResponse<CategoryDetailsDTO> Get(int userId, ActivityMode mode)
     {
         IQueryable<Category> items = DbInEx.CategoryRepository.Get(false).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
@@ -46,9 +46,8 @@ public class CategoryService : InExService, ICategoryService
         };
     }
 
-    public async Task<ResponseCreateDTO> CreateAsync(CategoryCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId)
     {
-        ResponseCreateDTO resultDTO = new ResponseCreateDTO();
         // create an item
         Category category = Mapper.Map<Category>(itemDTO);
         category.UserId = userId;
@@ -58,7 +57,7 @@ public class CategoryService : InExService, ICategoryService
         // apply changes to the database
         await DbInEx.SaveAsync();
 
-        return resultDTO with { Id = result.Entity.Id };
+        return new CreatedResponse(result.Entity.Id);
     }
 
     public async Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId)

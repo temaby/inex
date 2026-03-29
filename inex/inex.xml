@@ -38,6 +38,24 @@
             <summary>Delete a list of accounts</summary>
             <param name="ids">Account ids</param>
         </member>
+        <member name="M:inex.Controllers.AuthController.Register(inex.Services.Models.Records.Auth.RegisterRequest)">
+            <summary>Register a new user account</summary>
+        </member>
+        <member name="M:inex.Controllers.AuthController.Login(inex.Services.Models.Records.Auth.LoginRequest)">
+            <summary>Authenticate with email and password</summary>
+        </member>
+        <member name="M:inex.Controllers.AuthController.Refresh">
+            <summary>
+            Issue a new access token using the httpOnly refresh token cookie.
+            Implements token rotation — the old refresh token is invalidated.
+            </summary>
+        </member>
+        <member name="M:inex.Controllers.AuthController.Logout">
+            <summary>Revoke the current session and clear the refresh token cookie</summary>
+        </member>
+        <member name="M:inex.Controllers.AuthController.Me">
+            <summary>Return the profile of the currently authenticated user from JWT claims</summary>
+        </member>
         <member name="M:inex.Controllers.BudgetsController.Single(System.Int32)">
             <summary>Get budget details</summary>
             <param name="id">Budget id</param>
@@ -189,6 +207,18 @@
             <summary>
             Ensures the database is created (for development).
             This does not apply migrations, just ensures the database exists.
+            </summary>
+        </member>
+        <member name="T:inex.Infrastructure.HttpContextCurrentUserAccessor">
+            <summary>
+            Reads the current user ID from the JWT claims stored in HttpContext.
+            Registered as Scoped — one instance per request.
+            </summary>
+        </member>
+        <member name="T:inex.Infrastructure.ICurrentUserAccessor">
+            <summary>
+            Abstracts the current user identity so controllers and services
+            don't depend directly on HttpContext or Claims — easier to test.
             </summary>
         </member>
     </members>
