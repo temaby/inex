@@ -2,6 +2,8 @@
 using inex.Data.Extensions;
 using inex.Services.Services.Base;
 using inex.Services.Services;
+using inex.Services.Services.Auth;
+using inex.Services.Options;
 using Microsoft.Extensions.Configuration;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using Microsoft.Extensions.Options;
@@ -20,12 +22,16 @@ public static class InExServicesExtensions
         string inexConnectionString = config.GetConnectionString("InExConnection")
         ?? throw new InvalidOperationException("InExConnection connection string is not configured.");
 
+        services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<CurrencyApiSettings>().BindConfiguration(CurrencyApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<FrankfurterApiSettings>().BindConfiguration(FrankfurterApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddAutoMapper(typeof(InExServicesExtensions).Assembly);
 
         services.AddInExData(inexConnectionString);
+
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IBudgetService, BudgetService>();
