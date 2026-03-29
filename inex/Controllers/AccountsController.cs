@@ -1,5 +1,6 @@
 using inex.Controllers.Base;
 using inex.Services.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Base;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class AccountsController : ApiControllerBase
@@ -60,11 +62,11 @@ public class AccountsController : ApiControllerBase
     /// <returns>List of accounts</returns>
     [HttpGet]
     [Route(GetAllRoute)]
-    [ProducesResponseType(typeof(ResponseDataDTO<AccountDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ListResponse<AccountDetailsDTO>), StatusCodes.Status200OK)]
     public ActionResult List(string mode)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ResponseDataDTO<AccountDetailsDTO> resultsDTO = _accountService.Get(CurrentUserId, activityMode);
+        ListResponse<AccountDetailsDTO> resultsDTO = _accountService.Get(CurrentUserId, activityMode);
         return Ok(resultsDTO);
     }
 
@@ -73,10 +75,10 @@ public class AccountsController : ApiControllerBase
     /// <returns>List of accounts with status</returns>
     [HttpGet]
     [Route(GetStatusRoute)]
-    [ProducesResponseType(typeof(ResponseDataDTO<AccountListDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ListResponse<AccountListDetailsDTO>), StatusCodes.Status200OK)]
     public ActionResult DetailsForList([FromQuery] IEnumerable<int> ids)
     {
-        ResponseDataDTO<AccountListDetailsDTO> resultsDTO = _accountService.GetDetails(CurrentUserId, ids);
+        ListResponse<AccountListDetailsDTO> resultsDTO = _accountService.GetDetails(CurrentUserId, ids);
         return Ok(resultsDTO);
     }
 
@@ -85,10 +87,10 @@ public class AccountsController : ApiControllerBase
     /// <returns>Id of a new account</returns>
     [HttpPost]
     [Route(PostAddRoute)]
-    [ProducesResponseType(typeof(ResponseCreateDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Add(AccountCreateDTO itemDTO)
     {
-        ResponseCreateDTO resultDTO = await _accountService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _accountService.CreateAsync(itemDTO, CurrentUserId);
         return Ok(resultDTO);
     }
 

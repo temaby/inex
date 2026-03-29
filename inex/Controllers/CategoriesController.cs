@@ -1,5 +1,6 @@
 using inex.Controllers.Base;
 using inex.Services.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Category;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class CategoriesController : ApiControllerBase
@@ -63,7 +65,7 @@ public class CategoriesController : ApiControllerBase
     public ActionResult List(string mode)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ResponseDataDTO<CategoryDetailsDTO> resultsDTO = _categoryService.Get(CurrentUserId, activityMode);
+        ListResponse<CategoryDetailsDTO> resultsDTO = _categoryService.Get(CurrentUserId, activityMode);
         return Ok(resultsDTO);
     }
 
@@ -72,10 +74,10 @@ public class CategoriesController : ApiControllerBase
     /// <returns>Id of a new category</returns>
     [HttpPost]
     [Route(PostAddRoute)]
-    [ProducesResponseType(typeof(ResponseCreateDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Add(CategoryCreateDTO itemDTO)
     {
-        ResponseCreateDTO resultDTO = await _categoryService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _categoryService.CreateAsync(itemDTO, CurrentUserId);
         return Ok(resultDTO);
     }
 

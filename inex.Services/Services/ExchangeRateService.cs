@@ -40,7 +40,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Future dates are silently skipped.
     /// </summary>
     /// <exception cref="ValidationFailedException">Thrown when <paramref name="end"/> is before <paramref name="start"/>.</exception>
-    public async Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "")
+    public async Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "")
     {
         if (end < start)
         {
@@ -74,7 +74,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Returns exchange rates for a single <paramref name="date"/>.
     /// Delegates to the range overload with <c>start == end == date</c>.
     /// </summary>
-    public Task<ResponseDataDTO<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "")
+    public Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "")
         => Get(userId, date, date, baseCurrency);
 
     #endregion Public Interface

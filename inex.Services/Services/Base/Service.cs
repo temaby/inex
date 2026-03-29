@@ -28,7 +28,7 @@ public abstract class Service : IDisposable
 
     #endregion Properties
 
-    public ResponseDataExDTO<K, PaginationMetadataDTO> BuildPaginatedDataResponse<T, K>(IQueryable<T> items, int pageSize, int pageNumber)
+    public PagedResponse<K, PaginationMetadataDTO> BuildPaginatedDataResponse<T, K>(IQueryable<T> items, int pageSize, int pageNumber)
     {
         int total = items.Count();
 
@@ -38,27 +38,27 @@ public abstract class Service : IDisposable
             items = items.Skip(metadata.SkippedItems).Take(metadata.PerPage);
         }
 
-        return new ResponseDataExDTO<K, PaginationMetadataDTO>
+        return new PagedResponse<K, PaginationMetadataDTO>
         {
             Metadata = metadata,
             Data = Mapper.Map<IEnumerable<K>>(items)
         };
     }
 
-    public ResponseDataExDTO<K, ReportMetadataDTO> BuildReportDataResponse<T, K>(IEnumerable<T> items, string name, string currency, DateTime? start = null, DateTime? end = null)
+    public PagedResponse<K, ReportMetadataDTO> BuildReportDataResponse<T, K>(IEnumerable<T> items, string name, string currency, DateTime? start = null, DateTime? end = null)
     {
         int total = items.Count();
 
-        return new ResponseDataExDTO<K, ReportMetadataDTO>
+        return new PagedResponse<K, ReportMetadataDTO>
         {
             Metadata = new ReportMetadataDTO { Name = name, Currency = currency, Start = start, End = end },
             Data = Mapper.Map<IEnumerable<K>>(items)
         };
     }
 
-    public ResponseDataDTO<K> BuildDataResponse<T, K>(IEnumerable<T> items)
+    public ListResponse<K> BuildDataResponse<T, K>(IEnumerable<T> items)
     {
-        return new ResponseDataDTO<K>
+        return new ListResponse<K>
         {
             Data = Mapper.Map<IEnumerable<K>>(items)
         };

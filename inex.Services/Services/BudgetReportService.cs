@@ -35,7 +35,7 @@ public class BudgetReportService : Service, IBudgetReportService
         _categoryService = categoryService;
     }
 
-    public async Task<ResponseDataExDTO<BudgetComparisonDTO, ReportMetadataDTO>> GetBudgetComparison(int userId, int year, int month, string currency)
+    public async Task<PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>> GetBudgetComparison(int userId, int year, int month, string currency)
     {
         // 1. Get Budgets for the month
         var budgetsResponse = _budgetService.Get(userId, year, month);
@@ -175,7 +175,7 @@ public class BudgetReportService : Service, IBudgetReportService
             });
         }
 
-        return new ResponseDataExDTO<BudgetComparisonDTO, ReportMetadataDTO>
+        return new PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>
         {
             Data = comparisonList,
             Metadata = new ReportMetadataDTO

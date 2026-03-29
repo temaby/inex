@@ -1,4 +1,5 @@
 using inex.Controllers.Base;
+using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.Report;
 using inex.Services.Services.Base;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class ReportBudgetController : ApiControllerBase
@@ -35,7 +37,7 @@ public class ReportBudgetController : ApiControllerBase
     /// <returns>Budget comparison report</returns>
     [HttpGet]
     [Route(GetComparisonRoute)]
-    [ProducesResponseType(typeof(ResponseDataExDTO<BudgetComparisonDTO, ReportMetadataDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetComparison(int year, int month, string currency = "USD")
     {
         var result = await _budgetReportService.GetBudgetComparison(CurrentUserId, year, month, currency);

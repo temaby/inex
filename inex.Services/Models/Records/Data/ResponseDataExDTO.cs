@@ -1,6 +1,6 @@
-﻿namespace inex.Services.Models.Records.Data;
+namespace inex.Services.Models.Records.Data;
 
-public record ResponseDataExDTO<T, K> : ResponseDataDTO<T>
+public record PagedResponse<T, TMeta> : ListResponse<T>
 {
-    public K Metadata { get; init; } = default!;
+    public TMeta Metadata { get; init; } = default!;
 }

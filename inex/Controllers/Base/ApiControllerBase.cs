@@ -1,3 +1,4 @@
+using inex.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using inex.Services.Models.Enums;
@@ -18,5 +19,6 @@ public class ApiControllerBase : ControllerBase
         return date.Value;
     }
 
-    protected virtual int CurrentUserId => 1;
+    protected int CurrentUserId =>
+        HttpContext.RequestServices.GetRequiredService<ICurrentUserAccessor>().UserId;
 }

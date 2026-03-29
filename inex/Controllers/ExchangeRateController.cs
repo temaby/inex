@@ -1,4 +1,5 @@
 using inex.Controllers.Base;
+using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Services.Base;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class ExchangeRateController : ApiControllerBase
@@ -42,7 +44,7 @@ public class ExchangeRateController : ApiControllerBase
     [ProducesResponseType(typeof(IEnumerable<ExchangeRateDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult> Get(DateTime date)
     {
-        ResponseDataDTO<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date);
+        ListResponse<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date);
         return Ok(resultsDTO);
     }
 

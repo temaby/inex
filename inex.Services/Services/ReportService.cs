@@ -32,7 +32,7 @@ public class ReportService : Service, IReportService
 
     #region Public Interface
 
-    public async Task<ResponseDataDTO<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency)
+    public async Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency)
     {
         var start = new DateTime(year, 1, 1);
         var end = new DateTime(year, 12, 31);
@@ -93,10 +93,10 @@ public class ReportService : Service, IReportService
             });
         }
 
-        return new ResponseDataDTO<MonthlyHistoryDTO> { Data = result };
+        return new ListResponse<MonthlyHistoryDTO> { Data = result };
     }
 
-    public async Task<ResponseDataExDTO<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters)
+    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters)
     {
         DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.Start), new DateTime(2014, 01, 01));
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.End), new DateTime(2014, 01, 01));
@@ -106,7 +106,7 @@ public class ReportService : Service, IReportService
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;
 
-        ResponseDataExDTO<CategoryListDetailsDTO, ReportMetadataDTO> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
+        PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
 
         var categoryValues = new Dictionary<int, decimal>();
         foreach (TransactionDetailsDTO transaction in transactions)

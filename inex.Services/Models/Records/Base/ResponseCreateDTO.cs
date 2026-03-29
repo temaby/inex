@@ -1,6 +1,3 @@
-﻿namespace inex.Services.Models.Records.Base;
+namespace inex.Services.Models.Records.Base;
 
-public record ResponseCreateDTO : ResponseDTO
-{
-    public int Id { get; init; }
-}
+public record CreatedResponse(int Id);

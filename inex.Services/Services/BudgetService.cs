@@ -33,15 +33,14 @@ public class BudgetService : InExService, IBudgetService
         return Mapper.Map<BudgetDetailsDTO>(budget);
     }
 
-    public ResponseDataDTO<BudgetDetailsDTO> Get(int userId, int? year = null, int? month = null)
+    public ListResponse<BudgetDetailsDTO> Get(int userId, int? year = null, int? month = null)
     {
         IQueryable<Budget> items = DbInEx.BudgetRepository.Get(false, i => i.UserId == userId && (!year.HasValue || i.Year == year) && (!month.HasValue || i.Month == month), i => i.BudgetCategories).OrderBy(i => i.Name);
         return BuildDataResponse<Budget, BudgetDetailsDTO>(items.ToList());
     }
 
-    public async Task<ResponseCreateDTO> CreateAsync(BudgetCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(BudgetCreateDTO itemDTO, int userId)
     {
-        ResponseCreateDTO resultDTO = new ResponseCreateDTO();
         // create an item
         Budget budget = Mapper.Map<Budget>(itemDTO);
 
@@ -80,7 +79,7 @@ public class BudgetService : InExService, IBudgetService
             await DbInEx.SaveAsync();
         }
 
-        return resultDTO with { Id = result.Entity.Id };
+        return new CreatedResponse(result.Entity.Id);
     }
 
     public async Task<BudgetDetailsDTO> UpdateAsync(int id, BudgetUpdateDTO itemDTO, int userId)

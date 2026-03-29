@@ -35,21 +35,20 @@ public class TransactionService : InExService, ITransactionService
         return Mapper.Map<TransactionDetailsDTO>(transaction);
     }
 
-    public ResponseDataDTO<TransactionDetailsDTO> Get(int userId, ActivityMode mode, IDictionary<string, string> filters)
+    public ListResponse<TransactionDetailsDTO> Get(int userId, ActivityMode mode, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
         return BuildDataResponse<Transaction, TransactionDetailsDTO>(items);
     }
 
-    public ResponseDataExDTO<TransactionDetailsDTO, PaginationMetadataDTO> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
+    public PagedResponse<TransactionDetailsDTO, PaginationMetadataDTO> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
         return BuildPaginatedDataResponse<Transaction, TransactionDetailsDTO>(items, pageSize, pageNumber);
     }
 
-    public async Task<ResponseCreateDTO> CreateAsync(TransactionCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(TransactionCreateDTO itemDTO, int userId)
     {
-        ResponseCreateDTO resultDTO = new ResponseCreateDTO();
 
         Transaction transaction = Mapper.Map<Transaction>(itemDTO);
         transaction.UserId = userId;
@@ -61,7 +60,7 @@ public class TransactionService : InExService, ITransactionService
 
         await DbInEx.SaveAsync();
 
-        return resultDTO with { Id = result.Entity.Id };
+        return new CreatedResponse(result.Entity.Id);
     }
 
     public async Task<ResponseTransferDTO> CreateAsync(TransferCreateDTO itemDTO, int userId)

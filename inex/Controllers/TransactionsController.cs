@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using inex.Services.Helpers;
 namespace inex.Controllers;
 
 [Route(RoutePrefix)]
+[Authorize]
 [Produces("application/json")]
 [ApiController]
 public class TransactionsController : ApiControllerBase
@@ -70,7 +72,7 @@ public class TransactionsController : ApiControllerBase
     {
         IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, TransactionDetailsDTO.FieldsList);
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ResponseDataExDTO<TransactionDetailsDTO, PaginationMetadataDTO> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
+        PagedResponse<TransactionDetailsDTO, PaginationMetadataDTO> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
         return Ok(resultsDTO);
     }
 
@@ -79,10 +81,10 @@ public class TransactionsController : ApiControllerBase
     /// <returns>Id of a new transaction</returns>
     [HttpPost]
     [Route(PostAddRoute)]
-    [ProducesResponseType(typeof(ResponseCreateDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Add(TransactionCreateDTO itemDTO)
     {
-        ResponseCreateDTO resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId);
         return Ok(resultDTO);
     }
 
