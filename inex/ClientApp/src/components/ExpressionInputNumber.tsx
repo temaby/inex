@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "antd";
+import { Parser } from "expr-eval";
 
 interface ExpressionInputNumberProps {
     value?: number;
@@ -11,14 +12,13 @@ interface ExpressionInputNumberProps {
     style?: React.CSSProperties;
 }
 
+const parser = new Parser();
+
 const evaluateExpression = (input: string): number | null => {
     let expr = input.trim().replace(/^=/, "");
     expr = expr.replace(/,/g, '.');
-    // Only allow numbers, operators, dot, minus, and spaces
-    if (!/^[\d+\-*/. ()]+$/.test(expr)) return null;
     try {
-        // eslint-disable-next-line no-eval
-        const result = eval(expr);
+        const result = parser.evaluate(expr);
         if (typeof result === "number" && !isNaN(result) && isFinite(result)) {
             return result;
         }
