@@ -22,6 +22,8 @@ import ReportMonthlyHistory from "./pages/Reports/ReportMonthlyHistory";
 import ReportList from "./pages/Reports/ReportList";
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 const App = () => {
     const dispatch = useAppDispatch();
@@ -67,9 +69,9 @@ const App = () => {
 
     return (
         <Routes>
-            {/* Public routes — accessible without authentication (pages added in PR-5) */}
-            <Route path="/login" element={<div>Login page — coming in PR-5</div>} />
-            <Route path="/register" element={<div>Register page — coming in PR-5</div>} />
+            {/* Public routes — accessible without authentication */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             {/* Private routes — ProtectedRoute renders <Outlet /> or redirects to /login */}
             <Route element={<ProtectedRoute />}>
