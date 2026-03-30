@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.RateLimiting;
 using inex.Data;
 using inex.Data.Models;
 using inex.Extensions;
@@ -7,6 +9,7 @@ using inex.Infrastructure;
 using inex.Services.Extensions;
 using inex.Services.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +43,30 @@ try
             .Enrich.FromLogContext());
 
     builder.Services.AddInExServices(builder.Configuration);
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddPolicy(RateLimitPolicies.AuthFixedWindow, httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.OnRejected = async (context, ct) =>
+        {
+            if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                context.HttpContext.Response.Headers.RetryAfter =
+                    ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+
+            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", ct);
+        };
+    });
 
     // ── Identity (AddIdentityCore = UserManager + RoleManager only, no Cookie auth scheme) ──
     builder.Services
@@ -218,6 +245,8 @@ try
     app.UseRouting();
 
     app.UseCors("AllowLocalhost");
+
+    app.UseRateLimiter();
 
     app.UseAuthentication();
     app.UseAuthorization();

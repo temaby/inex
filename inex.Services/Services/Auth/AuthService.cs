@@ -15,21 +15,27 @@ public class AuthService : IAuthService
     private readonly InExDbContext _db;
     private readonly ITokenService _tokenService;
     private readonly JwtOptions _jwt;
+    private readonly InviteOptions _invite;
 
     public AuthService(
         UserManager<AppUser> userManager,
         InExDbContext db,
         ITokenService tokenService,
-        IOptions<JwtOptions> jwtOptions)
+        IOptions<JwtOptions> jwtOptions,
+        IOptions<InviteOptions> inviteOptions)
     {
         _userManager = userManager;
         _db = db;
         _tokenService = tokenService;
         _jwt = jwtOptions.Value;
+        _invite = inviteOptions.Value;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterRequest request)
     {
+        if (!string.Equals(request.InviteToken, _invite.Token, StringComparison.Ordinal))
+            throw new AccessDeniedException("Registration requires a valid invite token.", reason: "invalid-invite-token");
+
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing is not null)
             throw new ConflictException($"Email '{request.Email}' is already registered.");

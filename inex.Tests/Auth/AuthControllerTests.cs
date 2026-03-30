@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using inex.Tests.Infrastructure;
+using static inex.Tests.Infrastructure.InExWebApplicationFactory;
 
 namespace inex.Tests.Auth;
 
@@ -29,9 +30,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         var response = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
-            email    = $"{Guid.NewGuid()}@example.com",
-            password = "Password1!",
+            username    = $"user-{Guid.NewGuid():N}",
+            email       = $"{Guid.NewGuid()}@example.com",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -48,9 +50,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         var response = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
-            email    = $"{Guid.NewGuid()}@example.com",
-            password = "Password1!",
+            username    = $"user-{Guid.NewGuid():N}",
+            email       = $"{Guid.NewGuid()}@example.com",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -75,24 +78,62 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
         // rejecting either request independently of the email conflict we're testing.
         var first = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
+            username    = $"user-{Guid.NewGuid():N}",
             email,
-            password = "Password1!",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
 
         // Second registration with the same email — different username, same email
         var response = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
+            username    = $"user-{Guid.NewGuid():N}",
             email,
-            password = "Password1!",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("/errors/conflict", body.GetProperty("type").GetString());
+    }
+
+    [Fact]
+    public async Task Register_WithoutInviteToken_Returns422()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", new
+        {
+            username = $"user-{Guid.NewGuid():N}",
+            email    = $"{Guid.NewGuid()}@example.com",
+            password = "Password1!",
+            // inviteToken omitted — [Required] triggers model binding 422
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_WithWrongInviteToken_Returns403()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", new
+        {
+            username    = $"user-{Guid.NewGuid():N}",
+            email       = $"{Guid.NewGuid()}@example.com",
+            password    = "Password1!",
+            inviteToken = "definitely-wrong-token",
+        });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("/errors/access-denied", body.GetProperty("type").GetString());
+        Assert.Equal("invalid-invite-token", body.GetProperty("reason").GetString());
     }
 
     // ── Login ─────────────────────────────────────────────────────────────────
@@ -105,9 +146,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
+            username    = $"user-{Guid.NewGuid():N}",
             email,
-            password = "Password1!",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
 
         var response = await client.PostAsJsonAsync("/api/auth/login", new
@@ -130,9 +172,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
+            username    = $"user-{Guid.NewGuid():N}",
             email,
-            password = "Password1!",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
 
         var response = await client.PostAsJsonAsync("/api/auth/login", new
@@ -169,9 +212,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
-            email    = $"{Guid.NewGuid()}@example.com",
-            password = "Password1!",
+            username    = $"user-{Guid.NewGuid():N}",
+            email       = $"{Guid.NewGuid()}@example.com",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
         loginResponse.EnsureSuccessStatusCode();
 
@@ -237,9 +281,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
-            email    = $"{Guid.NewGuid()}@example.com",
-            password = "Password1!",
+            username    = $"user-{Guid.NewGuid():N}",
+            email       = $"{Guid.NewGuid()}@example.com",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
         });
 
         var response = await client.PostAsync("/api/auth/logout", null);
