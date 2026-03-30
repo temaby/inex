@@ -7,6 +7,7 @@ using inex.Infrastructure;
 using inex.Services.Extensions;
 using inex.Services.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,24 +54,30 @@ try
         .AddEntityFrameworkStores<InExDbContext>();
 
     // ── JWT Authentication ──
-    var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
-    var jwtSecret = jwtSection["Secret"] ?? throw new InvalidOperationException("JwtOptions:Secret is not configured.");
-
+    // JwtBearerOptions are configured through DI (IOptions<JwtOptions>) rather than
+    // reading directly from builder.Configuration. This ensures integration tests that
+    // override configuration via WebApplicationFactory.ConfigureWebHost see the correct
+    // values — direct config reads in Program.cs happen before test overrides are applied,
+    // whereas IOptions<T> is resolved lazily after all configuration sources are merged.
     builder.Services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
+        .AddJwtBearer();
+
+    builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+        .Configure<IOptions<JwtOptions>>((bearerOptions, jwtOptions) =>
         {
-            options.MapInboundClaims = false;
-            options.TokenValidationParameters = new TokenValidationParameters
+            var jwt = jwtOptions.Value;
+            bearerOptions.MapInboundClaims = false;
+            bearerOptions.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
+                ValidateIssuer           = true,
+                ValidateAudience         = true,
+                ValidateLifetime         = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSection["Issuer"],
-                ValidAudience = jwtSection["Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-                ClockSkew = TimeSpan.Zero
+                ValidIssuer              = jwt.Issuer,
+                ValidAudience            = jwt.Audience,
+                IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
+                ClockSkew                = TimeSpan.Zero
             };
         });
 

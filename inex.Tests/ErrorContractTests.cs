@@ -6,15 +6,34 @@ namespace inex.Tests;
 /// <summary>
 /// Contract tests: verify that all API error responses follow RFC 7807 ProblemDetails
 /// with the correct HTTP status code, content-type, and required extension fields.
+///
+/// IAsyncLifetime lets us await the authenticated client setup before any test runs.
+/// The alternative — calling .GetAwaiter().GetResult() in the constructor — works but
+/// blocks a thread and is considered bad practice in async codebases.
 /// </summary>
-public class ErrorContractTests : IClassFixture<InExWebApplicationFactory>
+[Collection(Infrastructure.IntegrationTestCollection.Name)]
+public class ErrorContractTests : IClassFixture<InExWebApplicationFactory>, IAsyncLifetime
 {
-    private readonly HttpClient _client;
+    private readonly InExWebApplicationFactory _factory;
+    private HttpClient _client = null!;
 
     public ErrorContractTests(InExWebApplicationFactory factory)
     {
-        _client = factory.CreateClient();
+        _factory = factory;
     }
+
+    public async Task InitializeAsync()
+    {
+        // Each test method gets its own class instance (xUnit design), so InitializeAsync
+        // runs once per test. Using a unique email prevents duplicate-registration conflicts
+        // when multiple test instances share the same factory and in-memory database.
+        var uid = Guid.NewGuid().ToString("N")[..8];
+        _client = await _factory.CreateAuthenticatedClientAsync(
+            email: $"contract-{uid}@example.com",
+            username: $"contract-{uid}");
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     // ── 404 Not Found ────────────────────────────────────────────────────────
 
