@@ -23,6 +23,7 @@ public static class InExServicesExtensions
         ?? throw new InvalidOperationException("InExConnection connection string is not configured.");
 
         services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<InviteOptions>().BindConfiguration(InviteOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<CurrencyApiSettings>().BindConfiguration(CurrencyApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<FrankfurterApiSettings>().BindConfiguration(FrankfurterApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
 

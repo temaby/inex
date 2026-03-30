@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using JwtOptions = inex.Services.Options.JwtOptions;
+using InviteOptions = inex.Services.Options.InviteOptions;
 
 namespace inex.Services.Tests.Services.Auth;
 
@@ -61,17 +62,22 @@ public class AuthServiceTests
         return mock;
     }
 
+    private static IOptions<InviteOptions> CreateInviteOptions(string token = "test-invite-token") =>
+        Microsoft.Extensions.Options.Options.Create(new InviteOptions { Token = token });
+
     private static AuthService CreateService(
         InExDbContext db,
         Mock<UserManager<AppUser>>? userManager  = null,
         Mock<ITokenService>?        tokenService = null,
-        int graceSeconds = 30)
+        int graceSeconds = 30,
+        string inviteToken = "test-invite-token")
     {
         return new AuthService(
             (userManager  ?? CreateUserManagerMock()).Object,
             db,
             (tokenService ?? CreateTokenServiceMock()).Object,
-            CreateJwtOptions(graceSeconds));
+            CreateJwtOptions(graceSeconds),
+            CreateInviteOptions(inviteToken));
     }
 
     // ── LoginAsync ────────────────────────────────────────────────────────────
@@ -144,7 +150,7 @@ public class AuthServiceTests
 
         await Assert.ThrowsAsync<ConflictException>(
             () => service.RegisterAsync(
-                new RegisterRequest { Username = "user", Email = "existing@example.com", Password = "Password1!" }));
+                new RegisterRequest { Username = "user", Email = "existing@example.com", Password = "Password1!", InviteToken = "test-invite-token" }));
     }
 
     // ── RefreshAsync ──────────────────────────────────────────────────────────

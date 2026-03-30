@@ -1,10 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using inex.Infrastructure;
 using inex.Services.Models.Records.Auth;
 using inex.Services.Options;
 using inex.Services.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace inex.Controllers;
@@ -28,6 +30,7 @@ public class AuthController : ControllerBase
     /// <summary>Register a new user account</summary>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.AuthFixedWindow)]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<TokenResponse>> Register([FromBody] RegisterRequest request)
     {
@@ -39,6 +42,7 @@ public class AuthController : ControllerBase
     /// <summary>Authenticate with email and password</summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.AuthFixedWindow)]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
     {
