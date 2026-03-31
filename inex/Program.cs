@@ -17,8 +17,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Amazon.CloudWatchLogs;
 using inex.Exceptions;
 using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using Serilog.Sinks.AwsCloudWatch;
 
 // ── 1. BUILDER PHASE ──
 
@@ -37,10 +41,30 @@ try
 
     // Upgrade from bootstrap logger to full logger from configuration/services.
     builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+    {
         loggerConfiguration
             .ReadFrom.Configuration(context.Configuration)
             .ReadFrom.Services(services)
-            .Enrich.FromLogContext());
+            .Enrich.FromLogContext();
+
+        // In production, write structured logs directly to CloudWatch.
+        // Auth uses the IAM instance profile (EC2) or task role (ECS) — no credentials in config.
+        // Console sink (stdout) is kept in appsettings.json and remains active for Docker log capture.
+        if (context.HostingEnvironment.IsProduction())
+        {
+            // AmazonCloudWatchLogsClient uses the default AWS credential chain:
+            // IAM instance profile (EC2) or task role (ECS) — no credentials in config.
+            var cloudWatchClient = new AmazonCloudWatchLogsClient();
+            loggerConfiguration.WriteTo.AmazonCloudWatch(new CloudWatchSinkOptions
+            {
+                LogGroupName = "/inex/api",
+                LogStreamNameProvider = new DefaultLogStreamProvider(),
+                TextFormatter = new CompactJsonFormatter(),
+                MinimumLogEventLevel = LogEventLevel.Information,
+                CreateLogGroup = true,
+            }, cloudWatchClient);
+        }
+    });
 
     builder.Services.AddInExServices(builder.Configuration);
 
