@@ -207,6 +207,13 @@ try
     // ── 2. BUILD ──
     var app = builder.Build();
 
+    // Auto-apply EF Core migrations on startup in production.
+    // Safe to call repeatedly — EF tracks applied migrations and skips already-applied ones.
+    if (app.Environment.IsProduction())
+    {
+        app.EnsureDatabaseInitialized();
+    }
+
     // ── P2: CORS guard ──
     // Warn loudly at startup if AllowedOrigins is empty outside development.
     // An empty list means CORS blocks all browser requests — the SPA won't work.

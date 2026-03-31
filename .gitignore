@@ -15,4 +15,5 @@ docker/mysql/mysql_data/
 docker/mysql/backup/
 scripts
 docs
-logs/bash.exe.stackdump
+**/logs/
+.pem

@@ -1,0 +1,19 @@
+# Prod overrides — used on EC2:
+# docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+services:
+  mysql:
+    # No port exposure — mysql is internal only, nginx/api access via Docker network
+    restart: always
+
+  api:
+    image: ${ECR_IMAGE_URI}   # e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/inex/api:latest
+    ports:
+      - "80:80"               # nginx on host proxies here; no direct external access
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ExchangeApiSettings__ApiKey: ${EXCHANGE_API_KEY}
+      JwtOptions__Secret: ${JWT_SECRET}
+      JwtOptions__Issuer: ${JWT_ISSUER}
+      JwtOptions__Audience: ${JWT_AUDIENCE}
+      InviteOptions__Token: ${INVITE_TOKEN}
+    restart: always

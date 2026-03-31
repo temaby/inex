@@ -1,0 +1,15 @@
+# Dev overrides — auto-loaded by docker compose up (no -f flag needed)
+services:
+  mysql:
+    ports:
+      - "3306:3306"   # expose to host so you can connect from IDE/tools
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ExchangeApiSettings__ApiKey: ${EXCHANGE_API_KEY}
