@@ -6,12 +6,12 @@ services:
     restart: always
 
   api:
-    image: ${ECR_IMAGE_URI}   # e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/inex/api:latest
+    image: ${ECR_IMAGE_URI} # e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/inex/api:latest
     ports:
-      - "80:80"               # nginx on host proxies here; no direct external access
+      - "80:80" # nginx on host proxies here; no direct external access
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ExchangeApiSettings__ApiKey: ${EXCHANGE_API_KEY}
+      CurrencyApiSettings__ApiKey: ${CURRENCY_API_KEY}
       JwtOptions__Secret: ${JWT_SECRET}
       JwtOptions__Issuer: ${JWT_ISSUER}
       JwtOptions__Audience: ${JWT_AUDIENCE}
