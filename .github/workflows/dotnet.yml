@@ -88,7 +88,7 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --parameters '{"commands":["cd /home/ubuntu/inex && ./load-secrets.sh && docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d --remove-orphans"]}' \
+            --parameters "{\"commands\":[\"aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }} && cd /home/ubuntu/inex && ./load-secrets.sh && docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d --remove-orphans\"]}" \
             --region ${{ secrets.AWS_REGION }} \
             --query "Command.CommandId" \
             --output text)
