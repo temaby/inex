@@ -76,7 +76,7 @@ jobs:
       - name: Build and push image (arm64)
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}"
-          docker buildx build --platform linux/arm64 -f docker/api/Dockerfile -t "$IMAGE_URI" --push .
+          docker buildx build --platform linux/arm64 --provenance=false -f docker/api/Dockerfile -t "$IMAGE_URI" --push .
 
 
       - name: Update ECR image URI in SSM
