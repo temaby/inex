@@ -22,6 +22,7 @@ services:
     restart: unless-stopped
 
   api:
+    image: ${ECR_IMAGE_URI}
     container_name: inex-api
     depends_on:
       mysql:

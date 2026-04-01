@@ -16,4 +16,4 @@ docker/mysql/backup/
 scripts
 docs
 **/logs/
-.pem
+*.pem
