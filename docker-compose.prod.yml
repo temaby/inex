@@ -8,9 +8,10 @@ services:
   api:
     image: ${ECR_IMAGE_URI} # e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/inex/api:latest
     ports:
-      - "80:80" # nginx on host proxies here; no direct external access
+      - "127.0.0.1:8080:80" # nginx on host proxies to 8080; container listens on 80 internally
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      AWS_DEFAULT_REGION: ${AWS_REGION}
       CurrencyApiSettings__ApiKey: ${CURRENCY_API_KEY}
       JwtOptions__Secret: ${JWT_SECRET}
       JwtOptions__Issuer: ${JWT_ISSUER}
