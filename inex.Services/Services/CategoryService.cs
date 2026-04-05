@@ -83,6 +83,17 @@ public class CategoryService : InExService, ICategoryService
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
+        var systemIds = DbInEx.CategoryRepository
+            .Get(true)
+            .Where(i => ids.Contains(i.Id) && i.IsSystem)
+            .Select(i => i.Id)
+            .ToList();
+
+        if (systemIds.Count > 0)
+            throw new DomainRuleException(
+                "system-category-delete",
+                $"System categories cannot be deleted: {string.Join(", ", systemIds)}.");
+
         DbInEx.CategoryRepository.Delete(DbInEx.CategoryRepository.Get(false).Where(i => ids.Contains(i.Id)));
         await DbInEx.SaveAsync(ct);
     }

@@ -32,6 +32,7 @@ public static class InExServicesExtensions
         services.AddInExData(inexConnectionString);
 
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IUserOnboardingService, UserOnboardingService>();
         services.AddScoped<IAuthService, AuthService>();
 
         services.AddScoped<IAccountService, AccountService>();

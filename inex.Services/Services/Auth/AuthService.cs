@@ -3,6 +3,7 @@ using inex.Data.Models;
 using inex.Services.Exceptions;
 using inex.Services.Models.Records.Auth;
 using inex.Services.Options;
+using inex.Services.Services.Base;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,7 @@ public class AuthService : IAuthService
     private readonly UserManager<AppUser> _userManager;
     private readonly InExDbContext _db;
     private readonly ITokenService _tokenService;
+    private readonly IUserOnboardingService _onboarding;
     private readonly JwtOptions _jwt;
     private readonly InviteOptions _invite;
 
@@ -21,12 +23,14 @@ public class AuthService : IAuthService
         UserManager<AppUser> userManager,
         InExDbContext db,
         ITokenService tokenService,
+        IUserOnboardingService onboarding,
         IOptions<JwtOptions> jwtOptions,
         IOptions<InviteOptions> inviteOptions)
     {
         _userManager = userManager;
         _db = db;
         _tokenService = tokenService;
+        _onboarding = onboarding;
         _jwt = jwtOptions.Value;
         _invite = inviteOptions.Value;
     }
@@ -42,9 +46,9 @@ public class AuthService : IAuthService
 
         var user = new AppUser
         {
-            UserName = request.Username,
-            Email = request.Email,
-            CurrencyId = AppUser.DefaultCurrencyId
+            UserName   = request.Username,
+            Email      = request.Email,
+            CurrencyId = request.CurrencyId,
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -52,6 +56,8 @@ public class AuthService : IAuthService
             throw new ValidationFailedException(
                 "Registration failed.",
                 result.Errors.Select(e => e.Description).ToList());
+
+        await _onboarding.SeedAsync(user.Id, request.CurrencyId, ct);
 
         return await IssueTokenPairAsync(user, ct);
     }
