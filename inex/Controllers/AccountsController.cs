@@ -51,9 +51,9 @@ public class AccountsController : ApiControllerBase
     [HttpGet]
     [Route(GetSingleRoute)]
     [ProducesResponseType(typeof(AccountDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Single(int id)
+    public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        AccountDetailsDTO resultDTO = await _accountService.GetAsync(id);
+        AccountDetailsDTO resultDTO = await _accountService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -88,9 +88,9 @@ public class AccountsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(AccountCreateDTO itemDTO)
+    public async Task<ActionResult> Add(AccountCreateDTO itemDTO, CancellationToken ct)
     {
-        CreatedResponse resultDTO = await _accountService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _accountService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -101,9 +101,9 @@ public class AccountsController : ApiControllerBase
     [HttpPut]
     [Route(PutUpdateRoute)]
     [ProducesResponseType(typeof(AccountDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, AccountUpdateDTO itemDTO)
+    public async Task<ActionResult> Update(int id, AccountUpdateDTO itemDTO, CancellationToken ct)
     {
-        AccountDetailsDTO resultDTO = await _accountService.UpdateAsync(id, itemDTO, CurrentUserId);
+        AccountDetailsDTO resultDTO = await _accountService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -111,9 +111,9 @@ public class AccountsController : ApiControllerBase
     /// <param name="id">Account id</param>
     [HttpDelete]
     [Route(DeleteRoute)]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _accountService.DeleteAsync(id);
+        await _accountService.DeleteAsync(id, ct);
         return Ok();
     }
 
@@ -121,9 +121,9 @@ public class AccountsController : ApiControllerBase
     /// <param name="ids">Account ids</param>
     [HttpDelete]
     [Route(DeleteListRoute)]
-    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids)
+    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _accountService.DeleteAsync(ids);
+        await _accountService.DeleteAsync(ids, ct);
         return Ok();
     }
 

@@ -21,9 +21,9 @@ public class EditableRepository<T> : Repository<T>, IEditableRepository<T> where
         return Db.Add(entity);
     }
 
-    public virtual async Task<EntityEntry<T>> CreateAsync(T entity)
+    public virtual async Task<EntityEntry<T>> CreateAsync(T entity, CancellationToken ct = default)
     {
-        return await Db.AddAsync(entity);
+        return await Db.AddAsync(entity, ct);
     }
 
     public virtual void Create(IEnumerable<T> entities)
@@ -31,9 +31,9 @@ public class EditableRepository<T> : Repository<T>, IEditableRepository<T> where
         Db.AddRange(entities);
     }
 
-    public virtual async Task CreateAsync(IEnumerable<T> entities)
+    public virtual async Task CreateAsync(IEnumerable<T> entities, CancellationToken ct = default)
     {
-        await Db.AddRangeAsync(entities);
+        await Db.AddRangeAsync(entities, ct);
     }
 
     public virtual EntityEntry<T> Update(T entity)

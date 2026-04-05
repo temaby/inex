@@ -16,12 +16,12 @@ public class TransactionRepository : EditableRepository<Transaction>
 
     #region Public Interface
 
-    public async override Task<Transaction?> GetAsync(int id)
+    public async override Task<Transaction?> GetAsync(int id, CancellationToken ct = default)
     {
         return await Db.Set<Transaction>()
             .Include(i => i.TransactionTagDetails)
             .ThenInclude(i => i.Tag)
-            .FirstOrDefaultAsync(i => i.Id == id);
+            .FirstOrDefaultAsync(i => i.Id == id, ct);
     }
 
     #endregion Public Interface

@@ -94,7 +94,7 @@ public class ExchangeRateServiceTests
         await sut.Get(1, pastDate);
 
         // Assert — provider must NOT have been called because rates were already present
-        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>()), Times.Never);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class ExchangeRateServiceTests
             .Returns(EmptyRates());
 
         // Provider returns null (e.g. network error or unsupported date).
-        _clientMock.Setup(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>()))
+        _clientMock.Setup(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ExchangeRateResponse?)null);
 
         var sut = CreateSut();
@@ -124,7 +124,7 @@ public class ExchangeRateServiceTests
         await sut.Get(1, pastDate);
 
         // Assert — SaveAsync must NOT be called when provider returns no data
-        _uowMock.Verify(u => u.SaveAsync(), Times.Never);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class ExchangeRateServiceTests
         await sut.Get(1, today);
 
         // Assert — the provider must never be reached for today's date
-        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>()), Times.Never);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class ExchangeRateServiceTests
             .Returns(EmptyRates());
 
         // Provider returns one rate for the requested date.
-        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ExchangeRateResponse
             {
                 Data = new Dictionary<string, ExchangeDateData>
@@ -190,9 +190,9 @@ public class ExchangeRateServiceTests
         await sut.Get(1, pastDate);
 
         // Assert — provider was called and the new rate was persisted
-        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
-        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary)), Times.Once);
-        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -223,9 +223,9 @@ public class ExchangeRateServiceTests
 
         // Assert — a temporary copy of yesterday's rate was created for today
         _exchangeRateRepoMock.Verify(
-            r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == today && e.IsTemporary && e.ToCode == targetCode)),
+            r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == today && e.IsTemporary && e.ToCode == targetCode), It.IsAny<CancellationToken>()),
             Times.Once);
-        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -248,7 +248,7 @@ public class ExchangeRateServiceTests
             .Returns(new[] { temporaryRate }.AsAsyncQueryable());
 
         // Provider returns the actual rate for the date.
-        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ExchangeRateResponse
             {
                 Data = new Dictionary<string, ExchangeDateData>
@@ -264,8 +264,8 @@ public class ExchangeRateServiceTests
 
         // Assert — existing temporary rate was updated in-place, not recreated
         _exchangeRateRepoMock.Verify(r => r.Update(It.Is<ExchangeRate>(e => !e.IsTemporary && e.Rate == 1.5m)), Times.Once);
-        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.IsAny<ExchangeRate>()), Times.Never);
-        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -287,11 +287,11 @@ public class ExchangeRateServiceTests
             .Returns(EmptyRates());
 
         // Primary provider throws an exception (e.g., network error, rate limit)
-        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("Rate limit exceeded"));
 
         // Fallback provider returns valid data
-        _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+        _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ExchangeRateResponse
             {
                 Data = new Dictionary<string, ExchangeDateData>
@@ -306,10 +306,10 @@ public class ExchangeRateServiceTests
         await sut.Get(1, pastDate);
 
         // Assert — both providers were called, fallback succeeded
-        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
-        _fallbackClientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
-        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.2m)), Times.Once);
-        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.2m), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -331,11 +331,11 @@ public class ExchangeRateServiceTests
             .Returns(EmptyRates());
 
         // Primary provider returns null or empty response
-        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ExchangeRateResponse?)null);
 
         // Fallback provider returns valid data
-        _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()))
+        _fallbackClientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ExchangeRateResponse
             {
                 Data = new Dictionary<string, ExchangeDateData>
@@ -350,9 +350,9 @@ public class ExchangeRateServiceTests
         await sut.Get(1, pastDate);
 
         // Assert — both providers were called, fallback succeeded
-        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
-        _fallbackClientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>()), Times.Once);
-        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.15m)), Times.Once);
-        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.15m), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

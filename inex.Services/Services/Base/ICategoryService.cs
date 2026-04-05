@@ -8,8 +8,8 @@ namespace inex.Services.Services.Base;
 
 public interface ICategoryService : IInExService
 {
-    Task<CategoryDetailsDTO> GetAsync(int id);
+    Task<CategoryDetailsDTO> GetAsync(int id, CancellationToken ct = default);
     ListResponse<CategoryDetailsDTO> Get(int userId, ActivityMode mode);
-    Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId);
-    Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId);
+    Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId, CancellationToken ct = default);
+    Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId, CancellationToken ct = default);
 }

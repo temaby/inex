@@ -2,6 +2,6 @@
 
 public interface IUnitOfWork : IDisposable
 {
-    Task<int> SaveAsync();
+    Task<int> SaveAsync(CancellationToken ct = default);
     Task BulkSaveAsync(int batchSize);
 }

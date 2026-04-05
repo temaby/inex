@@ -16,11 +16,11 @@ public class BudgetRepository : EditableRepository<Budget>
 
     #region Public Interface
 
-    public async override Task<Budget?> GetAsync(int id)
+    public async override Task<Budget?> GetAsync(int id, CancellationToken ct = default)
     {
         return await Db.Set<Budget>()
             .Include(i => i.BudgetCategories)
-            .FirstOrDefaultAsync(i => i.Id == id);
+            .FirstOrDefaultAsync(i => i.Id == id, ct);
     }
 
     #endregion Public Interface

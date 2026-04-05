@@ -50,9 +50,9 @@ public class CategoriesController : ApiControllerBase
     [HttpGet]
     [Route(GetSingleRoute)]
     [ProducesResponseType(typeof(CategoryDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Single(int id)
+    public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        CategoryDetailsDTO resultDTO = await _categoryService.GetAsync(id);
+        CategoryDetailsDTO resultDTO = await _categoryService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -75,9 +75,9 @@ public class CategoriesController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(CategoryCreateDTO itemDTO)
+    public async Task<ActionResult> Add(CategoryCreateDTO itemDTO, CancellationToken ct)
     {
-        CreatedResponse resultDTO = await _categoryService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _categoryService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -88,9 +88,9 @@ public class CategoriesController : ApiControllerBase
     [HttpPut]
     [Route(PutUpdateRoute)]
     [ProducesResponseType(typeof(CategoryDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, CategoryUpdateDTO itemDTO)
+    public async Task<ActionResult> Update(int id, CategoryUpdateDTO itemDTO, CancellationToken ct)
     {
-        CategoryDetailsDTO resultDTO = await _categoryService.UpdateAsync(id, itemDTO, CurrentUserId);
+        CategoryDetailsDTO resultDTO = await _categoryService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -98,9 +98,9 @@ public class CategoriesController : ApiControllerBase
     /// <param name="id">Category id</param>
     [HttpDelete]
     [Route(DeleteRoute)]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _categoryService.DeleteAsync(id);
+        await _categoryService.DeleteAsync(id, ct);
         return Ok();
     }
 
@@ -108,9 +108,9 @@ public class CategoriesController : ApiControllerBase
     /// <param name="ids">Category ids</param>
     [HttpDelete]
     [Route(DeleteListRoute)]
-    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids)
+    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _categoryService.DeleteAsync(ids);
+        await _categoryService.DeleteAsync(ids, ct);
         return Ok();
     }
 

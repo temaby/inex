@@ -42,9 +42,9 @@ public class ExchangeRateController : ApiControllerBase
     [HttpGet]
     [Route(GetDateRatesRoute)]
     [ProducesResponseType(typeof(IEnumerable<ExchangeRateDTO>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Get(DateTime date)
+    public async Task<ActionResult> Get(DateTime date, CancellationToken ct)
     {
-        ListResponse<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date);
+        ListResponse<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date, ct: ct);
         return Ok(resultsDTO);
     }
 

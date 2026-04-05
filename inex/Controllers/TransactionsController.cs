@@ -53,9 +53,9 @@ public class TransactionsController : ApiControllerBase
     [HttpGet]
     [Route(GetSingleRoute)]
     [ProducesResponseType(typeof(TransactionDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Single(int id)
+    public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        TransactionDetailsDTO resultDTO = await _transactionService.GetAsync(id);
+        TransactionDetailsDTO resultDTO = await _transactionService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -82,9 +82,9 @@ public class TransactionsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(TransactionCreateDTO itemDTO)
+    public async Task<ActionResult> Add(TransactionCreateDTO itemDTO, CancellationToken ct)
     {
-        CreatedResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -94,9 +94,9 @@ public class TransactionsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddTransferRoute)]
     [ProducesResponseType(typeof(ResponseTransferDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(TransferCreateDTO itemDTO)
+    public async Task<ActionResult> Add(TransferCreateDTO itemDTO, CancellationToken ct)
     {
-        ResponseTransferDTO resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId);
+        ResponseTransferDTO resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -107,9 +107,9 @@ public class TransactionsController : ApiControllerBase
     [HttpPut]
     [Route(PutUpdateRoute)]
     [ProducesResponseType(typeof(TransactionDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, TransactionUpdateDTO itemDTO)
+    public async Task<ActionResult> Update(int id, TransactionUpdateDTO itemDTO, CancellationToken ct)
     {
-        TransactionDetailsDTO resultDTO = await _transactionService.UpdateAsync(id, itemDTO, CurrentUserId);
+        TransactionDetailsDTO resultDTO = await _transactionService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -117,9 +117,9 @@ public class TransactionsController : ApiControllerBase
     /// <param name="id">Transaction id</param>
     [HttpDelete]
     [Route(DeleteRoute)]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _transactionService.DeleteAsync(id);
+        await _transactionService.DeleteAsync(id, ct);
         return Ok();
     }
 
@@ -127,9 +127,9 @@ public class TransactionsController : ApiControllerBase
     /// <param name="ids">Transaction ids</param>
     [HttpDelete]
     [Route(DeleteListRoute)]
-    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids)
+    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _transactionService.DeleteAsync(ids);
+        await _transactionService.DeleteAsync(ids, ct);
         return Ok();
     }
 

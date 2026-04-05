@@ -28,9 +28,9 @@ public class TransactionService : InExService, ITransactionService
 
     #region Public Interface
 
-    public async Task<TransactionDetailsDTO> GetAsync(int id)
+    public async Task<TransactionDetailsDTO> GetAsync(int id, CancellationToken ct = default)
     {
-        var transaction = await DbInEx.TransactionRepository.GetAsync(id)
+        var transaction = await DbInEx.TransactionRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
         return Mapper.Map<TransactionDetailsDTO>(transaction);
     }
@@ -47,7 +47,7 @@ public class TransactionService : InExService, ITransactionService
         return BuildPaginatedDataResponse<Transaction, TransactionDetailsDTO>(items, pageSize, pageNumber);
     }
 
-    public async Task<CreatedResponse> CreateAsync(TransactionCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(TransactionCreateDTO itemDTO, int userId, CancellationToken ct = default)
     {
 
         Transaction transaction = Mapper.Map<Transaction>(itemDTO);
@@ -56,14 +56,14 @@ public class TransactionService : InExService, ITransactionService
 
         transaction = ProcessTagsRefs(transaction, userId);
 
-        EntityEntry<Transaction> result = await DbInEx.TransactionRepository.CreateAsync(transaction);
+        EntityEntry<Transaction> result = await DbInEx.TransactionRepository.CreateAsync(transaction, ct);
 
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<ResponseTransferDTO> CreateAsync(TransferCreateDTO itemDTO, int userId)
+    public async Task<ResponseTransferDTO> CreateAsync(TransferCreateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         ResponseTransferDTO resultDTO = new ResponseTransferDTO();
 
@@ -87,10 +87,10 @@ public class TransactionService : InExService, ITransactionService
         transactionTo.CategoryId = transferCategory.Id;
         transactionTo.Comment = $"Из {accountFrom.Name} {transactionTo.Comment}";
 
-        EntityEntry<Transaction> resultFrom = await DbInEx.TransactionRepository.CreateAsync(transactionFrom);
-        EntityEntry<Transaction> resultTo = await DbInEx.TransactionRepository.CreateAsync(transactionTo);
+        EntityEntry<Transaction> resultFrom = await DbInEx.TransactionRepository.CreateAsync(transactionFrom, ct);
+        EntityEntry<Transaction> resultTo = await DbInEx.TransactionRepository.CreateAsync(transactionTo, ct);
 
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         resultDTO.FromId = resultFrom.Entity.Id;
         resultDTO.ToId = resultTo.Entity.Id;
@@ -98,7 +98,7 @@ public class TransactionService : InExService, ITransactionService
         return resultDTO;
     }
 
-    public async Task<TransactionDetailsDTO> UpdateAsync(int id, TransactionUpdateDTO itemDTO, int userId)
+    public async Task<TransactionDetailsDTO> UpdateAsync(int id, TransactionUpdateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -106,7 +106,7 @@ public class TransactionService : InExService, ITransactionService
         }
 
         // get item to update
-        var source = await DbInEx.TransactionRepository.GetAsync(id)
+        var source = await DbInEx.TransactionRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
 
         // update item with new details
@@ -117,15 +117,15 @@ public class TransactionService : InExService, ITransactionService
         // put information about updated item to the database
         EntityEntry<Transaction> dest = DbInEx.TransactionRepository.Update(source);
         // apply changes to the database
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return Mapper.Map<TransactionDetailsDTO>(dest.Entity);
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids)
+    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
         DbInEx.TransactionRepository.Delete(DbInEx.TransactionRepository.Get(false).Where(i => ids.Contains(i.Id)));
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
     }
 
     public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, IDictionary<string, string> filters)

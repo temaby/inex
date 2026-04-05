@@ -27,9 +27,9 @@ public class AccountService : InExService, IAccountService
 
     #region Public Interface
 
-    public async Task<AccountDetailsDTO> GetAsync(int id)
+    public async Task<AccountDetailsDTO> GetAsync(int id, CancellationToken ct = default)
     {
-        var account = await DbInEx.AccountRepository.GetAsync(id)
+        var account = await DbInEx.AccountRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         return Mapper.Map<AccountDetailsDTO>(account);
     }
@@ -58,21 +58,21 @@ public class AccountService : InExService, IAccountService
         };
     }
 
-    public async Task<CreatedResponse> CreateAsync(AccountCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(AccountCreateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
         Account account = Mapper.Map<Account>(itemDTO);
         account.UserId = userId;
         account.CreatedBy = userId;
         // put information about created item to the database
-        EntityEntry<Account> result = await DbInEx.AccountRepository.CreateAsync(account);
+        EntityEntry<Account> result = await DbInEx.AccountRepository.CreateAsync(account, ct);
         // apply changes to the database
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<AccountDetailsDTO> UpdateAsync(int id, AccountUpdateDTO itemDTO, int userId)
+    public async Task<AccountDetailsDTO> UpdateAsync(int id, AccountUpdateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -80,7 +80,7 @@ public class AccountService : InExService, IAccountService
         }
 
         // get item to update
-        var source = await DbInEx.AccountRepository.GetAsync(id)
+        var source = await DbInEx.AccountRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         // update item with new details
         source = Mapper.Map(itemDTO, source);
@@ -88,15 +88,15 @@ public class AccountService : InExService, IAccountService
         // put information about updated item to the database
         EntityEntry<Account> dest = DbInEx.AccountRepository.Update(source);
         // apply changes to the database
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return Mapper.Map<AccountDetailsDTO>(dest.Entity);
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids)
+    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
         DbInEx.AccountRepository.Delete(DbInEx.AccountRepository.Get(false).Where(i => ids.Contains(i.Id)));
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
     }
 
     #endregion Public Interface

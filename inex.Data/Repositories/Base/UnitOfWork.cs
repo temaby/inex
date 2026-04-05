@@ -6,9 +6,9 @@ public abstract class UnitOfWork : IUnitOfWork
 {
     #region Public Interface
 
-    public async Task<int> SaveAsync()
+    public async Task<int> SaveAsync(CancellationToken ct = default)
     {
-        return await _db.SaveChangesAsync();
+        return await _db.SaveChangesAsync(ct);
     }
 
     public async Task BulkSaveAsync(int batchSize)
