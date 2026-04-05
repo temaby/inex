@@ -43,10 +43,10 @@ public class ReportsController : ApiControllerBase
     [HttpGet]
     [Route(GetCategoryReportRoute)]
     [ProducesResponseType(typeof(PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetCategoryReport(string currency = "USD", string filter = "")
+    public async Task<ActionResult> GetCategoryReport(string currency = "USD", string filter = "", CancellationToken ct = default)
     {
         IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, ReportMetadataDTO.FieldsList);
-        PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultsDTO = await _reportService.GetCategoriesReportData(CurrentUserId, currency, filters);
+        PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultsDTO = await _reportService.GetCategoriesReportData(CurrentUserId, currency, filters, ct);
         return Ok(resultsDTO);
     }
 
@@ -57,9 +57,9 @@ public class ReportsController : ApiControllerBase
     [HttpGet]
     [Route(GetMonthlyHistoryRoute)]
     [ProducesResponseType(typeof(ListResponse<MonthlyHistoryDTO>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetMonthlyHistory(int year, string currency = "USD")
+    public async Task<ActionResult> GetMonthlyHistory(int year, string currency = "USD", CancellationToken ct = default)
     {
-        return Ok(await _reportService.GetMonthlyHistory(CurrentUserId, year, currency));
+        return Ok(await _reportService.GetMonthlyHistory(CurrentUserId, year, currency, ct));
     }
 
     #region Private Fields

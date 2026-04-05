@@ -27,9 +27,9 @@ public class Repository<T> : IRepository<T> where T : class
         return Db.Find<T>(id);
     }
 
-    public virtual async Task<T?> GetAsync(int id)
+    public virtual async Task<T?> GetAsync(int id, CancellationToken ct = default)
     {
-        return await Db.FindAsync<T>(id);
+        return await Db.FindAsync<T>(new object[] { id }, ct);
     }
 
     public IQueryable<T> Get(bool isReadOnly, Expression<Func<T, bool>>? predicate = null, params Expression<Func<T, object>>[] includeExpressions)

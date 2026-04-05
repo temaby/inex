@@ -7,6 +7,6 @@ namespace inex.Services.Services.Base;
 
 public interface IExchangeRateService
 {
-    Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "");
-    Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "");
+    Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default);
+    Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default);
 }

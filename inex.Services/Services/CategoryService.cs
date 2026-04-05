@@ -27,9 +27,9 @@ public class CategoryService : InExService, ICategoryService
 
     #region Public Interface
 
-    public async Task<CategoryDetailsDTO> GetAsync(int id)
+    public async Task<CategoryDetailsDTO> GetAsync(int id, CancellationToken ct = default)
     {
-        var category = await DbInEx.CategoryRepository.GetAsync(id)
+        var category = await DbInEx.CategoryRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         return Mapper.Map<CategoryDetailsDTO>(category);
     }
@@ -46,21 +46,21 @@ public class CategoryService : InExService, ICategoryService
         };
     }
 
-    public async Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
         Category category = Mapper.Map<Category>(itemDTO);
         category.UserId = userId;
         category.CreatedBy = userId;
         // put information about created item to the database
-        EntityEntry<Category> result = await DbInEx.CategoryRepository.CreateAsync(category);
+        EntityEntry<Category> result = await DbInEx.CategoryRepository.CreateAsync(category, ct);
         // apply changes to the database
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId)
+    public async Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -68,7 +68,7 @@ public class CategoryService : InExService, ICategoryService
         }
 
         // get item to update
-        var source = await DbInEx.CategoryRepository.GetAsync(id)
+        var source = await DbInEx.CategoryRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         // update item with new details
         source = Mapper.Map(itemDTO, source);
@@ -76,15 +76,15 @@ public class CategoryService : InExService, ICategoryService
         // put information about updated item to the database
         EntityEntry<Category> dest = DbInEx.CategoryRepository.Update(source);
         // apply changes to the database
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return Mapper.Map<CategoryDetailsDTO>(dest.Entity);
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids)
+    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
         DbInEx.CategoryRepository.Delete(DbInEx.CategoryRepository.Get(false).Where(i => ids.Contains(i.Id)));
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
     }
 
     #endregion Public Interface

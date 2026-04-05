@@ -9,6 +9,6 @@ namespace inex.Services.Services.Base;
 
 public interface IReportService : IDisposable
 {
-    Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters);
-    Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency);
+    Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default);
+    Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default);
 }

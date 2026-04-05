@@ -31,7 +31,7 @@ public class AuthService : IAuthService
         _invite = inviteOptions.Value;
     }
 
-    public async Task<AuthResult> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         if (!string.Equals(request.InviteToken, _invite.Token, StringComparison.Ordinal))
             throw new AccessDeniedException("Registration requires a valid invite token.", reason: "invalid-invite-token");
@@ -53,23 +53,23 @@ public class AuthService : IAuthService
                 "Registration failed.",
                 result.Errors.Select(e => e.Description).ToList());
 
-        return await IssueTokenPairAsync(user);
+        return await IssueTokenPairAsync(user, ct);
     }
 
-    public async Task<AuthResult> LoginAsync(LoginRequest request)
+    public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password))
             throw new AuthenticationFailedException("Invalid credentials.");
 
-        return await IssueTokenPairAsync(user);
+        return await IssueTokenPairAsync(user, ct);
     }
 
-    public async Task<AuthResult> RefreshAsync(string refreshToken)
+    public async Task<AuthResult> RefreshAsync(string refreshToken, CancellationToken ct = default)
     {
         var stored = await _db.RefreshTokens
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.Token == refreshToken);
+            .FirstOrDefaultAsync(t => t.Token == refreshToken, ct);
 
         if (stored is null || stored.RevokedAt is not null)
             throw new AuthenticationFailedException("Invalid refresh token.");
@@ -88,7 +88,7 @@ public class AuthService : IAuthService
                     _jwt.AccessTokenExpirySeconds);
 
             // Reuse outside grace window — potential token theft
-            await RevokeAllUserTokensAsync(stored.UserId);
+            await RevokeAllUserTokensAsync(stored.UserId, ct);
             throw new AuthenticationFailedException("Token reuse detected. All sessions have been revoked.");
         }
 
@@ -104,7 +104,7 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpiryDays)
         });
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         return new AuthResult(
             _tokenService.GenerateAccessToken(stored.User),
@@ -112,21 +112,21 @@ public class AuthService : IAuthService
             _jwt.AccessTokenExpirySeconds);
     }
 
-    public async Task RevokeAsync(string refreshToken)
+    public async Task RevokeAsync(string refreshToken, CancellationToken ct = default)
     {
         var stored = await _db.RefreshTokens
-            .FirstOrDefaultAsync(t => t.Token == refreshToken);
+            .FirstOrDefaultAsync(t => t.Token == refreshToken, ct);
 
         if (stored is null || stored.RevokedAt is not null)
             return; // idempotent — logout is safe to call multiple times
 
         stored.RevokedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
     // --- Private helpers ---
 
-    private async Task<AuthResult> IssueTokenPairAsync(AppUser user)
+    private async Task<AuthResult> IssueTokenPairAsync(AppUser user, CancellationToken ct = default)
     {
         var refreshToken = _tokenService.GenerateRefreshToken();
 
@@ -137,7 +137,7 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpiryDays)
         });
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         return new AuthResult(
             _tokenService.GenerateAccessToken(user),
@@ -145,16 +145,16 @@ public class AuthService : IAuthService
             _jwt.AccessTokenExpirySeconds);
     }
 
-    private async Task RevokeAllUserTokensAsync(int userId)
+    private async Task RevokeAllUserTokensAsync(int userId, CancellationToken ct = default)
     {
         var tokens = await _db.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAt == null)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         var now = DateTime.UtcNow;
         foreach (var token in tokens)
             token.RevokedAt = now;
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 }

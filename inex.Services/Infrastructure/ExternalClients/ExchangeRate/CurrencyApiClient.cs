@@ -11,11 +11,11 @@ public class CurrencyApiClient : IExchangeRateClient
         _httpClient = httpClient;
     }
 
-    public async Task<ExchangeRateResponse?> GetRatesAsync(DateTime date, string baseCurrency, string[] targetCurrencies)
+    public async Task<ExchangeRateResponse?> GetRatesAsync(DateTime date, string baseCurrency, string[] targetCurrencies, CancellationToken ct = default)
     {
         var codes = string.Join(",", targetCurrencies);
         var url = $"historical?date={date:yyyy-MM-dd}&base_currency={baseCurrency}&currencies={codes}";
 
-        return await _httpClient.GetFromJsonAsync<ExchangeRateResponse>(url);
+        return await _httpClient.GetFromJsonAsync<ExchangeRateResponse>(url, ct);
     }
 }

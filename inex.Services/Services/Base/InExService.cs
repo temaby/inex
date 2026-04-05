@@ -17,12 +17,12 @@ public abstract class InExService : Service, IInExService
 
     #region Public Interface
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        await DeleteAsync(new int[] { id });
+        await DeleteAsync(new int[] { id }, ct);
     }
 
-    public abstract Task DeleteAsync(IEnumerable<int> ids);
+    public abstract Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default);
 
     #endregion Public Interface
 }

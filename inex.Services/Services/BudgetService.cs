@@ -26,9 +26,9 @@ public class BudgetService : InExService, IBudgetService
 
     #region Public Interface
 
-    public async Task<BudgetDetailsDTO> GetAsync(int id)
+    public async Task<BudgetDetailsDTO> GetAsync(int id, CancellationToken ct = default)
     {
-        var budget = await DbInEx.BudgetRepository.GetAsync(id)
+        var budget = await DbInEx.BudgetRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         return Mapper.Map<BudgetDetailsDTO>(budget);
     }
@@ -39,7 +39,7 @@ public class BudgetService : InExService, IBudgetService
         return BuildDataResponse<Budget, BudgetDetailsDTO>(items.ToList());
     }
 
-    public async Task<CreatedResponse> CreateAsync(BudgetCreateDTO itemDTO, int userId)
+    public async Task<CreatedResponse> CreateAsync(BudgetCreateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
         Budget budget = Mapper.Map<Budget>(itemDTO);
@@ -54,10 +54,10 @@ public class BudgetService : InExService, IBudgetService
         ValidateCategoryUniqueness(userId, budget.Year, budget.Month, itemDTO.CategoryIds);
 
         // put information about created item to the database
-        EntityEntry<Budget> result = await DbInEx.BudgetRepository.CreateAsync(budget);
+        EntityEntry<Budget> result = await DbInEx.BudgetRepository.CreateAsync(budget, ct);
 
         // Save first to generate the ID
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         // connect categories with the item
         if (itemDTO.CategoryIds != null && itemDTO.CategoryIds.Any())
@@ -72,17 +72,17 @@ public class BudgetService : InExService, IBudgetService
                     UpdatedBy = userId,
                     Created = System.DateTime.Now,
                     Updated = System.DateTime.Now
-                });
+                }, ct);
             }
 
             // apply changes to the database
-            await DbInEx.SaveAsync();
+            await DbInEx.SaveAsync(ct);
         }
 
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<BudgetDetailsDTO> UpdateAsync(int id, BudgetUpdateDTO itemDTO, int userId)
+    public async Task<BudgetDetailsDTO> UpdateAsync(int id, BudgetUpdateDTO itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -90,7 +90,7 @@ public class BudgetService : InExService, IBudgetService
         }
 
         // get item to update with categories loaded
-        var source = await DbInEx.BudgetRepository.GetAsync(id)
+        var source = await DbInEx.BudgetRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         // update item with new details
         source = Mapper.Map(itemDTO, source);
@@ -122,18 +122,18 @@ public class BudgetService : InExService, IBudgetService
                 UpdatedBy = userId,
                 Created = System.DateTime.Now,
                 Updated = System.DateTime.Now
-            });
+            }, ct);
         }
 
         // put information about updated item to the database
         EntityEntry<Budget> dest = DbInEx.BudgetRepository.Update(source);
         // apply changes to the database
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
 
         return Mapper.Map<BudgetDetailsDTO>(dest.Entity);
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids)
+    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
         var budgets = DbInEx.BudgetRepository.Get(false, i => ids.Contains(i.Id), i => i.BudgetCategories).ToList();
 
@@ -146,10 +146,10 @@ public class BudgetService : InExService, IBudgetService
         }
 
         DbInEx.BudgetRepository.Delete(budgets);
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
     }
 
-    public async Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth)
+    public async Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default)
     {
         // Get source budgets
         var sourceBudgets = DbInEx.BudgetRepository.Get(false,
@@ -197,8 +197,8 @@ public class BudgetService : InExService, IBudgetService
                 UpdatedBy = userId
             };
 
-            var result = await DbInEx.BudgetRepository.CreateAsync(newBudget);
-            await DbInEx.SaveAsync(); // Save to get ID
+            var result = await DbInEx.BudgetRepository.CreateAsync(newBudget, ct);
+            await DbInEx.SaveAsync(ct); // Save to get ID
 
             // Copy categories
             if (sourceBudget.BudgetCategories != null)
@@ -213,12 +213,12 @@ public class BudgetService : InExService, IBudgetService
                         UpdatedBy = userId,
                         Created = System.DateTime.Now,
                         Updated = System.DateTime.Now
-                    });
+                    }, ct);
                 }
             }
         }
 
-        await DbInEx.SaveAsync();
+        await DbInEx.SaveAsync(ct);
     }
 
     private void ValidateCategoryUniqueness(int userId, int year, int month, IEnumerable<int>? categoryIds, int? excludeBudgetId = null)

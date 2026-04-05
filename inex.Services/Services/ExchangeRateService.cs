@@ -40,7 +40,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Future dates are silently skipped.
     /// </summary>
     /// <exception cref="ValidationFailedException">Thrown when <paramref name="end"/> is before <paramref name="start"/>.</exception>
-    public async Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "")
+    public async Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
     {
         if (end < start)
         {
@@ -48,7 +48,7 @@ public class ExchangeRateService : Service, IExchangeRateService
         }
 
         baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
-        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(baseCurrency);
+        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(baseCurrency, ct);
 
         DateTime startDate = start.Date;
         DateTime endDate = end.Date;
@@ -59,11 +59,11 @@ public class ExchangeRateService : Service, IExchangeRateService
         {
             if (effectiveDate == today)
             {
-                await CreateTemporaryRatesForTodayIfNeeded(userId, effectiveDate, baseCurrency);
+                await CreateTemporaryRatesForTodayIfNeeded(userId, effectiveDate, baseCurrency, ct);
                 continue;
             }
 
-            await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes);
+            await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes, ct);
         }
 
         IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate && i.FromCode == baseCurrency);
@@ -74,8 +74,8 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Returns exchange rates for a single <paramref name="date"/>.
     /// Delegates to the range overload with <c>start == end == date</c>.
     /// </summary>
-    public Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "")
-        => Get(userId, date, date, baseCurrency);
+    public Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
+        => Get(userId, date, date, baseCurrency, ct);
 
     #endregion Public Interface
 
@@ -99,12 +99,12 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Returns all currency codes that are not the base currency — these are the target codes
     /// for which rates will be fetched.
     /// </summary>
-    private async Task<IList<string>> ResolveTargetCurrencyCodes(string baseCurrency)
+    private async Task<IList<string>> ResolveTargetCurrencyCodes(string baseCurrency, CancellationToken ct = default)
     {
         return await DbInEx.CurrencyRepository.Get(true)
             .Where(i => i.Key != baseCurrency)
             .Select(i => i.Key)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Skipped when the cache already has a full set of actual rates.
     /// Calls the provider and upserts the results if rates are missing or incomplete.
     /// </summary>
-    private async Task SyncRatesForDate(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
+    private async Task SyncRatesForDate(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
     {
         DateTime requestedDate = date.Date;
 
@@ -124,18 +124,18 @@ public class ExchangeRateService : Service, IExchangeRateService
             return;
         }
 
-        ExchangeRateResponse? response = await FetchRatesForDate(requestedDate, baseCurrency, targetCurrencyCodes);
+        ExchangeRateResponse? response = await FetchRatesForDate(requestedDate, baseCurrency, targetCurrencyCodes, ct);
 
         if (response?.Data is null || response.Data.Count == 0)
         {
             return;
         }
 
-        bool hasChanges = await UpsertRatesForDate(userId, requestedDate, baseCurrency, response);
+        bool hasChanges = await UpsertRatesForDate(userId, requestedDate, baseCurrency, response, ct);
 
         if (hasChanges)
         {
-            await DbInEx.SaveAsync();
+            await DbInEx.SaveAsync(ct);
         }
     }
 
@@ -144,7 +144,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// If the primary provider fails or returns no data, attempts to use the fallback provider.
     /// Returns <see langword="null"/> when there are no target currencies to fetch or when both providers fail.
     /// </summary>
-    private async Task<ExchangeRateResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes)
+    private async Task<ExchangeRateResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
     {
         if (targetCurrencyCodes.Count == 0)
         {
@@ -154,7 +154,7 @@ public class ExchangeRateService : Service, IExchangeRateService
         // Try primary provider first
         try
         {
-            var response = await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
+            var response = await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray(), ct);
             if (response?.Data is not null && response.Data.Count > 0)
             {
                 return response;
@@ -168,7 +168,7 @@ public class ExchangeRateService : Service, IExchangeRateService
         // Try fallback provider
         try
         {
-            return await _fallbackClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray());
+            return await _fallbackClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray(), ct);
         }
         catch (Exception ex)
         {
@@ -182,7 +182,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Existing temporary rates are overwritten with actual values.
     /// Returns <see langword="true"/> if any record was inserted or updated (caller must save).
     /// </summary>
-    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, ExchangeRateResponse response)
+    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, ExchangeRateResponse response, CancellationToken ct = default)
     {
         DateTime createdDate = date.Date;
 
@@ -209,7 +209,7 @@ public class ExchangeRateService : Service, IExchangeRateService
                     IsTemporary = false,
                     CreatedBy = userId,
                     Created = createdDate
-                });
+                }, ct);
 
                 hasChanges = true;
                 continue;
@@ -233,7 +233,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// by copying the most recent available rates from a prior date and marking them as temporary.
     /// Does nothing when rates already exist for today, or when no prior rates are found.
     /// </summary>
-    private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency)
+    private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency, CancellationToken ct = default)
     {
         DateTime today = date.Date;
 
@@ -271,12 +271,12 @@ public class ExchangeRateService : Service, IExchangeRateService
                 IsTemporary = true,
                 CreatedBy = userId,
                 Created = today
-            });
+            }, ct);
         }
 
         if (latestRates.Count > 0)
         {
-            await DbInEx.SaveAsync();
+            await DbInEx.SaveAsync(ct);
         }
     }
 

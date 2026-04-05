@@ -32,9 +32,9 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitPolicies.AuthFixedWindow)]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<TokenResponse>> Register([FromBody] RegisterRequest request)
+    public async Task<ActionResult<TokenResponse>> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
-        var result = await _authService.RegisterAsync(request);
+        var result = await _authService.RegisterAsync(request, ct);
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(new TokenResponse(result.AccessToken, result.ExpiresIn));
     }
@@ -44,9 +44,9 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitPolicies.AuthFixedWindow)]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
-        var result = await _authService.LoginAsync(request);
+        var result = await _authService.LoginAsync(request, ct);
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(new TokenResponse(result.AccessToken, result.ExpiresIn));
     }
@@ -58,13 +58,13 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<TokenResponse>> Refresh()
+    public async Task<ActionResult<TokenResponse>> Refresh(CancellationToken ct)
     {
         var refreshToken = Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized();
 
-        var result = await _authService.RefreshAsync(refreshToken);
+        var result = await _authService.RefreshAsync(refreshToken, ct);
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(new TokenResponse(result.AccessToken, result.ExpiresIn));
     }
@@ -73,11 +73,11 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(CancellationToken ct)
     {
         var refreshToken = Request.Cookies["refreshToken"];
         if (!string.IsNullOrEmpty(refreshToken))
-            await _authService.RevokeAsync(refreshToken);
+            await _authService.RevokeAsync(refreshToken, ct);
 
         ClearRefreshTokenCookie();
         return NoContent();

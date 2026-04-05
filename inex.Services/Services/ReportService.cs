@@ -32,7 +32,7 @@ public class ReportService : Service, IReportService
 
     #region Public Interface
 
-    public async Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency)
+    public async Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default)
     {
         var start = new DateTime(year, 1, 1);
         var end = new DateTime(year, 12, 31);
@@ -46,7 +46,7 @@ public class ReportService : Service, IReportService
         var transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;
 
         // 2. Get Exchange Rates for the entire year
-        var rates = (await _exchangeRateService.Get(userId, start, end, currency)).Data;
+        var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
 
         // 3. Get Accounts (to know transaction currency)
         var accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
@@ -96,12 +96,12 @@ public class ReportService : Service, IReportService
         return new ListResponse<MonthlyHistoryDTO> { Data = result };
     }
 
-    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters)
+    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
     {
         DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.Start), new DateTime(2014, 01, 01));
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.End), new DateTime(2014, 01, 01));
 
-        IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency)).Data;
+        IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
         IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data;
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;

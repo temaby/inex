@@ -38,9 +38,9 @@ public class ReportBudgetController : ApiControllerBase
     [HttpGet]
     [Route(GetComparisonRoute)]
     [ProducesResponseType(typeof(PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetComparison(int year, int month, string currency = "USD")
+    public async Task<ActionResult> GetComparison(int year, int month, string currency = "USD", CancellationToken ct = default)
     {
-        var result = await _budgetReportService.GetBudgetComparison(CurrentUserId, year, month, currency);
+        var result = await _budgetReportService.GetBudgetComparison(CurrentUserId, year, month, currency, ct);
         return Ok(result);
     }
 }

@@ -35,7 +35,7 @@ public class BudgetReportService : Service, IBudgetReportService
         _categoryService = categoryService;
     }
 
-    public async Task<PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>> GetBudgetComparison(int userId, int year, int month, string currency)
+    public async Task<PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>> GetBudgetComparison(int userId, int year, int month, string currency, CancellationToken ct = default)
     {
         // 1. Get Budgets for the month
         var budgetsResponse = _budgetService.Get(userId, year, month);
@@ -64,7 +64,7 @@ public class BudgetReportService : Service, IBudgetReportService
             .ToHashSet();
 
         // 3. Get Exchange Rates
-        var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency);
+        var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
         var rates = ratesResponse.Data;
 
         // 4. Calculate Spending per Category and Totals

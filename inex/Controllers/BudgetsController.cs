@@ -49,9 +49,9 @@ public class BudgetsController : ApiControllerBase
     [HttpGet]
     [Route(GetSingleRoute)]
     [ProducesResponseType(typeof(BudgetDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Single(int id)
+    public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        BudgetDetailsDTO resultDTO = await _budgetService.GetAsync(id);
+        BudgetDetailsDTO resultDTO = await _budgetService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -72,9 +72,9 @@ public class BudgetsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(BudgetCreateDTO itemDTO)
+    public async Task<ActionResult> Add(BudgetCreateDTO itemDTO, CancellationToken ct)
     {
-        CreatedResponse resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId);
+        CreatedResponse resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -82,9 +82,9 @@ public class BudgetsController : ApiControllerBase
     [HttpPost]
     [Route(PostCopyRoute)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> Copy(int sourceYear, int sourceMonth, int targetYear, int targetMonth)
+    public async Task<ActionResult> Copy(int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct)
     {
-        await _budgetService.CopyBudgetsAsync(CurrentUserId, sourceYear, sourceMonth, targetYear, targetMonth);
+        await _budgetService.CopyBudgetsAsync(CurrentUserId, sourceYear, sourceMonth, targetYear, targetMonth, ct);
         return Ok();
     }
 
@@ -95,9 +95,9 @@ public class BudgetsController : ApiControllerBase
     [HttpPut]
     [Route(PutUpdateRoute)]
     [ProducesResponseType(typeof(BudgetDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, BudgetUpdateDTO itemDTO)
+    public async Task<ActionResult> Update(int id, BudgetUpdateDTO itemDTO, CancellationToken ct)
     {
-        BudgetDetailsDTO resultDTO = await _budgetService.UpdateAsync(id, itemDTO, CurrentUserId);
+        BudgetDetailsDTO resultDTO = await _budgetService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -105,9 +105,9 @@ public class BudgetsController : ApiControllerBase
     /// <param name="id">Budget id</param>
     [HttpDelete]
     [Route(DeleteRoute)]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _budgetService.DeleteAsync(id);
+        await _budgetService.DeleteAsync(id, ct);
         return Ok();
     }
 
@@ -115,9 +115,9 @@ public class BudgetsController : ApiControllerBase
     /// <param name="ids">List of budget ids</param>
     [HttpDelete]
     [Route(DeleteListRoute)]
-    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids)
+    public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _budgetService.DeleteAsync(ids);
+        await _budgetService.DeleteAsync(ids, ct);
         return Ok();
     }
 
