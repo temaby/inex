@@ -19,4 +19,8 @@ public record RegisterRequest
 
     [Required]
     public string InviteToken { get; init; } = string.Empty;
+
+    [Required]
+    [Range(1, int.MaxValue)]
+    public int CurrencyId { get; init; }
 }

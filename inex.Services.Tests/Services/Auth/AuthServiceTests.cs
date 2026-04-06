@@ -3,6 +3,7 @@ using inex.Data.Models;
 using inex.Services.Exceptions;
 using inex.Services.Models.Records.Auth;
 using inex.Services.Services.Auth;
+using inex.Services.Services.Base;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -72,10 +73,15 @@ public class AuthServiceTests
         int graceSeconds = 30,
         string inviteToken = "test-invite-token")
     {
+        var onboarding = new Mock<IUserOnboardingService>();
+        onboarding.Setup(s => s.SeedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                  .Returns(Task.CompletedTask);
+
         return new AuthService(
             (userManager  ?? CreateUserManagerMock()).Object,
             db,
             (tokenService ?? CreateTokenServiceMock()).Object,
+            onboarding.Object,
             CreateJwtOptions(graceSeconds),
             CreateInviteOptions(inviteToken));
     }
@@ -150,7 +156,7 @@ public class AuthServiceTests
 
         await Assert.ThrowsAsync<ConflictException>(
             () => service.RegisterAsync(
-                new RegisterRequest { Username = "user", Email = "existing@example.com", Password = "Password1!", InviteToken = "test-invite-token" }));
+                new RegisterRequest { Username = "user", Email = "existing@example.com", Password = "Password1!", InviteToken = "test-invite-token", CurrencyId = 1 }));
     }
 
     // ── RefreshAsync ──────────────────────────────────────────────────────────

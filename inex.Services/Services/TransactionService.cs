@@ -67,7 +67,7 @@ public class TransactionService : InExService, ITransactionService
     {
         ResponseTransferDTO resultDTO = new ResponseTransferDTO();
 
-        Category transferCategory = DbInEx.CategoryRepository.Get(true).First(i => i.SystemCode!.ToLower() == "transfer");
+        Category transferCategory = DbInEx.CategoryRepository.Get(true).First(i => i.UserId == userId && i.SystemCode!.ToLower() == "transfer");
 
         Account accountFrom = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountFromId);
         Account accountTo = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountToId);

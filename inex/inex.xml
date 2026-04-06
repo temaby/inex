@@ -116,6 +116,9 @@
             <summary>Delete a list of categories</summary>
             <param name="ids">Category ids</param>
         </member>
+        <member name="M:inex.Controllers.CurrenciesController.Get">
+            <summary>Return all available currencies. Public — needed during registration.</summary>
+        </member>
         <member name="M:inex.Controllers.ExchangeRateController.Get(System.DateTime,System.Threading.CancellationToken)">
             <summary>Get exchange rates for a date</summary>
             <param name="date">Date</param>
