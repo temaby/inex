@@ -1,71 +1,88 @@
 import * as React from "react";
-import { useState, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
 import { ColumnsType } from "antd/es/table";
 import BasicPage from "../layouts/BasicPage";
 import { AccountDetails } from "../model/Account/AccountDetails";
+import AccountCreateForm from "./Accounts/AccountCreateForm";
+import AccountEditForm from "./Accounts/AccountEditForm";
+import { fetchAccounts } from "../store/accounts/accounts-actions";
 
 const Accounts = () => {
+    const dispatch = useDispatch();
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
+    const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
     const accounts = useSelector((state: any) => state.accounts.items);
-    const filteredAccounts = showOnlyEnabled ? accounts.filter((c: any) => c.isEnabled) : accounts;
+    const accountsLastUpdate = useSelector((state: any) => state.accounts.lastUpdate);
+    const filteredAccounts = showOnlyEnabled ? accounts.filter((a: any) => a.isEnabled) : accounts;
 
-    const closeModalHandler = () => {
-        setAddModalVisible(false);
-    };
-
-    const showModalHandler = () => {
-        setAddModalVisible(true);
-    };
+    useEffect(() => {
+        dispatch(fetchAccounts("ALL"));
+        setExpandedRows([]);
+    }, [accountsLastUpdate]);
 
     const columns: ColumnsType<AccountDetails> = [
         {
-            title: "Счет",
+            title: "Account",
             dataIndex: "name",
             key: "name",
             width: 500,
         },
         {
-            title: "Статус",
+            title: "Currency",
+            dataIndex: "currency",
+            key: "currency",
+            width: 80,
+        },
+        {
+            title: "Status",
             dataIndex: "isEnabled",
             key: "isEnabled",
-            width: 50,
+            width: 80,
             align: "center",
             render: (isEnabled: boolean) =>
-                isEnabled ? (<Tag color="green">Активна</Tag>) : (<Tag color="red">Отключена</Tag>),
+                isEnabled
+                    ? <Tag color="green">Active</Tag>
+                    : <Tag color="red">Disabled</Tag>,
         },
     ];
+
+    const expandedRowRender = (record: any) => <AccountEditForm record={record} />;
+
+    const rowExpandHandler = (expanded: boolean, record: any) => {
+        setExpandedRows(expanded && record ? [record.id.toString()] : []);
+    };
 
     return (
         <React.Fragment>
             <Drawer
-                title="Добавить счет"
+                title="Add Account"
                 width={420}
-                onClose={closeModalHandler}
+                onClose={() => setAddModalVisible(false)}
                 open={addModalVisible}
-                placement={"right"}
+                placement="right"
                 bodyStyle={{ paddingBottom: 80 }}>
-                <div>Test</div>
+                <AccountCreateForm onCreated={() => setAddModalVisible(false)} />
             </Drawer>
             <BasicPage
-                title="Счета"
+                title="Accounts"
                 extra={[
                     <Space key="controls">
                         <Checkbox
                             checked={showOnlyEnabled}
                             onChange={e => setShowOnlyEnabled(e.target.checked)}>
-                            Только активные
+                            Active only
                         </Checkbox>
                         <Button
                             key="addAccount"
-                            onClick={showModalHandler}
+                            onClick={() => setAddModalVisible(true)}
                             size="large"
                             type="primary"
                             style={{ margin: "4px 0px" }}>
-                            Добавить
+                            Add
                         </Button>
                     </Space>
                 ]}>
@@ -76,7 +93,15 @@ const Accounts = () => {
                         rowKey="id"
                         pagination={false}
                         scroll={{ x: 370 }}
-                        locale={{ emptyText: "Нет счетов для отображения" }}
+                        locale={{ emptyText: "No accounts to display" }}
+                        expandable={{
+                            expandedRowRender,
+                            rowExpandable: () => true,
+                            showExpandColumn: false,
+                            expandRowByClick: true,
+                            onExpand: rowExpandHandler,
+                            expandedRowKeys: expandedRows,
+                        }}
                     />
                 </div>
             </BasicPage>

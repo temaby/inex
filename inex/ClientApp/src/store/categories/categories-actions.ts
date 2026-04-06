@@ -19,12 +19,12 @@ export const fetchCategories = (mode: string) => {
     };
 };
 
-export const createCategory = (name: string, description: string, isEnabled: boolean) => {
+export const createCategory = (key: string, name: string, description: string, isEnabled: boolean) => {
     return async (dispatch: any) => {
         try {
             dispatch(categoriesActions.setIsCreating({ isCreating: true }));
 
-            await apiClient.post(API_BASE, { name, description, isEnabled });
+            await apiClient.post(API_BASE, { key, name, description, isEnabled });
             dispatch(categoriesActions.setLastUpdate());
         } catch (error) {
             dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not create a category") }));
@@ -45,6 +45,17 @@ export const updateCategory = (id: number, name: string, description: string, is
             dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not update a category") }));
         } finally {
             dispatch(categoriesActions.setIsUpdating({ isUpdating: false }));
+        }
+    };
+};
+
+export const deleteCategory = (id: number) => {
+    return async (dispatch: any) => {
+        try {
+            await apiClient.delete(`${API_BASE}/${id}`);
+            dispatch(categoriesActions.setLastUpdate());
+        } catch (error) {
+            dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not delete category") }));
         }
     };
 };
