@@ -101,6 +101,7 @@ public class InExWebApplicationFactory : WebApplicationFactory<Program>
             email,
             password,
             inviteToken = TestInviteToken,
+            currencyId  = 1, // in-memory DB has no FK enforcement; any positive int is valid
         });
         response.EnsureSuccessStatusCode();
 
