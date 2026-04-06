@@ -34,6 +34,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email       = $"{Guid.NewGuid()}@example.com",
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -54,6 +55,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email       = $"{Guid.NewGuid()}@example.com",
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -82,6 +84,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email,
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
 
@@ -92,6 +95,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email,
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -107,9 +111,10 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
 
         var response = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            username = $"user-{Guid.NewGuid():N}",
-            email    = $"{Guid.NewGuid()}@example.com",
-            password = "Password1!",
+            username   = $"user-{Guid.NewGuid():N}",
+            email      = $"{Guid.NewGuid()}@example.com",
+            password   = "Password1!",
+            currencyId = 1,
             // inviteToken omitted — [Required] triggers model binding 422
         });
 
@@ -127,6 +132,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email       = $"{Guid.NewGuid()}@example.com",
             password    = "Password1!",
             inviteToken = "definitely-wrong-token",
+            currencyId  = 1,
         });
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -150,6 +156,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email,
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
 
         var response = await client.PostAsJsonAsync("/api/auth/login", new
@@ -176,6 +183,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email,
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
 
         var response = await client.PostAsJsonAsync("/api/auth/login", new
@@ -216,6 +224,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email       = $"{Guid.NewGuid()}@example.com",
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
         loginResponse.EnsureSuccessStatusCode();
 
@@ -285,6 +294,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             email       = $"{Guid.NewGuid()}@example.com",
             password    = "Password1!",
             inviteToken = TestInviteToken,
+            currencyId  = 1,
         });
 
         var response = await client.PostAsync("/api/auth/logout", null);
