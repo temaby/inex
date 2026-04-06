@@ -7,6 +7,7 @@ import BasicPage from "../layouts/BasicPage";
 
 import { CategoryDetails, getCategoriesTree } from '../model/Category/CategoryDetails';
 import CategoryEditForm from './Categories/CategoryEditForm';
+import CategoryCreateForm from './Categories/CategoryCreateForm';
 
 import { fetchCategories } from '../store/categories/categories-actions';
 
@@ -78,7 +79,7 @@ const Categories = () => {
                 open={addModalVisible}
                 placement="right"
                 bodyStyle={{ paddingBottom: 80 }}>
-                <div>Test</div>
+                <CategoryCreateForm onCreated={closeModalHandler} />
             </Drawer>
             <BasicPage
                 title="Категории"
