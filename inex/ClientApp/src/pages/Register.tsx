@@ -1,19 +1,28 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Form, Input, Button, Card, Typography, Alert } from "antd";
+import { Form, Input, Button, Card, Typography, Alert, Select } from "antd";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { registerUser } from "../store/auth/auth-actions";
 import { setAuthError } from "../store/auth/auth-slice";
+import apiClient from "../utils/apiClient";
 
 const { Title, Text } = Typography;
+
+interface Currency {
+  id: number;
+  key: string;
+  name: string;
+}
 
 interface RegisterFormValues {
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
+  currencyId: number;
+  inviteToken: string;
 }
 
 const Register = () => {
@@ -22,12 +31,22 @@ const Register = () => {
   const [form] = Form.useForm<RegisterFormValues>();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
   const authError = useAppSelector((s) => s.auth.error);
 
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   useEffect(() => {
     if (accessToken) navigate("/transactions", { replace: true });
   }, [accessToken]);
+
+  useEffect(() => {
+    apiClient.get<Currency[]>("/currencies").then(({ data }) => {
+      setCurrencies(data);
+      // Pre-select EUR if present
+      const eur = data.find((c) => c.key === "EUR");
+      if (eur) form.setFieldValue("currencyId", eur.id);
+    });
+  }, []);
 
   const onValuesChange = () => {
     if (authError) dispatch(setAuthError(""));
@@ -40,6 +59,8 @@ const Register = () => {
         username: values.username,
         email: values.email,
         password: values.password,
+        currencyId: values.currencyId,
+        inviteToken: values.inviteToken,
       }));
       navigate("/transactions");
     } catch {
@@ -59,7 +80,7 @@ const Register = () => {
         background: "#f0f2f5",
       }}
     >
-      <Card style={{ width: 400 }}>
+      <Card style={{ width: 420 }}>
         <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
           Create Account
         </Title>
@@ -118,11 +139,6 @@ const Register = () => {
             dependencies={["password"]}
             rules={[
               { required: true, message: "Please confirm your password" },
-              /*
-               * Custom validator using getFieldValue — reads the sibling "password"
-               * field from the same form instance and compares. AntD runs this
-               * automatically whenever either field changes (due to `dependencies`).
-               */
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue("password") === value) {
@@ -134,6 +150,31 @@ const Register = () => {
             ]}
           >
             <Input.Password size="large" placeholder="Confirm password" autoComplete="new-password" />
+          </Form.Item>
+
+          <Form.Item
+            name="currencyId"
+            label="Default Currency"
+            rules={[{ required: true, message: "Please select a currency" }]}
+          >
+            <Select
+              size="large"
+              placeholder="Select currency"
+              showSearch
+              optionFilterProp="label"
+              options={currencies.map((c) => ({
+                value: c.id,
+                label: `${c.key} — ${c.name}`,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="inviteToken"
+            label="Invite Token"
+            rules={[{ required: true, message: "Invite token is required" }]}
+          >
+            <Input size="large" placeholder="Enter invite token" />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 8 }}>
