@@ -90,7 +90,7 @@ const Accounts = () => {
                     <Table
                         dataSource={filteredAccounts}
                         columns={columns}
-                        rowKey="id"
+                        rowKey={(record: any) => record.id.toString()}
                         pagination={false}
                         scroll={{ x: 370 }}
                         locale={{ emptyText: "No accounts to display" }}
