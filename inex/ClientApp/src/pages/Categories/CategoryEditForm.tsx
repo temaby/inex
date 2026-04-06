@@ -1,12 +1,12 @@
 import * as React from "react";
 
-import { Input, Button, Space, Divider, Radio } from "antd";
+import { Input, Button, Space, Divider, Radio, Popconfirm } from "antd";
 import { Form, Col, Row } from 'antd';
 import { useEffect, useReducer } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CategoryEditState } from "../../model/Category/CategoryEditState";
 
-import { updateCategory } from "../../store/categories/categories-actions";
+import { updateCategory, deleteCategory } from "../../store/categories/categories-actions";
 
 const defaultState: CategoryEditState = new CategoryEditState();
 
@@ -19,7 +19,7 @@ const reducer = (state: CategoryEditState, action: any): CategoryEditState => {
         case "SET_DESCRIPTION":
             return { ...state, description: action.value, hasActiveChanges: state.description !== action.value };
         case "SET_ENABLED":
-            return { ...state, isEnabled: action.value, hasActiveChanges: state.description !== action.value };
+            return { ...state, isEnabled: action.value, hasActiveChanges: state.isEnabled !== action.value };
         default:
             return defaultState;
     }
@@ -28,9 +28,9 @@ const reducer = (state: CategoryEditState, action: any): CategoryEditState => {
 const CategoryEditForm = (props: any) => {
     const dispatch = useDispatch();
 
-    const isUpdating = useSelector((state: any) => state.transactions.isUpdating);
+    const isUpdating = useSelector((state: any) => state.categories.isUpdating);
 
-    const [state, dispatchTransactionAction] = useReducer(reducer, defaultState);
+    const [state, dispatchAction] = useReducer(reducer, defaultState);
 
     const { record } = props;
 
@@ -41,66 +41,81 @@ const CategoryEditForm = (props: any) => {
         currentRecord.description = record.description;
         currentRecord.isEnabled = record.isEnabled;
 
-        dispatchTransactionAction({ type: "INIT", value: currentRecord });
+        dispatchAction({ type: "INIT", value: currentRecord });
     }, [record]);
 
     const setNameHandler = (item: any) => {
-        dispatchTransactionAction({ type: "SET_NAME", value: item.target.value });
+        dispatchAction({ type: "SET_NAME", value: item.target.value });
     };
 
     const setDescriptionHandler = (item: any) => {
-        dispatchTransactionAction({ type: "SET_DESCRIPTION", value: item.target.value });
+        dispatchAction({ type: "SET_DESCRIPTION", value: item.target.value });
     };
 
     const setEnabledHandler = (e: any) => {
-        dispatchTransactionAction({ type: "SET_ENABLED", value: e.target.value });
+        dispatchAction({ type: "SET_ENABLED", value: e.target.value });
     };
 
     const updateCategoryHandler = async () => {
         dispatch(updateCategory(+props.record.id, state.name, state.description, state.isEnabled));
     };
 
+    const deleteCategoryHandler = async () => {
+        dispatch(deleteCategory(+props.record.id));
+    };
+
     return (
         <Form layout="vertical">
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Имя">
-                        <Input key="comment" size="large" onChange={setNameHandler} value={state.name} />
+                    <Form.Item label="Name">
+                        <Input size="large" onChange={setNameHandler} value={state.name} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Описание">
-                        <Input key="comment" size="large" onChange={setDescriptionHandler} value={state.description} />
+                    <Form.Item label="Description">
+                        <Input size="large" onChange={setDescriptionHandler} value={state.description} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={24} style={{ textAlign: "right" }}>
+                <Col span={24}>
                     <Divider />
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={12}>
-                    <Space>
-                        <Radio.Group
-                            buttonStyle="solid"
-                            value={state.isEnabled}
-                            onChange={setEnabledHandler}>
-                            <Radio.Button value={true}>Активна</Radio.Button>
-                            <Radio.Button value={false}>Отключена</Radio.Button>
-                        </Radio.Group>
-                    </Space>
+                    <Radio.Group
+                        buttonStyle="solid"
+                        value={state.isEnabled}
+                        onChange={setEnabledHandler}>
+                        <Radio.Button value={true}>Active</Radio.Button>
+                        <Radio.Button value={false}>Disabled</Radio.Button>
+                    </Radio.Group>
                 </Col>
                 <Col span={12} style={{ textAlign: "right" }}>
                     <Space>
-                        <Button loading={isUpdating} onClick={updateCategoryHandler} disabled={!state.hasActiveChanges} type="primary">
-                            Сохранить
+                        {!props.record.isSystem && (
+                            <Popconfirm
+                                title="Delete category? This cannot be undone."
+                                onConfirm={deleteCategoryHandler}
+                                okText="Delete"
+                                cancelText="Cancel">
+                                <Button danger>Delete</Button>
+                            </Popconfirm>
+                        )}
+                        <Button
+                            loading={isUpdating}
+                            onClick={updateCategoryHandler}
+                            disabled={!state.hasActiveChanges}
+                            type="primary">
+                            Update
                         </Button>
                     </Space>
                 </Col>
-            </Row> 
+            </Row>
         </Form>
     );
 };
