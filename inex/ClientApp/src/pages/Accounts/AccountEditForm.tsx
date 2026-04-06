@@ -113,8 +113,7 @@ const AccountEditForm = (props: any) => {
                     </Radio.Group>
                     <Space>
                         <Popconfirm
-                            title="Delete account?"
-                            description="This cannot be undone."
+                            title="Delete account? This cannot be undone."
                             onConfirm={deleteHandler}
                             okText="Delete"
                             cancelText="Cancel">

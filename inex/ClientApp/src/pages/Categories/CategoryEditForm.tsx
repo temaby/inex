@@ -99,8 +99,7 @@ const CategoryEditForm = (props: any) => {
                     <Space>
                         {!props.record.isSystem && (
                             <Popconfirm
-                                title="Delete category?"
-                                description="This cannot be undone."
+                                title="Delete category? This cannot be undone."
                                 onConfirm={deleteCategoryHandler}
                                 okText="Delete"
                                 cancelText="Cancel">
