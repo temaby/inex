@@ -130,6 +130,36 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task<AuthResult> UpdateProfileAsync(int userId, UpdateProfileRequest request, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString())
+            ?? throw new ResourceNotFoundException($"User {userId} not found.");
+
+        user.UserName = request.Username;
+        user.CurrencyId = request.CurrencyId;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            throw new ValidationFailedException(
+                "Profile update failed.",
+                result.Errors.Select(e => e.Description).ToList());
+
+        // Re-issue token pair so JWT claims reflect the new username/currency immediately
+        return await IssueTokenPairAsync(user, ct);
+    }
+
+    public async Task ChangePasswordAsync(int userId, ChangePasswordRequest request, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString())
+            ?? throw new ResourceNotFoundException($"User {userId} not found.");
+
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+            throw new ValidationFailedException(
+                "Password change failed.",
+                result.Errors.Select(e => e.Description).ToList());
+    }
+
     // --- Private helpers ---
 
     private async Task<AuthResult> IssueTokenPairAsync(AppUser user, CancellationToken ct = default)

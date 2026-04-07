@@ -8,4 +8,6 @@ public interface IAuthService
     Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<AuthResult> RefreshAsync(string refreshToken, CancellationToken ct = default);
     Task RevokeAsync(string refreshToken, CancellationToken ct = default);
+    Task<AuthResult> UpdateProfileAsync(int userId, UpdateProfileRequest request, CancellationToken ct = default);
+    Task ChangePasswordAsync(int userId, ChangePasswordRequest request, CancellationToken ct = default);
 }

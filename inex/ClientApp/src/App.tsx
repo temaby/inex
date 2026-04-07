@@ -24,6 +24,7 @@ import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 
 const App = () => {
     const dispatch = useAppDispatch();
@@ -80,6 +81,7 @@ const App = () => {
                 <Route path="/accounts" element={<Accounts />} />
                 <Route path="/categories" element={<Categories />} />
                 <Route path="/budgets" element={<Budgets />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/reports" element={<Reports />}>
                     <Route index element={<ReportList />} />
                     <Route path="category" element={<ReportCategory />} />

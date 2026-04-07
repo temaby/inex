@@ -30,9 +30,10 @@ public class TokenServiceTests
 
     private static AppUser CreateUser(int id = 1) => new()
     {
-        Id       = id,
-        UserName = "testuser",
-        Email    = "test@example.com",
+        Id         = id,
+        UserName   = "testuser",
+        Email      = "test@example.com",
+        CurrencyId = 5,
     };
 
     // ── GenerateAccessToken ───────────────────────────────────────────────────
@@ -51,6 +52,8 @@ public class TokenServiceTests
         Assert.Equal("42", claims.FindFirstValue(ClaimTypes.NameIdentifier));
         Assert.Equal("test@example.com", claims.FindFirstValue(JwtRegisteredClaimNames.Email));
         Assert.Equal("testuser",         claims.FindFirstValue(JwtRegisteredClaimNames.Name));
+
+        Assert.Equal("5", claims.FindFirstValue("currency_id"));
 
         // jti must be present and non-empty (used for token uniqueness)
         var jti = claims.FindFirstValue(JwtRegisteredClaimNames.Jti);

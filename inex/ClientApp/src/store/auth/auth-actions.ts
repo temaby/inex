@@ -80,6 +80,22 @@ export const registerUser = (data: RegisterRequest) => {
   };
 };
 
+export const updateProfile = (data: { username: string; currencyId: number }) => {
+  return async (dispatch: any) => {
+    const { data: tokenData } = await apiClient.put<TokenResponse>("/auth/me", data);
+    const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
+      headers: { Authorization: `Bearer ${tokenData.accessToken}` },
+    });
+    dispatch(setCredentials({ accessToken: tokenData.accessToken, expiresIn: tokenData.expiresIn, user }));
+  };
+};
+
+export const changePassword = (data: { currentPassword: string; newPassword: string }) => {
+  return async () => {
+    await apiClient.post("/auth/change-password", data);
+  };
+};
+
 export const logoutUser = () => {
   return async (dispatch: any) => {
     try {
