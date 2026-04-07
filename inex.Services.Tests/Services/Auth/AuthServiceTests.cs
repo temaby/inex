@@ -309,6 +309,115 @@ public class AuthServiceTests
         Assert.All(tokens, t => Assert.NotNull(t.RevokedAt));
     }
 
+    // ── UpdateProfileAsync ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task UpdateProfileAsync_ValidRequest_UpdatesUserAndReturnsNewToken()
+    {
+        using var db = CreateContext();
+        var user = new AppUser { Id = 1, UserName = "alice", Email = "alice@example.com", CurrencyId = 1 };
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByIdAsync("1")).ReturnsAsync(user);
+        userManager.Setup(m => m.UpdateAsync(It.IsAny<AppUser>())).ReturnsAsync(IdentityResult.Success);
+
+        var tokenService = CreateTokenServiceMock(accessToken: "new-at", refreshToken: "new-rt");
+        var service = CreateService(db, userManager, tokenService);
+
+        var result = await service.UpdateProfileAsync(1,
+            new UpdateProfileRequest { Username = "alice-updated", CurrencyId = 3 });
+
+        Assert.Equal("new-at", result.AccessToken);
+        Assert.Equal("new-rt", result.RefreshToken);
+
+        // UpdateAsync must have been called with the mutated values
+        userManager.Verify(m => m.UpdateAsync(It.Is<AppUser>(u =>
+            u.UserName == "alice-updated" && u.CurrencyId == 3)), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_UserNotFound_ThrowsResourceNotFoundException()
+    {
+        using var db = CreateContext();
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync((AppUser?)null);
+
+        var service = CreateService(db, userManager);
+
+        await Assert.ThrowsAsync<ResourceNotFoundException>(
+            () => service.UpdateProfileAsync(999,
+                new UpdateProfileRequest { Username = "x", CurrencyId = 1 }));
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_IdentityFailure_ThrowsValidationFailedException()
+    {
+        using var db = CreateContext();
+        var user = new AppUser { Id = 1, UserName = "alice", Email = "alice@example.com" };
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByIdAsync("1")).ReturnsAsync(user);
+        userManager.Setup(m => m.UpdateAsync(It.IsAny<AppUser>()))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Username already taken." }));
+
+        var service = CreateService(db, userManager);
+
+        await Assert.ThrowsAsync<ValidationFailedException>(
+            () => service.UpdateProfileAsync(1,
+                new UpdateProfileRequest { Username = "taken", CurrencyId = 1 }));
+    }
+
+    // ── ChangePasswordAsync ───────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ChangePasswordAsync_ValidRequest_Succeeds()
+    {
+        using var db = CreateContext();
+        var user = new AppUser { Id = 1, UserName = "alice", Email = "alice@example.com" };
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByIdAsync("1")).ReturnsAsync(user);
+        userManager.Setup(m => m.ChangePasswordAsync(user, "OldPass1!", "NewPass2!"))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var service = CreateService(db, userManager);
+
+        var ex = await Record.ExceptionAsync(
+            () => service.ChangePasswordAsync(1,
+                new ChangePasswordRequest { CurrentPassword = "OldPass1!", NewPassword = "NewPass2!" }));
+
+        Assert.Null(ex);
+        userManager.Verify(m => m.ChangePasswordAsync(user, "OldPass1!", "NewPass2!"), Times.Once);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WrongCurrentPassword_ThrowsValidationFailedException()
+    {
+        using var db = CreateContext();
+        var user = new AppUser { Id = 1, UserName = "alice", Email = "alice@example.com" };
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByIdAsync("1")).ReturnsAsync(user);
+        userManager.Setup(m => m.ChangePasswordAsync(user, "WrongPass1!", "NewPass2!"))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Incorrect password." }));
+
+        var service = CreateService(db, userManager);
+
+        await Assert.ThrowsAsync<ValidationFailedException>(
+            () => service.ChangePasswordAsync(1,
+                new ChangePasswordRequest { CurrentPassword = "WrongPass1!", NewPassword = "NewPass2!" }));
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_UserNotFound_ThrowsResourceNotFoundException()
+    {
+        using var db = CreateContext();
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync((AppUser?)null);
+
+        var service = CreateService(db, userManager);
+
+        await Assert.ThrowsAsync<ResourceNotFoundException>(
+            () => service.ChangePasswordAsync(999,
+                new ChangePasswordRequest { CurrentPassword = "OldPass1!", NewPassword = "NewPass2!" }));
+    }
+
     // ── RevokeAsync ───────────────────────────────────────────────────────────
 
     [Fact]

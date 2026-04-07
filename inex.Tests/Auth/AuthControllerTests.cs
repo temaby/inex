@@ -269,6 +269,7 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
         Assert.Equal("meuser", body.GetProperty("username").GetString());
         Assert.Equal(email, body.GetProperty("email").GetString());
         Assert.True(body.GetProperty("id").GetInt32() > 0);
+        Assert.Equal(1, body.GetProperty("currencyId").GetInt32());
     }
 
     [Fact]
@@ -277,6 +278,90 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
         var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    // ── UpdateProfile ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task UpdateProfile_WithValidToken_Returns200WithNewToken()
+    {
+        var client = await _factory.CreateAuthenticatedClientAsync(
+            email: $"{Guid.NewGuid()}@example.com",
+            username: $"user-{Guid.NewGuid():N}");
+
+        var response = await client.PutAsJsonAsync("/api/auth/me", new
+        {
+            username   = "updated-username",
+            currencyId = 1,
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(string.IsNullOrEmpty(body.GetProperty("accessToken").GetString()));
+        Assert.True(body.GetProperty("expiresIn").GetInt32() > 0);
+    }
+
+    [Fact]
+    public async Task UpdateProfile_WithoutToken_Returns401()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PutAsJsonAsync("/api/auth/me", new
+        {
+            username   = "anon",
+            currencyId = 1,
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    // ── ChangePassword ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ChangePassword_WithValidCredentials_Returns204()
+    {
+        var client = await _factory.CreateAuthenticatedClientAsync(
+            email: $"{Guid.NewGuid()}@example.com",
+            username: $"user-{Guid.NewGuid():N}");
+
+        var response = await client.PostAsJsonAsync("/api/auth/change-password", new
+        {
+            currentPassword = "Password1!",
+            newPassword     = "NewPassword2@",
+        });
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithWrongCurrentPassword_Returns422()
+    {
+        var client = await _factory.CreateAuthenticatedClientAsync(
+            email: $"{Guid.NewGuid()}@example.com",
+            username: $"user-{Guid.NewGuid():N}");
+
+        var response = await client.PostAsJsonAsync("/api/auth/change-password", new
+        {
+            currentPassword = "WrongPassword1!",
+            newPassword     = "NewPassword2@",
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithoutToken_Returns401()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/auth/change-password", new
+        {
+            currentPassword = "Password1!",
+            newPassword     = "NewPassword2@",
+        });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

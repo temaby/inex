@@ -45,7 +45,12 @@ const BasicPage = (props: any) => {
 
                 <Space style={{ marginLeft: 24, flexShrink: 0 }}>
                     {username && (
-                        <Space size={4}>
+                        <Space
+                            size={4}
+                            style={{ cursor: "pointer" }}
+                            onClick={() => navigate("/profile")}
+                            title="Profile"
+                        >
                             <UserOutlined />
                             <Text type="secondary">{username}</Text>
                         </Space>

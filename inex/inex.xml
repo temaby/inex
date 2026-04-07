@@ -56,6 +56,12 @@
         <member name="M:inex.Controllers.AuthController.Me">
             <summary>Return the profile of the currently authenticated user from JWT claims</summary>
         </member>
+        <member name="M:inex.Controllers.AuthController.UpdateProfile(inex.Services.Models.Records.Auth.UpdateProfileRequest,System.Threading.CancellationToken)">
+            <summary>Update the current user's username and preferred currency</summary>
+        </member>
+        <member name="M:inex.Controllers.AuthController.ChangePassword(inex.Services.Models.Records.Auth.ChangePasswordRequest,System.Threading.CancellationToken)">
+            <summary>Change the current user's password</summary>
+        </member>
         <member name="M:inex.Controllers.BudgetsController.Single(System.Int32,System.Threading.CancellationToken)">
             <summary>Get budget details</summary>
             <param name="id">Budget id</param>

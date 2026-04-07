@@ -92,8 +92,32 @@ public class AuthController : ControllerBase
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var email = User.FindFirstValue(JwtRegisteredClaimNames.Email)!;
         var username = User.FindFirstValue(JwtRegisteredClaimNames.Name)!;
+        var currencyId = int.TryParse(User.FindFirstValue("currency_id"), out var cid) ? cid : 0;
 
-        return Ok(new UserProfile(userId, username, email));
+        return Ok(new UserProfile(userId, username, email, currencyId));
+    }
+
+    /// <summary>Update the current user's username and preferred currency</summary>
+    [HttpPut("me")]
+    [Authorize]
+    [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<TokenResponse>> UpdateProfile([FromBody] UpdateProfileRequest request, CancellationToken ct)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _authService.UpdateProfileAsync(userId, request, ct);
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(new TokenResponse(result.AccessToken, result.ExpiresIn));
+    }
+
+    /// <summary>Change the current user's password</summary>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _authService.ChangePasswordAsync(userId, request, ct);
+        return NoContent();
     }
 
     // ── Private helpers ──
