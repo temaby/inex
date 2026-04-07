@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Form, Input, Button, Radio } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { createCategory } from "../../store/categories/categories-actions";
 
 interface CategoryCreateFormProps {
@@ -8,9 +8,9 @@ interface CategoryCreateFormProps {
 }
 
 const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [form] = Form.useForm();
-    const isCreating = useSelector((state: any) => state.categories.isCreating);
+    const isCreating = useAppSelector(state => state.categories.isCreating);
 
     const toKey = (name: string) =>
         name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

@@ -1,9 +1,10 @@
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { budgetReportActions } from "./budgetReport-slice";
+import type { AppDispatch } from "../index";
 
 export const fetchBudgetReport = (year: number, month: number, currency: string = "USD") => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(budgetReportActions.setIsLoading(true));
             dispatch(budgetReportActions.setPeriod({ year, month }));

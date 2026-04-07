@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Form, Input, Button, Radio, Select } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { createAccount } from "../../store/accounts/accounts-actions";
 import apiClient from "../../utils/apiClient";
 
@@ -16,9 +16,9 @@ interface AccountCreateFormProps {
 }
 
 const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [form] = Form.useForm();
-    const isCreating = useSelector((state: any) => state.accounts.isCreating);
+    const isCreating = useAppSelector(state => state.accounts.isCreating);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
 
     useEffect(() => {

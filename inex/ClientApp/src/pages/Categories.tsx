@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
 import { ColumnsType } from "antd/es/table";
 import BasicPage from "../layouts/BasicPage";
@@ -12,13 +12,13 @@ import CategoryCreateForm from './Categories/CategoryCreateForm';
 import { fetchCategories } from '../store/categories/categories-actions';
 
 const Categories = () => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-    const categories = useSelector((state: any) => state.categories.items);
-    const categoriesLastUpdate = useSelector((state: any) => state.categories.lastUpdate);
+    const categories = useAppSelector(state => state.categories.items);
+    const categoriesLastUpdate = useAppSelector(state => state.categories.lastUpdate);
     const filteredCategories = showOnlyEnabled  ? categories.filter((c: any) => c.isEnabled) : categories;
     const categoryFlatList = useMemo(() => getCategoriesTree(filteredCategories, true) as (Omit<CategoryDetails, "children"> & { depth: number })[], [filteredCategories]);
 

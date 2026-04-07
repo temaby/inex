@@ -4,11 +4,12 @@ import { Moment } from "moment";
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { transactionsActions } from "./transactions-slice";
+import type { AppDispatch } from "../index";
 
 const API_BASE = "/transactions";
 
 export const fetchTransactions = (pageSize: number, pageNumber: number, filter: any) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsLoading({ isLoading: true }));
 
@@ -36,7 +37,7 @@ export const fetchTransactions = (pageSize: number, pageNumber: number, filter: 
 };
 
 export const fetchTransactionsSummaryForAccounts = (ids: number[]) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             const idsStr = ids.map((id, i) => `ids[${i}]=${id}`).join("&");
             const { data } = await apiClient.get(`/accounts/details?mode=active&${idsStr}`);
@@ -48,7 +49,7 @@ export const fetchTransactionsSummaryForAccounts = (ids: number[]) => {
 };
 
 export const createTransaction = (accountId: number, categoryId: number, amount: number, comment: string, date: Moment) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsCreating({ isCreating: true }));
 
@@ -67,7 +68,7 @@ export const createTransaction = (accountId: number, categoryId: number, amount:
 };
 
 export const createTransfer = (accountFromId: number, accountToId: number, amountFrom: number, amountTo: number, comment: string, date: Moment) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsCreating({ isCreating: true }));
 
@@ -86,7 +87,7 @@ export const createTransfer = (accountFromId: number, accountToId: number, amoun
 };
 
 export const updateTransaction = (id: number, accountId: number, categoryId: number, amount: number, comment: string, date: Moment) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsUpdating({ isUpdating: true }));
 
@@ -105,7 +106,7 @@ export const updateTransaction = (id: number, accountId: number, categoryId: num
 };
 
 export const removeTransaction = (id: number) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsDeleting({ isDeleting: true }));
 

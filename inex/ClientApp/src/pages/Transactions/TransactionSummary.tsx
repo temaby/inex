@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import { Table, Typography } from 'antd';
 
@@ -31,11 +31,11 @@ const columns = [
 ];
 
 const TransactionSummary = (props: any) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const accountsDetails = useSelector((state: any) => state.transactions.summaryItems);
-  const transactionsLastUpdate = useSelector((state: any) => state.transactions.lastUpdate);
-  const exchangeRates = useSelector((state: any) => state.rates.items);
+  const accountsDetails = useAppSelector(state => state.transactions.summaryItems);
+  const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
+  const exchangeRates = useAppSelector(state => state.rates.items);
 
   const { accounts } = props;
 

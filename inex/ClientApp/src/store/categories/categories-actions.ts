@@ -1,11 +1,12 @@
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { categoriesActions } from "./categories-slice";
+import type { AppDispatch } from "../index";
 
 const API_BASE = "/categories";
 
 export const fetchCategories = (mode: string) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(categoriesActions.setIsLoading({ isLoading: true }));
 
@@ -20,7 +21,7 @@ export const fetchCategories = (mode: string) => {
 };
 
 export const createCategory = (key: string, name: string, description: string, isEnabled: boolean) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(categoriesActions.setIsCreating({ isCreating: true }));
 
@@ -35,7 +36,7 @@ export const createCategory = (key: string, name: string, description: string, i
 };
 
 export const updateCategory = (id: number, name: string, description: string, isEnabled: boolean) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(categoriesActions.setIsUpdating({ isUpdating: true }));
 
@@ -50,7 +51,7 @@ export const updateCategory = (id: number, name: string, description: string, is
 };
 
 export const deleteCategory = (id: number) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             await apiClient.delete(`${API_BASE}/${id}`);
             dispatch(categoriesActions.setLastUpdate());
