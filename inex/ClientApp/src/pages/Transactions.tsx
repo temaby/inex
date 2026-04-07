@@ -5,7 +5,7 @@ const { Sider, Content } = Layout;
 
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../store/hooks";
 
 import BasicPage from "../layouts/BasicPage";
 import TransactionCreate from "./Transactions/TransactionCreate";
@@ -21,8 +21,8 @@ const Transactions = (props: any) => {
     const filter: string | null = queryParams.get("filter");
     const sideMode: string = filter === null ? "status" : "filter";
 
-    const allAccounts = useSelector((state: any) => state.accounts.items);
-    const allCategories = useSelector((state: any) => state.categories.items);
+    const allAccounts = useAppSelector(state => state.accounts.items);
+    const allCategories = useAppSelector(state => state.categories.items);
         
     const activeAccounts = allAccounts.filter((a: any) => a.isEnabled);
     const activeCategories = allCategories.filter((c: any) => c.isEnabled);

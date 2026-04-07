@@ -10,7 +10,7 @@ import locale from "antd/es/date-picker/locale/ru_RU";
 const { RangePicker } = DatePicker;
 
 import { useMemo, useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import Dropdown from "../../components/Dropdown";
@@ -20,11 +20,11 @@ import { defaultAccount, AccountDetails } from "../../model/Account/AccountDetai
 import { transactionsDefaultFilter, transactionsActions } from "../../store/transactions/transactions-slice";
 
 const TransactionFilterForm = (props: any) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const location = useLocation();
     const navigate = useNavigate();
 
-    const filterData = useSelector((state: any) => state.transactions.filter);
+    const filterData = useAppSelector(state => state.transactions.filter);
     const [localFilter, setLocalFilter] = useState(transactionsDefaultFilter);
     const { categories, accounts, filter } = props;
 

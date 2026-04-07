@@ -2,9 +2,10 @@ import moment from "moment";
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { reportActions } from "./report-slice";
+import type { AppDispatch } from "../index";
 
 export const fetchReport = (type: string, filter: any) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       dispatch(reportActions.setIsLoading({ isLoading: true }));
 
@@ -37,7 +38,7 @@ export const fetchReport = (type: string, filter: any) => {
 };
 
 export const fetchHistory = (year: number, currency: string = "USD") => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       dispatch(reportActions.setIsLoading({ isLoading: true }));
 

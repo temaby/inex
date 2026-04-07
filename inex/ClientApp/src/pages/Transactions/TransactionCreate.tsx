@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import { useReducer, useMemo } from "react";
 import { Tabs, Space, Button } from 'antd';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
 const { TabPane } = Tabs;
 
@@ -40,9 +40,9 @@ const reducer = (state: TransactionSetState, action: any) => {
 };
 
 const TransactionCreate = (props: any) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
-    const isCreating = useSelector((state: any) => state.transactions.isCreating);
+    const isCreating = useAppSelector(state => state.transactions.isCreating);
 
     const { categories } = props;
 

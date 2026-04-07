@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { useEffect, useMemo, useReducer } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import moment from "moment";
 import { Moment } from "moment";
@@ -36,10 +36,10 @@ const reducer = (state: TransactionEditState, action: any) => {
 };
 
 const TransactionEditForm = (props: any) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
-    const isDeleting = useSelector((state: any) => state.transactions.isDeleting);
-    const isUpdating = useSelector((state: any) => state.transactions.isUpdating);
+    const isDeleting = useAppSelector(state => state.transactions.isDeleting);
+    const isUpdating = useAppSelector(state => state.transactions.isUpdating);
 
     const [state, dispatchTransactionAction] = useReducer(reducer, defaultState);
 

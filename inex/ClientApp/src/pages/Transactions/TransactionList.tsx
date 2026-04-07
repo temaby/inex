@@ -2,7 +2,7 @@
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { Table, Tag } from 'antd';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigate } from "react-router-dom";
 import { ColumnsType } from "antd/es/table";
 
@@ -12,13 +12,13 @@ import { fetchTransactions } from '../../store/transactions/transactions-actions
 import TransactionEditForm from './TransactionEditForm';
 
 const TransactionList = (props: any) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const transactions = useSelector((state: any) => state.transactions.items);
-    const transactionsLastUpdate = useSelector((state: any) => state.transactions.lastUpdate);
-    const total = useSelector((state: any) => state.transactions.total);
-    const filter = useSelector((state: any) => state.transactions.filter);
-    const isLoading = useSelector((state: any) => state.transactions.isLoading);
+    const transactions = useAppSelector(state => state.transactions.items);
+    const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
+    const total = useAppSelector(state => state.transactions.total);
+    const filter = useAppSelector(state => state.transactions.filter);
+    const isLoading = useAppSelector(state => state.transactions.isLoading);
 
     const [pagination, setPagination] = useState({ current: 1, total: 0, size: 20 });
     const [expandedRows, setExpandedRows] = useState<string[]>([]);

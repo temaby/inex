@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { Layout, Table, Tabs, DatePicker, Space, Typography, Row, Col, Card, Statistic } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
-import { useSelector, useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 type Moment = moment.Moment;
@@ -19,24 +19,24 @@ const dateFormat: string = "YYYY-MM";
 
 const ReportCategory = (props: any) => {
     console.log("Category report is loaded");
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
 
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-    const filterData = useSelector((state: any) => state.transactions.filter);
+    const filterData = useAppSelector(state => state.transactions.filter);
 
     const queryParams: URLSearchParams = new URLSearchParams(location.search);
     const interval: string | null = queryParams.get("interval");
     const currentDate: Moment = useMemo(() => interval ? moment(interval, dateFormat) : moment(), [interval]);
 
-    const allCategories = useSelector((state: any) => state.categories.items);
+    const allCategories = useAppSelector(state => state.categories.items);
     const activeCategories = allCategories.filter((c: any) => c.isEnabled);
-    const reportData = useSelector((state: any) => state.report.items);
-    const currency = useSelector((state: any) => state.report.currency);
-    const filter = useSelector((state: any) => state.report.filter);
-    const isLoading = useSelector((state: any) => state.report.isLoading);
+    const reportData = useAppSelector(state => state.report.items);
+    const currency = useAppSelector(state => state.report.currency);
+    const filter = useAppSelector(state => state.report.filter);
+    const isLoading = useAppSelector(state => state.report.isLoading);
 
     const report: ReportCategoryDetails[] = getCategoryReport(activeCategories, reportData);
     

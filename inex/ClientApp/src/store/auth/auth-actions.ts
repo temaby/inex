@@ -1,5 +1,6 @@
 import apiClient from "../../utils/apiClient";
 import { AuthUser, clearAuth, setAuthError, setCredentials } from "./auth-slice";
+import type { AppDispatch } from "../index";
 
 interface TokenResponse {
   accessToken: string;
@@ -26,7 +27,7 @@ interface RegisterRequest {
  * Sets isInitializing=false when done (success or failure).
  */
 export const restoreSession = () => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       const { data } = await apiClient.post<TokenResponse>("/auth/refresh");
 
@@ -45,7 +46,7 @@ export const restoreSession = () => {
 };
 
 export const loginUser = (credentials: LoginRequest) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       const { data } = await apiClient.post<TokenResponse>("/auth/login", credentials);
       const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
@@ -62,7 +63,7 @@ export const loginUser = (credentials: LoginRequest) => {
 };
 
 export const registerUser = (data: RegisterRequest) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       const { data: tokenData } = await apiClient.post<TokenResponse>("/auth/register", data);
       const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
@@ -81,7 +82,7 @@ export const registerUser = (data: RegisterRequest) => {
 };
 
 export const updateProfile = (data: { username: string; currencyId: number }) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     const { data: tokenData } = await apiClient.put<TokenResponse>("/auth/me", data);
     const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
       headers: { Authorization: `Bearer ${tokenData.accessToken}` },
@@ -97,7 +98,7 @@ export const changePassword = (data: { currentPassword: string; newPassword: str
 };
 
 export const logoutUser = () => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       await apiClient.post("/auth/logout");
     } finally {

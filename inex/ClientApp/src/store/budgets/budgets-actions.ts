@@ -1,11 +1,12 @@
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { budgetsActions } from "./budgets-slice";
+import type { AppDispatch } from "../index";
 
 const API_BASE = "/budgets";
 
 export const fetchBudgets = (year?: number, month?: number) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(budgetsActions.setIsLoading({ isLoading: true }));
 
@@ -37,7 +38,7 @@ export const copyBudgets = (
     targetYear: number,
     targetMonth: number
 ) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(budgetsActions.setIsCreating({ isCreating: true }));
 
@@ -68,7 +69,7 @@ export const createBudget = (
     year: number,
     month: number
 ) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(budgetsActions.setIsCreating({ isCreating: true }));
 
@@ -93,7 +94,7 @@ export const updateBudget = (
     year: number,
     month: number
 ) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             dispatch(budgetsActions.setIsUpdating({ isUpdating: true }));
 
@@ -109,7 +110,7 @@ export const updateBudget = (
 };
 
 export const deleteBudget = (id: number) => {
-    return async (dispatch: any) => {
+    return async (dispatch: AppDispatch) => {
         try {
             await apiClient.delete(`${API_BASE}/${id}`);
             dispatch(budgetsActions.setLastUpdate());

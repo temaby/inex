@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useReducer, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { Form, Input, Button, Divider, Row, Col, InputNumber, Popconfirm, message } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { BudgetEditState } from "../../model/Budget/BudgetEditState";
@@ -33,11 +33,11 @@ const reducer = (state: typeof defaultState, action: any): typeof defaultState =
 };
 
 const BudgetEditForm = (props: any) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const { record, currency } = props;
     
-    const isUpdating = useSelector((state: any) => state.budgets.isUpdating);
-    const allCategories = useSelector((state: any) => state.categories?.items || []);
+    const isUpdating = useAppSelector(state => state.budgets.isUpdating);
+    const allCategories = useAppSelector(state => state.categories?.items || []);
     const categories = useMemo(() => allCategories.filter((c: any) => c.isEnabled), [allCategories]);
     const categoryTree = useMemo(() => getCategoriesTree(categories, false) as CategoryDetails[], [categories]);
 
@@ -76,7 +76,7 @@ const BudgetEditForm = (props: any) => {
                 state.categoryIds,
                 state.year,
                 state.month
-            ) as any);
+            ));
             message.success("Бюджет успешно обновлен");
             if (props.onCollapse) {
                 props.onCollapse();
@@ -88,7 +88,7 @@ const BudgetEditForm = (props: any) => {
 
     const deleteHandler = async () => {
         try {
-            await dispatch(deleteBudget(state.id) as any);
+            await dispatch(deleteBudget(state.id));
             message.success("Бюджет успешно удален");
             if (props.onCollapse) {
                 props.onCollapse();

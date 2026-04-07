@@ -3,7 +3,7 @@ import * as React from "react";
 import { Input, Button, Space, Divider, Radio, Popconfirm } from "antd";
 import { Form, Col, Row } from 'antd';
 import { useEffect, useReducer } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { CategoryEditState } from "../../model/Category/CategoryEditState";
 
 import { updateCategory, deleteCategory } from "../../store/categories/categories-actions";
@@ -26,9 +26,9 @@ const reducer = (state: CategoryEditState, action: any): CategoryEditState => {
 };
 
 const CategoryEditForm = (props: any) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
-    const isUpdating = useSelector((state: any) => state.categories.isUpdating);
+    const isUpdating = useAppSelector(state => state.categories.isUpdating);
 
     const [state, dispatchAction] = useReducer(reducer, defaultState);
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
 import { fetchHistory } from "../../store/report/report-actions";
 import {
@@ -22,9 +22,9 @@ import moment from "moment";
 const { Title } = Typography;
 
 const ReportMonthlyHistory = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const history = useSelector((state: any) => state.report.history);
+  const history = useAppSelector(state => state.report.history);
   const [year, setYear] = useState(moment().year());
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
 import { ColumnsType } from "antd/es/table";
 import BasicPage from "../layouts/BasicPage";
@@ -10,13 +10,13 @@ import AccountEditForm from "./Accounts/AccountEditForm";
 import { fetchAccounts } from "../store/accounts/accounts-actions";
 
 const Accounts = () => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-    const accounts = useSelector((state: any) => state.accounts.items);
-    const accountsLastUpdate = useSelector((state: any) => state.accounts.lastUpdate);
+    const accounts = useAppSelector(state => state.accounts.items);
+    const accountsLastUpdate = useAppSelector(state => state.accounts.lastUpdate);
     const filteredAccounts = showOnlyEnabled ? accounts.filter((a: any) => a.isEnabled) : accounts;
 
     useEffect(() => {

@@ -1,11 +1,12 @@
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { accountsActions } from "./accounts-slice";
+import type { AppDispatch } from "../index";
 
 const API_BASE = "/accounts";
 
 export const fetchAccounts = (mode: string) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       dispatch(accountsActions.setIsLoading({ isLoading: true }));
       const { data } = await apiClient.get(`${API_BASE}?mode=${mode}`);
@@ -19,7 +20,7 @@ export const fetchAccounts = (mode: string) => {
 };
 
 export const createAccount = (key: string, name: string, description: string, currencyId: number, isEnabled: boolean) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       dispatch(accountsActions.setIsCreating({ isCreating: true }));
       await apiClient.post(API_BASE, { key, name, description, currencyId, isEnabled });
@@ -33,7 +34,7 @@ export const createAccount = (key: string, name: string, description: string, cu
 };
 
 export const updateAccount = (id: number, name: string, description: string, currencyId: number, isEnabled: boolean) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       dispatch(accountsActions.setIsUpdating({ isUpdating: true }));
       await apiClient.put(`${API_BASE}/${id}`, { id, name, description, currencyId, isEnabled });
@@ -47,7 +48,7 @@ export const updateAccount = (id: number, name: string, description: string, cur
 };
 
 export const deleteAccount = (id: number) => {
-  return async (dispatch: any) => {
+  return async (dispatch: AppDispatch) => {
     try {
       await apiClient.delete(`${API_BASE}/${id}`);
       dispatch(accountsActions.setLastUpdate());

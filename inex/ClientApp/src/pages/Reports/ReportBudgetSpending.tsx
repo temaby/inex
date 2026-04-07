@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
 import { Layout, DatePicker, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined, WarningOutlined } from '@ant-design/icons';
@@ -13,15 +13,15 @@ import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 const { Title } = Typography;
 
 const ReportBudgetSpending: React.FC = () => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { items, isLoading, selectedYear, selectedMonth, error, metadata } = useSelector((state: any) => state.budgetReport);
-    const currency = useSelector((state: any) => state.report.currency) || "USD";
+    const { items, isLoading, selectedYear, selectedMonth, error, metadata } = useAppSelector(state => state.budgetReport);
+    const currency = useAppSelector(state => state.report.currency) || "USD";
 
     const [localDate, setLocalDate] = useState(moment(`${selectedYear}-${selectedMonth}`, "YYYY-M"));
 
     useEffect(() => {
-        dispatch(fetchBudgetReport(localDate.year(), localDate.month() + 1, currency) as any);
+        dispatch(fetchBudgetReport(localDate.year(), localDate.month() + 1, currency));
     }, [localDate, currency, dispatch]);
 
     const handleDateChange = (date: any) => {

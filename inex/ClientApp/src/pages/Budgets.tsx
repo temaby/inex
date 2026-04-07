@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Space, Form, Input, InputNumber, Select, message, DatePicker, Typography } from "antd";
 import { ColumnsType } from "antd/es/table";
 import moment from "moment";
@@ -41,7 +41,7 @@ const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
 
 const Budgets = () => {
     const [form] = Form.useForm();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const [modalVisible, setModalVisible] = useState(false);
     const [expandedRows, setExpandedRows] = useState<number[]>([]);
@@ -64,17 +64,17 @@ const Budgets = () => {
         }
     }, [selectedMonth, setSearchParams, searchParams]);
 
-    const budgets = useSelector((state: any) => state.budgets?.items || []);
-    const accounts = useSelector((state: any) => state.accounts?.items || []);
+    const budgets = useAppSelector(state => state.budgets?.items || []);
+    const accounts = useAppSelector(state => state.accounts?.items || []);
     const currency = accounts.length > 0 ? accounts[0].currency : "USD";
-    const allCategories = useSelector((state: any) => state.categories?.items || []);
+    const allCategories = useAppSelector(state => state.categories?.items || []);
     const categories = React.useMemo(() => allCategories.filter((c: any) => c.isEnabled), [allCategories]);
-    const isCreating = useSelector((state: any) => state.budgets?.isCreating || false);
-    const lastUpdate = useSelector((state: any) => state.budgets?.lastUpdate);
+    const isCreating = useAppSelector(state => state.budgets?.isCreating || false);
+    const lastUpdate = useAppSelector(state => state.budgets?.lastUpdate);
 
     useEffect(() => {
-        dispatch(fetchBudgets(selectedMonth.year(), selectedMonth.month() + 1) as any);
-        dispatch(fetchCategories("ALL") as any);
+        dispatch(fetchBudgets(selectedMonth.year(), selectedMonth.month() + 1));
+        dispatch(fetchCategories("ALL"));
     }, [dispatch, lastUpdate, selectedMonth]);
 
     const closeModalHandler = () => {
@@ -98,7 +98,7 @@ const Budgets = () => {
                     values.categoryIds || [],
                     values.year,
                     values.month
-                ) as any
+                )
             );
             message.success("Бюджет успешно создан");
             closeModalHandler();
@@ -116,7 +116,7 @@ const Budgets = () => {
                     prevMonth.month() + 1,
                     selectedMonth.year(),
                     selectedMonth.month() + 1
-                ) as any
+                )
             );
             message.success("Бюджеты успешно скопированы");
         } catch (error) {

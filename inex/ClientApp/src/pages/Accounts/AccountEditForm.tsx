@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useReducer, useState } from "react";
 import { Form, Input, Button, Radio, Select, Space, Divider, Popconfirm } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { updateAccount, deleteAccount } from "../../store/accounts/accounts-actions";
 import apiClient from "../../utils/apiClient";
 
@@ -37,8 +37,8 @@ const reducer = (state: AccountEditState, action: any): AccountEditState => {
 };
 
 const AccountEditForm = (props: any) => {
-    const dispatch = useDispatch();
-    const isUpdating = useSelector((state: any) => state.accounts.isUpdating);
+    const dispatch = useAppDispatch();
+    const isUpdating = useAppSelector(state => state.accounts.isUpdating);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
 
     const [state, dispatchAction] = useReducer(reducer, {
