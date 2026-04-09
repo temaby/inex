@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { AccountDetails } from "../../model/Account/AccountDetails";
 
 const accountsSlice = createSlice({
   name: "accounts",
   initialState: {
-    items: [],
+    items: [] as AccountDetails[],
     isLoading: false,
     isCreating: false,
     isUpdating: false,

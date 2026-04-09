@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { BudgetDetails } from "../../model/Budget/BudgetDetails";
 
 const budgetsSlice = createSlice({
     name: "budgets",
     initialState: {
-        items: [],
+        items: [] as BudgetDetails[],
         isLoading: false,
         isCreating: false,
         isUpdating: false,

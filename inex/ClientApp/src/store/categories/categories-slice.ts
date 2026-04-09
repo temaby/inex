@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { CategoryDetails } from "../../model/Category/CategoryDetails";
 
 const categoriesSlice = createSlice({
     name: "categories",
     initialState: {
-        items: [],
+        items: [] as CategoryDetails[],
         isLoading: false,
         isCreating: false,
         isUpdating: false,
