@@ -12,6 +12,8 @@ export interface ReportMetadataDTO {
     currency: string;
     start: string;
     end: string;
+    totalIncome: number;
+    totalOutcome: number;
 }
 
 export interface BudgetReportResponse {
