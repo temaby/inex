@@ -1,27 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const defaultFilter = {
-    accountIds: [],
-    categoryIds: [],
-    tags: [],
-    refs: [],
+    accountIds: [] as number[],
+    categoryIds: [] as number[],
+    tags: [] as string[],
+    refs: [] as string[],
     tagsAndRefs: "",
-    range: []
+    range: [] as number[],
 };
 
 const transactionsSlice = createSlice({
     name: "transactions",
     initialState: {
-        items: [],
+        items: [] as any[],
         total: 0,
         isLoading: false,
         isCreating: false,
         isDeleting: false,
         isUpdating: false,
-        summaryItems: [],
+        summaryItems: [] as any[],
         lastUpdate: Date(),
         filter: defaultFilter,
-        error: null,
+        error: null as string | null,
     },
     reducers: {
         setTransactions(state, action) {
