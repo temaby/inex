@@ -8,8 +8,8 @@ const reportSlice = createSlice({
   name: "report",
   initialState: {
     title: "",
-    items: [],
-    history: [],
+    items: [] as any[],
+    history: [] as any[],
     currency: "",
     filter: defaultFilter,
     isLoading: false,

@@ -1,9 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+interface ExchangeRateItem {
+  id: number;
+  currencyFrom: string;
+  currencyTo: string;
+  date: string;
+  rate: number;
+  isTemporary: boolean;
+}
+
 const ratesSlice = createSlice({
   name: "rates",
   initialState: {
-    items: [],
+    items: [] as ExchangeRateItem[],
     error: null as string | null,
   },
   reducers: {
