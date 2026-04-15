@@ -19,6 +19,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.CloudWatchLogs;
 using inex.Exceptions;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using inex.Services.Validators.Account;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -67,6 +70,7 @@ try
     });
 
     builder.Services.AddInExServices(builder.Configuration);
+    builder.Services.AddValidatorsFromAssemblyContaining<AccountCreateValidator>();
 
     builder.Services.AddRateLimiter(options =>
     {
@@ -156,6 +160,8 @@ try
     builder.Services.AddControllers()
         .AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition
             = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
+
+    builder.Services.AddFluentValidationAutoValidation();
 
     // Configure API behavior to return Problem Details for validation/model-binding errors.
     // Must be called AFTER AddControllers() so our factory overrides the default 400 factory
