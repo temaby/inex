@@ -74,7 +74,7 @@ public class AuthServiceTests
         string inviteToken = "test-invite-token")
     {
         var onboarding = new Mock<IUserOnboardingService>();
-        onboarding.Setup(s => s.SeedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        onboarding.Setup(s => s.SeedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                   .Returns(Task.CompletedTask);
 
         return new AuthService(
