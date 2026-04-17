@@ -48,7 +48,7 @@ const TransactionCreate = (props: any) => {
 
     const { categories } = props;
 
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false) as CategoryDetails[], [categories]);
+    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
     const [state, dispatchTransactionAction] = useReducer(reducer, defaultState);
 

@@ -25,9 +25,9 @@ export const createCategoryDetails = (data?: Partial<CategoryDetails>): Category
 
 export const defaultCategory: CategoryDetails = createCategoryDetails({
     id: -1,
-    key: "Выберите категорию",
-    name: "Выберите категорию",
-    description: "Выберите категорию",
+    key: "default",
+    name: "",
+    description: "",
     isEnabled: true,
 });
 
@@ -54,7 +54,7 @@ const flattenCategories = (categories: CategoryDetails[], depth = 0): (Omit<Cate
     });
 }
 
-export const getCategoriesTree = (categoriesData: any[], flat: boolean): (Omit<CategoryDetails, "children"> & { depth: number })[] | CategoryDetails[] => {
+export const getCategoriesTree = (categoriesData: any[], flat: boolean, systemLabel = "System"): (Omit<CategoryDetails, "children"> & { depth: number })[] | CategoryDetails[] => {
     if (!categoriesData || categoriesData.length === 0) {
         return [];
     }
@@ -71,9 +71,9 @@ export const getCategoriesTree = (categoriesData: any[], flat: boolean): (Omit<C
 
     const rootSystem: CategoryDetails = createCategoryDetails({
         id: 0,
-        key: "Системные транзакции",
-        name: "Системные транзакции",
-        description: "Системные транзакции",
+        key: "system",
+        name: systemLabel,
+        description: systemLabel,
         isEnabled: true,
         isSystem: true,
         children: [],

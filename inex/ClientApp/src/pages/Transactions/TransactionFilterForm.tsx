@@ -95,7 +95,7 @@ const TransactionFilterForm = (props: any) => {
         localFilter.refs.find((i: string) => i !== "") ||
         localFilter.range && localFilter.range.length === 2;
 
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false) as CategoryDetails[],[categories]);
+    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
     const filterDetails: any = useMemo(() => {
         const filteredCategories = categories.filter((category: CategoryDetails) =>

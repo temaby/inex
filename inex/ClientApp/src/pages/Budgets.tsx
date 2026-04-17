@@ -127,7 +127,7 @@ const Budgets = () => {
         }
     };
 
-    const categoryTree = React.useMemo(() => getCategoriesTree(categories, false) as CategoryDetails[], [categories]);
+    const categoryTree = React.useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
     const columns: ColumnsType<BudgetDetails> = [
         {
