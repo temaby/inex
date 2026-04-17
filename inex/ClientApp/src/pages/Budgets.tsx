@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Space, Form, Input, InputNumber, Select, message, DatePicker, Typography } from "antd";
 import { ColumnsType } from "antd/es/table";
@@ -9,6 +10,7 @@ import BasicPage from "../layouts/BasicPage";
 import { BudgetDetails } from "../model/Budget/BudgetDetails";
 import { BudgetEditState } from "../model/Budget/BudgetEditState";
 import { fetchBudgets, createBudget, copyBudgets } from "../store/budgets/budgets-actions";
+import { parseAxiosError } from "../utils/parseAxiosError";
 import { fetchCategories } from "../store/categories/categories-actions";
 import { CategoryDetails, getCategoriesTree } from "../model/Category/CategoryDetails";
 import BudgetEditForm from "./Budgets/BudgetEditForm";
@@ -17,8 +19,9 @@ import ExpressionInputNumber from "../components/ExpressionInputNumber";
 import { CopyOutlined } from "@ant-design/icons";
 
 const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
+    const { t } = useTranslation();
     const selection = categories.filter((c: any) => value.includes(c.id));
-    
+
     const handleChange = (item: any) => {
         const id = +item.key;
         const newValue = value.includes(id)
@@ -31,7 +34,7 @@ const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
         <Dropdown
             id="category-dropdown"
             selection={selection}
-            placeholder="Выберите категории"
+            placeholder={t("budgets.selectCategories")}
             onChange={handleChange}
             items={tree}
             multiple={true}
@@ -40,12 +43,13 @@ const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
 };
 
 const Budgets = () => {
+    const { t } = useTranslation();
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const [modalVisible, setModalVisible] = useState(false);
     const [expandedRows, setExpandedRows] = useState<number[]>([]);
-    
+
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const year = searchParams.get("year");
         const month = searchParams.get("month");
@@ -55,7 +59,6 @@ const Budgets = () => {
         return moment();
     });
 
-    // Update URL when selectedMonth changes
     useEffect(() => {
         const year = selectedMonth.year().toString();
         const month = (selectedMonth.month() + 1).toString();
@@ -100,10 +103,10 @@ const Budgets = () => {
                     values.month
                 )
             );
-            message.success("Бюджет успешно создан");
+            message.success(t("budgets.created"));
             closeModalHandler();
         } catch (error) {
-            message.error((error as Error).message || "Ошибка при создании бюджета");
+            message.error(parseAxiosError(error, t("budgets.createError"), t));
         }
     };
 
@@ -118,9 +121,9 @@ const Budgets = () => {
                     selectedMonth.month() + 1
                 )
             );
-            message.success("Бюджеты успешно скопированы");
+            message.success(t("budgets.created"));
         } catch (error) {
-            message.error((error as Error).message || "Ошибка при копировании бюджетов");
+            message.error(parseAxiosError(error, t("budgets.createError"), t));
         }
     };
 
@@ -128,32 +131,32 @@ const Budgets = () => {
 
     const columns: ColumnsType<BudgetDetails> = [
         {
-            title: "Название",
+            title: t("budgets.name"),
             dataIndex: "name",
             key: "name",
             width: 250,
         },
         {
-            title: "Описание",
+            title: t("budgets.description"),
             dataIndex: "description",
             key: "description",
             width: 300,
         },
         {
-            title: "Год",
+            title: t("budgets.year"),
             dataIndex: "year",
             key: "year",
             width: 100,
         },
         {
-            title: "Месяц",
+            title: t("budgets.month"),
             dataIndex: "month",
             key: "month",
             width: 100,
             render: (month: number) => moment().month(month - 1).format("MMMM"),
         },
         {
-            title: "Сумма",
+            title: t("budgets.amount"),
             dataIndex: "value",
             key: "value",
             width: 150,
@@ -161,7 +164,7 @@ const Budgets = () => {
             render: (value: number) => value.toFixed(2),
         },
         {
-            title: "Категории",
+            title: t("budgets.categories"),
             dataIndex: "categoryIds",
             key: "categoryIds",
             width: 300,
@@ -198,7 +201,7 @@ const Budgets = () => {
     return (
         <React.Fragment>
             <Drawer
-                title="Добавить бюджет"
+                title={t("budgets.addDrawerTitle")}
                 width={520}
                 onClose={closeModalHandler}
                 open={modalVisible}
@@ -221,32 +224,32 @@ const Budgets = () => {
                 >
                     <Form.Item
                         name="key"
-                        label="Ключ"
-                        rules={[{ required: true, message: "Пожалуйста, введите ключ бюджета" }]}
+                        label={t("budgets.key")}
+                        rules={[{ required: true, message: "Please enter a key" }]}
                     >
-                        <Input size="large" placeholder="Введите уникальный ключ" />
+                        <Input size="large" placeholder={t("budgets.keyPlaceholder")} />
                     </Form.Item>
 
                     <Form.Item
                         name="name"
-                        label="Название"
-                        rules={[{ required: true, message: "Пожалуйста, введите название бюджета" }]}
+                        label={t("budgets.name")}
+                        rules={[{ required: true, message: "Please enter a name" }]}
                     >
-                        <Input size="large" placeholder="Введите название бюджета" />
+                        <Input size="large" placeholder={t("budgets.namePlaceholder")} />
                     </Form.Item>
 
-                    <Form.Item name="description" label="Описание">
-                        <Input.TextArea size="large" rows={3} placeholder="Введите описание бюджета" />
+                    <Form.Item name="description" label={t("budgets.description")}>
+                        <Input.TextArea size="large" rows={3} placeholder={t("budgets.descriptionPlaceholder")} />
                     </Form.Item>
 
-                    <Form.Item name="categoryIds" label="Категории">
+                    <Form.Item name="categoryIds" label={t("budgets.categories")}>
                         <CategoryDropdown categories={categories} tree={categoryTree} />
                     </Form.Item>
 
                     <Form.Item
                         name="value"
-                        label="Сумма"
-                        rules={[{ required: true, message: "Пожалуйста, введите сумму бюджета" }]}
+                        label={t("budgets.amount")}
+                        rules={[{ required: true, message: "Please enter an amount" }]}
                     >
                         <ExpressionInputNumber
                             size="large"
@@ -259,8 +262,8 @@ const Budgets = () => {
 
                     <Form.Item
                         name="year"
-                        label="Год"
-                        rules={[{ required: true, message: "Пожалуйста, введите год" }]}
+                        label={t("budgets.year")}
+                        rules={[{ required: true, message: "Please enter a year" }]}
                     >
                         <InputNumber
                             size="large"
@@ -273,8 +276,8 @@ const Budgets = () => {
 
                     <Form.Item
                         name="month"
-                        label="Месяц"
-                        rules={[{ required: true, message: "Пожалуйста, введите месяц" }]}
+                        label={t("budgets.month")}
+                        rules={[{ required: true, message: "Please enter a month" }]}
                     >
                         <InputNumber
                             size="large"
@@ -287,27 +290,23 @@ const Budgets = () => {
 
                     <Form.Item>
                         <Space>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                loading={isCreating}
-                            >
-                                Создать
+                            <Button type="primary" htmlType="submit" loading={isCreating}>
+                                {t("budgets.create")}
                             </Button>
-                            <Button onClick={closeModalHandler}>Отмена</Button>
+                            <Button onClick={closeModalHandler}>{t("budgets.cancel")}</Button>
                         </Space>
                     </Form.Item>
                 </Form>
             </Drawer>
 
             <BasicPage
-                title="Бюджеты"
+                title={t("budgets.title")}
                 extra={[
-                    <DatePicker 
+                    <DatePicker
                         key="monthPicker"
-                        picker="month" 
-                        value={selectedMonth} 
-                        onChange={(val) => val && setSelectedMonth(val)} 
+                        picker="month"
+                        value={selectedMonth}
+                        onChange={(val) => val && setSelectedMonth(val)}
                         allowClear={false}
                         size="large"
                         style={{ marginRight: 8 }}
@@ -319,20 +318,20 @@ const Budgets = () => {
                         type="primary"
                         style={{ margin: "4px 0px" }}
                     >
-                        Добавить
+                        {t("common.add")}
                     </Button>,
                 ]}
             >
                 <div style={{ minHeight: "76vh", background: "white" }}>
                     {budgets.length === 0 && (
                         <div style={{ padding: 20, textAlign: "center" }}>
-                            <p>В этом месяце еще нет бюджетов.</p>
-                            <Button 
-                                icon={<CopyOutlined />} 
+                            <p>{t("budgets.noData")}</p>
+                            <Button
+                                icon={<CopyOutlined />}
                                 onClick={handleCopyFromPrevious}
                                 loading={isCreating}
                             >
-                                Скопировать из прошлого месяца
+                                {t("budgets.copyFromPrevious")}
                             </Button>
                         </div>
                     )}
@@ -342,7 +341,7 @@ const Budgets = () => {
                         rowKey="id"
                         pagination={false}
                         scroll={{ x: 1000 }}
-                        locale={{ emptyText: "Нет бюджетов для отображения" }}
+                        locale={{ emptyText: t("budgets.empty") }}
                         expandable={{
                             expandedRowRender,
                             expandedRowKeys: expandedRows,
@@ -358,7 +357,7 @@ const Budgets = () => {
                             return (
                                 <Table.Summary fixed>
                                     <Table.Summary.Row>
-                                        <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
+                                        <Table.Summary.Cell index={0}>{t("budgets.total")}</Table.Summary.Cell>
                                         <Table.Summary.Cell index={1} colSpan={3}></Table.Summary.Cell>
                                         <Table.Summary.Cell index={4} align="right">
                                             <Typography.Text strong>{total.toFixed(2)}</Typography.Text>

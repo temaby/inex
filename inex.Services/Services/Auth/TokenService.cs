@@ -31,6 +31,7 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim("currency_id", user.CurrencyId.ToString()),
+            new Claim("language_code", user.LanguageCode ?? ""),
         };
 
         var token = new JwtSecurityToken(

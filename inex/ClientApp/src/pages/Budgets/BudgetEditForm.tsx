@@ -1,10 +1,12 @@
 import * as React from "react";
 import { useEffect, useReducer, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { Form, Input, Button, Divider, Row, Col, InputNumber, Popconfirm, message } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { BudgetEditState } from "../../model/Budget/BudgetEditState";
 import { updateBudget, deleteBudget } from "../../store/budgets/budgets-actions";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import { getCategoriesTree, CategoryDetails } from "../../model/Category/CategoryDetails";
 import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
@@ -33,9 +35,10 @@ const reducer = (state: typeof defaultState, action: any): typeof defaultState =
 };
 
 const BudgetEditForm = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { record, currency } = props;
-    
+
     const isUpdating = useAppSelector(state => state.budgets.isUpdating);
     const allCategories = useAppSelector(state => state.categories?.items || []);
     const categories = useMemo(() => allCategories.filter((c: any) => c.isEnabled), [allCategories]);
@@ -45,8 +48,8 @@ const BudgetEditForm = (props: any) => {
 
     useEffect(() => {
         if (record) {
-            dispatchLocal({ 
-                type: "INIT", 
+            dispatchLocal({
+                type: "INIT",
                 value: {
                     id: record.id,
                     key: record.key,
@@ -56,7 +59,7 @@ const BudgetEditForm = (props: any) => {
                     categoryIds: record.categoryIds || [],
                     year: record.year || new Date().getFullYear(),
                     month: record.month || new Date().getMonth() + 1
-                } 
+                }
             });
         }
     }, [record]);
@@ -77,24 +80,24 @@ const BudgetEditForm = (props: any) => {
                 state.year,
                 state.month
             ));
-            message.success("Бюджет успешно обновлен");
+            message.success(t("budgets.updated"));
             if (props.onCollapse) {
                 props.onCollapse();
             }
         } catch (error) {
-            message.error((error as Error).message || "Ошибка при обновлении бюджета");
+            message.error(parseAxiosError(error, t("budgets.updateError"), t));
         }
     };
 
     const deleteHandler = async () => {
         try {
             await dispatch(deleteBudget(state.id));
-            message.success("Бюджет успешно удален");
+            message.success(t("budgets.deleted"));
             if (props.onCollapse) {
                 props.onCollapse();
             }
         } catch (error) {
-            message.error((error as Error).message || "Ошибка при удалении бюджета");
+            message.error(parseAxiosError(error, t("budgets.deleteError"), t));
         }
     };
 
@@ -102,53 +105,53 @@ const BudgetEditForm = (props: any) => {
         <Form layout="vertical">
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Название">
-                        <Input 
+                    <Form.Item label={t("budgets.name")}>
+                        <Input
                             size="large"
-                            value={state.name} 
-                            onChange={(e) => fieldChangeHandler("name", e.target.value)} 
+                            value={state.name}
+                            onChange={(e) => fieldChangeHandler("name", e.target.value)}
                         />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Описание">
-                        <Input 
+                    <Form.Item label={t("budgets.description")}>
+                        <Input
                             size="large"
-                            value={state.description} 
-                            onChange={(e) => fieldChangeHandler("description", e.target.value)} 
+                            value={state.description}
+                            onChange={(e) => fieldChangeHandler("description", e.target.value)}
                         />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={12}>
-                    <Form.Item label="Категории">
-                        <Dropdown 
-                            id="categories" 
-                            selection={categories.filter((c: any) => state.categoryIds.includes(c.id))} 
-                            placeholder="Выберите категории"
+                    <Form.Item label={t("budgets.categories")}>
+                        <Dropdown
+                            id="categories"
+                            selection={categories.filter((c: any) => state.categoryIds.includes(c.id))}
+                            placeholder={t("budgets.selectCategories")}
                             onChange={(item: any) => {
-                                const categoryIds = state.categoryIds.includes(+item.key) 
+                                const categoryIds = state.categoryIds.includes(+item.key)
                                     ? state.categoryIds.filter((id: number) => id !== +item.key)
                                     : [...state.categoryIds, +item.key];
                                 fieldChangeHandler("categoryIds", categoryIds);
-                            }} 
-                            items={categoryTree} 
-                            multiple={true} 
+                            }}
+                            items={categoryTree}
+                            multiple={true}
                         />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={6}>
-                    <Form.Item label="Сумма">
-                        <ExpressionInputNumber 
+                    <Form.Item label={t("budgets.amount")}>
+                        <ExpressionInputNumber
                             size="large"
                             style={{ width: '100%' }}
-                            value={state.value} 
-                            onChange={(val) => fieldChangeHandler("value", val)} 
+                            value={state.value}
+                            onChange={(val) => fieldChangeHandler("value", val)}
                             precision={2}
                             placeholder="0.00"
                             addonAfter={currency}
@@ -156,7 +159,7 @@ const BudgetEditForm = (props: any) => {
                     </Form.Item>
                 </Col>
                 <Col span={6}>
-                    <Form.Item label="Год">
+                    <Form.Item label={t("budgets.year")}>
                         <InputNumber
                             size="large"
                             style={{ width: '100%' }}
@@ -168,7 +171,7 @@ const BudgetEditForm = (props: any) => {
                     </Form.Item>
                 </Col>
                 <Col span={6}>
-                    <Form.Item label="Месяц">
+                    <Form.Item label={t("budgets.month")}>
                         <InputNumber
                             size="large"
                             style={{ width: '100%' }}
@@ -180,30 +183,30 @@ const BudgetEditForm = (props: any) => {
                     </Form.Item>
                 </Col>
             </Row>
-            
+
             <Divider />
-            
+
             <Row>
                 <Col span={12}>
                     <Popconfirm
-                        title="Вы уверены, что хотите удалить этот бюджет?"
+                        title={t("budgets.deleteConfirm")}
                         onConfirm={deleteHandler}
-                        okText="Да"
-                        cancelText="Нет"
+                        okText={t("common.yes")}
+                        cancelText={t("common.no")}
                     >
                         <Button danger icon={<DeleteOutlined />}>
-                            Удалить
+                            {t("budgets.delete")}
                         </Button>
                     </Popconfirm>
                 </Col>
                 <Col span={12} style={{ textAlign: "right" }}>
-                    <Button 
-                        type="primary" 
-                        onClick={updateHandler} 
+                    <Button
+                        type="primary"
+                        onClick={updateHandler}
                         loading={isUpdating}
                         disabled={!state.hasActiveChanges}
                     >
-                        Сохранить
+                        {t("budgets.save")}
                     </Button>
                 </Col>
             </Row>

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useReducer, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Radio, Select, Space, Divider, Popconfirm } from "antd";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { updateAccount, deleteAccount } from "../../store/accounts/accounts-actions";
@@ -37,6 +38,7 @@ const reducer = (state: AccountEditState, action: any): AccountEditState => {
 };
 
 const AccountEditForm = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const isUpdating = useAppSelector(state => state.accounts.isUpdating);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
@@ -55,7 +57,6 @@ const AccountEditForm = (props: any) => {
 
     useEffect(() => {
         const { record } = props;
-        // resolve currencyId from the currency key string stored on AccountDetails
         dispatchAction({ type: "INIT", value: {
             name: record.name,
             description: record.description ?? "",
@@ -74,21 +75,21 @@ const AccountEditForm = (props: any) => {
 
     return (
         <Form layout="vertical">
-            <Form.Item label="Name">
+            <Form.Item label={t("accounts.name")}>
                 <Input
                     size="large"
                     value={state.name}
                     onChange={(e) => dispatchAction({ type: "SET_NAME", value: e.target.value })}
                 />
             </Form.Item>
-            <Form.Item label="Description">
+            <Form.Item label={t("accounts.description")}>
                 <Input
                     size="large"
                     value={state.description}
                     onChange={(e) => dispatchAction({ type: "SET_DESCRIPTION", value: e.target.value })}
                 />
             </Form.Item>
-            <Form.Item label="Currency">
+            <Form.Item label={t("accounts.currency")}>
                 <Select
                     size="large"
                     value={state.currencyId || undefined}
@@ -108,23 +109,23 @@ const AccountEditForm = (props: any) => {
                         buttonStyle="solid"
                         value={state.isEnabled}
                         onChange={(e) => dispatchAction({ type: "SET_ENABLED", value: e.target.value })}>
-                        <Radio.Button value={true}>Active</Radio.Button>
-                        <Radio.Button value={false}>Disabled</Radio.Button>
+                        <Radio.Button value={true}>{t("accounts.active")}</Radio.Button>
+                        <Radio.Button value={false}>{t("accounts.disabled")}</Radio.Button>
                     </Radio.Group>
                     <Space>
                         <Popconfirm
-                            title="Delete account? This cannot be undone."
+                            title={t("accounts.deleteConfirm")}
                             onConfirm={deleteHandler}
-                            okText="Delete"
-                            cancelText="Cancel">
-                            <Button danger>Delete</Button>
+                            okText={t("accounts.delete")}
+                            cancelText={t("accounts.cancel")}>
+                            <Button danger>{t("accounts.delete")}</Button>
                         </Popconfirm>
                         <Button
                             type="primary"
                             loading={isUpdating}
                             disabled={!state.hasActiveChanges}
                             onClick={updateHandler}>
-                            Update
+                            {t("accounts.update")}
                         </Button>
                     </Space>
                 </div>

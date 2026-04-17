@@ -5,6 +5,7 @@ export interface AuthUser {
   username: string;
   email: string;
   currencyId: number;
+  languageCode: string | null;
 }
 
 interface AuthState {

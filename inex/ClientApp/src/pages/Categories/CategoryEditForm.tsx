@@ -1,5 +1,5 @@
 import * as React from "react";
-
+import { useTranslation } from "react-i18next";
 import { Input, Button, Space, Divider, Radio, Popconfirm } from "antd";
 import { Form, Col, Row } from 'antd';
 import { useEffect, useReducer } from "react";
@@ -26,6 +26,7 @@ const reducer = (state: CategoryEditState, action: any): CategoryEditState => {
 };
 
 const CategoryEditForm = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
     const isUpdating = useAppSelector(state => state.categories.isUpdating);
@@ -68,14 +69,14 @@ const CategoryEditForm = (props: any) => {
         <Form layout="vertical">
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Name">
+                    <Form.Item label={t("categories.name")}>
                         <Input size="large" onChange={setNameHandler} value={state.name} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Description">
+                    <Form.Item label={t("categories.description")}>
                         <Input size="large" onChange={setDescriptionHandler} value={state.description} />
                     </Form.Item>
                 </Col>
@@ -91,19 +92,19 @@ const CategoryEditForm = (props: any) => {
                         buttonStyle="solid"
                         value={state.isEnabled}
                         onChange={setEnabledHandler}>
-                        <Radio.Button value={true}>Active</Radio.Button>
-                        <Radio.Button value={false}>Disabled</Radio.Button>
+                        <Radio.Button value={true}>{t("categories.active")}</Radio.Button>
+                        <Radio.Button value={false}>{t("categories.disabled")}</Radio.Button>
                     </Radio.Group>
                 </Col>
                 <Col span={12} style={{ textAlign: "right" }}>
                     <Space>
                         {!props.record.isSystem && (
                             <Popconfirm
-                                title="Delete category? This cannot be undone."
+                                title={t("categories.deleteConfirm")}
                                 onConfirm={deleteCategoryHandler}
-                                okText="Delete"
-                                cancelText="Cancel">
-                                <Button danger>Delete</Button>
+                                okText={t("categories.delete")}
+                                cancelText={t("categories.cancel")}>
+                                <Button danger>{t("categories.delete")}</Button>
                             </Popconfirm>
                         )}
                         <Button
@@ -111,7 +112,7 @@ const CategoryEditForm = (props: any) => {
                             onClick={updateCategoryHandler}
                             disabled={!state.hasActiveChanges}
                             type="primary">
-                            Update
+                            {t("categories.update")}
                         </Button>
                     </Space>
                 </Col>

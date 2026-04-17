@@ -8,22 +8,27 @@ public class RegisterValidator : AbstractValidator<RegisterRequest>
     public RegisterValidator()
     {
         RuleFor(x => x.Username)
-            .NotEmpty()
-            .MaximumLength(256);
+            .NotEmpty().WithMessage("username.required")
+            .MaximumLength(256).WithMessage("username.max_length");
 
         RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
-            .MaximumLength(256);
+            .NotEmpty().WithMessage("email.required")
+            .EmailAddress().WithMessage("email.invalid_format")
+            .MaximumLength(256).WithMessage("email.max_length");
 
         RuleFor(x => x.Password)
-            .NotEmpty()
-            .MinimumLength(8);
+            .NotEmpty().WithMessage("password.required")
+            .MinimumLength(8).WithMessage("password.min_length");
 
         RuleFor(x => x.InviteToken)
-            .NotEmpty();
+            .NotEmpty().WithMessage("invite_token.required");
 
         RuleFor(x => x.CurrencyId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("currency_id.invalid");
+
+        RuleFor(x => x.LanguageCode)
+            .Must(code => code is null || code == "en" || code == "ru")
+            .WithMessage("language_code.invalid")
+            .When(x => x.LanguageCode is not null);
     }
 }

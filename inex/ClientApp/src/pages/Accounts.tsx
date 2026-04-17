@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
 import { ColumnsType } from "antd/es/table";
@@ -10,6 +11,7 @@ import AccountEditForm from "./Accounts/AccountEditForm";
 import { fetchAccounts } from "../store/accounts/accounts-actions";
 
 const Accounts = () => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
@@ -26,27 +28,27 @@ const Accounts = () => {
 
     const columns: ColumnsType<AccountDetails> = [
         {
-            title: "Account",
+            title: t("accounts.account"),
             dataIndex: "name",
             key: "name",
             width: 500,
         },
         {
-            title: "Currency",
+            title: t("accounts.currency"),
             dataIndex: "currency",
             key: "currency",
             width: 80,
         },
         {
-            title: "Status",
+            title: t("accounts.status"),
             dataIndex: "isEnabled",
             key: "isEnabled",
             width: 80,
             align: "center",
             render: (isEnabled: boolean) =>
                 isEnabled
-                    ? <Tag color="green">Active</Tag>
-                    : <Tag color="red">Disabled</Tag>,
+                    ? <Tag color="green">{t("accounts.active")}</Tag>
+                    : <Tag color="red">{t("accounts.disabled")}</Tag>,
         },
     ];
 
@@ -59,7 +61,7 @@ const Accounts = () => {
     return (
         <React.Fragment>
             <Drawer
-                title="Add Account"
+                title={t("accounts.addDrawerTitle")}
                 width={420}
                 onClose={() => setAddModalVisible(false)}
                 open={addModalVisible}
@@ -68,13 +70,13 @@ const Accounts = () => {
                 <AccountCreateForm onCreated={() => setAddModalVisible(false)} />
             </Drawer>
             <BasicPage
-                title="Accounts"
+                title={t("accounts.title")}
                 extra={[
                     <Space key="controls">
                         <Checkbox
                             checked={showOnlyEnabled}
                             onChange={e => setShowOnlyEnabled(e.target.checked)}>
-                            Active only
+                            {t("accounts.activeOnly")}
                         </Checkbox>
                         <Button
                             key="addAccount"
@@ -82,7 +84,7 @@ const Accounts = () => {
                             size="large"
                             type="primary"
                             style={{ margin: "4px 0px" }}>
-                            Add
+                            {t("common.add")}
                         </Button>
                     </Space>
                 ]}>
@@ -93,7 +95,7 @@ const Accounts = () => {
                         rowKey={(record: any) => record.id.toString()}
                         pagination={false}
                         scroll={{ x: 370 }}
-                        locale={{ emptyText: "No accounts to display" }}
+                        locale={{ emptyText: t("accounts.empty") }}
                         expandable={{
                             expandedRowRender,
                             rowExpandable: () => true,

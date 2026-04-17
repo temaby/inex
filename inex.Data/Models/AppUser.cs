@@ -9,6 +9,9 @@ public class AppUser : IdentityUser<int>
 
     public int CurrencyId { get; set; }
 
+    /// <summary>BCP-47 language tag stored by the user, e.g. "en" or "ru". Null means browser default.</summary>
+    public string? LanguageCode { get; set; }
+
     public Currency Currency { get; set; } = null!;
     public ICollection<Account> Accounts { get; } = new List<Account>();
     public ICollection<Category> Categories { get; } = new List<Category>();

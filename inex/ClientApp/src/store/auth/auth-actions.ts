@@ -1,6 +1,15 @@
+import i18n from "../../i18n";
 import apiClient from "../../utils/apiClient";
 import { AuthUser, clearAuth, setAuthError, setCredentials } from "./auth-slice";
 import type { AppDispatch } from "../index";
+
+function applyLanguage(user: AuthUser) {
+    const lang = user.languageCode || localStorage.getItem("i18n_lang") || "en";
+    if (i18n.language !== lang) {
+        i18n.changeLanguage(lang);
+    }
+    localStorage.setItem("i18n_lang", lang);
+}
 
 interface TokenResponse {
   accessToken: string;
@@ -18,6 +27,7 @@ interface RegisterRequest {
   password: string;
   currencyId: number;
   inviteToken: string;
+  languageCode?: string | null;
 }
 
 /**
@@ -37,6 +47,7 @@ export const restoreSession = () => {
         headers: { Authorization: `Bearer ${data.accessToken}` },
       });
 
+      applyLanguage(user);
       dispatch(setCredentials({ accessToken: data.accessToken, expiresIn: data.expiresIn, user }));
     } catch {
       // No valid session — treat as logged-out (not an error)
@@ -52,6 +63,7 @@ export const loginUser = (credentials: LoginRequest) => {
       const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
         headers: { Authorization: `Bearer ${data.accessToken}` },
       });
+      applyLanguage(user);
       dispatch(setCredentials({ accessToken: data.accessToken, expiresIn: data.expiresIn, user }));
     } catch (error: any) {
       dispatch(
@@ -69,6 +81,7 @@ export const registerUser = (data: RegisterRequest) => {
       const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
         headers: { Authorization: `Bearer ${tokenData.accessToken}` },
       });
+      applyLanguage(user);
       dispatch(
         setCredentials({ accessToken: tokenData.accessToken, expiresIn: tokenData.expiresIn, user })
       );
@@ -81,12 +94,13 @@ export const registerUser = (data: RegisterRequest) => {
   };
 };
 
-export const updateProfile = (data: { username: string; currencyId: number }) => {
+export const updateProfile = (data: { username: string; currencyId: number; languageCode?: string | null }) => {
   return async (dispatch: AppDispatch) => {
     const { data: tokenData } = await apiClient.put<TokenResponse>("/auth/me", data);
     const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
       headers: { Authorization: `Bearer ${tokenData.accessToken}` },
     });
+    applyLanguage(user);
     dispatch(setCredentials({ accessToken: tokenData.accessToken, expiresIn: tokenData.expiresIn, user }));
   };
 };

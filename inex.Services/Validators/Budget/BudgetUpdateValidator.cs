@@ -10,6 +10,6 @@ public class BudgetUpdateValidator : AbstractValidator<BudgetUpdateDTO>
         Include(new BudgetCreateValidator());
 
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("id.invalid");
     }
 }

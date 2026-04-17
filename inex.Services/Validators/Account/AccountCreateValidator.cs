@@ -8,14 +8,14 @@ public class AccountCreateValidator : AbstractValidator<AccountCreateDTO>
     public AccountCreateValidator()
     {
         RuleFor(x => x.Key)
-            .NotEmpty()
-            .MaximumLength(50);
+            .NotEmpty().WithMessage("key.required")
+            .MaximumLength(50).WithMessage("key.max_length");
 
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MaximumLength(256);
+            .NotEmpty().WithMessage("name.required")
+            .MaximumLength(256).WithMessage("name.max_length");
 
         RuleFor(x => x.CurrencyId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("currency_id.invalid");
     }
 }

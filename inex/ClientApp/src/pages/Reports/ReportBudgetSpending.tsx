@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
 import { Layout, DatePicker, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined, WarningOutlined } from '@ant-design/icons';
 import moment from "moment";
-import "moment/locale/ru";
-import locale from "antd/es/date-picker/locale/ru_RU";
 
 import { fetchBudgetReport } from "../../store/budgetReport/budgetReport-actions";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
@@ -13,6 +12,7 @@ import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 const { Title } = Typography;
 
 const ReportBudgetSpending: React.FC = () => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { items, isLoading, selectedYear, selectedMonth, error, metadata } = useAppSelector(state => state.budgetReport);
@@ -32,7 +32,7 @@ const ReportBudgetSpending: React.FC = () => {
 
     const totalBudget = items.reduce((sum: number, item: BudgetComparisonDTO) => sum + item.budgetedAmount, 0);
     const totalSpent = items.reduce((sum: number, item: BudgetComparisonDTO) => sum + item.spentAmount, 0);
-    
+
     let totalRemaining = totalBudget - totalSpent;
     if (Math.abs(totalRemaining) < 0.01) totalRemaining = 0;
 
@@ -40,7 +40,7 @@ const ReportBudgetSpending: React.FC = () => {
 
     const realIncome = metadata?.totalIncome || 0;
     const realOutcome = metadata?.totalOutcome || 0;
-    
+
     let unbudgetedSpending = realOutcome - totalSpent;
     if (Math.abs(unbudgetedSpending) < 0.01) unbudgetedSpending = 0;
 
@@ -49,45 +49,45 @@ const ReportBudgetSpending: React.FC = () => {
 
     const columns = [
         {
-            title: "Категория",
+            title: t("reports.category"),
             dataIndex: "categoryName",
             key: "categoryName",
         },
         {
-            title: "Бюджет",
+            title: t("reports.budget"),
             dataIndex: "budgetedAmount",
             key: "budgetedAmount",
             render: (val: number) => `${val.toFixed(2)} ${currency}`,
         },
         {
-            title: "Потрачено",
+            title: t("reports.spent"),
             dataIndex: "spentAmount",
             key: "spentAmount",
             render: (val: number) => `${val.toFixed(2)} ${currency}`,
         },
         {
-            title: "Прогресс",
+            title: t("reports.progress"),
             dataIndex: "percentageUsed",
             key: "percentageUsed",
             render: (val: number) => {
-                let color = "#52c41a"; // Green (Good)
+                let color = "#52c41a";
                 if (val > 110) {
-                    color = "#ff4d4f"; // Red (Critical - >10% over)
+                    color = "#ff4d4f";
                 } else if (val > 100) {
-                    color = "#faad14"; // Orange (Warning - 0-10% over)
+                    color = "#faad14";
                 }
-                
+
                 return (
-                    <Progress 
-                        percent={Math.min(val, 100)} 
-                        strokeColor={color} 
-                        format={() => <span style={{ color: color }}>{val.toFixed(0)}%</span>} 
+                    <Progress
+                        percent={Math.min(val, 100)}
+                        strokeColor={color}
+                        format={() => <span style={{ color: color }}>{val.toFixed(0)}%</span>}
                     />
                 );
             },
         },
         {
-            title: "Остаток",
+            title: t("reports.remaining"),
             dataIndex: "remainingAmount",
             key: "remainingAmount",
             render: (val: number) => (
@@ -102,12 +102,11 @@ const ReportBudgetSpending: React.FC = () => {
         <div style={{ padding: "20px" }}>
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
                 <Space>
-                    <Title level={4}>Интервал</Title>
+                    <Title level={4}>{t("reports.interval")}</Title>
                     <DatePicker
                         picker="month"
                         value={localDate}
                         onChange={handleDateChange}
-                        locale={locale}
                         allowClear={false}
                         bordered={true}
                         inputReadOnly={true}
@@ -118,48 +117,48 @@ const ReportBudgetSpending: React.FC = () => {
                     <Row gutter={16} style={{ marginBottom: "24px" }}>
                         <Col span={6}>
                             <Card>
-                                <Statistic 
-                                    title="Общий доход" 
-                                    value={realIncome} 
-                                    precision={2} 
-                                    suffix={currency} 
-                                    valueStyle={{ color: "green" }} 
+                                <Statistic
+                                    title={t("reports.totalIncome")}
+                                    value={realIncome}
+                                    precision={2}
+                                    suffix={currency}
+                                    valueStyle={{ color: "green" }}
                                     prefix={<ArrowUpOutlined />}
                                 />
                             </Card>
                         </Col>
                         <Col span={6}>
                             <Card>
-                                <Statistic 
-                                    title="Общий расход" 
-                                    value={realOutcome} 
-                                    precision={2} 
-                                    suffix={currency} 
-                                    valueStyle={{ color: "red" }} 
+                                <Statistic
+                                    title={t("reports.totalExpense")}
+                                    value={realOutcome}
+                                    precision={2}
+                                    suffix={currency}
+                                    valueStyle={{ color: "red" }}
                                     prefix={<ArrowDownOutlined />}
                                 />
                             </Card>
                         </Col>
                         <Col span={6}>
                             <Card>
-                                <Statistic 
-                                    title="Вне бюджета" 
-                                    value={unbudgetedSpending} 
-                                    precision={2} 
-                                    suffix={currency} 
-                                    valueStyle={{ color: unbudgetedSpending > 0 ? "orange" : "gray" }} 
+                                <Statistic
+                                    title={t("reports.unbudgeted")}
+                                    value={unbudgetedSpending}
+                                    precision={2}
+                                    suffix={currency}
+                                    valueStyle={{ color: unbudgetedSpending > 0 ? "orange" : "gray" }}
                                     prefix={<WarningOutlined />}
                                 />
                             </Card>
                         </Col>
                         <Col span={6}>
                             <Card>
-                                <Statistic 
-                                    title="Накопления" 
-                                    value={balance} 
-                                    precision={2} 
-                                    suffix={currency} 
-                                    valueStyle={{ color: balance >= 0 ? "green" : "red" }} 
+                                <Statistic
+                                    title={t("reports.savings")}
+                                    value={balance}
+                                    precision={2}
+                                    suffix={currency}
+                                    valueStyle={{ color: balance >= 0 ? "green" : "red" }}
                                     prefix={<BankOutlined />}
                                 />
                             </Card>
@@ -169,23 +168,23 @@ const ReportBudgetSpending: React.FC = () => {
                     <Row gutter={16} style={{ marginBottom: "24px" }}>
                         <Col span={6}>
                             <Card>
-                                <Statistic title="Общий бюджет" value={totalBudget} precision={2} suffix={currency} />
+                                <Statistic title={t("reports.totalBudget")} value={totalBudget} precision={2} suffix={currency} />
                             </Card>
                         </Col>
                         <Col span={6}>
                             <Card>
-                                <Statistic title="Бюджетные траты" value={totalSpent} precision={2} suffix={currency} />
+                                <Statistic title={t("reports.budgetSpent")} value={totalSpent} precision={2} suffix={currency} />
                             </Card>
                         </Col>
                         <Col span={6}>
                             <Card>
-                                <Statistic title="Использовано" value={totalPercent} precision={1} suffix="%" />
+                                <Statistic title={t("reports.used")} value={totalPercent} precision={1} suffix="%" />
                             </Card>
                         </Col>
                         <Col span={6}>
                             <Card>
                                 <Statistic
-                                    title="Остаток бюджета"
+                                    title={t("reports.budgetRemaining")}
                                     value={totalRemaining}
                                     precision={2}
                                     suffix={currency}

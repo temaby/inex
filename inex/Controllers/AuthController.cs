@@ -93,8 +93,10 @@ public class AuthController : ControllerBase
         var email = User.FindFirstValue(JwtRegisteredClaimNames.Email)!;
         var username = User.FindFirstValue(JwtRegisteredClaimNames.Name)!;
         var currencyId = int.TryParse(User.FindFirstValue("currency_id"), out var cid) ? cid : 0;
+        var languageCode = User.FindFirstValue("language_code");
+        if (string.IsNullOrEmpty(languageCode)) languageCode = null;
 
-        return Ok(new UserProfile(userId, username, email, currencyId));
+        return Ok(new UserProfile(userId, username, email, currencyId, languageCode));
     }
 
     /// <summary>Update the current user's username and preferred currency</summary>

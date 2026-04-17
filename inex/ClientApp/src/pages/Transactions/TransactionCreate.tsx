@@ -1,5 +1,6 @@
-﻿import * as React from 'react';
+import * as React from 'react';
 import { useReducer, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Tabs, Space, Button } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
@@ -40,6 +41,7 @@ const reducer = (state: TransactionSetState, action: any) => {
 };
 
 const TransactionCreate = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
     const isCreating = useAppSelector(state => state.transactions.isCreating);
@@ -103,10 +105,10 @@ const TransactionCreate = (props: any) => {
         } else if (state.mode === TransactionType.TRANSFER) {
           dispatch(createTransfer(+state.fromAccount.id, +state.toAccount.id, 0 - state.fromAmount, +state.toAmount, state.comment, state.date));
         }
-        
+
         setModeHandler(TransactionType.EXPENSE);
         props.onSubmit();
-    }    
+    }
 
     return (
       <React.Fragment>
@@ -115,7 +117,7 @@ const TransactionCreate = (props: any) => {
           activeKey={state.mode.toString()}
           type="card"
         >
-          <TabPane tab="Расход" key={TransactionType.EXPENSE}>
+          <TabPane tab={t("transactions.expense")} key={TransactionType.EXPENSE}>
             <TransactionCreateExpenseForm
               accounts={props.accounts}
               fromAccount={state.fromAccount}
@@ -131,7 +133,7 @@ const TransactionCreate = (props: any) => {
               onSetComment={setCommentHandler}
             />
           </TabPane>
-          <TabPane tab="Доход" key={TransactionType.INCOME}>
+          <TabPane tab={t("transactions.income")} key={TransactionType.INCOME}>
             <TransactionCreateIncomeForm
               accounts={props.accounts}
               toAccount={state.toAccount}
@@ -147,7 +149,7 @@ const TransactionCreate = (props: any) => {
               onSetComment={setCommentHandler}
             />
           </TabPane>
-          <TabPane tab="Перевод" key={TransactionType.TRANSFER}>
+          <TabPane tab={t("transactions.transfer")} key={TransactionType.TRANSFER}>
             <TransactionCreateTransferForm
               accounts={props.accounts}
               fromAccount={state.fromAccount}
@@ -167,7 +169,7 @@ const TransactionCreate = (props: any) => {
         </Tabs>
         <Space>
           <Button loading={isCreating} onClick={saveTransactionHandler} type="primary">
-            Сохранить
+            {t("transactions.save")}
           </Button>
         </Space>
       </React.Fragment>

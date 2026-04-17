@@ -46,9 +46,10 @@ public class AuthService : IAuthService
 
         var user = new AppUser
         {
-            UserName   = request.Username,
-            Email      = request.Email,
-            CurrencyId = request.CurrencyId,
+            UserName     = request.Username,
+            Email        = request.Email,
+            CurrencyId   = request.CurrencyId,
+            LanguageCode = request.LanguageCode,
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -57,7 +58,7 @@ public class AuthService : IAuthService
                 "Registration failed.",
                 result.Errors.Select(e => e.Description).ToList());
 
-        await _onboarding.SeedAsync(user.Id, request.CurrencyId, ct);
+        await _onboarding.SeedAsync(user.Id, request.CurrencyId, request.LanguageCode, ct);
 
         return await IssueTokenPairAsync(user, ct);
     }
@@ -137,6 +138,7 @@ public class AuthService : IAuthService
 
         user.UserName = request.Username;
         user.CurrencyId = request.CurrencyId;
+        user.LanguageCode = request.LanguageCode;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)

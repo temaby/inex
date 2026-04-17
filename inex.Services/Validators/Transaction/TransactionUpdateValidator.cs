@@ -10,6 +10,6 @@ public class TransactionUpdateValidator : AbstractValidator<TransactionUpdateDTO
         Include(new TransactionCreateValidator());
 
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("id.invalid");
     }
 }

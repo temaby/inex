@@ -1,5 +1,9 @@
 import * as React from 'react';
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { ConfigProvider } from "antd";
+import enUS from "antd/es/locale/en_US";
+import ruRU from "antd/es/locale/ru_RU";
 
 import { useAppDispatch, useAppSelector } from './store/hooks';
 
@@ -29,6 +33,8 @@ import Profile from './pages/Profile';
 const App = () => {
     const dispatch = useAppDispatch();
     const accessToken = useAppSelector(s => s.auth.accessToken);
+    const { i18n } = useTranslation();
+    const antdLocale = i18n.language === "ru" ? ruRU : enUS;
 
     const date: Date = useMemo(() => new Date(), []);
 
@@ -69,6 +75,7 @@ const App = () => {
     }, [accessToken]);
 
     return (
+        <ConfigProvider locale={antdLocale}>
         <Routes>
             {/* Public routes — accessible without authentication */}
             <Route path="/login" element={<Login />} />
@@ -92,6 +99,7 @@ const App = () => {
 
             <Route path="*" element={<NotFound />} />
         </Routes>
+        </ConfigProvider>
     );
 }
 

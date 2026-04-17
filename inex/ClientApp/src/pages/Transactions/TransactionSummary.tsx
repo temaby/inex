@@ -1,5 +1,6 @@
-﻿import * as React from 'react';
+import * as React from 'react';
 import { useEffect } from 'react';
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import { Table, Typography } from 'antd';
@@ -8,29 +9,8 @@ const { Text } = Typography
 
 import { fetchTransactionsSummaryForAccounts } from '../../store/transactions/transactions-actions';
 
-const columns = [
-    {
-        title: '',
-        dataIndex: 'name',
-        key: 'name'
-    },
-    {
-        title: '',
-        dataIndex: 'value',
-        key: 'value',
-        width: 100,
-        render: (value: any) => {
-            let textColor = value > 0 ? 'green' : 'red';
-            return (
-                <span style={{ color: textColor }}>
-                    {(Math.round((value) * 100) / 100).toFixed(2)}
-                </span>
-            );
-        }
-    }
-];
-
 const TransactionSummary = (props: any) => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
   const accountsDetails = useAppSelector(state => state.transactions.summaryItems);
@@ -38,6 +18,28 @@ const TransactionSummary = (props: any) => {
   const exchangeRates = useAppSelector(state => state.rates.items);
 
   const { accounts } = props;
+
+  const columns = [
+      {
+          title: '',
+          dataIndex: 'name',
+          key: 'name'
+      },
+      {
+          title: '',
+          dataIndex: 'value',
+          key: 'value',
+          width: 100,
+          render: (value: any) => {
+              let textColor = value > 0 ? 'green' : 'red';
+              return (
+                  <span style={{ color: textColor }}>
+                      {(Math.round((value) * 100) / 100).toFixed(2)}
+                  </span>
+              );
+          }
+      }
+  ];
 
   const accountsDetailsUSD = accountsDetails.map((i: any) => {
     const exchangeRate = exchangeRates.find((rate: any) => rate.currencyTo === i.currency);
@@ -62,7 +64,7 @@ const TransactionSummary = (props: any) => {
         <Table.Summary>
           <Table.Summary.Row>
             <Table.Summary.Cell index={0}>
-              <Text strong>Итого USD</Text>
+              <Text strong>{t("transactions.summaryTotal")}</Text>
             </Table.Summary.Cell>
             <Table.Summary.Cell index={1}>
               <Text strong>{(Math.round(total * 100) / 100).toFixed(2)}</Text>

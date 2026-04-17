@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { Layout, PageHeader, Menu, Typography, Space } from "antd";
@@ -11,6 +12,7 @@ const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
 
 const BasicPage = (props: any) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const currentPage: string = useLocation().pathname.slice(1).split('/', 1)[0];
@@ -23,8 +25,6 @@ const BasicPage = (props: any) => {
 
     const handleLogout = async () => {
         await dispatch(logoutUser());
-        // logoutUser dispatches clearAuth() which sets accessToken=null,
-        // ProtectedRoute then redirects to /login automatically
     };
 
     return (
@@ -36,11 +36,11 @@ const BasicPage = (props: any) => {
                     defaultSelectedKeys={[currentPage]}
                     onSelect={menuSelectHandler}
                 >
-                    <Menu.Item key="transactions">Транзакции</Menu.Item>
-                    <Menu.Item key="accounts">Счета</Menu.Item>
-                    <Menu.Item key="categories">Категории</Menu.Item>
-                    <Menu.Item key="budgets">Бюджеты</Menu.Item>
-                    <Menu.Item key="reports">Отчеты</Menu.Item>
+                    <Menu.Item key="transactions">{t("nav.transactions")}</Menu.Item>
+                    <Menu.Item key="accounts">{t("nav.accounts")}</Menu.Item>
+                    <Menu.Item key="categories">{t("nav.categories")}</Menu.Item>
+                    <Menu.Item key="budgets">{t("nav.budgets")}</Menu.Item>
+                    <Menu.Item key="reports">{t("nav.reports")}</Menu.Item>
                 </Menu>
 
                 <Space style={{ marginLeft: 24, flexShrink: 0 }}>
@@ -56,7 +56,7 @@ const BasicPage = (props: any) => {
                         </Space>
                     )}
                     <LogoutOutlined
-                        title="Sign out"
+                        title={t("nav.signOut")}
                         onClick={handleLogout}
                         style={{ cursor: "pointer", fontSize: 16, color: "#595959" }}
                     />
