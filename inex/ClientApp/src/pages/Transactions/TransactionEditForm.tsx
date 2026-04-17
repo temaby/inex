@@ -67,7 +67,7 @@ const TransactionEditForm = (props: any) => {
       dispatchTransactionAction({ type: "INIT", value: currentRecord });
     }, [record, categories, accounts]);
 
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false) as CategoryDetails[], [categories]);
+    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
     const setAmountHandler = (value: number | null) => {
       dispatchTransactionAction({ type: "SET_AMOUNT", value: value ?? 0 });

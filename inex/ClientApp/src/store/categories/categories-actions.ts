@@ -20,12 +20,12 @@ export const fetchCategories = (mode: string) => {
     };
 };
 
-export const createCategory = (key: string, name: string, description: string, isEnabled: boolean) => {
+export const createCategory = (key: string, name: string, description: string, isEnabled: boolean, parentId?: number | null) => {
     return async (dispatch: AppDispatch) => {
         try {
             dispatch(categoriesActions.setIsCreating({ isCreating: true }));
 
-            await apiClient.post(API_BASE, { key, name, description, isEnabled });
+            await apiClient.post(API_BASE, { key, name, description, isEnabled, parentId: parentId ?? null });
             dispatch(categoriesActions.setLastUpdate());
         } catch (error) {
             dispatch(categoriesActions.setError({ error: parseAxiosError(error, "Could not create a category") }));

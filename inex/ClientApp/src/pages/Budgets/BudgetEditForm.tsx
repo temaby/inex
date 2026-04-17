@@ -42,7 +42,7 @@ const BudgetEditForm = (props: any) => {
     const isUpdating = useAppSelector(state => state.budgets.isUpdating);
     const allCategories = useAppSelector(state => state.categories?.items || []);
     const categories = useMemo(() => allCategories.filter((c: any) => c.isEnabled), [allCategories]);
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false) as CategoryDetails[], [categories]);
+    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
     const [state, dispatchLocal] = useReducer(reducer, defaultState);
 
