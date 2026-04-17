@@ -10,6 +10,6 @@ public class AccountUpdateValidator : AbstractValidator<AccountUpdateDTO>
         Include(new AccountCreateValidator());
 
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("id.invalid");
     }
 }

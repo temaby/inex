@@ -10,6 +10,6 @@ public class CategoryUpdateValidator : AbstractValidator<CategoryUpdateDTO>
         Include(new CategoryCreateValidator());
 
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("id.invalid");
     }
 }

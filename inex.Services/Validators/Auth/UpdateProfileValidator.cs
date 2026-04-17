@@ -8,10 +8,10 @@ public class UpdateProfileValidator : AbstractValidator<UpdateProfileRequest>
     public UpdateProfileValidator()
     {
         RuleFor(x => x.Username)
-            .NotEmpty()
-            .MaximumLength(256);
+            .NotEmpty().WithMessage("username.required")
+            .MaximumLength(256).WithMessage("username.max_length");
 
         RuleFor(x => x.CurrencyId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("currency_id.invalid");
     }
 }
