@@ -1,30 +1,22 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Table } from "antd";
 import { RightOutlined } from "@ant-design/icons";
-
 import { useNavigate } from "react-router-dom";
 
-const reports = [
-    {
-        id: "category",
-        name: "Отчёт по категориям",
-    },
-    {
-        id: "budget",
-        name: "Контроль бюджета",
-    },
-    {
-        id: "history",
-        name: "Движение средств",
-    }
-];
-
 const ReportList = (props: any) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
+
+    const reports = [
+        { id: "category", name: t("reports.categoryReport") },
+        { id: "budget", name: t("reports.budgetReport") },
+        { id: "history", name: t("reports.historyReport") },
+    ];
 
     const reportColumns = [
         {
-            title: "Название",
+            title: t("reports.name"),
             dataIndex: "name",
             key: "name",
         },

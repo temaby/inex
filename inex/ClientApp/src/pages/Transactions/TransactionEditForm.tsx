@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { useEffect, useMemo, useReducer } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import moment from "moment";
@@ -36,6 +37,7 @@ const reducer = (state: TransactionEditState, action: any) => {
 };
 
 const TransactionEditForm = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
     const isDeleting = useAppSelector(state => state.transactions.isDeleting);
@@ -103,7 +105,7 @@ const TransactionEditForm = (props: any) => {
     };
 
     const updateTransactionHandler = async () => {
-      dispatch(updateTransaction(+props.record.id, +state.account.id, +state.category.id, state.amount, state.comment, state.date));         
+      dispatch(updateTransaction(+props.record.id, +state.account.id, +state.category.id, state.amount, state.comment, state.date));
     };
 
     const removeTransactionHandler = async () => {
@@ -114,21 +116,21 @@ const TransactionEditForm = (props: any) => {
         <Form layout="vertical" hideRequiredMark>
             <Row gutter={8}>
                 <Col span={12}>
-                    <Form.Item label="Счёт">
+                    <Form.Item label={t("transactions.account")}>
                         <Dropdown id="account" selection={[state.account]} onChange={setAccountHandler} items={props.accounts} multiple={false} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={12}>
-                    <Form.Item label="Категория">
+                    <Form.Item label={t("transactions.category")}>
                         <Dropdown id="category" selection={[state.category]} onChange={setCategoryHandler} items={categoryTree} multiple={false} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={6}>
-                    <Form.Item label="Сумма" rules={[{ required: true, message: 'Введите сумму' }]}>
+                    <Form.Item label={t("transactions.amount")}>
                         <ExpressionInputNumber
                             key="amount"
                             size="large"
@@ -136,21 +138,21 @@ const TransactionEditForm = (props: any) => {
                             addonAfter={state.account.currency}
                             value={state.amount}
                             precision={2}
-                            placeholder="Введите сумму или выражение"
+                            placeholder={t("common.enterAmount")}
                         />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={6}>
-                    <Form.Item label="Дата">
+                    <Form.Item label={t("transactions.date")}>
                         <DatePicker mode="date" size="large" value={state.date} onChange={setDateHandler} />
                     </Form.Item>
-                </Col>                
+                </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Комментарий">
+                    <Form.Item label={t("transactions.comment")}>
                         <Input key="comment" size="large" onChange={setCommentHandler} value={state.comment} />
                     </Form.Item>
                 </Col>
@@ -163,9 +165,14 @@ const TransactionEditForm = (props: any) => {
             <Row gutter={8}>
                 <Col span={12}>
                     <Space>
-                        <Popconfirm title="Вы уверены, что хотите удалить транзакцию?" onConfirm={removeTransactionHandler} okText="Да" cancelText="Нет">
+                        <Popconfirm
+                            title={t("transactions.deleteConfirm")}
+                            onConfirm={removeTransactionHandler}
+                            okText={t("common.yes")}
+                            cancelText={t("common.no")}
+                        >
                             <Button danger loading={isDeleting}>
-                                Удалить
+                                {t("transactions.delete")}
                             </Button>
                         </Popconfirm>
                     </Space>
@@ -173,11 +180,11 @@ const TransactionEditForm = (props: any) => {
                 <Col span={12} style={{textAlign: "right"}}>
                     <Space>
                         <Button loading={isUpdating} onClick={updateTransactionHandler} disabled={!state.hasActiveChanges} type="primary">
-                            Сохранить
+                            {t("transactions.save")}
                         </Button>
                     </Space>
                 </Col>
-            </Row>            
+            </Row>
         </Form>
     );
 };

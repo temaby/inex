@@ -1,6 +1,7 @@
-﻿import * as React from 'react';
+import * as React from 'react';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
+import { useTranslation } from "react-i18next";
 import { Table, Tag } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ import { fetchTransactions } from '../../store/transactions/transactions-actions
 import TransactionEditForm from './TransactionEditForm';
 
 const TransactionList = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const transactions = useAppSelector(state => state.transactions.items);
@@ -68,7 +70,7 @@ const TransactionList = (props: any) => {
 
     const columns: ColumnsType<any> = [
         {
-            title: "Дата",
+            title: t("transactions.date"),
             dataIndex: "created",
             key: "created",
             width: 120,
@@ -77,7 +79,7 @@ const TransactionList = (props: any) => {
             },
         },
         {
-            title: "Категория",
+            title: t("transactions.category"),
             width: 220,
             dataIndex: "categoryId",
             key: "categoryId",
@@ -89,7 +91,7 @@ const TransactionList = (props: any) => {
             },
         },
         {
-            title: "Счет",
+            title: t("transactions.account"),
             width: 200,
             dataIndex: "accountId",
             key: "accountId",
@@ -127,7 +129,7 @@ const TransactionList = (props: any) => {
             },
         },
         {
-            title: "Сумма",
+            title: t("transactions.amount"),
             key: "amount",
             width: 170,
             align: "right",
@@ -144,7 +146,7 @@ const TransactionList = (props: any) => {
             },
         },
         {
-            title: "Комментарий",
+            title: t("transactions.comment"),
             dataIndex: "comment",
             key: "comment",
         }
@@ -175,7 +177,7 @@ const TransactionList = (props: any) => {
                 total: pagination.total,
             }}
             sticky
-            />
+        />
     );
 };
 

@@ -7,4 +7,5 @@ public record RegisterRequest
     public string Password { get; init; } = string.Empty;
     public string InviteToken { get; init; } = string.Empty;
     public int CurrencyId { get; init; }
+    public string? LanguageCode { get; init; }
 }

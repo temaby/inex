@@ -1,11 +1,10 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Button, DatePicker, Input } from "antd";
 import { Form, Col, Row } from "antd";
 const { TextArea } = Input;
 
 import moment from "moment";
-import "moment/locale/ru";
-import locale from "antd/es/date-picker/locale/ru_RU";
 
 const { RangePicker } = DatePicker;
 
@@ -20,6 +19,7 @@ import { defaultAccount, AccountDetails } from "../../model/Account/AccountDetai
 import { transactionsDefaultFilter, transactionsActions } from "../../store/transactions/transactions-slice";
 
 const TransactionFilterForm = (props: any) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const location = useLocation();
     const navigate = useNavigate();
@@ -106,8 +106,8 @@ const TransactionFilterForm = (props: any) => {
         );
         const range = localFilter.range.map((i: number) => moment.unix(i));
 
-        const tags = localFilter.tags.map(tag => `#${tag}`).join(" ");
-        const refs = localFilter.refs.map(ref => `@${ref}`).join(" ");
+        const tags = localFilter.tags.map((tag: string) => `#${tag}`).join(" ");
+        const refs = localFilter.refs.map((ref: string) => `@${ref}`).join(" ");
         const combinedTagsAndRefs = [tags, refs].filter(Boolean).join(" ");
 
         return {
@@ -156,7 +156,7 @@ const TransactionFilterForm = (props: any) => {
             ...prevState,
             tags: tags,
             refs: refs,
-            tagsAndRefs: input // Update the input value in the state
+            tagsAndRefs: input
         }));
     };
 
@@ -197,11 +197,18 @@ const TransactionFilterForm = (props: any) => {
         navigate(`${location.pathname}${filter === "filter=" ? "" : `?${filter}`}`, { replace: true });
     }
 
+    const rangePresets = useMemo((): Record<string, [moment.Moment, moment.Moment]> => ({
+        [t("transactions.last7Days")]: [moment().subtract(7, "day").startOf("day"), moment().endOf("day")],
+        [t("transactions.last30Days")]: [moment().subtract(30, "day").startOf("day"), moment().endOf("day")],
+        [t("transactions.lastMonth")]: [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
+        [t("transactions.thisMonth")]: [moment().startOf("month"), moment().endOf("day")],
+    }), [t]);
+
     return (
         <Form layout="vertical" hideRequiredMark>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Счёт">
+                    <Form.Item label={t("transactions.account")}>
                         <Dropdown
                             id="filter_account"
                             selection={filterDetails.accounts}
@@ -214,7 +221,7 @@ const TransactionFilterForm = (props: any) => {
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Категория">
+                    <Form.Item label={t("transactions.category")}>
                         <Dropdown
                             id="filter_category"
                             selection={filterDetails.categories}
@@ -227,10 +234,10 @@ const TransactionFilterForm = (props: any) => {
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Теги и адресаты">
+                    <Form.Item label="Tags &amp; Refs">
                         <Input
                             id="filter_tags_refs"
-                            placeholder="Введите тег (#tag) или адресата (@ref)"
+                            placeholder="#tag @ref"
                             onChange={setTagsAndRefsHandler}
                             value={filterDetails.tagsAndRefs}
                             size="large"
@@ -240,21 +247,13 @@ const TransactionFilterForm = (props: any) => {
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Интервал">
+                    <Form.Item label={t("common.interval")}>
                         <RangePicker
                             id="filter_range"
-                            locale={locale}
                             bordered={false}
                             inputReadOnly={true}
                             value={filterDetails.range}
-                            ranges={{
-                                "Последние 7 дней": [moment().subtract(7, "day").startOf("day"), moment().endOf("day")],
-                                "Последние 30 дней": [moment().subtract(30, "day").startOf("day"), moment().endOf("day")],
-                                "Предыдущие мeсяц": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
-                                "Предыдущие 3 мeсяца": [moment().subtract(3, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
-                                "Текущий год": [moment().startOf("year"), moment().endOf("day")],
-                                "Предыдущий год": [moment().subtract(1, "year").startOf("year"), moment().subtract(1, "year").endOf("year")],
-                            }}
+                            ranges={rangePresets}
                             onChange={setRangeHandler}
                         />
                     </Form.Item>
@@ -264,14 +263,14 @@ const TransactionFilterForm = (props: any) => {
                 <Col span={12} style={{ textAlign: "center" }}>
                     <Form.Item>
                         <Button disabled={!isFilterActive} onClick={resetFilterHandler} style={{ width: "150px" }}>
-                            Сбросить
+                            {t("transactions.resetFilter")}
                         </Button>
                     </Form.Item>
                 </Col>
                 <Col span={12} style={{ textAlign: "center" }}>
                     <Form.Item>
                         <Button type="primary" disabled={!isFilterActive} onClick={applyFilterHandler} style={{ width: "150px" }}>
-                            Фильтровать
+                            {t("transactions.applyFilter")}
                         </Button>
                     </Form.Item>
                 </Col>

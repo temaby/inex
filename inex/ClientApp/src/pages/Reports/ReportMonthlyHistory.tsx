@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
 import { fetchHistory } from "../../store/report/report-actions";
@@ -22,6 +23,7 @@ import moment from "moment";
 const { Title } = Typography;
 
 const ReportMonthlyHistory = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const history = useAppSelector(state => state.report.history);
@@ -91,7 +93,7 @@ const ReportMonthlyHistory = () => {
     <div style={{ padding: "20px" }}>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <Space>
-            <Title level={4}>Интервал</Title>
+            <Title level={4}>{t("reports.interval")}</Title>
             <DatePicker picker="year" onChange={handleYearChange} defaultValue={moment()} allowClear={false} />
         </Space>
 
@@ -99,7 +101,7 @@ const ReportMonthlyHistory = () => {
           <Col span={8}>
             <Card>
               <Statistic
-                title="Общий доход"
+                title={t("reports.totalIncome")}
                 value={totals.income}
                 precision={2}
                 valueStyle={{ color: '#3f8600' }}
@@ -110,7 +112,7 @@ const ReportMonthlyHistory = () => {
           <Col span={8}>
             <Card>
               <Statistic
-                title="Общий расход"
+                title={t("reports.totalExpense")}
                 value={Math.abs(totals.expense)}
                 precision={2}
                 valueStyle={{ color: '#cf1322' }}
@@ -121,7 +123,7 @@ const ReportMonthlyHistory = () => {
           <Col span={8}>
             <Card>
               <Statistic
-                title="Накопления"
+                title={t("reports.savings")}
                 value={totals.savings}
                 precision={2}
                 valueStyle={{ color: totals.savings >= 0 ? '#3f8600' : '#cf1322' }}
@@ -145,34 +147,34 @@ const ReportMonthlyHistory = () => {
               <CartesianGrid stroke="#f5f5f5" />
               <ReferenceLine y={0} stroke="#bfbfbf" />
               <XAxis dataKey="monthName" />
-              <YAxis 
-                tickFormatter={currencyFormatter} 
+              <YAxis
+                tickFormatter={currencyFormatter}
                 domain={[(dataMin: number) => dataMin * 1.2, (dataMax: number) => dataMax * 1.2]}
               />
               <Tooltip formatter={tooltipFormatter} />
               <Legend />
-              <Bar dataKey="income" barSize={20} fill="#82ca9d" name="Доход" onClick={handleBarClick} cursor="pointer">
-                <LabelList 
-                  dataKey="income" 
-                  position="top" 
-                  formatter={compactFormatter} 
-                  fill="#3f8600" 
-                  style={{ fontWeight: 'bold', fontSize: 14 }} 
+              <Bar dataKey="income" barSize={20} fill="#82ca9d" name={t("reports.income")} onClick={handleBarClick} cursor="pointer">
+                <LabelList
+                  dataKey="income"
+                  position="top"
+                  formatter={compactFormatter}
+                  fill="#3f8600"
+                  style={{ fontWeight: 'bold', fontSize: 14 }}
                 />
               </Bar>
-              <Bar dataKey="expense" barSize={20} fill="#ff7300" name="Расход" onClick={handleBarClick} cursor="pointer">
-                <LabelList 
-                  dataKey="expense" 
-                  position="top" 
-                  formatter={compactFormatter} 
-                  fill="#cf1322" 
-                  style={{ fontWeight: 'bold', fontSize: 14 }} 
+              <Bar dataKey="expense" barSize={20} fill="#ff7300" name={t("reports.expense")} onClick={handleBarClick} cursor="pointer">
+                <LabelList
+                  dataKey="expense"
+                  position="top"
+                  formatter={compactFormatter}
+                  fill="#cf1322"
+                  style={{ fontWeight: 'bold', fontSize: 14 }}
                 />
               </Bar>
-              <Line type="monotone" dataKey="savings" stroke="#413ea0" name="Накопления">
-                <LabelList 
-                  dataKey="savings" 
-                  content={<CustomizedLabel />} 
+              <Line type="monotone" dataKey="savings" stroke="#413ea0" name={t("reports.savings")}>
+                <LabelList
+                  dataKey="savings"
+                  content={<CustomizedLabel />}
                 />
               </Line>
             </ComposedChart>

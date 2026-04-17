@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Radio } from "antd";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { createCategory } from "../../store/categories/categories-actions";
@@ -8,6 +9,7 @@ interface CategoryCreateFormProps {
 }
 
 const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const [form] = Form.useForm();
     const isCreating = useAppSelector(state => state.categories.isCreating);
@@ -29,17 +31,17 @@ const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
             initialValues={{ isEnabled: true }}>
             <Form.Item
                 name="name"
-                label="Name"
+                label={t("categories.name")}
                 rules={[{ required: true, message: "Name is required" }]}>
-                <Input size="large" placeholder="Category name" />
+                <Input size="large" placeholder={t("categories.namePlaceholder")} />
             </Form.Item>
-            <Form.Item name="description" label="Description">
-                <Input size="large" placeholder="Optional description" />
+            <Form.Item name="description" label={t("categories.description")}>
+                <Input size="large" placeholder={t("categories.descriptionPlaceholder")} />
             </Form.Item>
-            <Form.Item name="isEnabled" label="Status">
+            <Form.Item name="isEnabled" label={t("categories.status")}>
                 <Radio.Group buttonStyle="solid">
-                    <Radio.Button value={true}>Active</Radio.Button>
-                    <Radio.Button value={false}>Disabled</Radio.Button>
+                    <Radio.Button value={true}>{t("categories.active")}</Radio.Button>
+                    <Radio.Button value={false}>{t("categories.disabled")}</Radio.Button>
                 </Radio.Group>
             </Form.Item>
             <Form.Item>
@@ -49,7 +51,7 @@ const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
                     size="large"
                     loading={isCreating}
                     block>
-                    Create Category
+                    {t("categories.createCategory")}
                 </Button>
             </Form.Item>
         </Form>

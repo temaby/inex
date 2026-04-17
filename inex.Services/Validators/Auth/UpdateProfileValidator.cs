@@ -13,5 +13,10 @@ public class UpdateProfileValidator : AbstractValidator<UpdateProfileRequest>
 
         RuleFor(x => x.CurrencyId)
             .GreaterThan(0).WithMessage("currency_id.invalid");
+
+        RuleFor(x => x.LanguageCode)
+            .Must(code => code is null || code == "en" || code == "ru")
+            .WithMessage("language_code.invalid")
+            .When(x => x.LanguageCode is not null);
     }
 }

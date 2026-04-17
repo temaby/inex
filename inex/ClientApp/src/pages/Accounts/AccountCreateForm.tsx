@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Radio, Select } from "antd";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { createAccount } from "../../store/accounts/accounts-actions";
@@ -16,6 +17,7 @@ interface AccountCreateFormProps {
 }
 
 const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const [form] = Form.useForm();
     const isCreating = useAppSelector(state => state.accounts.isCreating);
@@ -42,20 +44,20 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
             initialValues={{ isEnabled: true }}>
             <Form.Item
                 name="name"
-                label="Name"
+                label={t("accounts.name")}
                 rules={[{ required: true, message: "Name is required" }]}>
-                <Input size="large" placeholder="Account name" />
+                <Input size="large" placeholder={t("accounts.namePlaceholder")} />
             </Form.Item>
-            <Form.Item name="description" label="Description">
-                <Input size="large" placeholder="Optional description" />
+            <Form.Item name="description" label={t("accounts.description")}>
+                <Input size="large" placeholder={t("accounts.descriptionPlaceholder")} />
             </Form.Item>
             <Form.Item
                 name="currencyId"
-                label="Currency"
+                label={t("accounts.currency")}
                 rules={[{ required: true, message: "Currency is required" }]}>
                 <Select
                     size="large"
-                    placeholder="Select currency"
+                    placeholder={t("accounts.currencyPlaceholder")}
                     showSearch
                     optionFilterProp="label"
                     options={currencies.map((c) => ({
@@ -64,10 +66,10 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
                     }))}
                 />
             </Form.Item>
-            <Form.Item name="isEnabled" label="Status">
+            <Form.Item name="isEnabled" label={t("accounts.status")}>
                 <Radio.Group buttonStyle="solid">
-                    <Radio.Button value={true}>Active</Radio.Button>
-                    <Radio.Button value={false}>Disabled</Radio.Button>
+                    <Radio.Button value={true}>{t("accounts.active")}</Radio.Button>
+                    <Radio.Button value={false}>{t("accounts.disabled")}</Radio.Button>
                 </Radio.Group>
             </Form.Item>
             <Form.Item>
@@ -77,7 +79,7 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
                     size="large"
                     loading={isCreating}
                     block>
-                    Create Account
+                    {t("accounts.createAccount")}
                 </Button>
             </Form.Item>
         </Form>

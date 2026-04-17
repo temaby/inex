@@ -19,45 +19,47 @@ public class UserOnboardingService : IUserOnboardingService
         _db = db;
     }
 
-    public async Task SeedAsync(int userId, int currencyId, CancellationToken ct = default)
+    public async Task SeedAsync(int userId, int currencyId, string? languageCode = null, CancellationToken ct = default)
     {
-        await SeedCategoriesAsync(userId, ct);
-        await SeedAccountAsync(userId, currencyId, ct);
+        await SeedCategoriesAsync(userId, languageCode, ct);
+        await SeedAccountAsync(userId, currencyId, languageCode, ct);
         await _db.SaveAsync(ct);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    private async Task SeedCategoriesAsync(int userId, CancellationToken ct)
+    private async Task SeedCategoriesAsync(int userId, string? languageCode, CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
+        var now   = DateTime.UtcNow;
+        var names = languageCode == "ru" ? CategoryNamesRu : CategoryNamesEn;
 
         foreach (var proto in CategorySeed)
         {
             await _db.CategoryRepository.CreateAsync(new Category
             {
-                Key         = proto.Key,
-                Name        = proto.Name,
-                IsEnabled   = true,
-                IsSystem    = proto.IsSystem,
-                SystemCode  = proto.SystemCode,
-                UserId      = userId,
-                CreatedBy   = userId,
-                UpdatedBy   = userId,
-                Created     = now,
-                Updated     = now,
+                Key        = proto.Key,
+                Name       = names.GetValueOrDefault(proto.Key, proto.Key),
+                IsEnabled  = true,
+                IsSystem   = proto.IsSystem,
+                SystemCode = proto.SystemCode,
+                UserId     = userId,
+                CreatedBy  = userId,
+                UpdatedBy  = userId,
+                Created    = now,
+                Updated    = now,
             }, ct);
         }
     }
 
-    private async Task SeedAccountAsync(int userId, int currencyId, CancellationToken ct)
+    private async Task SeedAccountAsync(int userId, int currencyId, string? languageCode, CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
+        var now         = DateTime.UtcNow;
+        var accountName = languageCode == "ru" ? "Основной счёт" : "Main Account";
 
         await _db.AccountRepository.CreateAsync(new Account
         {
             Key        = "main-account",
-            Name       = "Main Account",
+            Name       = accountName,
             IsEnabled  = true,
             CurrencyId = currencyId,
             UserId     = userId,
@@ -70,27 +72,61 @@ public class UserOnboardingService : IUserOnboardingService
 
     // ── Seed data ─────────────────────────────────────────────────────────────
 
-    private record CategoryProto(string Key, string Name, bool IsSystem = false, string? SystemCode = null);
+    private record CategoryProto(string Key, bool IsSystem = false, string? SystemCode = null);
 
     private static readonly CategoryProto[] CategorySeed =
     [
         // System — required for built-in features; cannot be deleted
-        new("transfer",    "Transfer",    IsSystem: true, SystemCode: "transfer"),
-        new("correction",  "Correction",  IsSystem: true, SystemCode: "correction"),
+        new("transfer",     IsSystem: true, SystemCode: "transfer"),
+        new("correction",   IsSystem: true, SystemCode: "correction"),
 
         // Income
-        new("salary",       "Salary"),
-        new("freelance",    "Freelance"),
-        new("other-income", "Other Income"),
+        new("salary"),
+        new("freelance"),
+        new("other-income"),
 
         // Expenses
-        new("food",         "Food & Groceries"),
-        new("transport",    "Transport"),
-        new("housing",      "Housing"),
-        new("utilities",    "Utilities"),
-        new("health",       "Health"),
-        new("entertainment","Entertainment"),
-        new("shopping",     "Shopping"),
-        new("other",        "Other"),
+        new("food"),
+        new("transport"),
+        new("housing"),
+        new("utilities"),
+        new("health"),
+        new("entertainment"),
+        new("shopping"),
+        new("other"),
     ];
+
+    private static readonly Dictionary<string, string> CategoryNamesEn = new()
+    {
+        ["transfer"]      = "Transfer",
+        ["correction"]    = "Correction",
+        ["salary"]        = "Salary",
+        ["freelance"]     = "Freelance",
+        ["other-income"]  = "Other Income",
+        ["food"]          = "Food & Groceries",
+        ["transport"]     = "Transport",
+        ["housing"]       = "Housing",
+        ["utilities"]     = "Utilities",
+        ["health"]        = "Health",
+        ["entertainment"] = "Entertainment",
+        ["shopping"]      = "Shopping",
+        ["other"]         = "Other",
+    };
+
+    private static readonly Dictionary<string, string> CategoryNamesRu = new()
+    {
+        ["transfer"]      = "Перевод",
+        ["correction"]    = "Корректировка",
+        ["salary"]        = "Зарплата",
+        ["freelance"]     = "Фриланс",
+        ["other-income"]  = "Прочий доход",
+        ["food"]          = "Еда и продукты",
+        ["transport"]     = "Транспорт",
+        ["housing"]       = "Жильё",
+        ["utilities"]     = "Коммунальные услуги",
+        ["health"]        = "Здоровье",
+        ["entertainment"] = "Развлечения",
+        ["shopping"]      = "Покупки",
+        ["other"]         = "Прочее",
+    };
 }

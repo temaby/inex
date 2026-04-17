@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
 import { ColumnsType } from "antd/es/table";
@@ -12,6 +13,7 @@ import CategoryCreateForm from './Categories/CategoryCreateForm';
 import { fetchCategories } from '../store/categories/categories-actions';
 
 const Categories = () => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
@@ -19,7 +21,7 @@ const Categories = () => {
 
     const categories = useAppSelector(state => state.categories.items);
     const categoriesLastUpdate = useAppSelector(state => state.categories.lastUpdate);
-    const filteredCategories = showOnlyEnabled  ? categories.filter((c: any) => c.isEnabled) : categories;
+    const filteredCategories = showOnlyEnabled ? categories.filter((c: any) => c.isEnabled) : categories;
     const categoryFlatList = useMemo(() => getCategoriesTree(filteredCategories, true) as (Omit<CategoryDetails, "children"> & { depth: number })[], [filteredCategories]);
 
     useEffect(() => {
@@ -45,35 +47,37 @@ const Categories = () => {
 
     const columns: ColumnsType<Omit<CategoryDetails, "children"> & { depth: number }> = [
         {
-            title: "Категория",
+            title: t("categories.category"),
             dataIndex: "name",
             key: "name",
             width: 500,
             render: (text: string, record) => (
-                <span style={{ paddingLeft: record.depth * 32,borderLeft: record.depth > 0 ? "2px solid #eee" : undefined }}>
+                <span style={{ paddingLeft: record.depth * 32, borderLeft: record.depth > 0 ? "2px solid #eee" : undefined }}>
                     {text}
                 </span>
             ),
         },
         {
-            title: "Статус",
+            title: t("categories.status"),
             dataIndex: "isEnabled",
             key: "isEnabled",
             width: 50,
             align: "center",
             render: (isEnabled: boolean) =>
-                isEnabled ? (<Tag color="green">Активна</Tag>) : (<Tag color="red">Отключена</Tag>),
+                isEnabled
+                    ? (<Tag color="green">{t("categories.active")}</Tag>)
+                    : (<Tag color="red">{t("categories.disabled")}</Tag>),
         },
     ];
 
     const expandedRowRender = (record: any) => {
         return <CategoryEditForm record={record} />;
     };
-    
+
     return (
         <React.Fragment>
             <Drawer
-                title="Добавить категорию"
+                title={t("categories.addDrawerTitle")}
                 width={420}
                 onClose={closeModalHandler}
                 open={addModalVisible}
@@ -82,13 +86,13 @@ const Categories = () => {
                 <CategoryCreateForm onCreated={closeModalHandler} />
             </Drawer>
             <BasicPage
-                title="Категории"
+                title={t("categories.title")}
                 extra={[
                     <Space key="controls">
                         <Checkbox
                             checked={showOnlyEnabled}
                             onChange={e => setShowOnlyEnabled(e.target.checked)}>
-                            Только активные
+                            {t("categories.activeOnly")}
                         </Checkbox>
                         <Button
                             key="addCategory"
@@ -96,7 +100,7 @@ const Categories = () => {
                             size="large"
                             type="primary"
                             style={{ margin: "4px 0px" }}>
-                            Добавить
+                            {t("common.add")}
                         </Button>
                     </Space>
                 ]}>
@@ -107,7 +111,7 @@ const Categories = () => {
                         rowKey={(record: any) => record.id.toString()}
                         pagination={false}
                         scroll={{ x: 370 }}
-                        locale={{ emptyText: "Нет категорий для отображения" }}
+                        locale={{ emptyText: t("categories.empty") }}
                         expandable={{
                             expandedRowRender: expandedRowRender,
                             rowExpandable: () => true,
