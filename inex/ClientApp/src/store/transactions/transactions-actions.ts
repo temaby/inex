@@ -1,5 +1,5 @@
-import moment from "moment";
-import { Moment } from "moment";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
@@ -17,8 +17,8 @@ export const fetchTransactions = (pageSize: number, pageNumber: number, filter: 
             const refsStr: string = filter.refs.length > 0 ? `Refs:${filter.refs.toString()};` : "";
             const accountIdsStr: string = filter.accountIds.length > 0 ? `AccountId:${filter.accountIds.toString()};` : "";
             const categoryIdsStr: string = filter.categoryIds.length > 0 ? `CategoryId:${filter.categoryIds.toString()};` : "";
-            const startStr: string = filter.range.length === 2 && filter.range[0] > 0 ? `Start:${moment.unix(filter.range[0]).format("YYYY-MM-DD")};` : "";
-            const endStr: string = filter.range.length === 2 && filter.range[1] > 0 ? `End:${moment.unix(filter.range[1]).format("YYYY-MM-DD")};` : "";
+            const startStr: string = filter.range.length === 2 && filter.range[0] > 0 ? `Start:${dayjs.unix(filter.range[0]).format("YYYY-MM-DD")};` : "";
+            const endStr: string = filter.range.length === 2 && filter.range[1] > 0 ? `End:${dayjs.unix(filter.range[1]).format("YYYY-MM-DD")};` : "";
             const filterStr: string = accountIdsStr !== "" || categoryIdsStr !== "" || tagsStr !== "" || refsStr !== "" || startStr !== "" || endStr !== "" ?
                 `&filter=${accountIdsStr}${categoryIdsStr}${startStr}${endStr}${tagsStr}${refsStr}` : "";
 
@@ -48,7 +48,7 @@ export const fetchTransactionsSummaryForAccounts = (ids: number[]) => {
     };
 };
 
-export const createTransaction = (accountId: number, categoryId: number, amount: number, comment: string, date: Moment) => {
+export const createTransaction = (accountId: number, categoryId: number, amount: number, comment: string, date: Dayjs) => {
     return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsCreating({ isCreating: true }));
@@ -67,7 +67,7 @@ export const createTransaction = (accountId: number, categoryId: number, amount:
     };
 };
 
-export const createTransfer = (accountFromId: number, accountToId: number, amountFrom: number, amountTo: number, comment: string, date: Moment) => {
+export const createTransfer = (accountFromId: number, accountToId: number, amountFrom: number, amountTo: number, comment: string, date: Dayjs) => {
     return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsCreating({ isCreating: true }));
@@ -86,7 +86,7 @@ export const createTransfer = (accountFromId: number, accountToId: number, amoun
     };
 };
 
-export const updateTransaction = (id: number, accountId: number, categoryId: number, amount: number, comment: string, date: Moment) => {
+export const updateTransaction = (id: number, accountId: number, categoryId: number, amount: number, comment: string, date: Dayjs) => {
     return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsUpdating({ isUpdating: true }));

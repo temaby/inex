@@ -14,7 +14,7 @@ import { CategoryDetails, getCategoriesTree } from '../../model/Category/Categor
 
 import { TransactionSetState } from '../../model/Transaction/TransactionSetState';
 import { TransactionType } from '../../model/Transaction/TransactionType';
-import { Moment } from 'moment';
+import type { Dayjs } from 'dayjs';
 import { createTransaction, createTransfer } from '../../store/transactions/transactions-actions';
 
 const defaultState: TransactionSetState = new TransactionSetState();
@@ -89,7 +89,7 @@ const TransactionCreate = (props: any) => {
       }
     };
 
-    const setDateHandler = (item: Moment) => {
+    const setDateHandler = (item: Dayjs) => {
       dispatchTransactionAction({ type: "SET_DATE", value: item });
     };
 

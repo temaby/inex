@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from "react-i18next";
-import { Input, DatePicker } from 'antd';
+import { Input } from 'antd';
+import DatePicker from "../../components/DatePicker";
 import { Form, Col, Row } from 'antd';
 
 import Dropdown from "../../components/Dropdown";

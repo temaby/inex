@@ -4,11 +4,12 @@ import { useEffect, useMemo, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
-import moment from "moment";
-import { Moment } from "moment";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 
-import { InputNumber, Input, DatePicker, Button, Space, Divider, Popconfirm } from 'antd';
+import { InputNumber, Input, Button, Space, Divider, Popconfirm } from 'antd';
 import { Form, Col, Row } from 'antd';
+import DatePicker from "../../components/DatePicker";
 
 import { CategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionEditState } from "../../model/Transaction/TransactionEditState";
@@ -61,7 +62,7 @@ const TransactionEditForm = (props: any) => {
       }
 
       currentRecord.amount = record.amount;
-      currentRecord.date = moment(record.created, "YYYY-MM-DD");
+      currentRecord.date = dayjs(record.created, "YYYY-MM-DD");
       currentRecord.comment = record.comment;
 
       dispatchTransactionAction({ type: "INIT", value: currentRecord });
@@ -96,8 +97,8 @@ const TransactionEditForm = (props: any) => {
       }
     };
 
-    const setDateHandler = (value: Moment | null, _dateString: string) => {
-      dispatchTransactionAction({ type: "SET_DATE", value: value ?? moment() });
+    const setDateHandler = (value: Dayjs | null, _dateString: string) => {
+      dispatchTransactionAction({ type: "SET_DATE", value: value ?? dayjs() });
     };
 
     const setCommentHandler = (item: any) => {

@@ -2,9 +2,10 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { Button, Table, Tag, Drawer, Space, Form, Input, InputNumber, Select, message, DatePicker, Typography } from "antd";
+import { Button, Table, Tag, Drawer, Space, Form, Input, InputNumber, Select, message, Typography } from "antd";
 import { ColumnsType } from "antd/es/table";
-import moment from "moment";
+import dayjs from "dayjs";
+import DatePicker from "../components/DatePicker";
 import { useSearchParams } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
 import { BudgetDetails } from "../model/Budget/BudgetDetails";
@@ -54,9 +55,9 @@ const Budgets = () => {
         const year = searchParams.get("year");
         const month = searchParams.get("month");
         if (year && month) {
-            return moment(`${year}-${month}-01`, "YYYY-MM-DD");
+            return dayjs(`${year}-${month}-01`, "YYYY-MM-DD");
         }
-        return moment();
+        return dayjs();
     });
 
     useEffect(() => {
@@ -111,7 +112,7 @@ const Budgets = () => {
     };
 
     const handleCopyFromPrevious = async () => {
-        const prevMonth = selectedMonth.clone().subtract(1, 'month');
+        const prevMonth = selectedMonth.subtract(1, 'month');
         try {
             await dispatch(
                 copyBudgets(
@@ -153,7 +154,7 @@ const Budgets = () => {
             dataIndex: "month",
             key: "month",
             width: 100,
-            render: (month: number) => moment().month(month - 1).format("MMMM"),
+            render: (month: number) => dayjs().month(month - 1).format("MMMM"),
         },
         {
             title: t("budgets.amount"),

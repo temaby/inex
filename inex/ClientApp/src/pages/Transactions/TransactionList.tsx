@@ -1,5 +1,5 @@
 import * as React from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from "react-i18next";
 import { Table, Tag } from 'antd';
@@ -75,7 +75,7 @@ const TransactionList = (props: any) => {
             key: "created",
             width: 120,
             render: (date: any) => {
-                return moment(date).format("YYYY-MM-DD");
+                return dayjs(date).format("YYYY-MM-DD");
             },
         },
         {

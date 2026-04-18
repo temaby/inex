@@ -1,5 +1,5 @@
-import moment from "moment";
-import { Moment } from "moment";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 
 import { TransactionType } from "./TransactionType";
 import { defaultAccount, AccountDetails } from "../Account/AccountDetails";
@@ -10,9 +10,9 @@ export class TransactionSetState {
   fromAccount: AccountDetails = defaultAccount;
   toAccount: AccountDetails = defaultAccount;
   category: CategoryDetails = defaultCategory;
-  date: Moment = moment();
+  date: Dayjs = dayjs();
   fromAmount: number = 0;
   toAmount: number = 0;
   comment: string = "";
-  lastUpdate: Moment = moment();
+  lastUpdate: Dayjs = dayjs();
 }

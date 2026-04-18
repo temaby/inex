@@ -1,8 +1,8 @@
-import moment from "moment";
-import { Moment } from "moment";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 import { RateDetails } from "./RateDetails";
 
 export class DailyRateDetails {
-  date: Moment = moment();
+  date: Dayjs = dayjs();
   rates: RateDetails[] = [];
 }
