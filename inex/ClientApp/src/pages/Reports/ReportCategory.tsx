@@ -1,12 +1,13 @@
 import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Layout, Table, Tabs, DatePicker, Space, Typography, Row, Col, Card, Statistic } from "antd";
+import { Layout, Table, Tabs, Space, Typography, Row, Col, Card, Statistic } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
-import moment from "moment";
-type Moment = moment.Moment;
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
+import DatePicker from "../../components/DatePicker";
 import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
 import { ColumnsType } from "antd/es/table";
 import { fetchReport } from "../../store/report/report-actions";
@@ -28,7 +29,7 @@ const ReportCategory = (props: any) => {
 
     const queryParams: URLSearchParams = new URLSearchParams(location.search);
     const interval: string | null = queryParams.get("interval");
-    const currentDate: Moment = useMemo(() => interval ? moment(interval, dateFormat) : moment(), [interval]);
+    const currentDate: Dayjs = useMemo(() => interval ? dayjs(interval, dateFormat) : dayjs(), [interval]);
 
     const allCategories = useAppSelector(state => state.categories.items);
     const activeCategories = allCategories.filter((c: any) => c.isEnabled);

@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Button, DatePicker, Input } from "antd";
+import { Button, Input } from "antd";
 import { Form, Col, Row } from "antd";
-const { TextArea } = Input;
 
-import moment from "moment";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 
+import DatePicker from "../../components/DatePicker";
 const { RangePicker } = DatePicker;
 
 import { useMemo, useState, useEffect } from "react";
@@ -61,7 +62,7 @@ const TransactionFilterForm = (props: any) => {
                 setLocalFilter((prevState: any) => ({ ...prevState, categoryIds: categoryIds }));
             }
             if (queryFilter.start && queryFilter.end) {
-                range = [moment(queryFilter.start[0], "YYYY-MM-DD").unix(), moment(queryFilter.end[0], "YYYY-MM-DD").unix()];
+                range = [dayjs(queryFilter.start[0], "YYYY-MM-DD").unix(), dayjs(queryFilter.end[0], "YYYY-MM-DD").unix()];
                 setLocalFilter((prevState: any) => ({ ...prevState, range: range }));
             }
             if (queryFilter.tags) {
@@ -104,7 +105,7 @@ const TransactionFilterForm = (props: any) => {
         const filteredAccounts = accounts.filter((account: AccountDetails) =>
             localFilter.accountIds.find((i: number) => i === account.id)
         );
-        const range = localFilter.range.map((i: number) => moment.unix(i));
+        const range = localFilter.range.map((i: number) => dayjs.unix(i));
 
         const tags = localFilter.tags.map((tag: string) => `#${tag}`).join(" ");
         const refs = localFilter.refs.map((ref: string) => `@${ref}`).join(" ");
@@ -163,7 +164,7 @@ const TransactionFilterForm = (props: any) => {
     const setRangeHandler = (dates: any) => {
         setLocalFilter((prevState: any) => ({
             ...prevState,
-            range: [moment(dates[0], "YYYY-MM-DD").unix(), moment(dates[1], "YYYY-MM-DD").unix()]
+            range: [dayjs(dates[0], "YYYY-MM-DD").unix(), dayjs(dates[1], "YYYY-MM-DD").unix()]
         }));
     };
 
@@ -183,7 +184,7 @@ const TransactionFilterForm = (props: any) => {
         }
 
         if (localFilter.range.length === 2) {
-            filter += `start:${moment.unix(localFilter.range[0]).format("YYYY-MM-DD")};end:${moment.unix(localFilter.range[1]).format("YYYY-MM-DD")};`;
+            filter += `start:${dayjs.unix(localFilter.range[0]).format("YYYY-MM-DD")};end:${dayjs.unix(localFilter.range[1]).format("YYYY-MM-DD")};`;
         }
 
         if (localFilter.tags.length > 0) {
@@ -197,11 +198,11 @@ const TransactionFilterForm = (props: any) => {
         navigate(`${location.pathname}${filter === "filter=" ? "" : `?${filter}`}`, { replace: true });
     }
 
-    const rangePresets = useMemo((): Record<string, [moment.Moment, moment.Moment]> => ({
-        [t("transactions.last7Days")]: [moment().subtract(7, "day").startOf("day"), moment().endOf("day")],
-        [t("transactions.last30Days")]: [moment().subtract(30, "day").startOf("day"), moment().endOf("day")],
-        [t("transactions.lastMonth")]: [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
-        [t("transactions.thisMonth")]: [moment().startOf("month"), moment().endOf("day")],
+    const rangePresets = useMemo((): Record<string, [Dayjs, Dayjs]> => ({
+        [t("transactions.last7Days")]: [dayjs().subtract(7, "day").startOf("day"), dayjs().endOf("day")],
+        [t("transactions.last30Days")]: [dayjs().subtract(30, "day").startOf("day"), dayjs().endOf("day")],
+        [t("transactions.lastMonth")]: [dayjs().subtract(1, "month").startOf("month"), dayjs().subtract(1, "month").endOf("month")],
+        [t("transactions.thisMonth")]: [dayjs().startOf("month"), dayjs().endOf("day")],
     }), [t]);
 
     return (

@@ -1,4 +1,4 @@
-import moment from "moment";
+import dayjs from "dayjs";
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { reportActions } from "./report-slice";
@@ -11,11 +11,11 @@ export const fetchReport = (type: string, filter: any) => {
 
       const startStr: string =
         filter.range.length === 2 && filter.range[0] > 0
-          ? `Start:${moment.unix(filter.range[0]).format("YYYY-MM-DD")};`
+          ? `Start:${dayjs.unix(filter.range[0]).format("YYYY-MM-DD")};`
           : "";
       const endStr: string =
         filter.range.length === 2 && filter.range[1] > 0
-          ? `End:${moment.unix(filter.range[1]).format("YYYY-MM-DD")};`
+          ? `End:${dayjs.unix(filter.range[1]).format("YYYY-MM-DD")};`
           : "";
       const filterStr: string =
         startStr !== "" || endStr !== "" ? `?filter=${startStr}${endStr}` : "";

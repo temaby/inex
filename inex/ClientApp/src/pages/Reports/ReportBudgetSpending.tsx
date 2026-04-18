@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
-import { Layout, DatePicker, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
+import { Layout, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined, WarningOutlined } from '@ant-design/icons';
-import moment from "moment";
+import dayjs from "dayjs";
+import DatePicker from "../../components/DatePicker";
 
 import { fetchBudgetReport } from "../../store/budgetReport/budgetReport-actions";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
@@ -18,7 +19,7 @@ const ReportBudgetSpending: React.FC = () => {
     const { items, isLoading, selectedYear, selectedMonth, error, metadata } = useAppSelector(state => state.budgetReport);
     const currency = useAppSelector(state => state.report.currency) || "USD";
 
-    const [localDate, setLocalDate] = useState(moment(`${selectedYear}-${selectedMonth}`, "YYYY-M"));
+    const [localDate, setLocalDate] = useState(dayjs(`${selectedYear}-${selectedMonth}`, "YYYY-M"));
 
     useEffect(() => {
         dispatch(fetchBudgetReport(localDate.year(), localDate.month() + 1, currency));
@@ -203,8 +204,8 @@ const ReportBudgetSpending: React.FC = () => {
                             return {
                                 onClick: () => {
                                     if (record.categoryIds && record.categoryIds.length > 0) {
-                                        const start = localDate.clone().startOf('month').format('YYYY-MM-DD');
-                                        const end = localDate.clone().endOf('month').format('YYYY-MM-DD');
+                                        const start = localDate.startOf('month').format('YYYY-MM-DD');
+                                        const end = localDate.endOf('month').format('YYYY-MM-DD');
                                         navigate(`/transactions?filter=categoryIds:${record.categoryIds.join(",")};start:${start};end:${end}`);
                                     }
                                 },

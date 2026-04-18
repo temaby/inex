@@ -1,11 +1,10 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import HttpBackend from "i18next-http-backend";
-import moment from "moment";
-import "moment/locale/ru";
+import dayjs from "dayjs";
 
-function syncMomentLocale(lang: string) {
-    moment.locale(lang === "ru" ? "ru" : "en");
+function syncDayjsLocale(lang: string) {
+    dayjs.locale(lang === "ru" ? "ru" : "en");
 }
 
 i18n
@@ -23,7 +22,7 @@ i18n
         },
     });
 
-i18n.on("languageChanged", syncMomentLocale);
-syncMomentLocale(i18n.language);
+i18n.on("languageChanged", syncDayjsLocale);
+syncDayjsLocale(i18n.language);
 
 export default i18n;

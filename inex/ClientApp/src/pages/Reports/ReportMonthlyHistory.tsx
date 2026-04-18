@@ -16,9 +16,10 @@ import {
   LabelList,
   ReferenceLine,
 } from "recharts";
-import { DatePicker, Space, Typography, Card, Row, Col, Statistic } from "antd";
+import { Space, Typography, Card, Row, Col, Statistic } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
-import moment from "moment";
+import dayjs from "dayjs";
+import DatePicker from "../../components/DatePicker";
 
 const { Title } = Typography;
 
@@ -27,7 +28,7 @@ const ReportMonthlyHistory = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const history = useAppSelector(state => state.report.history);
-  const [year, setYear] = useState(moment().year());
+  const [year, setYear] = useState(dayjs().year());
 
   useEffect(() => {
     dispatch(fetchHistory(year));
@@ -94,7 +95,7 @@ const ReportMonthlyHistory = () => {
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <Space>
             <Title level={4}>{t("reports.interval")}</Title>
-            <DatePicker picker="year" onChange={handleYearChange} defaultValue={moment()} allowClear={false} />
+            <DatePicker picker="year" onChange={handleYearChange} defaultValue={dayjs()} allowClear={false} />
         </Space>
 
         <Row gutter={16}>
