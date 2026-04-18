@@ -11,11 +11,6 @@ public abstract class UnitOfWork : IUnitOfWork
         return await _db.SaveChangesAsync(ct);
     }
 
-    public async Task BulkSaveAsync(int batchSize)
-    {
-        await _db.BulkSaveChangesAsync(o => o.BatchSize = batchSize);
-    }
-
     public void Dispose()
     {
         Dispose(true);
