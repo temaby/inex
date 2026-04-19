@@ -23,7 +23,7 @@ public class TransactionProfile : Profile
 
         CreateMap<TransferFromCreateDTO, Transaction>(MemberList.None)
             .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountFromId))
-            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.AmountFrom))
+            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => -src.AmountFrom))
             .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
             .ForMember(dest => dest.Created, opt => opt.MapFrom(src => src.Created));
 
