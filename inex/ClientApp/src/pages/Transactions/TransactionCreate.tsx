@@ -103,7 +103,7 @@ const TransactionCreate = (props: any) => {
         } else if (state.mode === TransactionType.INCOME) {
           dispatch(createTransaction(+state.toAccount.id, +state.category.id, +state.toAmount, state.comment, state.date));
         } else if (state.mode === TransactionType.TRANSFER) {
-          dispatch(createTransfer(+state.fromAccount.id, +state.toAccount.id, 0 - state.fromAmount, +state.toAmount, state.comment, state.date));
+          dispatch(createTransfer(+state.fromAccount.id, +state.toAccount.id, +state.fromAmount, +state.toAmount, state.comment, state.date));
         }
 
         setModeHandler(TransactionType.EXPENSE);
