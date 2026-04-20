@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using inex.Data.Models.Base;
 
 namespace inex.Data.Repositories.Base;
@@ -54,6 +56,11 @@ public class EditableRepository<T> : Repository<T>, IEditableRepository<T> where
     public virtual void Delete(IEnumerable<T> entities)
     {
         Db.RemoveRange(entities);
+    }
+
+    public virtual Task<int> ExecuteDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+    {
+        return Db.Set<T>().Where(predicate).ExecuteDeleteAsync(ct);
     }
 
     #endregion Public Interface

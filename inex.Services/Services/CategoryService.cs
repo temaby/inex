@@ -36,7 +36,7 @@ public class CategoryService : InExService, ICategoryService
 
     public ListResponse<CategoryDetailsDTO> Get(int userId, ActivityMode mode)
     {
-        IQueryable<Category> items = DbInEx.CategoryRepository.Get(false).Where(i => i.UserId == userId).OrderBy(i => i.Name);
+        IQueryable<Category> items = DbInEx.CategoryRepository.Get(true).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
         {
             ActivityMode.ACTIVE => BuildDataResponse<Category, CategoryDetailsDTO>(items.Where(i => i.IsEnabled)),

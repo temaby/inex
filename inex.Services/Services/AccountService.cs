@@ -36,7 +36,7 @@ public class AccountService : InExService, IAccountService
 
     public ListResponse<AccountDetailsDTO> Get(int userId, ActivityMode mode)
     {
-        IQueryable<Account> items = DbInEx.AccountRepository.Get(false, null, i => i.Currency).Where(i => i.UserId == userId).OrderBy(i => i.Name);
+        IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
         {
             ActivityMode.ACTIVE => BuildDataResponse<Account, AccountDetailsDTO>(items.Where(i => i.IsEnabled)),
@@ -48,7 +48,7 @@ public class AccountService : InExService, IAccountService
 
     public ListResponse<AccountListDetailsDTO> GetDetails(int userId, IEnumerable<int> ids)
     {
-        IQueryable<Account> items = DbInEx.AccountRepository.Get(false, null, i => i.Currency).Where(i => i.UserId == userId && ids.Contains(i.Id)).OrderBy(i => i.Name);
+        IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency).Where(i => i.UserId == userId && ids.Contains(i.Id)).OrderBy(i => i.Name);
         var accountDetails = DbInEx.TransactionRepository.Get(true).Where(i => ids.Contains(i.AccountId)).GroupBy(i => i.AccountId).Select(i => new { AccountId = i.Key, Value = i.Sum(j => j.Value) });
         ListResponse<AccountListDetailsDTO> resultDTO = BuildDataResponse<Account, AccountListDetailsDTO>(items);
         var values = accountDetails.ToDictionary(i => i.AccountId, i => i.Value);

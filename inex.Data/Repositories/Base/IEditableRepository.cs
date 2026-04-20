@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace inex.Data.Repositories.Base;
 
@@ -12,4 +13,5 @@ public interface IEditableRepository<T> : IRepository<T> where T : class
     void Update(IEnumerable<T> entities);
     EntityEntry<T> Delete(T entity);
     void Delete(IEnumerable<T> entities);
+    Task<int> ExecuteDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
 }
