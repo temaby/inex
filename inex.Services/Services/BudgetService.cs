@@ -35,7 +35,7 @@ public class BudgetService : InExService, IBudgetService
 
     public ListResponse<BudgetDetailsDTO> Get(int userId, int? year = null, int? month = null)
     {
-        IQueryable<Budget> items = DbInEx.BudgetRepository.Get(false, i => i.UserId == userId && (!year.HasValue || i.Year == year) && (!month.HasValue || i.Month == month), i => i.BudgetCategories).OrderBy(i => i.Name);
+        IQueryable<Budget> items = DbInEx.BudgetRepository.Get(true, i => i.UserId == userId && (!year.HasValue || i.Year == year) && (!month.HasValue || i.Month == month), i => i.BudgetCategories).OrderBy(i => i.Name);
         return BuildDataResponse<Budget, BudgetDetailsDTO>(items.ToList());
     }
 
@@ -152,7 +152,7 @@ public class BudgetService : InExService, IBudgetService
     public async Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default)
     {
         // Get source budgets
-        var sourceBudgets = DbInEx.BudgetRepository.Get(false,
+        var sourceBudgets = DbInEx.BudgetRepository.Get(true,
             b => b.UserId == userId && b.Year == sourceYear && b.Month == sourceMonth,
             b => b.BudgetCategories).ToList();
 
@@ -225,7 +225,7 @@ public class BudgetService : InExService, IBudgetService
     {
         if (categoryIds == null || !categoryIds.Any()) return;
 
-        var budgets = DbInEx.BudgetRepository.Get(false,
+        var budgets = DbInEx.BudgetRepository.Get(true,
             b => b.UserId == userId && b.Year == year && b.Month == month && (!excludeBudgetId.HasValue || b.Id != excludeBudgetId.Value),
             b => b.BudgetCategories);
 
@@ -238,7 +238,7 @@ public class BudgetService : InExService, IBudgetService
 
         if (conflicts.Any())
         {
-            var categoryNames = DbInEx.CategoryRepository.Get(false).Where(c => conflicts.Contains(c.Id))
+            var categoryNames = DbInEx.CategoryRepository.Get(true).Where(c => conflicts.Contains(c.Id))
                 .Select(c => c.Name)
                 .ToList();
 

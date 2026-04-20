@@ -124,8 +124,7 @@ public class TransactionService : InExService, ITransactionService
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
-        DbInEx.TransactionRepository.Delete(DbInEx.TransactionRepository.Get(false).Where(i => ids.Contains(i.Id)));
-        await DbInEx.SaveAsync(ct);
+        await DbInEx.TransactionRepository.ExecuteDeleteAsync(i => ids.Contains(i.Id), ct);
     }
 
     public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, IDictionary<string, string> filters)
@@ -177,7 +176,7 @@ public class TransactionService : InExService, ITransactionService
 
     internal IQueryable<Transaction> GetTransactions(int userId, ActivityMode mode, IDictionary<string, string> filters)
     {
-        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository.Get(false, null, i => i.Account, i => i.Category).Where(i => i.UserId == userId).OrderByDescending(i => i.Created).ThenByDescending(i => i.Id), filters);
+        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository.Get(true, null, i => i.Account, i => i.Category).Where(i => i.UserId == userId).OrderByDescending(i => i.Created).ThenByDescending(i => i.Id), filters);
 
         return mode switch
         {
