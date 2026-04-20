@@ -3,9 +3,9 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Space, Form, Input, InputNumber, Select, message, Typography } from "antd";
-import { ColumnsType } from "antd/es/table";
+import type { TableColumnsType } from "antd";
 import dayjs from "dayjs";
-import DatePicker from "../components/DatePicker";
+import { DatePicker } from "antd";
 import { useSearchParams } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
 import { BudgetDetails } from "../model/Budget/BudgetDetails";
@@ -130,7 +130,7 @@ const Budgets = () => {
 
     const categoryTree = React.useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
-    const columns: ColumnsType<BudgetDetails> = [
+    const columns: TableColumnsType<BudgetDetails> = [
         {
             title: t("budgets.name"),
             dataIndex: "name",
@@ -207,7 +207,7 @@ const Budgets = () => {
                 onClose={closeModalHandler}
                 open={modalVisible}
                 placement="right"
-                bodyStyle={{ paddingBottom: 80 }}
+                styles={{ body: { paddingBottom: 80 } }}
             >
                 <Form
                     form={form}

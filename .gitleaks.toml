@@ -1,0 +1,3 @@
+[allowlist]
+  description = "False positives from minified JS build artifacts"
+  commits = ["a8908a9"]

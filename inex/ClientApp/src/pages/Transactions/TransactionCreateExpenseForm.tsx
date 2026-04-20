@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from "react-i18next";
 import { Input } from 'antd';
 import { Form, Col, Row} from 'antd';
-import DatePicker from "../../components/DatePicker";
+import { DatePicker } from "antd";
 
 import Dropdown from '../../components/Dropdown';
 import ExpressionInputNumber from '../../components/ExpressionInputNumber';

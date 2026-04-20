@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { Layout, PageHeader, Menu, Typography, Space } from "antd";
+import { Layout, Menu, Typography, Space, Flex } from "antd";
 import { LogoutOutlined, UserOutlined } from "@ant-design/icons";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -35,13 +35,14 @@ const BasicPage = (props: any) => {
                     mode="horizontal"
                     defaultSelectedKeys={[currentPage]}
                     onSelect={menuSelectHandler}
-                >
-                    <Menu.Item key="transactions">{t("nav.transactions")}</Menu.Item>
-                    <Menu.Item key="accounts">{t("nav.accounts")}</Menu.Item>
-                    <Menu.Item key="categories">{t("nav.categories")}</Menu.Item>
-                    <Menu.Item key="budgets">{t("nav.budgets")}</Menu.Item>
-                    <Menu.Item key="reports">{t("nav.reports")}</Menu.Item>
-                </Menu>
+                    items={[
+                        { key: "transactions", label: t("nav.transactions") },
+                        { key: "accounts",     label: t("nav.accounts") },
+                        { key: "categories",   label: t("nav.categories") },
+                        { key: "budgets",      label: t("nav.budgets") },
+                        { key: "reports",      label: t("nav.reports") },
+                    ]}
+                />
 
                 <Space style={{ marginLeft: 24, flexShrink: 0 }}>
                     {username && (
@@ -64,7 +65,10 @@ const BasicPage = (props: any) => {
             </Header>
 
             <Content style={{ padding: "0 50px" }}>
-                <PageHeader title={props.title} extra={props.extra} style={{ minHeight: 90 }} />
+                <Flex justify="space-between" align="center" style={{ minHeight: 90, padding: "16px 0" }}>
+                    <Typography.Title level={4} style={{ margin: 0 }}>{props.title}</Typography.Title>
+                    {props.extra && <Space>{props.extra}</Space>}
+                </Flex>
                 <Layout style={{ padding: "0 24px" }}>{props.children}</Layout>
             </Content>
             <Footer style={{ textAlign: "center" }}>InEx ©2025</Footer>

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Layout, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined, WarningOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
-import DatePicker from "../../components/DatePicker";
+import { DatePicker } from "antd";
 
 import { fetchBudgetReport } from "../../store/budgetReport/budgetReport-actions";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";

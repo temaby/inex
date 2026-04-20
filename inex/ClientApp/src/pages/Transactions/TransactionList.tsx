@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Table, Tag } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigate } from "react-router-dom";
-import { ColumnsType } from "antd/es/table";
+import type { TableColumnsType } from "antd";
 
 import { CategoryDetails } from '../../model/Category/CategoryDetails';
 
@@ -68,7 +68,7 @@ const TransactionList = (props: any) => {
         navigate(`../../transactions?filter=refs:${ref};`, { replace: false });
     };
 
-    const columns: ColumnsType<any> = [
+    const columns: TableColumnsType<any> = [
         {
             title: t("transactions.date"),
             dataIndex: "created",
