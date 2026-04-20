@@ -267,28 +267,31 @@ try
         app.UseStaticFiles();
     }
 
-    app.UseStaticFiles(new StaticFileOptions
+    if (Directory.Exists(spaPath))
     {
-        FileProvider = new PhysicalFileProvider(spaPath),
-        OnPrepareResponse = ctx =>
+        app.UseStaticFiles(new StaticFileOptions
         {
-            var headers = ctx.Context.Response.Headers;
-
-            headers.Append("X-Frame-Options", "DENY");
-            headers.Append("X-Content-Type-Options", "nosniff");
-
-            // Cache static assets for 1 year, except HTML files which should not be cached to ensure users get the latest version.
-            if (!ctx.File.Name.EndsWith(".html"))
+            FileProvider = new PhysicalFileProvider(spaPath),
+            OnPrepareResponse = ctx =>
             {
-                ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+                var headers = ctx.Context.Response.Headers;
+
+                headers.Append("X-Frame-Options", "DENY");
+                headers.Append("X-Content-Type-Options", "nosniff");
+
+                // Cache static assets for 1 year, except HTML files which should not be cached to ensure users get the latest version.
+                if (!ctx.File.Name.EndsWith(".html"))
+                {
+                    ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+                }
+                else
+                {
+                    headers.CacheControl = "no-cache, no-store, must-revalidate";
+                    headers.Pragma = "no-cache";
+                }
             }
-            else
-            {
-                headers.CacheControl = "no-cache, no-store, must-revalidate";
-                headers.Pragma = "no-cache";
-            }
-        }
-    });
+        });
+    }
 
     app.UseRouting();
 
@@ -302,10 +305,13 @@ try
     app.MapHealthChecks("/health");
     app.MapControllers();
 
-    app.MapFallbackToFile("index.html", new StaticFileOptions
+    if (Directory.Exists(spaPath))
     {
-        FileProvider = new PhysicalFileProvider(spaPath)
-    });
+        app.MapFallbackToFile("index.html", new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(spaPath)
+        });
+    }
 
     // ── 4. RUN ──
     app.Run();
