@@ -51,7 +51,7 @@ const Transactions = (props: any) => {
                 onClose={closeModalHandler}
                 open={addModalVisible}
                 placement={"right"}
-                bodyStyle={{ paddingBottom: 80 }}
+                styles={{ body: { paddingBottom: 80 } }}
             >
                 <TransactionCreate accounts={activeAccounts} categories={activeCategories} onSubmit={closeModalHandler} />
             </Drawer>
@@ -63,14 +63,24 @@ const Transactions = (props: any) => {
                     </Button>
                 ]}>
                 <Sider theme="light" style={{ margin: "0 0 65px 0", minHeight: 280 }} width={350}>
-                    <Tabs onChange={sideModeChangeHandler} activeKey={sideMode} type="card">
-                        <Tabs.TabPane tab={t("transactions.status")} key="status">
-                            <TransactionSummary accounts={activeAccounts} />
-                        </Tabs.TabPane>
-                        <Tabs.TabPane tab={t("transactions.filter")} key="filter" style={{ padding: "20px" }}>
-                            <TransactionFilterForm accounts={activeAccounts} categories={activeCategories} filter={filter} />
-                        </Tabs.TabPane>
-                    </Tabs>
+                    <Tabs
+                        onChange={sideModeChangeHandler}
+                        activeKey={sideMode}
+                        type="card"
+                        items={[
+                            {
+                                key: "status",
+                                label: t("transactions.status"),
+                                children: <TransactionSummary accounts={activeAccounts} />,
+                            },
+                            {
+                                key: "filter",
+                                label: t("transactions.filter"),
+                                children: <TransactionFilterForm accounts={activeAccounts} categories={activeCategories} filter={filter} />,
+                                style: { padding: "20px" },
+                            },
+                        ]}
+                    />
                 </Sider>
                 <Content style={{ margin: "0 0 0 24px", minHeight: 280 }}>
                     <TransactionList accounts={activeAccounts} categories={activeCategories} />

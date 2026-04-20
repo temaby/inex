@@ -9,7 +9,7 @@ import type { Dayjs } from "dayjs";
 
 import { InputNumber, Input, Button, Space, Divider, Popconfirm } from 'antd';
 import { Form, Col, Row } from 'antd';
-import DatePicker from "../../components/DatePicker";
+import { DatePicker } from "antd";
 
 import { CategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionEditState } from "../../model/Transaction/TransactionEditState";
@@ -97,7 +97,7 @@ const TransactionEditForm = (props: any) => {
       }
     };
 
-    const setDateHandler = (value: Dayjs | null, _dateString: string) => {
+    const setDateHandler = (value: Dayjs | null, _dateString: string | string[]) => {
       dispatchTransactionAction({ type: "SET_DATE", value: value ?? dayjs() });
     };
 

@@ -6,7 +6,7 @@ import { Form, Col, Row } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 
-import DatePicker from "../../components/DatePicker";
+import { DatePicker } from "antd";
 const { RangePicker } = DatePicker;
 
 import { useMemo, useState, useEffect } from "react";

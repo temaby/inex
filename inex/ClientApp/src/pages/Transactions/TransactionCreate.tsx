@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Tabs, Space, Button } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
-const { TabPane } = Tabs;
-
 import TransactionCreateExpenseForm from './TransactionCreateExpenseForm';
 import TransactionCreateIncomeForm from './TransactionCreateIncomeForm';
 import TransactionCreateTransferForm from './TransactionCreateTransferForm';
@@ -108,7 +106,71 @@ const TransactionCreate = (props: any) => {
 
         setModeHandler(TransactionType.EXPENSE);
         props.onSubmit();
-    }
+    };
+
+    const tabItems = [
+        {
+            key: TransactionType.EXPENSE,
+            label: t("transactions.expense"),
+            children: (
+                <TransactionCreateExpenseForm
+                    accounts={props.accounts}
+                    fromAccount={state.fromAccount}
+                    onSetFromAccount={setFromAccountHandler}
+                    categories={categoryTree}
+                    category={state.category}
+                    onSetCategory={setCategoryHandler}
+                    fromAmount={state.fromAmount}
+                    onSetFromAmount={setFromAmountHandler}
+                    date={state.date}
+                    onSetDate={setDateHandler}
+                    comment={state.comment}
+                    onSetComment={setCommentHandler}
+                />
+            ),
+        },
+        {
+            key: TransactionType.INCOME,
+            label: t("transactions.income"),
+            children: (
+                <TransactionCreateIncomeForm
+                    accounts={props.accounts}
+                    toAccount={state.toAccount}
+                    onSetToAccount={setToAccountHandler}
+                    categories={categoryTree}
+                    category={state.category}
+                    onSetCategory={setCategoryHandler}
+                    toAmount={state.toAmount}
+                    onSetToAmount={setToAmountHandler}
+                    date={state.date}
+                    onSetDate={setDateHandler}
+                    comment={state.comment}
+                    onSetComment={setCommentHandler}
+                />
+            ),
+        },
+        {
+            key: TransactionType.TRANSFER,
+            label: t("transactions.transfer"),
+            children: (
+                <TransactionCreateTransferForm
+                    accounts={props.accounts}
+                    fromAccount={state.fromAccount}
+                    onSetFromAccount={setFromAccountHandler}
+                    toAccount={state.toAccount}
+                    onSetToAccount={setToAccountHandler}
+                    fromAmount={state.fromAmount}
+                    onSetFromAmount={setFromAmountHandler}
+                    toAmount={state.toAmount}
+                    onSetToAmount={setToAmountHandler}
+                    date={state.date}
+                    onSetDate={setDateHandler}
+                    comment={state.comment}
+                    onSetComment={setCommentHandler}
+                />
+            ),
+        },
+    ];
 
     return (
       <React.Fragment>
@@ -116,57 +178,8 @@ const TransactionCreate = (props: any) => {
           onChange={setModeHandler}
           activeKey={state.mode.toString()}
           type="card"
-        >
-          <TabPane tab={t("transactions.expense")} key={TransactionType.EXPENSE}>
-            <TransactionCreateExpenseForm
-              accounts={props.accounts}
-              fromAccount={state.fromAccount}
-              onSetFromAccount={setFromAccountHandler}
-              categories={categoryTree}
-              category={state.category}
-              onSetCategory={setCategoryHandler}
-              fromAmount={state.fromAmount}
-              onSetFromAmount={setFromAmountHandler}
-              date={state.date}
-              onSetDate={setDateHandler}
-              comment={state.comment}
-              onSetComment={setCommentHandler}
-            />
-          </TabPane>
-          <TabPane tab={t("transactions.income")} key={TransactionType.INCOME}>
-            <TransactionCreateIncomeForm
-              accounts={props.accounts}
-              toAccount={state.toAccount}
-              onSetToAccount={setToAccountHandler}
-              categories={categoryTree}
-              category={state.category}
-              onSetCategory={setCategoryHandler}
-              toAmount={state.toAmount}
-              onSetToAmount={setToAmountHandler}
-              date={state.date}
-              onSetDate={setDateHandler}
-              comment={state.comment}
-              onSetComment={setCommentHandler}
-            />
-          </TabPane>
-          <TabPane tab={t("transactions.transfer")} key={TransactionType.TRANSFER}>
-            <TransactionCreateTransferForm
-              accounts={props.accounts}
-              fromAccount={state.fromAccount}
-              onSetFromAccount={setFromAccountHandler}
-              toAccount={state.toAccount}
-              onSetToAccount={setToAccountHandler}
-              fromAmount={state.fromAmount}
-              onSetFromAmount={setFromAmountHandler}
-              toAmount={state.toAmount}
-              onSetToAmount={setToAmountHandler}
-              date={state.date}
-              onSetDate={setDateHandler}
-              comment={state.comment}
-              onSetComment={setCommentHandler}
-            />
-          </TabPane>
-        </Tabs>
+          items={tabItems}
+        />
         <Space>
           <Button loading={isCreating} onClick={saveTransactionHandler} type="primary">
             {t("transactions.save")}

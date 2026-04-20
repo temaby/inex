@@ -1,6 +1,5 @@
 /**
- * Registers the dayjs plugins required by antd v4 DatePicker (via generatePicker)
- * and by the application itself.
+ * Registers dayjs plugins used by the application and by antd v5 date components.
  *
  * This file must be imported before any component that uses dayjs or antd DatePicker.
  * It is imported from index.tsx before i18n and App are loaded.

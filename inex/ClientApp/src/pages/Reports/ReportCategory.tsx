@@ -7,9 +7,9 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import DatePicker from "../../components/DatePicker";
+import { DatePicker } from "antd";
 import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
-import { ColumnsType } from "antd/es/table";
+import type { TableColumnsType } from "antd";
 import { fetchReport } from "../../store/report/report-actions";
 import { reportActions } from "../../store/report/report-slice";
 
@@ -77,7 +77,7 @@ const ReportCategory = (props: any) => {
         }
     };
 
-    const reportColumns: ColumnsType<ReportCategoryDetails> = [
+    const reportColumns: TableColumnsType<ReportCategoryDetails> = [
         {
             title: t("reports.category"),
             key: "name",

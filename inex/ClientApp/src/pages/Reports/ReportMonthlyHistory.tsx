@@ -19,7 +19,7 @@ import {
 import { Space, Typography, Card, Row, Col, Statistic } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
-import DatePicker from "../../components/DatePicker";
+import { DatePicker } from "antd";
 
 const { Title } = Typography;
 
@@ -34,7 +34,7 @@ const ReportMonthlyHistory = () => {
     dispatch(fetchHistory(year));
   }, [dispatch, year]);
 
-  const handleYearChange = (date: any, dateString: string) => {
+  const handleYearChange = (date: any, dateString: string | string[]) => {
     if (date) {
       setYear(date.year());
     }

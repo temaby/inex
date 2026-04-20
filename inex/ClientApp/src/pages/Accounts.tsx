@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
-import { ColumnsType } from "antd/es/table";
+import type { TableColumnsType } from "antd";
 import BasicPage from "../layouts/BasicPage";
 import { AccountDetails } from "../model/Account/AccountDetails";
 import AccountCreateForm from "./Accounts/AccountCreateForm";
@@ -26,7 +26,7 @@ const Accounts = () => {
         setExpandedRows([]);
     }, [accountsLastUpdate]);
 
-    const columns: ColumnsType<AccountDetails> = [
+    const columns: TableColumnsType<AccountDetails> = [
         {
             title: t("accounts.account"),
             dataIndex: "name",
@@ -66,7 +66,7 @@ const Accounts = () => {
                 onClose={() => setAddModalVisible(false)}
                 open={addModalVisible}
                 placement="right"
-                bodyStyle={{ paddingBottom: 80 }}>
+                styles={{ body: { paddingBottom: 80 } }}>
                 <AccountCreateForm onCreated={() => setAddModalVisible(false)} />
             </Drawer>
             <BasicPage

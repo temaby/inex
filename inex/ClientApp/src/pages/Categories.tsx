@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
-import { ColumnsType } from "antd/es/table";
+import type { TableColumnsType } from "antd";
 import BasicPage from "../layouts/BasicPage";
 
 import { CategoryDetails, getCategoriesTree } from '../model/Category/CategoryDetails';
@@ -45,7 +45,7 @@ const Categories = () => {
         }
     };
 
-    const columns: ColumnsType<Omit<CategoryDetails, "children"> & { depth: number }> = [
+    const columns: TableColumnsType<Omit<CategoryDetails, "children"> & { depth: number }> = [
         {
             title: t("categories.category"),
             dataIndex: "name",
@@ -82,7 +82,7 @@ const Categories = () => {
                 onClose={closeModalHandler}
                 open={addModalVisible}
                 placement="right"
-                bodyStyle={{ paddingBottom: 80 }}>
+                styles={{ body: { paddingBottom: 80 } }}>
                 <CategoryCreateForm onCreated={closeModalHandler} />
             </Drawer>
             <BasicPage

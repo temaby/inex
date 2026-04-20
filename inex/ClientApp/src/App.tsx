@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfigProvider } from "antd";
-import enUS from "antd/es/locale/en_US";
-import ruRU from "antd/es/locale/ru_RU";
+import enUS from "antd/locale/en_US";
+import ruRU from "antd/locale/ru_RU";
 
 import { useAppDispatch, useAppSelector } from './store/hooks';
 
@@ -13,7 +13,7 @@ import { fetchCategories } from './store/categories/categories-actions';
 import { fetchBudgets } from './store/budgets/budgets-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
 
-import "antd/dist/antd.css";
+import "antd/dist/reset.css";
 import Transactions from './pages/Transactions';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Accounts from './pages/Accounts';
