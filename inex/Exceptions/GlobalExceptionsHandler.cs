@@ -28,11 +28,15 @@ public class GlobalExceptionsHandler : IExceptionHandler
             return false;
         }
 
-        // Log the full exception details using Serilog
-        _logger.LogError(exception, "Unhandled exception occurred");
-
         // Get HTTP mapping: either from IHttpMappable or default
         var errorMapping = GetErrorMapping(exception);
+
+        // 4xx = client error (expected) → Warning; 5xx = server fault → Error
+        if (errorMapping.StatusCode >= 500)
+            _logger.LogError(exception, "Unhandled exception occurred");
+        else
+            _logger.LogWarning("Client error {StatusCode} {Path}: {Message}",
+                errorMapping.StatusCode, httpContext.Request.Path, exception.Message);
 
         var problemDetails = new ProblemDetails
         {
