@@ -140,7 +140,7 @@ public class ExchangeRateService : Service, IExchangeRateService
         try
         {
             var result = await _apiClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct);
-            if (result.Count > 0) return result;
+            if (result is not null && result.Count > 0) return result;
         }
         catch (Exception ex)
         {
@@ -149,7 +149,8 @@ public class ExchangeRateService : Service, IExchangeRateService
 
         try
         {
-            return await _fallbackClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct);
+            return await _fallbackClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct)
+                   ?? new Dictionary<DateTime, ExchangeRateResponse>();
         }
         catch (Exception ex)
         {
