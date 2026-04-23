@@ -55,16 +55,39 @@ public class ExchangeRateService : Service, IExchangeRateService
         DateTime today = DateTime.UtcNow.Date;
         endDate = endDate <= today ? endDate : today;
 
-        for (DateTime effectiveDate = startDate; effectiveDate <= endDate; effectiveDate = effectiveDate.AddDays(1))
-        {
-            if (effectiveDate == today)
-            {
-                await CreateTemporaryRatesForTodayIfNeeded(userId, effectiveDate, baseCurrency, ct);
-                continue;
-            }
+        // One query to find which dates already have a full set of actual rates cached.
+        var cachedDates = (await DbInEx.ExchangeRateRepository.Get(true)
+            .Where(r => r.Created >= startDate && r.Created < today
+                     && r.FromCode == baseCurrency && !r.IsTemporary)
+            .GroupBy(r => r.Created)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToListAsync(ct))
+            .Where(x => x.Count >= targetCurrencyCodes.Count)
+            .Select(x => x.Date)
+            .ToHashSet();
 
-            await SyncRatesForDate(userId, effectiveDate, baseCurrency, targetCurrencyCodes, ct);
+        var missingDates = Enumerable
+            .Range(0, (endDate - startDate).Days + 1)
+            .Select(i => startDate.AddDays(i))
+            .Where(d => d < today && !cachedDates.Contains(d))
+            .ToList();
+
+        if (missingDates.Count > 0)
+        {
+            var rangeStart = missingDates.Min();
+            var rangeEnd   = missingDates.Max();
+            var rangeRates = await FetchRatesForRange(rangeStart, rangeEnd, baseCurrency, targetCurrencyCodes.ToArray(), ct);
+
+            bool hasChanges = false;
+            foreach (var (date, response) in rangeRates)
+                hasChanges |= await UpsertRatesForDate(userId, date, baseCurrency, response, ct);
+
+            if (hasChanges)
+                await DbInEx.SaveAsync(ct);
         }
+
+        if (endDate >= today)
+            await CreateTemporaryRatesForTodayIfNeeded(userId, today, baseCurrency, ct);
 
         IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate && i.FromCode == baseCurrency);
         return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
@@ -108,72 +131,30 @@ public class ExchangeRateService : Service, IExchangeRateService
     }
 
     /// <summary>
-    /// Ensures actual (non-temporary) rates exist in the database for the given date.
-    /// Skipped when the cache already has a full set of actual rates.
-    /// Calls the provider and upserts the results if rates are missing or incomplete.
+    /// Fetches exchange rates for the given date range from the primary provider,
+    /// falling back to the secondary provider if the primary fails or returns no data.
     /// </summary>
-    private async Task SyncRatesForDate(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
+    private async Task<Dictionary<DateTime, ExchangeRateResponse>> FetchRatesForRange(
+        DateTime start, DateTime end, string baseCurrency, string[] targetCurrencies, CancellationToken ct = default)
     {
-        DateTime requestedDate = date.Date;
-
-        int actualRatesCount = DbInEx.ExchangeRateRepository.Get(true)
-            .Count(i => i.Created == requestedDate && i.FromCode == baseCurrency && !i.IsTemporary);
-
-        if (actualRatesCount >= targetCurrencyCodes.Count)
-        {
-            return;
-        }
-
-        ExchangeRateResponse? response = await FetchRatesForDate(requestedDate, baseCurrency, targetCurrencyCodes, ct);
-
-        if (response?.Data is null || response.Data.Count == 0)
-        {
-            return;
-        }
-
-        bool hasChanges = await UpsertRatesForDate(userId, requestedDate, baseCurrency, response, ct);
-
-        if (hasChanges)
-        {
-            await DbInEx.SaveAsync(ct);
-        }
-    }
-
-    /// <summary>
-    /// Calls the external currency API for the given date.
-    /// If the primary provider fails or returns no data, attempts to use the fallback provider.
-    /// Returns <see langword="null"/> when there are no target currencies to fetch or when both providers fail.
-    /// </summary>
-    private async Task<ExchangeRateResponse?> FetchRatesForDate(DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
-    {
-        if (targetCurrencyCodes.Count == 0)
-        {
-            return null;
-        }
-
-        // Try primary provider first
         try
         {
-            var response = await _apiClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray(), ct);
-            if (response?.Data is not null && response.Data.Count > 0)
-            {
-                return response;
-            }
+            var result = await _apiClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct);
+            if (result.Count > 0) return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Primary currency API failed for {Date}/{BaseCurrency}. Trying fallback.", date.Date, baseCurrency);
+            _logger.LogError(ex, "Primary currency API range fetch failed for {Start}..{End}/{BaseCurrency}. Trying fallback.", start, end, baseCurrency);
         }
 
-        // Try fallback provider
         try
         {
-            return await _fallbackClient.GetRatesAsync(date.Date, baseCurrency, targetCurrencyCodes.ToArray(), ct);
+            return await _fallbackClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fallback currency API failed for {Date}/{BaseCurrency}. No rates available.", date.Date, baseCurrency);
-            return null;
+            _logger.LogError(ex, "Fallback currency API range fetch failed for {Start}..{End}/{BaseCurrency}. No rates available.", start, end, baseCurrency);
+            return new Dictionary<DateTime, ExchangeRateResponse>();
         }
     }
 
