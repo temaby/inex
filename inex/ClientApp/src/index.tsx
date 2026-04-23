@@ -5,8 +5,6 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./dayjsSetup"; // must be first — registers dayjs plugins before any component loads
 import App from './App';
-import registerServiceWorker from './registerServiceWorker';
-
 import store from "./store";
 import "./i18n";
 
@@ -21,5 +19,3 @@ if (container) {
         </Provider>
     );
 }
-
-registerServiceWorker();
