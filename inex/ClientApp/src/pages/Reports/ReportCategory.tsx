@@ -53,6 +53,9 @@ const ReportCategory = (props: any) => {
                 })
             );
         }
+        return () => {
+            dispatch(reportActions.setFilter({ filter: { range: [] } }));
+        };
     }, [currentDate]);
 
     useEffect(() => {
