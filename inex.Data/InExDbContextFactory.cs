@@ -29,7 +29,7 @@ public class InExDbContextFactory : IDesignTimeDbContextFactory<InExDbContext>
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<InExDbContext>();
-        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+        optionsBuilder.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0)));
         return new InExDbContext(optionsBuilder.Options);
     }
 }
