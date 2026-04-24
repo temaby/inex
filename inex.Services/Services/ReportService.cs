@@ -47,7 +47,8 @@ public class ReportService : Service, IReportService
 
         // 2. Get Exchange Rates for the entire year
         var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = rates.ToDictionary(r => (r.CurrencyTo, r.Date.Date));
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 3. Get Accounts (to know transaction currency)
         var accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
@@ -103,7 +104,8 @@ public class ReportService : Service, IReportService
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.End), new DateTime(2014, 01, 01));
 
         IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = rates.ToDictionary(r => (r.CurrencyTo, r.Date.Date));
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
         IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data;
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;

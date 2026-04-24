@@ -2,6 +2,7 @@ using AutoMapper;
 using inex.Data.Repositories.Base;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Data;
+using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Models.Records.Report;
 using inex.Services.Services.Base;
 using System;
@@ -66,7 +67,8 @@ public class BudgetReportService : Service, IBudgetReportService
         // 3. Get Exchange Rates
         var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
         var rates = ratesResponse.Data.ToList();
-        var rateMap = rates.ToDictionary(r => (r.CurrencyTo, r.Date.Date));
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 4. Calculate Spending per Category and Totals
         var categorySpending = new Dictionary<int, decimal>();
