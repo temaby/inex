@@ -9,5 +9,8 @@ public class ExchangeRateConfiguration : EntityConfiguration<ExchangeRate>
     public override void Configure(EntityTypeBuilder<ExchangeRate> builder)
     {
         base.Configure(builder);
+
+        builder.HasIndex(e => new { e.Created, e.FromCode, e.ToCode })
+               .IsUnique();
     }
 }
