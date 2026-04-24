@@ -65,7 +65,8 @@ public class BudgetReportService : Service, IBudgetReportService
 
         // 3. Get Exchange Rates
         var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
-        var rates = ratesResponse.Data;
+        var rates = ratesResponse.Data.ToList();
+        var rateMap = rates.ToDictionary(r => (r.CurrencyTo, r.Date.Date));
 
         // 4. Calculate Spending per Category and Totals
         var categorySpending = new Dictionary<int, decimal>();
@@ -84,7 +85,7 @@ public class BudgetReportService : Service, IBudgetReportService
 
             // Resolve account currency from the accounts list
             var account = accounts.FirstOrDefault(a => a.Id == transaction.AccountId);
-            var transactionCurrency = account?.Currency ?? transaction.AccountCurrency; // Fallback to transaction.AccountCurrency if account not found (shouldn't happen)
+            var transactionCurrency = account?.Currency ?? transaction.AccountCurrency;
 
             // If transaction currency matches report currency, use amount directly
             if (string.Equals(transactionCurrency, currency, StringComparison.InvariantCultureIgnoreCase))
@@ -93,31 +94,22 @@ public class BudgetReportService : Service, IBudgetReportService
             }
             else
             {
-                // Find rate to convert FROM report currency TO transaction currency
-                var rate = rates.FirstOrDefault(r => r.CurrencyTo == transactionCurrency && r.Date.Date == transaction.Created.Date);
-
-                if (rate != null)
+                // O(1) exact-date lookup
+                if (rateMap.TryGetValue((transactionCurrency, transaction.Created.Date), out var rate))
                 {
                     amountInTargetCurrency = transaction.Amount / rate.Rate;
                 }
                 else
                 {
-                    // Fallback: try to find rate for the same currency pair on a different day
+                    // Fallback: nearest date for the same currency pair
                     var fallbackRate = rates
                         .Where(r => r.CurrencyTo == transactionCurrency)
                         .OrderBy(r => Math.Abs((r.Date.Date - transaction.Created.Date).TotalDays))
                         .FirstOrDefault();
 
-                    if (fallbackRate != null)
-                    {
-                        amountInTargetCurrency = transaction.Amount / fallbackRate.Rate;
-                    }
-                    else
-                    {
-                        // Last resort: if no rate found, assume 1:1
-                        // Now that we have correct currency, this should only happen if rates are truly missing
-                        amountInTargetCurrency = transaction.Amount;
-                    }
+                    amountInTargetCurrency = fallbackRate != null
+                        ? transaction.Amount / fallbackRate.Rate
+                        : transaction.Amount; // last resort: assume 1:1
                 }
             }
 
