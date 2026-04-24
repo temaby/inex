@@ -47,6 +47,7 @@ public class ReportService : Service, IReportService
 
         // 2. Get Exchange Rates for the entire year
         var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
+        var rateMap = rates.ToDictionary(r => (r.CurrencyTo, r.Date.Date));
 
         // 3. Get Accounts (to know transaction currency)
         var accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
@@ -75,7 +76,7 @@ public class ReportService : Service, IReportService
                 decimal amount = t.Amount;
                 if (tCurrency != currency)
                 {
-                    var rate = rates.FirstOrDefault(r => r.CurrencyTo == tCurrency && r.Date.Date == t.Created.Date);
+                    rateMap.TryGetValue((tCurrency, t.Created.Date), out var rate);
                     if (rate != null && rate.Rate != 0)
                         amount = t.Amount / rate.Rate;
                 }
@@ -102,6 +103,7 @@ public class ReportService : Service, IReportService
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.End), new DateTime(2014, 01, 01));
 
         IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
+        var rateMap = rates.ToDictionary(r => (r.CurrencyTo, r.Date.Date));
         IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data;
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;
@@ -113,7 +115,7 @@ public class ReportService : Service, IReportService
         {
             var account = accounts.FirstOrDefault(i => i.Id == transaction.AccountId);
             if (account == null) continue;
-            ExchangeRateDTO? rate = rates.FirstOrDefault(i => i.CurrencyTo == account.Currency && i.Date.Date == transaction.Created.Date);
+            rateMap.TryGetValue((account.Currency, transaction.Created.Date), out ExchangeRateDTO? rate);
             if (categories.Any(i => i.Id == transaction.CategoryId))
             {
                 decimal amount = rate != null ? transaction.Amount / rate.Rate : transaction.Amount;

@@ -79,8 +79,12 @@ public class ExchangeRateService : Service, IExchangeRateService
             var rangeRates = await FetchRatesForRange(rangeStart, rangeEnd, baseCurrency, targetCurrencyCodes.ToArray(), ct);
 
             bool hasChanges = false;
+            var missingDatesSet = missingDates.ToHashSet();
             foreach (var (date, response) in rangeRates)
+            {
+                if (!missingDatesSet.Contains(date)) continue;
                 hasChanges |= await UpsertRatesForDate(userId, date, baseCurrency, response, ct);
+            }
 
             if (hasChanges)
                 await DbInEx.SaveAsync(ct);

@@ -18,4 +18,9 @@ public class CurrencyApiClient : IExchangeRateClient
 
         return await _httpClient.GetFromJsonAsync<ExchangeRateResponse>(url, ct);
     }
+
+    // CurrencyAPI has no range endpoint — return empty so FrankfurterApiClient handles range fetches in one HTTP call.
+    public Task<Dictionary<DateTime, ExchangeRateResponse>> GetRatesForRangeAsync(
+        DateTime start, DateTime end, string baseCurrency, string[] targetCurrencies, CancellationToken ct = default)
+        => Task.FromResult(new Dictionary<DateTime, ExchangeRateResponse>());
 }
