@@ -174,8 +174,8 @@ public class ExchangeRateServiceTests
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
 
-        // Provider returns one rate for the requested date.
-        _clientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+        // Frankfurter (called first) returns one rate for the requested date.
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
             {
                 [pastDate] = new ExchangeRateResponse
@@ -192,8 +192,8 @@ public class ExchangeRateServiceTests
         // Act
         await sut.Get(1, pastDate);
 
-        // Assert — provider was called and the new rate was persisted
-        _clientMock.Verify(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        // Assert — Frankfurter was called and the new rate was persisted
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
         _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -250,8 +250,8 @@ public class ExchangeRateServiceTests
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(new[] { temporaryRate }.AsAsyncQueryable());
 
-        // Provider returns the actual rate for the date.
-        _clientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+        // Frankfurter (called first) returns the actual rate for the date.
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
             {
                 [pastDate] = new ExchangeRateResponse
@@ -275,10 +275,10 @@ public class ExchangeRateServiceTests
     }
 
     [Fact]
-    public async Task Get_SingleDate_WhenPrimaryProviderFails_UsesFallbackProvider()
+    public async Task Get_SingleDate_WhenFrankfurterFails_CurrencyApiHandlesRequest()
     {
         // Arrange
-        var pastDate = new DateTime(2026, 3, 15); // any past date, not today
+        var pastDate = new DateTime(2026, 3, 15);
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
@@ -288,24 +288,20 @@ public class ExchangeRateServiceTests
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));
 
-        // No rates cached — SyncRatesForDate will call the provider.
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
 
-        // Primary provider throws an exception (e.g., network error, rate limit)
-        _clientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new HttpRequestException("Rate limit exceeded"));
-
-        // Fallback provider returns valid data
+        // Frankfurter (called first for range) throws — e.g. network error
         _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
+            .ThrowsAsync(new HttpRequestException("Service unavailable"));
+
+        // CurrencyAPI supplements via per-date GetRatesAsync
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExchangeRateResponse
             {
-                [pastDate] = new ExchangeRateResponse
+                Data = new Dictionary<string, ExchangeDateData>
                 {
-                    Data = new Dictionary<string, ExchangeDateData>
-                    {
-                        [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.2m }
-                    }
+                    [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.2m }
                 }
             });
 
@@ -314,18 +310,18 @@ public class ExchangeRateServiceTests
         // Act
         await sut.Get(1, pastDate);
 
-        // Assert — both providers were called, fallback succeeded
-        _clientMock.Verify(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        // Assert — Frankfurter was attempted; CurrencyAPI handled the uncovered currency
         _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
         _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.2m), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Get_SingleDate_WhenPrimaryReturnsNull_UsesFallbackProvider()
+    public async Task Get_SingleDate_WhenFrankfurterReturnsEmpty_CurrencyApiHandlesRequest()
     {
         // Arrange
-        var pastDate = new DateTime(2026, 3, 15); // any past date, not today
+        var pastDate = new DateTime(2026, 3, 15);
         var baseCurrency = "EUR";
         var targetCode = "USD";
 
@@ -335,24 +331,20 @@ public class ExchangeRateServiceTests
         _currencyRepoMock.Setup(r => r.Get(true, null))
             .Returns(CurrenciesFor(targetCode));
 
-        // No rates cached
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
 
-        // Primary provider returns empty (no data available)
-        _clientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+        // Frankfurter returns no data for this date (e.g. not in its coverage)
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>());
 
-        // Fallback provider returns valid data
-        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
+        // CurrencyAPI supplements via per-date GetRatesAsync
+        _clientMock.Setup(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExchangeRateResponse
             {
-                [pastDate] = new ExchangeRateResponse
+                Data = new Dictionary<string, ExchangeDateData>
                 {
-                    Data = new Dictionary<string, ExchangeDateData>
-                    {
-                        [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.15m }
-                    }
+                    [targetCode] = new ExchangeDateData { Code = targetCode, Value = 1.15m }
                 }
             });
 
@@ -361,9 +353,9 @@ public class ExchangeRateServiceTests
         // Act
         await sut.Get(1, pastDate);
 
-        // Assert — both providers were called, fallback succeeded
-        _clientMock.Verify(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        // Assert — Frankfurter was called but returned nothing; CurrencyAPI filled the gap
         _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
         _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.ToCode == targetCode && !e.IsTemporary && e.Rate == 1.15m), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
