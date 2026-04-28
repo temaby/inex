@@ -1,79 +1,103 @@
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-
-import { Table, Typography } from 'antd';
-
-const { Text } = Typography
-
+import { Typography, Divider } from 'antd';
 import { fetchTransactionsSummaryForAccounts } from '../../store/transactions/transactions-actions';
 
+const { Text, Title } = Typography;
+
+const fmt = (value: number) => (Math.round(value * 100) / 100).toFixed(2);
+
 const TransactionSummary = (props: any) => {
-  const { t } = useTranslation();
-  const dispatch = useAppDispatch();
+    const { t } = useTranslation();
+    const dispatch = useAppDispatch();
 
-  const accountsDetails = useAppSelector(state => state.transactions.summaryItems);
-  const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
-  const exchangeRates = useAppSelector(state => state.rates.items);
+    const accountsDetails = useAppSelector(state => state.transactions.summaryItems);
+    const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
+    const exchangeRates = useAppSelector(state => state.rates.items);
 
-  const { accounts } = props;
+    const { accounts } = props;
 
-  const columns = [
-      {
-          title: '',
-          dataIndex: 'name',
-          key: 'name'
-      },
-      {
-          title: '',
-          dataIndex: 'value',
-          key: 'value',
-          width: 100,
-          render: (value: any) => {
-              let textColor = value > 0 ? 'green' : 'red';
-              return (
-                  <span style={{ color: textColor }}>
-                      {(Math.round((value) * 100) / 100).toFixed(2)}
-                  </span>
-              );
-          }
-      }
-  ];
+    const baseCurrency: string = exchangeRates[0]?.currencyFrom ?? '';
 
-  const accountsDetailsUSD = accountsDetails.map((i: any) => {
-    const exchangeRate = exchangeRates.find((rate: any) => rate.currencyTo === i.currency);
-    return exchangeRate ? i.value / exchangeRate.rate : i.value;
-  });
+    const toBase = (value: number, currency: string): number => {
+        if (!baseCurrency || currency === baseCurrency) return value;
+        const rate = exchangeRates.find((r: any) => r.currencyTo === currency);
+        return rate ? value / rate.rate : value;
+    };
 
-  const total = accountsDetailsUSD.reduce((partialSum:number, a: number) => partialSum + a, 0);
+    const grouped = useMemo(() => {
+        const groups: Record<string, any[]> = {};
+        for (const item of accountsDetails) {
+            if (!groups[item.currency]) groups[item.currency] = [];
+            groups[item.currency].push(item);
+        }
+        return groups;
+    }, [accountsDetails]);
 
-  useEffect(() => {
-    const accountIds = accounts.map((i: any) => i.id);
-    dispatch(fetchTransactionsSummaryForAccounts(accountIds));
-  }, [accounts, transactionsLastUpdate]);
+    const total = useMemo(
+        () => accountsDetails.reduce((sum: number, item: any) => sum + toBase(item.value, item.currency), 0),
+        [accountsDetails, exchangeRates]
+    );
 
-  return (
-    <Table
-      rowKey="id"
-      columns={columns}
-      dataSource={accountsDetails}
-      pagination={false}
-      showHeader={false}
-      summary={() => (
-        <Table.Summary>
-          <Table.Summary.Row>
-            <Table.Summary.Cell index={0}>
-              <Text strong>{t("transactions.summaryTotal")}</Text>
-            </Table.Summary.Cell>
-            <Table.Summary.Cell index={1}>
-              <Text strong>{(Math.round(total * 100) / 100).toFixed(2)}</Text>
-            </Table.Summary.Cell>
-          </Table.Summary.Row>
-        </Table.Summary>
-      )}
-    />
-  );
-};;
+    const currencyCount = Object.keys(grouped).length;
+    const accountCount = accountsDetails.length;
+
+    useEffect(() => {
+        const accountIds = accounts.map((i: any) => i.id);
+        dispatch(fetchTransactionsSummaryForAccounts(accountIds));
+    }, [accounts, transactionsLastUpdate]);
+
+    return (
+        <div>
+            <div style={{ padding: '16px 16px 12px' }}>
+                <Title level={4} style={{ margin: 0 }}>
+                    {fmt(total)} {baseCurrency}
+                </Title>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                    {t('transactions.summaryAcross', { accounts: accountCount, currencies: currencyCount })}
+                </Text>
+            </div>
+            <Divider style={{ margin: 0 }} />
+
+            {Object.entries(grouped).map(([currency, items]) => {
+                const subtotal = items.reduce((sum: number, i: any) => sum + i.value, 0);
+
+                return (
+                    <div key={currency}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 16px 2px' }}>
+                            <Text type="secondary" style={{ fontSize: 12 }}>{currency}</Text>
+                            {items.length > 1 && (
+                                <Text type="secondary" style={{ fontSize: 12 }}>{fmt(subtotal)}</Text>
+                            )}
+                        </div>
+
+                        {items.map((item: any) => {
+                            const equivalent = baseCurrency && currency !== baseCurrency
+                                ? toBase(item.value, currency)
+                                : null;
+                            return (
+                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '5px 16px' }}>
+                                    <Text style={{ flex: 1, marginRight: 8 }}>{item.name}</Text>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <span style={{ color: item.value < 0 ? '#ff4d4f' : 'inherit' }}>
+                                            {fmt(item.value)}
+                                        </span>
+                                        {equivalent !== null && (
+                                            <div style={{ fontSize: 12, color: '#bbb' }}>
+                                                ≈ {fmt(equivalent)} {baseCurrency}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
 
 export default TransactionSummary;
