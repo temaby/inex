@@ -95,7 +95,7 @@ const TransactionList = (props: any) => {
     const columns: TableColumnsType<any> = [
         {
             title: t("transactions.category"),
-            width: "24%",
+            width: "28%",
             dataIndex: "categoryId",
             key: "categoryId",
             render: (categoryId: number, record: any) => {
@@ -106,35 +106,13 @@ const TransactionList = (props: any) => {
         },
         {
             title: t("transactions.account"),
-            width: "20%",
+            width: "22%",
             dataIndex: "accountId",
             key: "accountId",
             render: (accountId: number, record: any) => {
                 if (record._isDateHeader) return { children: null, props: headerSpan };
                 const account = props.accounts.find((a: any) => a.id === accountId);
                 return account?.name;
-            },
-        },
-        {
-            title: "",
-            key: "tagrefitems",
-            width: "15%",
-            render: (text: any, record: any) => {
-                if (record._isDateHeader) return { children: null, props: headerSpan };
-                return (
-                    <span style={{ cursor: "pointer" }}>
-                        {record.tags.map((tag: any) => (
-                            <Tag color="green" key={tag} onClick={() => handleTagClick(tag)}>
-                                {tag.toUpperCase()}
-                            </Tag>
-                        ))}
-                        {record.refs.map((ref: any) => (
-                            <Tag color="geekblue" key={ref} onClick={() => handleRefClick(ref)}>
-                                {ref.toUpperCase()}
-                            </Tag>
-                        ))}
-                    </span>
-                );
             },
         },
         {
@@ -155,12 +133,30 @@ const TransactionList = (props: any) => {
         },
         {
             title: t("transactions.comment"),
-            key: "comment",
-            dataIndex: "comment",
+            key: "notes",
             width: "25%",
-            render: (comment: string, record: any) => {
+            render: (text: any, record: any) => {
                 if (record._isDateHeader) return { children: null, props: headerSpan };
-                return comment;
+                const hasTags = record.tags?.length > 0 || record.refs?.length > 0;
+                return (
+                    <span>
+                        {record.tags?.map((tag: any) => (
+                            <Tag color="green" key={tag} style={{ cursor: "pointer" }} onClick={() => handleTagClick(tag)}>
+                                {tag.toUpperCase()}
+                            </Tag>
+                        ))}
+                        {record.refs?.map((ref: any) => (
+                            <Tag color="geekblue" key={ref} style={{ cursor: "pointer" }} onClick={() => handleRefClick(ref)}>
+                                {ref.toUpperCase()}
+                            </Tag>
+                        ))}
+                        {record.comment && (
+                            <span style={{ color: hasTags ? "#8c8c8c" : "inherit" }}>
+                                {record.comment}
+                            </span>
+                        )}
+                    </span>
+                );
             },
         },
     ];
