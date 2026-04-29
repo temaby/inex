@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Drawer, Layout, Tabs } from "antd";
+import { Badge, Button, Drawer, Layout, Tabs } from "antd";
 
 const { Sider, Content } = Layout;
 
@@ -25,9 +25,17 @@ const Transactions = (props: any) => {
 
     const allAccounts = useAppSelector(state => state.accounts.items);
     const allCategories = useAppSelector(state => state.categories.items);
+    const filterState = useAppSelector(state => state.transactions.filter);
 
     const activeAccounts = allAccounts.filter((a: any) => a.isEnabled);
     const activeCategories = allCategories.filter((c: any) => c.isEnabled);
+
+    const isFilterActive =
+        filterState.accountIds.length > 0 ||
+        filterState.categoryIds.length > 0 ||
+        filterState.tags.length > 0 ||
+        filterState.refs.length > 0 ||
+        filterState.range.length > 0;
 
     const [addModalVisible, setAddModalVisible] = useState(false);
 
@@ -75,7 +83,7 @@ const Transactions = (props: any) => {
                             },
                             {
                                 key: "filter",
-                                label: t("transactions.filter"),
+                                label: <Badge dot={isFilterActive} offset={[6, 0]}>{t("transactions.filter")}</Badge>,
                                 children: <TransactionFilterForm accounts={activeAccounts} categories={activeCategories} filter={filter} />,
                                 style: { padding: "20px" },
                             },
@@ -83,7 +91,7 @@ const Transactions = (props: any) => {
                     />
                 </Sider>
                 <Content style={{ margin: "0 0 0 24px", minHeight: 280 }}>
-                    <TransactionList accounts={activeAccounts} categories={activeCategories} />
+                    <TransactionList accounts={activeAccounts} categories={allCategories} />
                 </Content>
             </BasicPage>
         </React.Fragment>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import ruRU from "antd/locale/ru_RU";
+import dayjs from "dayjs";
 
 import { useAppDispatch, useAppSelector } from './store/hooks';
 
@@ -35,6 +36,10 @@ const App = () => {
     const accessToken = useAppSelector(s => s.auth.accessToken);
     const { i18n } = useTranslation();
     const antdLocale = i18n.language === "ru" ? ruRU : enUS;
+
+    useEffect(() => {
+        dayjs.locale(i18n.language);
+    }, [i18n.language]);
 
     const date: Date = useMemo(() => new Date(), []);
 

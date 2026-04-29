@@ -73,9 +73,10 @@ const TransactionList = (props: any) => {
             title: t("transactions.date"),
             dataIndex: "created",
             key: "created",
-            width: 120,
+            width: 110,
             render: (date: any) => {
-                return dayjs(date).format("YYYY-MM-DD");
+                const d = dayjs(date);
+                return d.year() === dayjs().year() ? d.format("D MMM") : d.format("D MMM YYYY");
             },
         },
         {
@@ -134,13 +135,19 @@ const TransactionList = (props: any) => {
             width: 170,
             align: "right",
             render: (text: string, item: any) => {
-                let textColor = item.amount > 0 ? "green" : "red";
                 const account = props.accounts.find(
                     (account: CategoryDetails) => account.id === item.accountId
                 );
+                const category = props.categories.find(
+                    (c: CategoryDetails) => c.id === item.categoryId
+                );
+                const isTransfer = category?.isSystem ?? false;
+                const abs = (Math.round(Math.abs(item.amount) * 100) / 100).toFixed(2);
+                const sign = item.amount >= 0 ? "+" : "-";
+                const color = isTransfer ? "#8c8c8c" : item.amount >= 0 ? "#52c41a" : "#ff4d4f";
                 return (
-                    <span style={{ color: textColor }}>
-                        {(Math.round((item.amount > 0 ? item.amount : 0 - item.amount) * 100) / 100).toFixed(2)}{" "}{account.currency}
+                    <span style={{ color }}>
+                        {sign}{abs} {account.currency}
                     </span>
                 );
             },
