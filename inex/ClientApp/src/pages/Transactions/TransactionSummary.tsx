@@ -63,36 +63,26 @@ const TransactionSummary = (props: any) => {
 
             {Object.entries(grouped).map(([currency, items]) => {
                 const subtotal = items.reduce((sum: number, i: any) => sum + i.value, 0);
+                const isBase = !baseCurrency || currency === baseCurrency;
+                const headerValue = isBase
+                    ? `${fmt(subtotal)} ${currency}`
+                    : `≈ ${fmt(toBase(subtotal, currency))} ${baseCurrency}`;
 
                 return (
                     <div key={currency}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 16px 2px' }}>
                             <Text type="secondary" style={{ fontSize: 12 }}>{currency}</Text>
-                            {items.length > 1 && (
-                                <Text type="secondary" style={{ fontSize: 12 }}>{fmt(subtotal)}</Text>
-                            )}
+                            <Text type="secondary" style={{ fontSize: 12 }}>{headerValue}</Text>
                         </div>
 
-                        {items.map((item: any) => {
-                            const equivalent = baseCurrency && currency !== baseCurrency
-                                ? toBase(item.value, currency)
-                                : null;
-                            return (
-                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '5px 16px' }}>
-                                    <Text style={{ flex: 1, marginRight: 8 }}>{item.name}</Text>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <span style={{ color: item.value < 0 ? '#ff4d4f' : 'inherit' }}>
-                                            {fmt(item.value)}
-                                        </span>
-                                        {equivalent !== null && (
-                                            <div style={{ fontSize: 12, color: '#bbb' }}>
-                                                ≈ {fmt(equivalent)} {baseCurrency}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {items.map((item: any) => (
+                            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 16px' }}>
+                                <Text style={{ flex: 1, marginRight: 8 }}>{item.name}</Text>
+                                <span style={{ color: item.value < 0 ? '#ff4d4f' : 'inherit' }}>
+                                    {fmt(item.value)}
+                                </span>
+                            </div>
+                        ))}
                     </div>
                 );
             })}
