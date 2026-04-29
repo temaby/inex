@@ -80,6 +80,7 @@
     "empty": "No transactions to display",
     "summaryTotal": "Total",
     "summaryAcross": "across {{accounts}} accounts · {{currencies}} currencies",
+    "summaryMomTooltip": "Month-to-date net change vs last month's closing balance",
     "last7Days": "Last 7 days",
     "last30Days": "Last 30 days",
     "thisMonth": "This month",

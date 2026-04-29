@@ -8,6 +8,7 @@ using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,13 +49,34 @@ public class AccountService : InExService, IAccountService
 
     public ListResponse<AccountListDetailsDTO> GetDetails(int userId, IEnumerable<int> ids)
     {
-        IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency).Where(i => i.UserId == userId && ids.Contains(i.Id)).OrderBy(i => i.Name);
-        var accountDetails = DbInEx.TransactionRepository.Get(true).Where(i => ids.Contains(i.AccountId)).GroupBy(i => i.AccountId).Select(i => new { AccountId = i.Key, Value = i.Sum(j => j.Value) });
+        var now = DateTime.UtcNow;
+        var monthStart = new DateTime(now.Year, now.Month, 1);
+        var monthEnd = monthStart.AddMonths(1);
+
+        IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency)
+            .Where(i => i.UserId == userId && ids.Contains(i.Id))
+            .OrderBy(i => i.Name);
+
+        var accountDetails = DbInEx.TransactionRepository.Get(true)
+            .Where(i => ids.Contains(i.AccountId))
+            .GroupBy(i => i.AccountId)
+            .Select(i => new
+            {
+                AccountId = i.Key,
+                Value = i.Sum(j => j.Value),
+                ThisMonthNet = i.Sum(j => j.Created >= monthStart && j.Created < monthEnd ? j.Value : (decimal)0)
+            });
+
         ListResponse<AccountListDetailsDTO> resultDTO = BuildDataResponse<Account, AccountListDetailsDTO>(items);
-        var values = accountDetails.ToDictionary(i => i.AccountId, i => i.Value);
+        var lookup = accountDetails.ToDictionary(i => i.AccountId);
+
         return resultDTO with
         {
-            Data = resultDTO.Data.Select(item => item with { Value = values.GetValueOrDefault(item.Id) })
+            Data = resultDTO.Data.Select(item => item with
+            {
+                Value = lookup.TryGetValue(item.Id, out var d) ? d.Value : 0,
+                ThisMonthNet = lookup.TryGetValue(item.Id, out var d2) ? d2.ThisMonthNet : 0
+            })
         };
     }
 

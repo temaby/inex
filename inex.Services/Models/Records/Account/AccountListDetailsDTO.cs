@@ -3,4 +3,5 @@
 public record AccountListDetailsDTO : AccountDetailsDTO
 {
     public decimal Value { get; init; }
+    public decimal ThisMonthNet { get; init; }
 }
