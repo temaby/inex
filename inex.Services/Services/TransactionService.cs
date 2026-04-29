@@ -219,8 +219,8 @@ public class TransactionService : InExService, ITransactionService
         // build a full list of tags
         IEnumerable<Tag> tagsAll = tagsUser.Union(tagsToAdd).ToList();
 
-        // find existing transaction tags
-        IEnumerable<string> tagsCurrent = transaction.TransactionTagDetails.Select(i => i.Tag).Where(i => i.Type == type).Select(i => i.Key.ToLower()).ToList();
+        // find existing transaction tags — guard against null Tag navigation (set when TagId-only items were added earlier in the same request)
+        IEnumerable<string> tagsCurrent = transaction.TransactionTagDetails.Select(i => i.Tag).Where(i => i != null && i.Type == type).Select(i => i.Key.ToLower()).ToList();
         // find tags to add to the transaction
         IEnumerable<string> tagsAdd = tags.Except(tagsCurrent);
         // find tags to remove from the transaction
