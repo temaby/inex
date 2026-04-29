@@ -150,11 +150,14 @@ const TransactionList = (props: any) => {
                                 {ref.toUpperCase()}
                             </Tag>
                         ))}
-                        {record.comment && (
-                            <span style={{ color: hasTags ? "#8c8c8c" : "inherit" }}>
-                                {record.comment}
-                            </span>
-                        )}
+                        {record.comment && (() => {
+                            const clean = record.comment.replace(/#\S+/g, '').replace(/@\S+/g, '').trim();
+                            return clean ? (
+                                <span style={{ color: hasTags ? "#8c8c8c" : "inherit" }}>
+                                    {clean}
+                                </span>
+                            ) : null;
+                        })()}
                     </span>
                 );
             },
