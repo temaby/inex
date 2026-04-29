@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { Typography, Divider } from 'antd';
+import { Typography, Divider, Tooltip } from 'antd';
 import { fetchTransactionsSummaryForAccounts } from '../../store/transactions/transactions-actions';
 
 const { Text, Title } = Typography;
@@ -41,6 +41,16 @@ const TransactionSummary = (props: any) => {
         [accountsDetails, exchangeRates]
     );
 
+    const thisMonthNet = useMemo(
+        () => accountsDetails.reduce((sum: number, item: any) => sum + toBase(item.thisMonthNet ?? 0, item.currency), 0),
+        [accountsDetails, exchangeRates]
+    );
+
+    const lastMonthTotal = total - thisMonthNet;
+    const momPercent = lastMonthTotal !== 0 && Number.isFinite(thisMonthNet)
+        ? (thisMonthNet / Math.abs(lastMonthTotal)) * 100
+        : null;
+
     const currencyCount = Object.keys(grouped).length;
     const accountCount = accountsDetails.length;
 
@@ -52,9 +62,18 @@ const TransactionSummary = (props: any) => {
     return (
         <div>
             <div style={{ padding: '16px 16px 12px' }}>
-                <Title level={4} style={{ margin: 0 }}>
-                    {fmt(total)} {baseCurrency}
-                </Title>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <Title level={4} style={{ margin: 0 }}>
+                        {fmt(total)} {baseCurrency}
+                    </Title>
+                    {momPercent !== null && (
+                        <Tooltip title={t('transactions.summaryMomTooltip')}>
+                            <Text style={{ fontSize: 12, color: momPercent >= 0 ? '#52c41a' : '#ff4d4f', cursor: 'default' }}>
+                                {momPercent >= 0 ? '+' : ''}{fmt(momPercent)}%
+                            </Text>
+                        </Tooltip>
+                    )}
+                </div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
                     {t('transactions.summaryAcross', { accounts: accountCount, currencies: currencyCount })}
                 </Text>
