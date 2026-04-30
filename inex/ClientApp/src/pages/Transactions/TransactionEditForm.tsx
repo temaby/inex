@@ -116,21 +116,21 @@ const TransactionEditForm = (props: any) => {
     return (
         <Form layout="vertical" hideRequiredMark>
             <Row gutter={8}>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                     <Form.Item label={t("transactions.account")}>
                         <Dropdown id="account" selection={[state.account]} onChange={setAccountHandler} items={props.accounts} multiple={false} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                     <Form.Item label={t("transactions.category")}>
                         <Dropdown id="category" selection={[state.category]} onChange={setCategoryHandler} items={categoryTree} multiple={false} />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={6}>
+                <Col xs={24} sm={12}>
                     <Form.Item label={t("transactions.amount")}>
                         <ExpressionInputNumber
                             key="amount"
@@ -145,7 +145,7 @@ const TransactionEditForm = (props: any) => {
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={6}>
+                <Col xs={24} sm={12}>
                     <Form.Item label={t("transactions.date")}>
                         <DatePicker mode="date" size="large" value={state.date} onChange={setDateHandler} />
                     </Form.Item>

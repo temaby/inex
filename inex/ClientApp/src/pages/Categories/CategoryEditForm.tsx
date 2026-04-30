@@ -87,7 +87,7 @@ const CategoryEditForm = (props: any) => {
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                     <Radio.Group
                         buttonStyle="solid"
                         value={state.isEnabled}
@@ -96,7 +96,7 @@ const CategoryEditForm = (props: any) => {
                         <Radio.Button value={false}>{t("categories.disabled")}</Radio.Button>
                     </Radio.Group>
                 </Col>
-                <Col span={12} style={{ textAlign: "right" }}>
+                <Col xs={24} sm={12} style={{ textAlign: "right" }}>
                     <Space>
                         {!props.record.isSystem && (
                             <Popconfirm

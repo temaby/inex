@@ -2,24 +2,27 @@ import * as React from 'react';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from "react-i18next";
-import { Pagination, Table, Tag } from 'antd';
+import { Drawer, Grid, Pagination, Spin, Table, Tag, Typography } from 'antd';
 import { CalendarOutlined } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigate } from "react-router-dom";
 import type { TableColumnsType } from "antd";
 
 import { CategoryDetails } from '../../model/Category/CategoryDetails';
-
 import { fetchTransactions } from '../../store/transactions/transactions-actions';
 import TransactionEditForm from './TransactionEditForm';
 
+const { Text } = Typography;
+const { useBreakpoint } = Grid;
+
 const headerSpan = { colSpan: 0 };
-const HEADER_COLSPAN = 100; // spans all columns regardless of count
+const HEADER_COLSPAN = 100;
 
 const TransactionList = (props: any) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const screens = useBreakpoint();
     const transactions = useAppSelector(state => state.transactions.items);
     const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
     const total = useAppSelector(state => state.transactions.total);
@@ -28,7 +31,9 @@ const TransactionList = (props: any) => {
 
     const [pagination, setPagination] = useState({ current: 1, total: 0, size: 25 });
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
+    const [mobileEditRecord, setMobileEditRecord] = useState<any>(null);
 
+    const isMobile = screens.md === false;
     const { categories, accounts } = props;
     const { size: pageSize, current: currentPage } = pagination;
 
@@ -76,21 +81,153 @@ const TransactionList = (props: any) => {
         navigate(`../../transactions?filter=refs:${ref};`, { replace: false });
     };
 
-    const renderDateHeader = (record: any) => {
-        const d = dayjs(record._date);
-        const label = d.year() === dayjs().year()
+    // Shared helpers used by both desktop columns and mobile cards
+
+    const dateHeaderLabel = (date: string) => {
+        const d = dayjs(date);
+        return d.year() === dayjs().year()
             ? d.format("dddd, D MMM")
             : d.format("dddd, D MMM YYYY");
-        return {
-            children: (
-                <span style={{ fontSize: 12, color: "#595959", fontWeight: 600 }}>
-                    <CalendarOutlined style={{ marginRight: 6, color: "#1677ff" }} />
-                    {label}
-                </span>
-            ),
-            props: { colSpan: HEADER_COLSPAN },
-        };
     };
+
+    const getAmountDisplay = (record: any) => {
+        const account = props.accounts.find((a: any) => a.id === record.accountId);
+        const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
+        const isTransfer = category?.isSystem ?? false;
+        const abs = (Math.round(Math.abs(record.amount) * 100) / 100).toFixed(2);
+        const sign = record.amount >= 0 ? "+" : "-";
+        const color = isTransfer ? "#8c8c8c" : record.amount >= 0 ? "#52c41a" : "#ff4d4f";
+        return { label: `${sign}${abs} ${account?.currency ?? ''}`, color };
+    };
+
+    const renderNotes = (record: any, stopProp = false) => {
+        const hasTags = record.tags?.length > 0 || record.refs?.length > 0;
+        const clean = record.comment?.replace(/#\S+/g, '').replace(/@\S+/g, '').trim();
+        const wrap = (fn: (v: string) => void, val: string) =>
+            (e: React.MouseEvent) => { if (stopProp) e.stopPropagation(); fn(val); };
+        return (
+            <>
+                {record.tags?.map((tag: any) => (
+                    <Tag color="green" key={tag} style={{ cursor: "pointer" }} onClick={wrap(handleTagClick, tag)}>
+                        {tag.toUpperCase()}
+                    </Tag>
+                ))}
+                {record.refs?.map((ref: any) => (
+                    <Tag color="geekblue" key={ref} style={{ cursor: "pointer" }} onClick={wrap(handleRefClick, ref)}>
+                        {ref.toUpperCase()}
+                    </Tag>
+                ))}
+                {clean && (
+                    <span style={{ color: hasTags ? "#8c8c8c" : "inherit" }}>{clean}</span>
+                )}
+            </>
+        );
+    };
+
+    const paginationBar = (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+            <Pagination
+                current={pagination.current}
+                pageSize={pagination.size}
+                total={pagination.total}
+                onChange={paginationChangedHandler}
+                showSizeChanger
+                pageSizeOptions={[25, 50, 100]}
+            />
+        </div>
+    );
+
+    // Mobile card layout
+    if (isMobile) {
+        return (
+            <>
+                <Drawer
+                    open={mobileEditRecord !== null}
+                    onClose={() => setMobileEditRecord(null)}
+                    placement="bottom"
+                    height="85%"
+                    title={null}
+                    styles={{ body: { padding: 16, overflowY: "auto" } }}
+                >
+                    {mobileEditRecord && (
+                        <TransactionEditForm
+                            record={mobileEditRecord}
+                            accounts={props.accounts}
+                            categories={props.categories}
+                        />
+                    )}
+                </Drawer>
+
+                <Spin spinning={isLoading}>
+                    <div style={{ background: "white" }}>
+                        {dataSource.map(record => {
+                            if (record._isDateHeader) {
+                                return (
+                                    <div
+                                        key={record.id}
+                                        style={{
+                                            backgroundColor: "#f0f5ff",
+                                            borderTop: "2px solid #e8e8e8",
+                                            padding: "8px 16px",
+                                            fontSize: 12,
+                                            color: "#595959",
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        <CalendarOutlined style={{ marginRight: 6, color: "#1677ff" }} />
+                                        {dateHeaderLabel(record._date)}
+                                    </div>
+                                );
+                            }
+
+                            const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
+                            const account = props.accounts.find((a: any) => a.id === record.accountId);
+                            const { label: amountLabel, color: amountColor } = getAmountDisplay(record);
+                            const hasNotes = record.tags?.length > 0 || record.refs?.length > 0 || record.comment;
+
+                            return (
+                                <div
+                                    key={record.id}
+                                    onClick={() => setMobileEditRecord(record)}
+                                    style={{
+                                        padding: "12px 16px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                                        <Text strong style={{ fontSize: 15, flex: 1 }} ellipsis>{category?.name}</Text>
+                                        <Text style={{ color: amountColor, fontSize: 15, fontWeight: 600, flexShrink: 0 }}>
+                                            {amountLabel}
+                                        </Text>
+                                    </div>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>{account?.name}</Text>
+                                    {hasNotes && (
+                                        <div style={{ marginTop: 4, fontSize: 12 }}>
+                                            {renderNotes(record, true)}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Spin>
+
+                {paginationBar}
+            </>
+        );
+    }
+
+    // Desktop table layout
+    const renderDateHeader = (record: any) => ({
+        children: (
+            <span style={{ fontSize: 12, color: "#595959", fontWeight: 600 }}>
+                <CalendarOutlined style={{ marginRight: 6, color: "#1677ff" }} />
+                {dateHeaderLabel(record._date)}
+            </span>
+        ),
+        props: { colSpan: HEADER_COLSPAN },
+    });
 
     const columns: TableColumnsType<any> = [
         {
@@ -120,46 +257,19 @@ const TransactionList = (props: any) => {
             key: "amount",
             width: "16%",
             align: "right",
-            render: (text: string, record: any) => {
+            render: (_: string, record: any) => {
                 if (record._isDateHeader) return { children: null, props: headerSpan };
-                const account = props.accounts.find((a: any) => a.id === record.accountId);
-                const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
-                const isTransfer = category?.isSystem ?? false;
-                const abs = (Math.round(Math.abs(record.amount) * 100) / 100).toFixed(2);
-                const sign = record.amount >= 0 ? "+" : "-";
-                const color = isTransfer ? "#8c8c8c" : record.amount >= 0 ? "#52c41a" : "#ff4d4f";
-                return <span style={{ color }}>{sign}{abs} {account?.currency}</span>;
+                const { label, color } = getAmountDisplay(record);
+                return <span style={{ color }}>{label}</span>;
             },
         },
         {
             title: t("transactions.comment"),
             key: "notes",
-            width: "25%",
-            render: (text: any, record: any) => {
+            width: "34%",
+            render: (_: any, record: any) => {
                 if (record._isDateHeader) return { children: null, props: headerSpan };
-                const hasTags = record.tags?.length > 0 || record.refs?.length > 0;
-                return (
-                    <span>
-                        {record.tags?.map((tag: any) => (
-                            <Tag color="green" key={tag} style={{ cursor: "pointer" }} onClick={() => handleTagClick(tag)}>
-                                {tag.toUpperCase()}
-                            </Tag>
-                        ))}
-                        {record.refs?.map((ref: any) => (
-                            <Tag color="geekblue" key={ref} style={{ cursor: "pointer" }} onClick={() => handleRefClick(ref)}>
-                                {ref.toUpperCase()}
-                            </Tag>
-                        ))}
-                        {record.comment && (() => {
-                            const clean = record.comment.replace(/#\S+/g, '').replace(/@\S+/g, '').trim();
-                            return clean ? (
-                                <span style={{ color: hasTags ? "#8c8c8c" : "inherit" }}>
-                                    {clean}
-                                </span>
-                            ) : null;
-                        })()}
-                    </span>
-                );
+                return <span>{renderNotes(record)}</span>;
             },
         },
     ];
@@ -190,16 +300,7 @@ const TransactionList = (props: any) => {
                 pagination={false}
                 tableLayout="fixed"
             />
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-                <Pagination
-                    current={pagination.current}
-                    pageSize={pagination.size}
-                    total={pagination.total}
-                    onChange={paginationChangedHandler}
-                    showSizeChanger
-                    pageSizeOptions={[25, 50, 100]}
-                />
-            </div>
+            {paginationBar}
         </>
     );
 };

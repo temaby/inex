@@ -2,7 +2,9 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { Button, Table, Tag, Drawer, Space, Form, Input, InputNumber, Select, message, Typography } from "antd";
+import { Button, Table, Tag, Drawer, Grid, Space, Form, Input, InputNumber, Select, message, Typography } from "antd";
+
+const { useBreakpoint } = Grid;
 import type { TableColumnsType } from "antd";
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
@@ -67,6 +69,9 @@ const Budgets = () => {
             setSearchParams({ year, month });
         }
     }, [selectedMonth, setSearchParams, searchParams]);
+
+    const screens = useBreakpoint();
+    const isMobile = screens.md === false;
 
     const budgets = useAppSelector(state => state.budgets?.items || []);
     const accounts = useAppSelector(state => state.accounts?.items || []);
@@ -142,12 +147,14 @@ const Budgets = () => {
             dataIndex: "description",
             key: "description",
             width: 300,
+            responsive: ["md"],
         },
         {
             title: t("budgets.year"),
             dataIndex: "year",
             key: "year",
             width: 100,
+            responsive: ["md"],
         },
         {
             title: t("budgets.month"),
@@ -169,6 +176,7 @@ const Budgets = () => {
             dataIndex: "categoryIds",
             key: "categoryIds",
             width: 300,
+            responsive: ["md"],
             render: (categoryIds: number[]) => {
                 const categoryMap = new Map(allCategories.map((c: CategoryDetails) => [c.id, c]));
                 return (
@@ -203,10 +211,11 @@ const Budgets = () => {
         <React.Fragment>
             <Drawer
                 title={t("budgets.addDrawerTitle")}
-                width={520}
+                width={isMobile ? "100%" : 520}
+                height={isMobile ? "90%" : undefined}
+                placement={isMobile ? "bottom" : "right"}
                 onClose={closeModalHandler}
                 open={modalVisible}
-                placement="right"
                 styles={{ body: { paddingBottom: 80 } }}
             >
                 <Form
@@ -341,7 +350,7 @@ const Budgets = () => {
                         columns={columns}
                         rowKey="id"
                         pagination={false}
-                        scroll={{ x: 1000 }}
+                        scroll={{ x: "max-content" }}
                         locale={{ emptyText: t("budgets.empty") }}
                         expandable={{
                             expandedRowRender,

@@ -1,7 +1,9 @@
 import * as React from "react";
 import { useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Form, Input, Button, Radio, Select, Space, Divider, Popconfirm } from "antd";
+import { Form, Input, Button, Grid, Radio, Select, Space, Divider, Popconfirm } from "antd";
+
+const { useBreakpoint } = Grid;
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { updateAccount, deleteAccount } from "../../store/accounts/accounts-actions";
 import apiClient from "../../utils/apiClient";
@@ -42,6 +44,9 @@ const AccountEditForm = (props: any) => {
     const dispatch = useAppDispatch();
     const isUpdating = useAppSelector(state => state.accounts.isUpdating);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
+
+    const screens = useBreakpoint();
+    const isMobile = screens.md === false;
 
     const [state, dispatchAction] = useReducer(reducer, {
         name: "",
@@ -104,7 +109,7 @@ const AccountEditForm = (props: any) => {
             </Form.Item>
             <Divider />
             <Form.Item>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 12 : 0 }}>
                     <Radio.Group
                         buttonStyle="solid"
                         value={state.isEnabled}

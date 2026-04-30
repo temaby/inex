@@ -115,8 +115,8 @@ const ReportBudgetSpending: React.FC = () => {
                 </Space>
 
                 <Spin spinning={isLoading}>
-                    <Row gutter={16} style={{ marginBottom: "24px" }}>
-                        <Col span={6}>
+                    <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic
                                     title={t("reports.totalIncome")}
@@ -128,7 +128,7 @@ const ReportBudgetSpending: React.FC = () => {
                                 />
                             </Card>
                         </Col>
-                        <Col span={6}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic
                                     title={t("reports.totalExpense")}
@@ -140,7 +140,7 @@ const ReportBudgetSpending: React.FC = () => {
                                 />
                             </Card>
                         </Col>
-                        <Col span={6}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic
                                     title={t("reports.unbudgeted")}
@@ -152,7 +152,7 @@ const ReportBudgetSpending: React.FC = () => {
                                 />
                             </Card>
                         </Col>
-                        <Col span={6}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic
                                     title={t("reports.savings")}
@@ -166,23 +166,23 @@ const ReportBudgetSpending: React.FC = () => {
                         </Col>
                     </Row>
 
-                    <Row gutter={16} style={{ marginBottom: "24px" }}>
-                        <Col span={6}>
+                    <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic title={t("reports.totalBudget")} value={totalBudget} precision={2} suffix={currency} />
                             </Card>
                         </Col>
-                        <Col span={6}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic title={t("reports.budgetSpent")} value={totalSpent} precision={2} suffix={currency} />
                             </Card>
                         </Col>
-                        <Col span={6}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic title={t("reports.used")} value={totalPercent} precision={1} suffix="%" />
                             </Card>
                         </Col>
-                        <Col span={6}>
+                        <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic
                                     title={t("reports.budgetRemaining")}
