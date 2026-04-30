@@ -263,14 +263,14 @@ const TransactionFilterForm = (props: any) => {
             <Row gutter={8}>
                 <Col span={12} style={{ textAlign: "center" }}>
                     <Form.Item>
-                        <Button disabled={!isFilterActive} onClick={resetFilterHandler} style={{ width: "150px" }}>
+                        <Button block disabled={!isFilterActive} onClick={resetFilterHandler}>
                             {t("transactions.resetFilter")}
                         </Button>
                     </Form.Item>
                 </Col>
                 <Col span={12} style={{ textAlign: "center" }}>
                     <Form.Item>
-                        <Button type="primary" disabled={!isFilterActive} onClick={applyFilterHandler} style={{ width: "150px" }}>
+                        <Button block type="primary" disabled={!isFilterActive} onClick={applyFilterHandler}>
                             {t("transactions.applyFilter")}
                         </Button>
                     </Form.Item>

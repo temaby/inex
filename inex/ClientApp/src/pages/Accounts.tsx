@@ -2,7 +2,9 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
+import { Button, Table, Tag, Drawer, Checkbox, Grid, Space } from "antd";
+
+const { useBreakpoint } = Grid;
 import type { TableColumnsType } from "antd";
 import BasicPage from "../layouts/BasicPage";
 import { AccountDetails } from "../model/Account/AccountDetails";
@@ -16,6 +18,9 @@ const Accounts = () => {
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
+
+    const screens = useBreakpoint();
+    const isMobile = screens.md === false;
 
     const accounts = useAppSelector(state => state.accounts.items);
     const accountsLastUpdate = useAppSelector(state => state.accounts.lastUpdate);
@@ -31,19 +36,19 @@ const Accounts = () => {
             title: t("accounts.account"),
             dataIndex: "name",
             key: "name",
-            width: 500,
         },
         {
             title: t("accounts.currency"),
             dataIndex: "currency",
             key: "currency",
             width: 80,
+            responsive: ["sm"],
         },
         {
             title: t("accounts.status"),
             dataIndex: "isEnabled",
             key: "isEnabled",
-            width: 80,
+            width: 90,
             align: "center",
             render: (isEnabled: boolean) =>
                 isEnabled
@@ -62,10 +67,11 @@ const Accounts = () => {
         <React.Fragment>
             <Drawer
                 title={t("accounts.addDrawerTitle")}
-                width={420}
+                width={isMobile ? "100%" : 420}
+                height={isMobile ? "90%" : undefined}
+                placement={isMobile ? "bottom" : "right"}
                 onClose={() => setAddModalVisible(false)}
                 open={addModalVisible}
-                placement="right"
                 styles={{ body: { paddingBottom: 80 } }}>
                 <AccountCreateForm onCreated={() => setAddModalVisible(false)} />
             </Drawer>
@@ -94,7 +100,7 @@ const Accounts = () => {
                         columns={columns}
                         rowKey={(record: any) => record.id.toString()}
                         pagination={false}
-                        scroll={{ x: 370 }}
+                        scroll={{ x: "max-content" }}
                         locale={{ emptyText: t("accounts.empty") }}
                         expandable={{
                             expandedRowRender,

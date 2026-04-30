@@ -145,8 +145,8 @@ const ReportCategory = (props: any) => {
                     />
                 </Space>
 
-                <Row gutter={16}>
-                    <Col span={8}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={8}>
                         <Card>
                             <Statistic
                                 title={t("reports.totalIncome")}
@@ -158,7 +158,7 @@ const ReportCategory = (props: any) => {
                             />
                         </Card>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={8}>
                         <Card>
                             <Statistic
                                 title={t("reports.totalExpense")}
@@ -170,7 +170,7 @@ const ReportCategory = (props: any) => {
                             />
                         </Card>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={8}>
                         <Card>
                             <Statistic
                                 title={t("reports.balance")}

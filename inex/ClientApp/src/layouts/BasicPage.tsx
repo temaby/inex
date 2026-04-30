@@ -23,7 +23,7 @@ const BasicPage = (props: any) => {
     const currentPage: string = useLocation().pathname.slice(1).split('/', 1)[0];
     const username = useAppSelector((s) => s.auth.user?.username);
 
-    const isMobile = !screens.md;
+    const isMobile = screens.md === false;
 
     const navItems = [
         { key: "transactions", label: t("nav.transactions"), icon: <SwapOutlined /> },

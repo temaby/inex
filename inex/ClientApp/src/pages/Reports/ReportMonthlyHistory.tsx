@@ -16,8 +16,10 @@ import {
   LabelList,
   ReferenceLine,
 } from "recharts";
-import { Space, Typography, Card, Row, Col, Statistic } from "antd";
+import { Space, Typography, Card, Row, Col, Statistic, Grid } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
+
+const { useBreakpoint } = Grid;
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
 
@@ -29,6 +31,8 @@ const ReportMonthlyHistory = () => {
   const navigate = useNavigate();
   const history = useAppSelector(state => state.report.history);
   const [year, setYear] = useState(dayjs().year());
+  const screens = useBreakpoint();
+  const isMobile = screens.md === false;
 
   useEffect(() => {
     dispatch(fetchHistory(year));
@@ -98,8 +102,8 @@ const ReportMonthlyHistory = () => {
             <DatePicker picker="year" onChange={handleYearChange} defaultValue={dayjs()} allowClear={false} />
         </Space>
 
-        <Row gutter={16}>
-          <Col span={8}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={8}>
             <Card>
               <Statistic
                 title={t("reports.totalIncome")}
@@ -110,7 +114,7 @@ const ReportMonthlyHistory = () => {
               />
             </Card>
           </Col>
-          <Col span={8}>
+          <Col xs={24} sm={8}>
             <Card>
               <Statistic
                 title={t("reports.totalExpense")}
@@ -121,7 +125,7 @@ const ReportMonthlyHistory = () => {
               />
             </Card>
           </Col>
-          <Col span={8}>
+          <Col xs={24} sm={8}>
             <Card>
               <Statistic
                 title={t("reports.savings")}
@@ -134,7 +138,7 @@ const ReportMonthlyHistory = () => {
           </Col>
         </Row>
 
-        <div style={{ height: 500, width: "100%" }}>
+        <div style={{ height: isMobile ? 300 : 500, width: "100%" }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={history}

@@ -126,7 +126,7 @@ const BudgetEditForm = (props: any) => {
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                     <Form.Item label={t("budgets.categories")}>
                         <Dropdown
                             id="categories"
@@ -145,7 +145,7 @@ const BudgetEditForm = (props: any) => {
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={6}>
+                <Col xs={24} sm={12} md={8}>
                     <Form.Item label={t("budgets.amount")}>
                         <ExpressionInputNumber
                             size="large"
@@ -158,7 +158,7 @@ const BudgetEditForm = (props: any) => {
                         />
                     </Form.Item>
                 </Col>
-                <Col span={6}>
+                <Col xs={24} sm={12} md={8}>
                     <Form.Item label={t("budgets.year")}>
                         <InputNumber
                             size="large"
@@ -170,7 +170,7 @@ const BudgetEditForm = (props: any) => {
                         />
                     </Form.Item>
                 </Col>
-                <Col span={6}>
+                <Col xs={24} sm={12} md={8}>
                     <Form.Item label={t("budgets.month")}>
                         <InputNumber
                             size="large"

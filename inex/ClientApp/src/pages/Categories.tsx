@@ -2,7 +2,9 @@ import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { Button, Table, Tag, Drawer, Checkbox, Space } from "antd";
+import { Button, Table, Tag, Drawer, Checkbox, Grid, Space } from "antd";
+
+const { useBreakpoint } = Grid;
 import type { TableColumnsType } from "antd";
 import BasicPage from "../layouts/BasicPage";
 
@@ -15,6 +17,9 @@ import { fetchCategories } from '../store/categories/categories-actions';
 const Categories = () => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
+    const screens = useBreakpoint();
+    const isMobile = screens.md === false;
+
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
@@ -50,7 +55,6 @@ const Categories = () => {
             title: t("categories.category"),
             dataIndex: "name",
             key: "name",
-            width: 500,
             render: (text: string, record) => (
                 <span style={{ paddingLeft: record.depth * 32, borderLeft: record.depth > 0 ? "2px solid #eee" : undefined }}>
                     {text}
@@ -78,10 +82,11 @@ const Categories = () => {
         <React.Fragment>
             <Drawer
                 title={t("categories.addDrawerTitle")}
-                width={420}
+                width={isMobile ? "100%" : 420}
+                height={isMobile ? "90%" : undefined}
+                placement={isMobile ? "bottom" : "right"}
                 onClose={closeModalHandler}
                 open={addModalVisible}
-                placement="right"
                 styles={{ body: { paddingBottom: 80 } }}>
                 <CategoryCreateForm onCreated={closeModalHandler} />
             </Drawer>
@@ -110,7 +115,7 @@ const Categories = () => {
                         columns={columns}
                         rowKey={(record: any) => record.id.toString()}
                         pagination={false}
-                        scroll={{ x: 370 }}
+                        scroll={{ x: "max-content" }}
                         locale={{ emptyText: t("categories.empty") }}
                         expandable={{
                             expandedRowRender: expandedRowRender,
