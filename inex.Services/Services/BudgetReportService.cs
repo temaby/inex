@@ -50,7 +50,7 @@ public class BudgetReportService : Service, IBudgetReportService
                 { "start", startDate.ToString("yyyy-MM-dd") },
                 { "end", endDate.ToString("yyyy-MM-dd") }
             };
-        var transactionsResponse = _transactionService.Get(userId, ActivityMode.ACTIVE, filters);
+        var transactionsResponse = _transactionService.Get(userId, ActivityMode.ALL, filters);
         var transactions = transactionsResponse.Data;
 
         // 2.1 Get Accounts to resolve currency correctly
