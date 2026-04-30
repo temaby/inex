@@ -43,7 +43,7 @@ public class ReportService : Service, IReportService
                 { "start", start.ToString("yyyy-MM-dd") },
                 { "end", end.ToString("yyyy-MM-dd") }
             };
-        var transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;
+        var transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
         // 2. Get Exchange Rates for the entire year
         var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
@@ -106,9 +106,9 @@ public class ReportService : Service, IReportService
         IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
         var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
-        IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data;
+        IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
-        IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ACTIVE, filters).Data;
+        IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
         PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
 

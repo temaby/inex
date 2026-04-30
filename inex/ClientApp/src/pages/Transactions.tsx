@@ -123,7 +123,7 @@ const Transactions = (props: any) => {
                     </Sider>
                 )}
                 <Content style={{ margin: isMobile ? 0 : "0 0 0 24px", minHeight: 280 }}>
-                    <TransactionList accounts={activeAccounts} categories={allCategories} />
+                    <TransactionList accounts={allAccounts} categories={allCategories} />
                 </Content>
             </BasicPage>
         </React.Fragment>
