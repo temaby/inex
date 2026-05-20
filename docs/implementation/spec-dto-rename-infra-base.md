@@ -2,7 +2,7 @@
 title: 'DTO Infrastructure Base Type Renames (Commit #1)'
 type: 'refactor'
 created: '2026-05-20'
-status: 'in-progress'
+status: 'done'
 baseline_commit: 'eb3e4f435f58d15079c6496fecdb0b8d87cf842e'
 context: []
 ---
@@ -96,3 +96,68 @@ context: []
 - `dotnet test` -- expected: all tests pass
 - `grep -r "NamedDTO\|PaginationMetadataDTO\|ReportMetadataDTO" . --include="*.cs"` -- expected: zero hits
 - `grep -r "DTO" inex.Services/Models/Records/Base inex.Services/Models/Records/Data --include="*.cs"` -- expected: zero hits
+
+## Suggested Review Order
+
+**Renamed type definitions — the source of truth**
+
+- Hard-cut rename: `NamedDTO` → `NamedResponse`; all four properties preserved
+  [`NamedResponse.cs:3`](../../inex.Services/Models/Records/Base/NamedResponse.cs#L3)
+
+- Hard-cut rename: `PaginationMetadataDTO` → `PaginationMetadata`; computed properties unchanged
+  [`PaginationMetadata.cs:5`](../../inex.Services/Models/Records/Data/PaginationMetadata.cs#L5)
+
+- Hard-cut rename: `ReportMetadataDTO` → `ReportMetadata`; `FieldsList` and all properties intact
+  [`ReportMetadata.cs:5`](../../inex.Services/Models/Records/Data/ReportMetadata.cs#L5)
+
+**Base service — generic builders updated**
+
+- `BuildPaginatedDataResponse` signature and body updated; type is the contract between Service and callers
+  [`Service.cs:31`](../../inex.Services/Services/Base/Service.cs#L31)
+
+- `BuildReportDataResponse` updated; note `TotalIncome`/`TotalOutcome` left at 0 (pre-existing, deferred)
+  [`Service.cs:48`](../../inex.Services/Services/Base/Service.cs#L48)
+
+**Interfaces — the public contracts**
+
+- `ICurrencyService.Get()` return type updated
+  [`ICurrencyService.cs:8`](../../inex.Services/Services/Base/ICurrencyService.cs#L8)
+
+- `ITransactionService.Get()` paginated overload updated
+  [`ITransactionService.cs:14`](../../inex.Services/Services/Base/ITransactionService.cs#L14)
+
+- `IBudgetReportService.GetBudgetComparison()` return type updated
+  [`IBudgetReportService.cs:10`](../../inex.Services/Services/Base/IBudgetReportService.cs#L10)
+
+- `IReportService.GetCategoriesReportData()` return type updated
+  [`IReportService.cs:12`](../../inex.Services/Services/Base/IReportService.cs#L12)
+
+**AutoMapper profile — mapping source updated**
+
+- `CreateMap<Currency, NamedResponse>` — only change needed; property names unchanged
+  [`CurrencyProfile.cs:11`](../../inex.Services/Models/ConfigProfiles/CurrencyProfile.cs#L11)
+
+**Controllers — Swagger attributes and local variable types**
+
+- `CurrenciesController` — `ProducesResponseType` and return type updated
+  [`CurrenciesController.cs:23`](../../inex/Controllers/CurrenciesController.cs#L23)
+
+- `TransactionsController` — local variable type updated for paginated list action
+  [`TransactionsController.cs:75`](../../inex/Controllers/TransactionsController.cs#L75)
+
+- `ReportsController` — `FieldsList` access and local variable type updated
+  [`ReportsController.cs:45`](../../inex/Controllers/ReportsController.cs#L45)
+
+- `ReportBudgetController` — `ProducesResponseType` updated
+  [`ReportBudgetController.cs:40`](../../inex/Controllers/ReportBudgetController.cs#L40)
+
+**File-only renames — no code changes inside**
+
+- `CreatedResponse.cs` (was `ResponseCreateDTO.cs`) — class was already `CreatedResponse`
+  [`CreatedResponse.cs:3`](../../inex.Services/Models/Records/Base/CreatedResponse.cs#L3)
+
+- `ListResponse.cs` (was `ResponseDataDTO.cs`) — class was already `ListResponse<T>`
+  [`ListResponse.cs:5`](../../inex.Services/Models/Records/Data/ListResponse.cs#L5)
+
+- `PagedResponse.cs` (was `ResponseDataExDTO.cs`) — class was already `PagedResponse<T,TMeta>`
+  [`PagedResponse.cs:3`](../../inex.Services/Models/Records/Data/PagedResponse.cs#L3)
