@@ -18,9 +18,9 @@ public class CurrencyService : Service, ICurrencyService
 
     #endregion Constructors
 
-    public IEnumerable<NamedDTO> Get()
+    public IEnumerable<NamedResponse> Get()
     {
         IEnumerable<Currency> items = DbInEx.CurrencyRepository.Get(true);
-        return Mapper.Map<IEnumerable<NamedDTO>>(items);
+        return Mapper.Map<IEnumerable<NamedResponse>>(items);
     }
 }

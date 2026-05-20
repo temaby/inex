@@ -41,7 +41,7 @@ public class TransactionService : InExService, ITransactionService
         return BuildDataResponse<Transaction, TransactionDetailsDTO>(items);
     }
 
-    public PagedResponse<TransactionDetailsDTO, PaginationMetadataDTO> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
+    public PagedResponse<TransactionDetailsDTO, PaginationMetadata> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
         return BuildPaginatedDataResponse<Transaction, TransactionDetailsDTO>(items, pageSize, pageNumber);

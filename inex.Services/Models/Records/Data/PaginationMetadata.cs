@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 namespace inex.Services.Models.Records.Data;
 
-public record PaginationMetadataDTO
+public record PaginationMetadata
 {
     public int TotalItems { get; init; }
     public int PerPage { get; init; }

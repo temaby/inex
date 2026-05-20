@@ -98,10 +98,10 @@ public class ReportService : Service, IReportService
         return new ListResponse<MonthlyHistoryDTO> { Data = result };
     }
 
-    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
+    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
     {
-        DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.Start), new DateTime(2014, 01, 01));
-        DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.End), new DateTime(2014, 01, 01));
+        DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.Start), new DateTime(2014, 01, 01));
+        DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.End), new DateTime(2014, 01, 01));
 
         IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
         var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
@@ -110,7 +110,7 @@ public class ReportService : Service, IReportService
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
-        PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
+        PagedResponse<CategoryListDetailsDTO, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
 
         var categoryValues = new Dictionary<int, decimal>();
         foreach (TransactionDetailsDTO transaction in transactions)

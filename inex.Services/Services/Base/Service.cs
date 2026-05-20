@@ -28,30 +28,30 @@ public abstract class Service : IDisposable
 
     #endregion Properties
 
-    public PagedResponse<K, PaginationMetadataDTO> BuildPaginatedDataResponse<T, K>(IQueryable<T> items, int pageSize, int pageNumber)
+    public PagedResponse<K, PaginationMetadata> BuildPaginatedDataResponse<T, K>(IQueryable<T> items, int pageSize, int pageNumber)
     {
         int total = items.Count();
 
-        PaginationMetadataDTO metadata = new PaginationMetadataDTO { TotalItems = total, PerPage = pageSize == 0 ? total : pageSize, CurrentPage = pageNumber == 0 ? 1 : pageNumber };
+        PaginationMetadata metadata = new PaginationMetadata { TotalItems = total, PerPage = pageSize == 0 ? total : pageSize, CurrentPage = pageNumber == 0 ? 1 : pageNumber };
         if (metadata.PerPage < metadata.TotalItems)
         {
             items = items.Skip(metadata.SkippedItems).Take(metadata.PerPage);
         }
 
-        return new PagedResponse<K, PaginationMetadataDTO>
+        return new PagedResponse<K, PaginationMetadata>
         {
             Metadata = metadata,
             Data = Mapper.Map<IEnumerable<K>>(items)
         };
     }
 
-    public PagedResponse<K, ReportMetadataDTO> BuildReportDataResponse<T, K>(IEnumerable<T> items, string name, string currency, DateTime? start = null, DateTime? end = null)
+    public PagedResponse<K, ReportMetadata> BuildReportDataResponse<T, K>(IEnumerable<T> items, string name, string currency, DateTime? start = null, DateTime? end = null)
     {
         int total = items.Count();
 
-        return new PagedResponse<K, ReportMetadataDTO>
+        return new PagedResponse<K, ReportMetadata>
         {
-            Metadata = new ReportMetadataDTO { Name = name, Currency = currency, Start = start, End = end },
+            Metadata = new ReportMetadata { Name = name, Currency = currency, Start = start, End = end },
             Data = Mapper.Map<IEnumerable<K>>(items)
         };
     }

@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace inex.Services.Models.Records.Data;
 
-public record ReportMetadataDTO
+public record ReportMetadata
 {
     public static readonly IReadOnlyList<string> FieldsList = new List<string>()
             {

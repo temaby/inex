@@ -72,7 +72,7 @@ public class TransactionsController : ApiControllerBase
     {
         IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, TransactionDetailsDTO.FieldsList);
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        PagedResponse<TransactionDetailsDTO, PaginationMetadataDTO> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
+        PagedResponse<TransactionDetailsDTO, PaginationMetadata> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
         return Ok(resultsDTO);
     }
 

@@ -20,8 +20,8 @@ public class CurrenciesController : ControllerBase
     /// <summary>Return all available currencies. Public — needed during registration.</summary>
     [HttpGet]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<NamedDTO>), StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<NamedDTO>> Get()
+    [ProducesResponseType(typeof(IEnumerable<NamedResponse>), StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<NamedResponse>> Get()
     {
         return Ok(_currencyService.Get());
     }

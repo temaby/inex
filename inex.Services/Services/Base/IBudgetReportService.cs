@@ -7,5 +7,5 @@ namespace inex.Services.Services.Base;
 
 public interface IBudgetReportService
 {
-    Task<PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>> GetBudgetComparison(int userId, int year, int month, string currency, CancellationToken ct = default);
+    Task<PagedResponse<BudgetComparisonDTO, ReportMetadata>> GetBudgetComparison(int userId, int year, int month, string currency, CancellationToken ct = default);
 }
