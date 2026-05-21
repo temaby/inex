@@ -47,7 +47,7 @@ public class ReportService : Service, IReportService
 
         // 2. Get Exchange Rates for the entire year
         var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 3. Get Accounts (to know transaction currency)
@@ -103,8 +103,8 @@ public class ReportService : Service, IReportService
         DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.Start), new DateTime(2014, 01, 01));
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.End), new DateTime(2014, 01, 01));
 
-        IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        IEnumerable<ExchangeRateResponse> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
         IEnumerable<AccountResponse> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
         IEnumerable<CategoryResponse> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
@@ -117,7 +117,7 @@ public class ReportService : Service, IReportService
         {
             var account = accounts.FirstOrDefault(i => i.Id == transaction.AccountId);
             if (account == null) continue;
-            rateMap.TryGetValue((account.Currency, transaction.Created.Date), out ExchangeRateDTO? rate);
+            rateMap.TryGetValue((account.Currency, transaction.Created.Date), out ExchangeRateResponse? rate);
             if (categories.Any(i => i.Id == transaction.CategoryId))
             {
                 decimal amount = rate != null ? transaction.Amount / rate.Rate : transaction.Amount;

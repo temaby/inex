@@ -38,6 +38,22 @@ Items surfaced during review but out of scope for the originating story. Each en
 
 ---
 
+## From: ExchangeRate DTO Rename (Commit #8)
+
+- **Naming collision: two `ExchangeRateResponse` types in the same assembly** — `inex.Services.Models.Records.ExchangeRate.ExchangeRateResponse` (the DTO) and `inex.Services.Infrastructure.ExternalClients.ExchangeRate.ExchangeRateResponse` (the external API model) share the same short name. Currently resolved in `ExchangeRateService.cs` via using aliases (`ExchangeRateResponse` = DTO, `ExchangeApiResponse` = external). Any future file needing both namespaces at once must add the same aliases. Consider renaming the external client type to `ExchangeRateApiResponse` or `FrankfurterRateResponse` to eliminate the permanent collision.
+
+- **AutoMapper profile uses `MemberList.None`** — `ExchangeProfile.cs` `CreateMap<ExchangeRate, ExchangeRateResponse>(MemberList.None)` will not warn if `ExchangeRateResponse` gains a new property with no mapping. Consider `MemberList.Destination` for safety. Pre-existing.
+
+- **`Date` mapped from `Created` in `ExchangeProfile`** — `ExchangeRate.Created` is a write timestamp; `ExchangeRateResponse.Date` is used as the business effective date. If `Created` carries time components, the key `(CurrencyTo, Date.Date)` in `rateMap` applies `.Date` truncation at the callsite — pre-existing, but fragile. Investigate when consolidating exchange rate handling.
+
+---
+
+## From: Report DTO Renames (Commit #7)
+
+- **Frontend TypeScript `BudgetComparisonDTO` interface not renamed** — `inex/ClientApp/src/model/Report/BudgetReport.ts`, `inex/ClientApp/src/store/budgetReport/budgetReport-slice.ts`, and `inex/ClientApp/src/pages/Reports/ReportBudgetSpending.tsx` still use `BudgetComparisonDTO`. No runtime impact (JSON shapes unchanged). `MonthlyHistoryDTO` has no frontend equivalent — that side is already clean.
+
+---
+
 ## From: Category DTO Renames (Commit #4)
 
 - **Response types inherit from request types (Category)** — `CategoryResponse : UpdateCategoryRequest : CreateCategoryRequest`. Identical structural issue to Account domain (see above). Address holistically with Ref-Map migration.

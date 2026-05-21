@@ -41,10 +41,10 @@ public class ExchangeRateController : ApiControllerBase
     /// <returns>List of supported exchange rates</returns>
     [HttpGet]
     [Route(GetDateRatesRoute)]
-    [ProducesResponseType(typeof(IEnumerable<ExchangeRateDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ExchangeRateResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult> Get(DateTime date, CancellationToken ct)
     {
-        ListResponse<ExchangeRateDTO> resultsDTO = await _exchangeService.Get(CurrentUserId, date, ct: ct);
+        ListResponse<ExchangeRateResponse> resultsDTO = await _exchangeService.Get(CurrentUserId, date, ct: ct);
         return Ok(resultsDTO);
     }
 

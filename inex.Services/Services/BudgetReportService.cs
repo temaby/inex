@@ -67,7 +67,7 @@ public class BudgetReportService : Service, IBudgetReportService
         // 3. Get Exchange Rates
         var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
         var rates = ratesResponse.Data.ToList();
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 4. Calculate Spending per Category and Totals
