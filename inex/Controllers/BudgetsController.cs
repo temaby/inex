@@ -48,10 +48,10 @@ public class BudgetsController : ApiControllerBase
     /// <returns>Budget details</returns>
     [HttpGet]
     [Route(GetSingleRoute)]
-    [ProducesResponseType(typeof(BudgetDetailsDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BudgetResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        BudgetDetailsDTO resultDTO = await _budgetService.GetAsync(id, ct);
+        BudgetResponse resultDTO = await _budgetService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -59,10 +59,10 @@ public class BudgetsController : ApiControllerBase
     /// <returns>List of budgets</returns>
     [HttpGet]
     [Route(GetAllRoute)]
-    [ProducesResponseType(typeof(IEnumerable<BudgetDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<BudgetResponse>), StatusCodes.Status200OK)]
     public ActionResult List(int? year = null, int? month = null)
     {
-        ListResponse<BudgetDetailsDTO> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
+        ListResponse<BudgetResponse> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
         return Ok(resultsDTO);
     }
 
@@ -72,7 +72,7 @@ public class BudgetsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(BudgetCreateDTO itemDTO, CancellationToken ct)
+    public async Task<ActionResult> Add(CreateBudgetRequest itemDTO, CancellationToken ct)
     {
         CreatedResponse resultDTO = await _budgetService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
@@ -94,10 +94,10 @@ public class BudgetsController : ApiControllerBase
     /// <returns>Updated budget details</returns>
     [HttpPut]
     [Route(PutUpdateRoute)]
-    [ProducesResponseType(typeof(BudgetDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, BudgetUpdateDTO itemDTO, CancellationToken ct)
+    [ProducesResponseType(typeof(BudgetResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult> Update(int id, UpdateBudgetRequest itemDTO, CancellationToken ct)
     {
-        BudgetDetailsDTO resultDTO = await _budgetService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
+        BudgetResponse resultDTO = await _budgetService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 

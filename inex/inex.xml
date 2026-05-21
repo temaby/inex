@@ -71,7 +71,7 @@
             <summary>Get list of budgets for a user</summary>
             <returns>List of budgets</returns>
         </member>
-        <member name="M:inex.Controllers.BudgetsController.Add(inex.Services.Models.Records.Budget.BudgetCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.BudgetsController.Add(inex.Services.Models.Records.Budget.CreateBudgetRequest,System.Threading.CancellationToken)">
             <summary>Add a new budget</summary>
             <param name="itemDTO">Budget details</param>
             <returns>Id of a new budget</returns>
@@ -79,7 +79,7 @@
         <member name="M:inex.Controllers.BudgetsController.Copy(System.Int32,System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>Copy budgets from one month to another</summary>
         </member>
-        <member name="M:inex.Controllers.BudgetsController.Update(System.Int32,inex.Services.Models.Records.Budget.BudgetUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.BudgetsController.Update(System.Int32,inex.Services.Models.Records.Budget.UpdateBudgetRequest,System.Threading.CancellationToken)">
             <summary>Update an existing budget with new details</summary>
             <param name="id">Budget id</param>
             <param name="itemDTO">Budget details</param>

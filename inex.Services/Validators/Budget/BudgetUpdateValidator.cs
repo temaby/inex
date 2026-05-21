@@ -3,7 +3,7 @@ using inex.Services.Models.Records.Budget;
 
 namespace inex.Services.Validators.Budget;
 
-public class BudgetUpdateValidator : AbstractValidator<BudgetUpdateDTO>
+public class BudgetUpdateValidator : AbstractValidator<UpdateBudgetRequest>
 {
     public BudgetUpdateValidator()
     {

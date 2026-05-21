@@ -9,7 +9,7 @@ public class BudgetProfile : Profile
 {
     public BudgetProfile()
     {
-        CreateMap<BudgetCreateDTO, Budget>(MemberList.None)
+        CreateMap<CreateBudgetRequest, Budget>(MemberList.None)
             .ForMember(dest => dest.Key, opt => opt.MapFrom(src => src.Key))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
@@ -17,7 +17,7 @@ public class BudgetProfile : Profile
             .ForMember(dest => dest.Month, opt => opt.MapFrom(src => src.Month))
             .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Value));
 
-        CreateMap<BudgetUpdateDTO, Budget>(MemberList.None)
+        CreateMap<UpdateBudgetRequest, Budget>(MemberList.None)
             .ForMember(dest => dest.Key, opt => opt.MapFrom(src => src.Key))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
@@ -25,7 +25,7 @@ public class BudgetProfile : Profile
             .ForMember(dest => dest.Month, opt => opt.MapFrom(src => src.Month))
             .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Value));
 
-        CreateMap<Budget, BudgetDetailsDTO>()
+        CreateMap<Budget, BudgetResponse>()
             .ForMember(dest => dest.CategoryIds, opt => opt.MapFrom(src => src.BudgetCategories.Select(i => i.CategoryId).ToList()));
     }
 }

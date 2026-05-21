@@ -7,9 +7,9 @@ namespace inex.Services.Services.Base;
 
 public interface IBudgetService : IInExService
 {
-    Task<BudgetDetailsDTO> GetAsync(int id, CancellationToken ct = default);
-    ListResponse<BudgetDetailsDTO> Get(int userId, int? year = null, int? month = null);
-    Task<CreatedResponse> CreateAsync(BudgetCreateDTO itemDTO, int userId, CancellationToken ct = default);
-    Task<BudgetDetailsDTO> UpdateAsync(int id, BudgetUpdateDTO itemDTO, int userId, CancellationToken ct = default);
+    Task<BudgetResponse> GetAsync(int id, CancellationToken ct = default);
+    ListResponse<BudgetResponse> Get(int userId, int? year = null, int? month = null);
+    Task<CreatedResponse> CreateAsync(CreateBudgetRequest itemDTO, int userId, CancellationToken ct = default);
+    Task<BudgetResponse> UpdateAsync(int id, UpdateBudgetRequest itemDTO, int userId, CancellationToken ct = default);
     Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default);
 }
