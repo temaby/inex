@@ -32,7 +32,7 @@ public class ReportService : Service, IReportService
 
     #region Public Interface
 
-    public async Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default)
+    public async Task<ListResponse<MonthlyHistoryResponse>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default)
     {
         var start = new DateTime(year, 1, 1);
         var end = new DateTime(year, 12, 31);
@@ -57,7 +57,7 @@ public class ReportService : Service, IReportService
         var categories = _categoryService.Get(userId, ActivityMode.ALL).Data;
         var systemCategoryIds = categories.Where(c => c.IsSystem).Select(c => c.Id).ToList();
 
-        var result = new List<MonthlyHistoryDTO>();
+        var result = new List<MonthlyHistoryResponse>();
 
         for (int month = 1; month <= 12; month++)
         {
@@ -86,7 +86,7 @@ public class ReportService : Service, IReportService
                 else expense += amount;
             }
 
-            result.Add(new MonthlyHistoryDTO
+            result.Add(new MonthlyHistoryResponse
             {
                 Month = month,
                 MonthName = new DateTime(year, month, 1).ToString("MMM"),
@@ -95,7 +95,7 @@ public class ReportService : Service, IReportService
             });
         }
 
-        return new ListResponse<MonthlyHistoryDTO> { Data = result };
+        return new ListResponse<MonthlyHistoryResponse> { Data = result };
     }
 
     public async Task<PagedResponse<CategorySummary, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)

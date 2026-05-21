@@ -56,7 +56,7 @@ public class ReportsController : ApiControllerBase
     /// <returns>Monthly history details</returns>
     [HttpGet]
     [Route(GetMonthlyHistoryRoute)]
-    [ProducesResponseType(typeof(ListResponse<MonthlyHistoryDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ListResponse<MonthlyHistoryResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetMonthlyHistory(int year, string currency = "USD", CancellationToken ct = default)
     {
         return Ok(await _reportService.GetMonthlyHistory(CurrentUserId, year, currency, ct));
