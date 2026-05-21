@@ -19,12 +19,12 @@
             <param name="ids">Account ids</param>
             <returns>List of accounts with status</returns>
         </member>
-        <member name="M:inex.Controllers.AccountsController.Add(inex.Services.Models.Records.Account.AccountCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.AccountsController.Add(inex.Services.Models.Records.Account.CreateAccountRequest,System.Threading.CancellationToken)">
             <summary>Add a new account</summary>
             <param name="itemDTO">Account details</param>
             <returns>Id of a new account</returns>
         </member>
-        <member name="M:inex.Controllers.AccountsController.Update(System.Int32,inex.Services.Models.Records.Account.AccountUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.AccountsController.Update(System.Int32,inex.Services.Models.Records.Account.UpdateAccountRequest,System.Threading.CancellationToken)">
             <summary>Update an existing account with new details</summary>
             <param name="id">Account id</param>
             <param name="itemDTO">Account details</param>

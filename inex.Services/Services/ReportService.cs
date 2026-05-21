@@ -106,7 +106,7 @@ public class ReportService : Service, IReportService
         IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
         var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
-        IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
+        IEnumerable<AccountResponse> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
         IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 

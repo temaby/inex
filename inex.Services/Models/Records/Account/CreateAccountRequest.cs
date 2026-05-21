@@ -1,6 +1,6 @@
-﻿namespace inex.Services.Models.Records.Account;
+namespace inex.Services.Models.Records.Account;
 
-public record AccountCreateDTO
+public record CreateAccountRequest
 {
     public int CurrencyId { get; init; }
 

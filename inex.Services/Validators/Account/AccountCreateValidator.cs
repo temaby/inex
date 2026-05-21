@@ -3,7 +3,7 @@ using inex.Services.Models.Records.Account;
 
 namespace inex.Services.Validators.Account;
 
-public class AccountCreateValidator : AbstractValidator<AccountCreateDTO>
+public class AccountCreateValidator : AbstractValidator<CreateAccountRequest>
 {
     public AccountCreateValidator()
     {

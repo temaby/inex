@@ -3,7 +3,7 @@ using inex.Services.Models.Records.Account;
 
 namespace inex.Services.Validators.Account;
 
-public class AccountUpdateValidator : AbstractValidator<AccountUpdateDTO>
+public class AccountUpdateValidator : AbstractValidator<UpdateAccountRequest>
 {
     public AccountUpdateValidator()
     {
