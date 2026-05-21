@@ -16,4 +16,22 @@ Items surfaced during review but out of scope for the originating story. Each en
 
 - **Local variable naming still uses `DTO` suffix** — Variables like `resultsDTO`, `resultDTO` throughout controllers and services. Pre-existing; the convention targets type names, not local variables. Can be cleaned up per-domain as part of future domain PRs.
 
+---
+
+## From: Account DTO Renames (Commit #3)
+
+- **Response types inherit from request types** — `AccountResponse : UpdateAccountRequest : CreateAccountRequest`. This means response DTOs structurally carry input-intent semantics. Pre-existing hierarchy (identical chain to old AccountDetailsDTO). Address holistically when evaluating Ref-Map (AutoMapper → Mapperly), which may necessitate a proper request/response split.
+
+- **Value/ThisMonthNet not in AutoMapper profile for AccountSummary** — These fields are set via manual `with` expressions in `AccountService.GetDetails` after AutoMapper runs, not through the profile. The profile silently produces zero-valued decimals without the manual enrichment step. Pre-existing design pattern — document or consolidate during Report/Account domain cleanup.
+
+- **Validator class names not updated to match new convention** — `AccountCreateValidator` and `AccountUpdateValidator` still use the old `Account<Action>Validator` pattern. Out of scope for this rename (spec only required updating base class type references). Follow up in a separate validator naming pass.
+
+- **No contract-level test assertions on DTO shapes** — Tests exercise behavior but no test asserts DTO property presence or serialized shape by type name. A rename that silently dropped a property would pass all 92 tests. Consider adding contract tests when implementing B8 or FE7 (Vitest+RTL).
+
+- **`AccountProfile` omits `Key` in `UpdateAccountRequest → Account` map** — The create map includes `Key`; the update map does not. Update requests cannot change an account's key via AutoMapper. Possibly intentional business logic, but undocumented. Investigate during Account domain cleanup.
+
+- **Frontend `updateAccount` thunk omits `key` field** — `inex/ClientApp/src/store/accounts/accounts-actions.ts` sends `{ id, name, description, currencyId, isEnabled }` without `key`. `AccountUpdateValidator` requires `key` (inherited from `AccountCreateValidator`). Every real frontend update call will receive a 422 `key.required`. Pre-existing bug; fix in a frontend Account patch.
+
+- **Swagger schema component names changed** — `AccountResponse`, `CreateAccountRequest`, etc. replace old DTO names in generated OpenAPI schema. Any generated API clients must be regenerated.
+
 - **`PagedResponse<T,TMeta>.Metadata` uses `default!` null suppressor** — `inex.Services/Models/Records/Data/PagedResponse.cs` — pre-existing. Any caller that `new`s `PagedResponse` without setting `Metadata` gets a null dereference at runtime. No guard at construction site.

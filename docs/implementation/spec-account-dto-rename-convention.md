@@ -2,7 +2,7 @@
 title: 'Rename Account DTOs to naming convention'
 type: 'refactor'
 created: '2026-05-21'
-status: 'in-progress'
+status: 'done'
 baseline_commit: '5ba4632d2c24b1fc1db4e31a041cc82822f79bd2'
 context: []
 ---
@@ -68,6 +68,63 @@ context: []
 - Given all renames applied, when `dotnet test` runs, then all tests pass.
 - Given the rename is complete, when `grep -r "AccountCreateDTO\|AccountUpdateDTO\|AccountDetailsDTO\|AccountListDetailsDTO" . --include="*.cs"` runs, then zero hits.
 - Given the rename is complete, when `grep -r "DTO" inex.Services/Models/Records/Account --include="*.cs"` runs, then zero hits.
+
+## Suggested Review Order
+
+**New DTO definitions (entry point)**
+
+- Base request record — creation fields, no Id
+  [`CreateAccountRequest.cs:3`](../../inex.Services/Models/Records/Account/CreateAccountRequest.cs#L3)
+
+- Extends base with Id for route-matched update requests
+  [`UpdateAccountRequest.cs:3`](../../inex.Services/Models/Records/Account/UpdateAccountRequest.cs#L3)
+
+- Response record inheriting full request chain plus resolved Currency
+  [`AccountResponse.cs:3`](../../inex.Services/Models/Records/Account/AccountResponse.cs#L3)
+
+- List-view response adds Value and ThisMonthNet on top of AccountResponse
+  [`AccountSummary.cs:3`](../../inex.Services/Models/Records/Account/AccountSummary.cs#L3)
+
+**Service contract**
+
+- All five method signatures updated; establishes the new public surface
+  [`IAccountService.cs:12`](../../inex.Services/Services/Base/IAccountService.cs#L12)
+
+**AutoMapper profiles**
+
+- Four CreateMap entries updated; AccountSummary does not map Value/ThisMonthNet (set manually post-map)
+  [`AccountProfile.cs:11`](../../inex.Services/Models/ConfigProfiles/AccountProfile.cs#L11)
+
+**Service implementation**
+
+- GetAsync/Get/UpdateAsync — Mapper.Map target types updated
+  [`AccountService.cs:31`](../../inex.Services/Services/AccountService.cs#L31)
+
+- GetDetails — AccountSummary populated via `with` expression after AutoMapper runs
+  [`AccountService.cs:70`](../../inex.Services/Services/AccountService.cs#L70)
+
+**Validators**
+
+- AbstractValidator base class type updated to CreateAccountRequest
+  [`AccountCreateValidator.cs:6`](../../inex.Services/Validators/Account/AccountCreateValidator.cs#L6)
+
+- AbstractValidator base class type updated to UpdateAccountRequest
+  [`AccountUpdateValidator.cs:6`](../../inex.Services/Validators/Account/AccountUpdateValidator.cs#L6)
+
+**Controller**
+
+- ProducesResponseType attributes, local variable types, and parameter types updated
+  [`AccountsController.cs:53`](../../inex/Controllers/AccountsController.cs#L53)
+
+**Cross-domain usage**
+
+- AccountResponse replaces AccountDetailsDTO for report account enumeration
+  [`ReportService.cs:109`](../../inex.Services/Services/ReportService.cs#L109)
+
+**Peripherals**
+
+- XML doc member names updated for Add and Update action signatures
+  [`inex.xml:22`](../../inex/inex.xml#L22)
 
 ## Verification
 
