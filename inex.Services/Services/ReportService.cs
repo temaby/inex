@@ -98,7 +98,7 @@ public class ReportService : Service, IReportService
         return new ListResponse<MonthlyHistoryDTO> { Data = result };
     }
 
-    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
+    public async Task<PagedResponse<CategorySummary, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
     {
         DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.Start), new DateTime(2014, 01, 01));
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.End), new DateTime(2014, 01, 01));
@@ -107,10 +107,10 @@ public class ReportService : Service, IReportService
         var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
         IEnumerable<AccountResponse> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
-        IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
+        IEnumerable<CategoryResponse> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
-        PagedResponse<CategoryListDetailsDTO, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
+        PagedResponse<CategorySummary, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryResponse, CategorySummary>(categories, "Расходы по категориям", currency, start, end);
 
         var categoryValues = new Dictionary<int, decimal>();
         foreach (TransactionDetailsDTO transaction in transactions)

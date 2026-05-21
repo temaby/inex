@@ -3,7 +3,7 @@ using inex.Services.Models.Records.Category;
 
 namespace inex.Services.Validators.Category;
 
-public class CategoryCreateValidator : AbstractValidator<CategoryCreateDTO>
+public class CategoryCreateValidator : AbstractValidator<CreateCategoryRequest>
 {
     public CategoryCreateValidator()
     {

@@ -35,3 +35,17 @@ Items surfaced during review but out of scope for the originating story. Each en
 - **Swagger schema component names changed** — `AccountResponse`, `CreateAccountRequest`, etc. replace old DTO names in generated OpenAPI schema. Any generated API clients must be regenerated.
 
 - **`PagedResponse<T,TMeta>.Metadata` uses `default!` null suppressor** — `inex.Services/Models/Records/Data/PagedResponse.cs` — pre-existing. Any caller that `new`s `PagedResponse` without setting `Metadata` gets a null dereference at runtime. No guard at construction site.
+
+---
+
+## From: Category DTO Renames (Commit #4)
+
+- **Response types inherit from request types (Category)** — `CategoryResponse : UpdateCategoryRequest : CreateCategoryRequest`. Identical structural issue to Account domain (see above). Address holistically with Ref-Map migration.
+
+- **Redundant explicit `ForMember` calls in `CategoryProfile` for `CategoryResponse → CategorySummary` map** — All 7 properties remapped explicitly despite being available via inheritance. Pre-existing from the old `CategoryDetailsDTO → CategoryListDetailsDTO` map. Consolidate or simplify during AutoMapper → Mapperly migration (Ref-Map).
+
+- **Hardcoded Russian string `"Расходы по категориям"` in `ReportService.GetCategoriesReportData`** — Report title bypasses i18n. Pre-existing; address during Report domain i18n pass.
+
+- **`GetCategoriesReportData` silent data gap for inactive categories** — Transactions against inactive categories are summed in `categoryValues` but filtered categories (ACTIVE only) means those amounts never appear in output. Pre-existing behavioral issue; investigate during Report domain PR (#7).
+
+- **Validators not listed in spec Code Map** — `CategoryCreateValidator` and `CategoryUpdateValidator` were missed in the initial spec but caught during implementation. Add validators to the Code Map checklist for future domain rename specs.

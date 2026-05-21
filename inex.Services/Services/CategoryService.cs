@@ -27,26 +27,26 @@ public class CategoryService : InExService, ICategoryService
 
     #region Public Interface
 
-    public async Task<CategoryDetailsDTO> GetAsync(int id, CancellationToken ct = default)
+    public async Task<CategoryResponse> GetAsync(int id, CancellationToken ct = default)
     {
         var category = await DbInEx.CategoryRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
-        return Mapper.Map<CategoryDetailsDTO>(category);
+        return Mapper.Map<CategoryResponse>(category);
     }
 
-    public ListResponse<CategoryDetailsDTO> Get(int userId, ActivityMode mode)
+    public ListResponse<CategoryResponse> Get(int userId, ActivityMode mode)
     {
         IQueryable<Category> items = DbInEx.CategoryRepository.Get(true).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
         {
-            ActivityMode.ACTIVE => BuildDataResponse<Category, CategoryDetailsDTO>(items.Where(i => i.IsEnabled)),
-            ActivityMode.INACTIVE => BuildDataResponse<Category, CategoryDetailsDTO>(items.Where(i => !i.IsEnabled)),
-            ActivityMode.ALL => BuildDataResponse<Category, CategoryDetailsDTO>(items),
+            ActivityMode.ACTIVE => BuildDataResponse<Category, CategoryResponse>(items.Where(i => i.IsEnabled)),
+            ActivityMode.INACTIVE => BuildDataResponse<Category, CategoryResponse>(items.Where(i => !i.IsEnabled)),
+            ActivityMode.ALL => BuildDataResponse<Category, CategoryResponse>(items),
             _ => throw new ArgumentException($"Unknown ActivityMode: {mode}")
         };
     }
 
-    public async Task<CreatedResponse> CreateAsync(CategoryCreateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<CreatedResponse> CreateAsync(CreateCategoryRequest itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
         Category category = Mapper.Map<Category>(itemDTO);
@@ -60,7 +60,7 @@ public class CategoryService : InExService, ICategoryService
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<CategoryDetailsDTO> UpdateAsync(int id, CategoryUpdateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<CategoryResponse> UpdateAsync(int id, UpdateCategoryRequest itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -78,7 +78,7 @@ public class CategoryService : InExService, ICategoryService
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<CategoryDetailsDTO>(dest.Entity);
+        return Mapper.Map<CategoryResponse>(dest.Entity);
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)

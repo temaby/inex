@@ -8,7 +8,7 @@ public class CategoryProfile : Profile
 {
     public CategoryProfile()
     {
-        CreateMap<CategoryCreateDTO, Category>(MemberList.None)
+        CreateMap<CreateCategoryRequest, Category>(MemberList.None)
             .ForMember(dest => dest.ParentCategoryId, opt => opt.MapFrom(src => src.ParentId))
             .ForMember(dest => dest.Key, opt => opt.MapFrom(src => src.Key))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
@@ -17,7 +17,7 @@ public class CategoryProfile : Profile
             .ForMember(dest => dest.IsSystem, opt => opt.MapFrom(src => src.IsSystem))
             .ForMember(dest => dest.SystemCode, opt => opt.MapFrom(src => src.SystemCode));
 
-        CreateMap<CategoryUpdateDTO, Category>(MemberList.None)
+        CreateMap<UpdateCategoryRequest, Category>(MemberList.None)
             .ForMember(dest => dest.ParentCategoryId, opt => opt.Ignore())
             .ForMember(dest => dest.Key, opt => opt.Ignore())
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
@@ -26,7 +26,7 @@ public class CategoryProfile : Profile
             .ForMember(dest => dest.IsSystem, opt => opt.Ignore())
             .ForMember(dest => dest.SystemCode, opt => opt.Ignore());
 
-        CreateMap<Category, CategoryDetailsDTO>(MemberList.None)
+        CreateMap<Category, CategoryResponse>(MemberList.None)
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentCategoryId))
             .ForMember(dest => dest.Key, opt => opt.MapFrom(src => src.Key))
@@ -36,7 +36,7 @@ public class CategoryProfile : Profile
             .ForMember(dest => dest.IsSystem, opt => opt.MapFrom(src => src.IsSystem))
             .ForMember(dest => dest.SystemCode, opt => opt.MapFrom(src => src.SystemCode));
 
-        CreateMap<CategoryDetailsDTO, CategoryListDetailsDTO>(MemberList.None)
+        CreateMap<CategoryResponse, CategorySummary>(MemberList.None)
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
             .ForMember(dest => dest.Key, opt => opt.MapFrom(src => src.Key))

@@ -103,12 +103,12 @@
             <param name="mode">Activity mode (all, active, inactive)</param>
             <returns>List of categories</returns>
         </member>
-        <member name="M:inex.Controllers.CategoriesController.Add(inex.Services.Models.Records.Category.CategoryCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.CategoriesController.Add(inex.Services.Models.Records.Category.CreateCategoryRequest,System.Threading.CancellationToken)">
             <summary>Add a new category</summary>
             <param name="itemDTO">Category details</param>
             <returns>Id of a new category</returns>
         </member>
-        <member name="M:inex.Controllers.CategoriesController.Update(System.Int32,inex.Services.Models.Records.Category.CategoryUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.CategoriesController.Update(System.Int32,inex.Services.Models.Records.Category.UpdateCategoryRequest,System.Threading.CancellationToken)">
             <summary>Update an existing category with new details</summary>
             <param name="id">Category id</param>
             <param name="itemDTO">Category details</param>

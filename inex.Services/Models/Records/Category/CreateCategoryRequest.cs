@@ -1,6 +1,6 @@
-﻿namespace inex.Services.Models.Records.Category;
+namespace inex.Services.Models.Records.Category;
 
-public record CategoryCreateDTO
+public record CreateCategoryRequest
 {
     public int? ParentId { get; init; }
 
