@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 namespace inex.Services.Models.Records.Transaction;
 
-public record TransactionCreateDTO
+public record CreateTransactionRequest
 {
     public int AccountId { get; init; }
     public int CategoryId { get; init; }

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Text.Json.Serialization;
 
 namespace inex.Services.Models.Records.Transaction;
 
-    public record TransferCreateDTO
+    public record CreateTransferRequest
     {
         [JsonIgnore]
         public int CategoryId { get; init; }

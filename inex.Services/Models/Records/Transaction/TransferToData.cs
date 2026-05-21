@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 namespace inex.Services.Models.Records.Transaction;
 
-public record TransferToCreateDTO
+public record TransferToData
 {
     public int AccountToId { get; set; }
     public DateTime Created { get; set; }

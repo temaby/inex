@@ -108,12 +108,12 @@ public class ReportService : Service, IReportService
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
         IEnumerable<AccountResponse> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
         IEnumerable<CategoryResponse> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
-        IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
+        IEnumerable<TransactionResponse> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
         PagedResponse<CategorySummary, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryResponse, CategorySummary>(categories, "Расходы по категориям", currency, start, end);
 
         var categoryValues = new Dictionary<int, decimal>();
-        foreach (TransactionDetailsDTO transaction in transactions)
+        foreach (TransactionResponse transaction in transactions)
         {
             var account = accounts.FirstOrDefault(i => i.Id == transaction.AccountId);
             if (account == null) continue;

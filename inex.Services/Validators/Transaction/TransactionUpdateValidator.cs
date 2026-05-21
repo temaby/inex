@@ -3,7 +3,7 @@ using inex.Services.Models.Records.Transaction;
 
 namespace inex.Services.Validators.Transaction;
 
-public class TransactionUpdateValidator : AbstractValidator<TransactionUpdateDTO>
+public class TransactionUpdateValidator : AbstractValidator<UpdateTransactionRequest>
 {
     public TransactionUpdateValidator()
     {

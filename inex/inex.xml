@@ -162,17 +162,17 @@
             <param name="filter">Filter items (filter=field1:value;field2:value2). Supported fields: AccountId, CategoryId, Start, End</param>
             <returns>List of transactions with pagination metadata</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.TransactionCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransactionRequest,System.Threading.CancellationToken)">
             <summary>Add a new transaction</summary>
             <param name="itemDTO">Transaction details</param>
             <returns>Id of a new transaction</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.TransferCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransferRequest,System.Threading.CancellationToken)">
             <summary>Add a new transfer transaction</summary>
             <param name="itemDTO">Transfer details</param>
             <returns>Id of a new transaction</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.Update(System.Int32,inex.Services.Models.Records.Transaction.TransactionUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.TransactionsController.Update(System.Int32,inex.Services.Models.Records.Transaction.UpdateTransactionRequest,System.Threading.CancellationToken)">
             <summary>Update an existing transaction with new details</summary>
             <param name="id">Transaction id</param>
             <param name="itemDTO">Transaction details</param>
