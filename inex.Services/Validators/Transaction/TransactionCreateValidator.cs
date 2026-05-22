@@ -3,7 +3,7 @@ using inex.Services.Models.Records.Transaction;
 
 namespace inex.Services.Validators.Transaction;
 
-public class TransactionCreateValidator : AbstractValidator<TransactionCreateDTO>
+public class TransactionCreateValidator : AbstractValidator<CreateTransactionRequest>
 {
     public TransactionCreateValidator()
     {

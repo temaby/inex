@@ -4,7 +4,8 @@ using inex.Data.Repositories.Base;
 using inex.Services.Exceptions;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using inex.Services.Models.Records.Data;
-using inex.Services.Models.Records.ExchangeRate;
+using ExchangeRateResponse = inex.Services.Models.Records.ExchangeRate.ExchangeRateResponse;
+using ExchangeApiResponse = inex.Services.Infrastructure.ExternalClients.ExchangeRate.ExchangeRateResponse;
 using inex.Services.Services.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -40,7 +41,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Future dates are silently skipped.
     /// </summary>
     /// <exception cref="ValidationFailedException">Thrown when <paramref name="end"/> is before <paramref name="start"/>.</exception>
-    public async Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
+    public async Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
     {
         if (end < start)
         {
@@ -109,14 +110,14 @@ public class ExchangeRateService : Service, IExchangeRateService
             await CreateTemporaryRatesForTodayIfNeeded(userId, today, baseCurrency, ct);
 
         IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate && i.FromCode == baseCurrency);
-        return BuildDataResponse<ExchangeRate, ExchangeRateDTO>(rates);
+        return BuildDataResponse<ExchangeRate, ExchangeRateResponse>(rates);
     }
 
     /// <summary>
     /// Returns exchange rates for a single <paramref name="date"/>.
     /// Delegates to the range overload with <c>start == end == date</c>.
     /// </summary>
-    public Task<ListResponse<ExchangeRateDTO>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
+    public Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
         => Get(userId, date, date, baseCurrency, ct);
 
     #endregion Public Interface
@@ -157,15 +158,15 @@ public class ExchangeRateService : Service, IExchangeRateService
     ///    by the carry-forward logic in the caller.
     /// If Frankfurter fails entirely, falls back to CurrencyAPI day-by-day for all currencies.
     /// </summary>
-    private async Task<Dictionary<DateTime, ExchangeRateResponse>> FetchRatesForRange(
+    private async Task<Dictionary<DateTime, ExchangeApiResponse>> FetchRatesForRange(
         DateTime start, DateTime end, string baseCurrency, string[] targetCurrencies, CancellationToken ct = default)
     {
         // Pass 1: Frankfurter range call (single HTTP request).
-        var result = new Dictionary<DateTime, ExchangeRateResponse>();
+        var result = new Dictionary<DateTime, ExchangeApiResponse>();
         try
         {
             result = await _fallbackClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct)
-                     ?? new Dictionary<DateTime, ExchangeRateResponse>();
+                     ?? new Dictionary<DateTime, ExchangeApiResponse>();
         }
         catch (Exception ex)
         {
@@ -221,7 +222,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Existing temporary rates are overwritten with actual values.
     /// Returns <see langword="true"/> if any record was inserted or updated (caller must save).
     /// </summary>
-    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, ExchangeRateResponse response, CancellationToken ct = default)
+    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, ExchangeApiResponse response, CancellationToken ct = default)
     {
         DateTime createdDate = date.Date;
 

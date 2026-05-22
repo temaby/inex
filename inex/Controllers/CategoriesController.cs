@@ -49,10 +49,10 @@ public class CategoriesController : ApiControllerBase
     /// <returns>Category details</returns>
     [HttpGet]
     [Route(GetSingleRoute)]
-    [ProducesResponseType(typeof(CategoryDetailsDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        CategoryDetailsDTO resultDTO = await _categoryService.GetAsync(id, ct);
+        CategoryResponse resultDTO = await _categoryService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -61,11 +61,11 @@ public class CategoriesController : ApiControllerBase
     /// <returns>List of categories</returns>
     [HttpGet]
     [Route(GetAllRoute)]
-    [ProducesResponseType(typeof(IEnumerable<CategoryDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
     public ActionResult List(string mode)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ListResponse<CategoryDetailsDTO> resultsDTO = _categoryService.Get(CurrentUserId, activityMode);
+        ListResponse<CategoryResponse> resultsDTO = _categoryService.Get(CurrentUserId, activityMode);
         return Ok(resultsDTO);
     }
 
@@ -75,7 +75,7 @@ public class CategoriesController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(CategoryCreateDTO itemDTO, CancellationToken ct)
+    public async Task<ActionResult> Add(CreateCategoryRequest itemDTO, CancellationToken ct)
     {
         CreatedResponse resultDTO = await _categoryService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
@@ -87,10 +87,10 @@ public class CategoriesController : ApiControllerBase
     /// <returns>Updated category details</returns>
     [HttpPut]
     [Route(PutUpdateRoute)]
-    [ProducesResponseType(typeof(CategoryDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, CategoryUpdateDTO itemDTO, CancellationToken ct)
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult> Update(int id, UpdateCategoryRequest itemDTO, CancellationToken ct)
     {
-        CategoryDetailsDTO resultDTO = await _categoryService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
+        CategoryResponse resultDTO = await _categoryService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 

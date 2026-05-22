@@ -36,7 +36,7 @@ public class BudgetReportService : Service, IBudgetReportService
         _categoryService = categoryService;
     }
 
-    public async Task<PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>> GetBudgetComparison(int userId, int year, int month, string currency, CancellationToken ct = default)
+    public async Task<PagedResponse<BudgetComparisonResponse, ReportMetadata>> GetBudgetComparison(int userId, int year, int month, string currency, CancellationToken ct = default)
     {
         // 1. Get Budgets for the month
         var budgetsResponse = _budgetService.Get(userId, year, month);
@@ -67,7 +67,7 @@ public class BudgetReportService : Service, IBudgetReportService
         // 3. Get Exchange Rates
         var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
         var rates = ratesResponse.Data.ToList();
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 4. Calculate Spending per Category and Totals
@@ -138,7 +138,7 @@ public class BudgetReportService : Service, IBudgetReportService
         }
 
         // 5. Build Comparison List
-        var comparisonList = new List<BudgetComparisonDTO>();
+        var comparisonList = new List<BudgetComparisonResponse>();
 
         foreach (var budget in budgets)
         {
@@ -158,7 +158,7 @@ public class BudgetReportService : Service, IBudgetReportService
                 }
             }
 
-            comparisonList.Add(new BudgetComparisonDTO
+            comparisonList.Add(new BudgetComparisonResponse
             {
                 CategoryName = budget.Name,
                 CategoryIds = budget.CategoryIds?.ToList() ?? new List<int>(),
@@ -169,10 +169,10 @@ public class BudgetReportService : Service, IBudgetReportService
             });
         }
 
-        return new PagedResponse<BudgetComparisonDTO, ReportMetadataDTO>
+        return new PagedResponse<BudgetComparisonResponse, ReportMetadata>
         {
             Data = comparisonList,
-            Metadata = new ReportMetadataDTO
+            Metadata = new ReportMetadata
             {
                 Name = $"Budget Comparison {year}-{month}",
                 Currency = currency,

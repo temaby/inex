@@ -1,6 +1,6 @@
 namespace inex.Services.Models.Records.Base;
 
-public record NamedDTO
+public record NamedResponse
 {
     public int Id { get; init; }
     public string Key { get; init; } = null!;

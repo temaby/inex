@@ -5,5 +5,5 @@ namespace inex.Services.Services.Base;
 
 public interface ICurrencyService
 {
-    IEnumerable<NamedDTO> Get();
+    IEnumerable<NamedResponse> Get();
 }

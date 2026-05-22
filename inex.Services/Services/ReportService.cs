@@ -32,7 +32,7 @@ public class ReportService : Service, IReportService
 
     #region Public Interface
 
-    public async Task<ListResponse<MonthlyHistoryDTO>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default)
+    public async Task<ListResponse<MonthlyHistoryResponse>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default)
     {
         var start = new DateTime(year, 1, 1);
         var end = new DateTime(year, 12, 31);
@@ -47,7 +47,7 @@ public class ReportService : Service, IReportService
 
         // 2. Get Exchange Rates for the entire year
         var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 3. Get Accounts (to know transaction currency)
@@ -57,7 +57,7 @@ public class ReportService : Service, IReportService
         var categories = _categoryService.Get(userId, ActivityMode.ALL).Data;
         var systemCategoryIds = categories.Where(c => c.IsSystem).Select(c => c.Id).ToList();
 
-        var result = new List<MonthlyHistoryDTO>();
+        var result = new List<MonthlyHistoryResponse>();
 
         for (int month = 1; month <= 12; month++)
         {
@@ -86,7 +86,7 @@ public class ReportService : Service, IReportService
                 else expense += amount;
             }
 
-            result.Add(new MonthlyHistoryDTO
+            result.Add(new MonthlyHistoryResponse
             {
                 Month = month,
                 MonthName = new DateTime(year, month, 1).ToString("MMM"),
@@ -95,29 +95,29 @@ public class ReportService : Service, IReportService
             });
         }
 
-        return new ListResponse<MonthlyHistoryDTO> { Data = result };
+        return new ListResponse<MonthlyHistoryResponse> { Data = result };
     }
 
-    public async Task<PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
+    public async Task<PagedResponse<CategorySummary, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
     {
-        DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.Start), new DateTime(2014, 01, 01));
-        DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadataDTO.End), new DateTime(2014, 01, 01));
+        DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.Start), new DateTime(2014, 01, 01));
+        DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.End), new DateTime(2014, 01, 01));
 
-        IEnumerable<ExchangeRateDTO> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateDTO>();
+        IEnumerable<ExchangeRateResponse> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
-        IEnumerable<AccountDetailsDTO> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
-        IEnumerable<CategoryDetailsDTO> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
-        IEnumerable<TransactionDetailsDTO> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
+        IEnumerable<AccountResponse> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
+        IEnumerable<CategoryResponse> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
+        IEnumerable<TransactionResponse> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
-        PagedResponse<CategoryListDetailsDTO, ReportMetadataDTO> resultDTO = BuildReportDataResponse<CategoryDetailsDTO, CategoryListDetailsDTO>(categories, "Расходы по категориям", currency, start, end);
+        PagedResponse<CategorySummary, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryResponse, CategorySummary>(categories, "Расходы по категориям", currency, start, end);
 
         var categoryValues = new Dictionary<int, decimal>();
-        foreach (TransactionDetailsDTO transaction in transactions)
+        foreach (TransactionResponse transaction in transactions)
         {
             var account = accounts.FirstOrDefault(i => i.Id == transaction.AccountId);
             if (account == null) continue;
-            rateMap.TryGetValue((account.Currency, transaction.Created.Date), out ExchangeRateDTO? rate);
+            rateMap.TryGetValue((account.Currency, transaction.Created.Date), out ExchangeRateResponse? rate);
             if (categories.Any(i => i.Id == transaction.CategoryId))
             {
                 decimal amount = rate != null ? transaction.Amount / rate.Rate : transaction.Amount;

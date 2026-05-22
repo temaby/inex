@@ -28,26 +28,26 @@ public class TransactionService : InExService, ITransactionService
 
     #region Public Interface
 
-    public async Task<TransactionDetailsDTO> GetAsync(int id, CancellationToken ct = default)
+    public async Task<TransactionResponse> GetAsync(int id, CancellationToken ct = default)
     {
         var transaction = await DbInEx.TransactionRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
-        return Mapper.Map<TransactionDetailsDTO>(transaction);
+        return Mapper.Map<TransactionResponse>(transaction);
     }
 
-    public ListResponse<TransactionDetailsDTO> Get(int userId, ActivityMode mode, IDictionary<string, string> filters)
+    public ListResponse<TransactionResponse> Get(int userId, ActivityMode mode, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
-        return BuildDataResponse<Transaction, TransactionDetailsDTO>(items);
+        return BuildDataResponse<Transaction, TransactionResponse>(items);
     }
 
-    public PagedResponse<TransactionDetailsDTO, PaginationMetadataDTO> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
+    public PagedResponse<TransactionResponse, PaginationMetadata> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
-        return BuildPaginatedDataResponse<Transaction, TransactionDetailsDTO>(items, pageSize, pageNumber);
+        return BuildPaginatedDataResponse<Transaction, TransactionResponse>(items, pageSize, pageNumber);
     }
 
-    public async Task<CreatedResponse> CreateAsync(TransactionCreateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
 
         Transaction transaction = Mapper.Map<Transaction>(itemDTO);
@@ -63,17 +63,17 @@ public class TransactionService : InExService, ITransactionService
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<ResponseTransferDTO> CreateAsync(TransferCreateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<TransferResponse> CreateAsync(CreateTransferRequest itemDTO, int userId, CancellationToken ct = default)
     {
-        ResponseTransferDTO resultDTO = new ResponseTransferDTO();
+        TransferResponse resultDTO = new TransferResponse();
 
         Category transferCategory = DbInEx.CategoryRepository.Get(true).First(i => i.UserId == userId && i.SystemCode!.ToLower() == "transfer");
 
         Account accountFrom = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountFromId);
         Account accountTo = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountToId);
 
-        TransferFromCreateDTO transferFrom = Mapper.Map<TransferFromCreateDTO>(itemDTO);
-        TransferToCreateDTO transferTo = Mapper.Map<TransferToCreateDTO>(itemDTO);
+        TransferFromData transferFrom = Mapper.Map<TransferFromData>(itemDTO);
+        TransferToData transferTo = Mapper.Map<TransferToData>(itemDTO);
 
         Transaction transactionFrom = Mapper.Map<Transaction>(transferFrom);
         transactionFrom.UserId = userId;
@@ -98,7 +98,7 @@ public class TransactionService : InExService, ITransactionService
         return resultDTO;
     }
 
-    public async Task<TransactionDetailsDTO> UpdateAsync(int id, TransactionUpdateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<TransactionResponse> UpdateAsync(int id, UpdateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -119,7 +119,7 @@ public class TransactionService : InExService, ITransactionService
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<TransactionDetailsDTO>(dest.Entity);
+        return Mapper.Map<TransactionResponse>(dest.Entity);
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
@@ -129,26 +129,26 @@ public class TransactionService : InExService, ITransactionService
 
     public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, IDictionary<string, string> filters)
     {
-        IEnumerable<int> accountIds = FilterHelper.GetIntArrayFromFilter(filters, nameof(TransactionDetailsDTO.AccountId));
+        IEnumerable<int> accountIds = FilterHelper.GetIntArrayFromFilter(filters, nameof(TransactionResponse.AccountId));
         if (accountIds.Count() > 0)
         {
             items = items.Where(i => accountIds.Contains(i.AccountId));
         }
 
-        IEnumerable<int> categoryIds = FilterHelper.GetIntArrayFromFilter(filters, nameof(TransactionDetailsDTO.CategoryId));
+        IEnumerable<int> categoryIds = FilterHelper.GetIntArrayFromFilter(filters, nameof(TransactionResponse.CategoryId));
         if (categoryIds.Count() > 0)
         {
             items = items.Where(i => categoryIds.Contains(i.CategoryId));
         }
 
-        IEnumerable<string> refs = FilterHelper.GetStringArrayFromFilter(filters, nameof(TransactionDetailsDTO.Refs));
+        IEnumerable<string> refs = FilterHelper.GetStringArrayFromFilter(filters, nameof(TransactionResponse.Refs));
         if (refs.Count() > 0)
         {
             IEnumerable<string> markedRefs = refs.Select(i => $"@{i}").ToList();
             items = items.AsEnumerable().Where(i => markedRefs.Any(markedRef => i.Comment != null && i.Comment.Contains(markedRef))).AsQueryable();
         }
 
-        IEnumerable<string> tags = FilterHelper.GetStringArrayFromFilter(filters, nameof(TransactionDetailsDTO.Tags));
+        IEnumerable<string> tags = FilterHelper.GetStringArrayFromFilter(filters, nameof(TransactionResponse.Tags));
         if (tags.Count() > 0)
         {
             IList<string> markedTags = tags.Select(i => $"#{i}").ToList();

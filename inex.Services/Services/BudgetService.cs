@@ -26,20 +26,20 @@ public class BudgetService : InExService, IBudgetService
 
     #region Public Interface
 
-    public async Task<BudgetDetailsDTO> GetAsync(int id, CancellationToken ct = default)
+    public async Task<BudgetResponse> GetAsync(int id, CancellationToken ct = default)
     {
         var budget = await DbInEx.BudgetRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
-        return Mapper.Map<BudgetDetailsDTO>(budget);
+        return Mapper.Map<BudgetResponse>(budget);
     }
 
-    public ListResponse<BudgetDetailsDTO> Get(int userId, int? year = null, int? month = null)
+    public ListResponse<BudgetResponse> Get(int userId, int? year = null, int? month = null)
     {
         IQueryable<Budget> items = DbInEx.BudgetRepository.Get(true, i => i.UserId == userId && (!year.HasValue || i.Year == year) && (!month.HasValue || i.Month == month), i => i.BudgetCategories).OrderBy(i => i.Name);
-        return BuildDataResponse<Budget, BudgetDetailsDTO>(items.ToList());
+        return BuildDataResponse<Budget, BudgetResponse>(items.ToList());
     }
 
-    public async Task<CreatedResponse> CreateAsync(BudgetCreateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<CreatedResponse> CreateAsync(CreateBudgetRequest itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
         Budget budget = Mapper.Map<Budget>(itemDTO);
@@ -82,7 +82,7 @@ public class BudgetService : InExService, IBudgetService
         return new CreatedResponse(result.Entity.Id);
     }
 
-    public async Task<BudgetDetailsDTO> UpdateAsync(int id, BudgetUpdateDTO itemDTO, int userId, CancellationToken ct = default)
+    public async Task<BudgetResponse> UpdateAsync(int id, UpdateBudgetRequest itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
         {
@@ -130,7 +130,7 @@ public class BudgetService : InExService, IBudgetService
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<BudgetDetailsDTO>(dest.Entity);
+        return Mapper.Map<BudgetResponse>(dest.Entity);
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)

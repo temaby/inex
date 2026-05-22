@@ -1,6 +1,6 @@
 namespace inex.Services.Models.Records.Report;
 
-public record BudgetComparisonDTO
+public record BudgetComparisonResponse
 {
     public string? CategoryName { get; init; }
     public List<int> CategoryIds { get; init; } = [];

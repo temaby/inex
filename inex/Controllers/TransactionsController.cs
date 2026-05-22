@@ -52,10 +52,10 @@ public class TransactionsController : ApiControllerBase
     /// <returns>Transaction details</returns>
     [HttpGet]
     [Route(GetSingleRoute)]
-    [ProducesResponseType(typeof(TransactionDetailsDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TransactionResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        TransactionDetailsDTO resultDTO = await _transactionService.GetAsync(id, ct);
+        TransactionResponse resultDTO = await _transactionService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -67,12 +67,12 @@ public class TransactionsController : ApiControllerBase
     /// <returns>List of transactions with pagination metadata</returns>
     [HttpGet]
     [Route(GetAllRoute)]
-    [ProducesResponseType(typeof(IEnumerable<TransactionDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<TransactionResponse>), StatusCodes.Status200OK)]
     public ActionResult List(string? mode, int pageSize, int pageNumber, string? filter)
     {
-        IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, TransactionDetailsDTO.FieldsList);
+        IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, TransactionResponse.FieldsList);
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        PagedResponse<TransactionDetailsDTO, PaginationMetadataDTO> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
+        PagedResponse<TransactionResponse, PaginationMetadata> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
         return Ok(resultsDTO);
     }
 
@@ -82,7 +82,7 @@ public class TransactionsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(TransactionCreateDTO itemDTO, CancellationToken ct)
+    public async Task<ActionResult> Add(CreateTransactionRequest itemDTO, CancellationToken ct)
     {
         CreatedResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
@@ -93,10 +93,10 @@ public class TransactionsController : ApiControllerBase
     /// <returns>Id of a new transaction</returns>
     [HttpPost]
     [Route(PostAddTransferRoute)]
-    [ProducesResponseType(typeof(ResponseTransferDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(TransferCreateDTO itemDTO, CancellationToken ct)
+    [ProducesResponseType(typeof(TransferResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult> Add(CreateTransferRequest itemDTO, CancellationToken ct)
     {
-        ResponseTransferDTO resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
+        TransferResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -106,10 +106,10 @@ public class TransactionsController : ApiControllerBase
     /// <returns>Updated transaction details</returns>
     [HttpPut]
     [Route(PutUpdateRoute)]
-    [ProducesResponseType(typeof(TransactionDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, TransactionUpdateDTO itemDTO, CancellationToken ct)
+    [ProducesResponseType(typeof(TransactionResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult> Update(int id, UpdateTransactionRequest itemDTO, CancellationToken ct)
     {
-        TransactionDetailsDTO resultDTO = await _transactionService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
+        TransactionResponse resultDTO = await _transactionService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 

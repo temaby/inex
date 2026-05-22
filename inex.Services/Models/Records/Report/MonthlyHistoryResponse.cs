@@ -1,6 +1,6 @@
 namespace inex.Services.Models.Records.Report;
 
-public record MonthlyHistoryDTO
+public record MonthlyHistoryResponse
 {
     public int Month { get; init; }
     public string MonthName { get; init; } = null!;

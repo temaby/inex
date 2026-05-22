@@ -8,7 +8,7 @@ public class ExchangeProfile : Profile
 {
     public ExchangeProfile()
     {
-        CreateMap<ExchangeRate, ExchangeRateDTO>(MemberList.None)
+        CreateMap<ExchangeRate, ExchangeRateResponse>(MemberList.None)
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Created))
             .ForMember(dest => dest.Rate, opt => opt.MapFrom(src => src.Rate))

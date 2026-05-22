@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace inex.Services.Models.Records.Transaction;
 
-public record TransactionDetailsDTO : TransactionUpdateDTO
+public record TransactionResponse : UpdateTransactionRequest
 {
     public static readonly IReadOnlyList<string> FieldsList = new List<string>()
             {

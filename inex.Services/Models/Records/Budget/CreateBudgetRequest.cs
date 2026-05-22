@@ -1,6 +1,6 @@
 namespace inex.Services.Models.Records.Budget;
 
-public record BudgetCreateDTO
+public record CreateBudgetRequest
 {
     public string Key { get; init; } = null!;
     public string? Name { get; init; }

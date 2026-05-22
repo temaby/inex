@@ -1,6 +1,6 @@
-﻿namespace inex.Services.Models.Records.ExchangeRate;
+namespace inex.Services.Models.Records.ExchangeRate;
 
-public record ExchangeRateDTO
+public record ExchangeRateResponse
 {
     public int Id { get; init; }
     public string CurrencyFrom { get; init; } = null!;

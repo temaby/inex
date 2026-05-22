@@ -50,10 +50,10 @@ public class AccountsController : ApiControllerBase
     /// <returns>Account details</returns>
     [HttpGet]
     [Route(GetSingleRoute)]
-    [ProducesResponseType(typeof(AccountDetailsDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AccountResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        AccountDetailsDTO resultDTO = await _accountService.GetAsync(id, ct);
+        AccountResponse resultDTO = await _accountService.GetAsync(id, ct);
         return Ok(resultDTO);
     }
 
@@ -62,11 +62,11 @@ public class AccountsController : ApiControllerBase
     /// <returns>List of accounts</returns>
     [HttpGet]
     [Route(GetAllRoute)]
-    [ProducesResponseType(typeof(ListResponse<AccountDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ListResponse<AccountResponse>), StatusCodes.Status200OK)]
     public ActionResult List(string mode)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ListResponse<AccountDetailsDTO> resultsDTO = _accountService.Get(CurrentUserId, activityMode);
+        ListResponse<AccountResponse> resultsDTO = _accountService.Get(CurrentUserId, activityMode);
         return Ok(resultsDTO);
     }
 
@@ -75,10 +75,10 @@ public class AccountsController : ApiControllerBase
     /// <returns>List of accounts with status</returns>
     [HttpGet]
     [Route(GetStatusRoute)]
-    [ProducesResponseType(typeof(ListResponse<AccountListDetailsDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ListResponse<AccountSummary>), StatusCodes.Status200OK)]
     public ActionResult DetailsForList([FromQuery] IEnumerable<int> ids)
     {
-        ListResponse<AccountListDetailsDTO> resultsDTO = _accountService.GetDetails(CurrentUserId, ids);
+        ListResponse<AccountSummary> resultsDTO = _accountService.GetDetails(CurrentUserId, ids);
         return Ok(resultsDTO);
     }
 
@@ -88,7 +88,7 @@ public class AccountsController : ApiControllerBase
     [HttpPost]
     [Route(PostAddRoute)]
     [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Add(AccountCreateDTO itemDTO, CancellationToken ct)
+    public async Task<ActionResult> Add(CreateAccountRequest itemDTO, CancellationToken ct)
     {
         CreatedResponse resultDTO = await _accountService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
@@ -100,10 +100,10 @@ public class AccountsController : ApiControllerBase
     /// <returns>Updated account details</returns>
     [HttpPut]
     [Route(PutUpdateRoute)]
-    [ProducesResponseType(typeof(AccountDetailsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult> Update(int id, AccountUpdateDTO itemDTO, CancellationToken ct)
+    [ProducesResponseType(typeof(AccountResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult> Update(int id, UpdateAccountRequest itemDTO, CancellationToken ct)
     {
-        AccountDetailsDTO resultDTO = await _accountService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
+        AccountResponse resultDTO = await _accountService.UpdateAsync(id, itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 

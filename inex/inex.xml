@@ -19,12 +19,12 @@
             <param name="ids">Account ids</param>
             <returns>List of accounts with status</returns>
         </member>
-        <member name="M:inex.Controllers.AccountsController.Add(inex.Services.Models.Records.Account.AccountCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.AccountsController.Add(inex.Services.Models.Records.Account.CreateAccountRequest,System.Threading.CancellationToken)">
             <summary>Add a new account</summary>
             <param name="itemDTO">Account details</param>
             <returns>Id of a new account</returns>
         </member>
-        <member name="M:inex.Controllers.AccountsController.Update(System.Int32,inex.Services.Models.Records.Account.AccountUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.AccountsController.Update(System.Int32,inex.Services.Models.Records.Account.UpdateAccountRequest,System.Threading.CancellationToken)">
             <summary>Update an existing account with new details</summary>
             <param name="id">Account id</param>
             <param name="itemDTO">Account details</param>
@@ -71,7 +71,7 @@
             <summary>Get list of budgets for a user</summary>
             <returns>List of budgets</returns>
         </member>
-        <member name="M:inex.Controllers.BudgetsController.Add(inex.Services.Models.Records.Budget.BudgetCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.BudgetsController.Add(inex.Services.Models.Records.Budget.CreateBudgetRequest,System.Threading.CancellationToken)">
             <summary>Add a new budget</summary>
             <param name="itemDTO">Budget details</param>
             <returns>Id of a new budget</returns>
@@ -79,7 +79,7 @@
         <member name="M:inex.Controllers.BudgetsController.Copy(System.Int32,System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>Copy budgets from one month to another</summary>
         </member>
-        <member name="M:inex.Controllers.BudgetsController.Update(System.Int32,inex.Services.Models.Records.Budget.BudgetUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.BudgetsController.Update(System.Int32,inex.Services.Models.Records.Budget.UpdateBudgetRequest,System.Threading.CancellationToken)">
             <summary>Update an existing budget with new details</summary>
             <param name="id">Budget id</param>
             <param name="itemDTO">Budget details</param>
@@ -103,12 +103,12 @@
             <param name="mode">Activity mode (all, active, inactive)</param>
             <returns>List of categories</returns>
         </member>
-        <member name="M:inex.Controllers.CategoriesController.Add(inex.Services.Models.Records.Category.CategoryCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.CategoriesController.Add(inex.Services.Models.Records.Category.CreateCategoryRequest,System.Threading.CancellationToken)">
             <summary>Add a new category</summary>
             <param name="itemDTO">Category details</param>
             <returns>Id of a new category</returns>
         </member>
-        <member name="M:inex.Controllers.CategoriesController.Update(System.Int32,inex.Services.Models.Records.Category.CategoryUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.CategoriesController.Update(System.Int32,inex.Services.Models.Records.Category.UpdateCategoryRequest,System.Threading.CancellationToken)">
             <summary>Update an existing category with new details</summary>
             <param name="id">Category id</param>
             <param name="itemDTO">Category details</param>
@@ -162,17 +162,17 @@
             <param name="filter">Filter items (filter=field1:value;field2:value2). Supported fields: AccountId, CategoryId, Start, End</param>
             <returns>List of transactions with pagination metadata</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.TransactionCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransactionRequest,System.Threading.CancellationToken)">
             <summary>Add a new transaction</summary>
             <param name="itemDTO">Transaction details</param>
             <returns>Id of a new transaction</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.TransferCreateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransferRequest,System.Threading.CancellationToken)">
             <summary>Add a new transfer transaction</summary>
             <param name="itemDTO">Transfer details</param>
             <returns>Id of a new transaction</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.Update(System.Int32,inex.Services.Models.Records.Transaction.TransactionUpdateDTO,System.Threading.CancellationToken)">
+        <member name="M:inex.Controllers.TransactionsController.Update(System.Int32,inex.Services.Models.Records.Transaction.UpdateTransactionRequest,System.Threading.CancellationToken)">
             <summary>Update an existing transaction with new details</summary>
             <param name="id">Transaction id</param>
             <param name="itemDTO">Transaction details</param>
