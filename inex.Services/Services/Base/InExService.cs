@@ -1,4 +1,3 @@
-﻿using AutoMapper;
 using inex.Data.Repositories.Base;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,9 +6,9 @@ namespace inex.Services.Services.Base;
 
 public abstract class InExService : Service, IInExService
 {
-    #region Constructors        
+    #region Constructors
 
-    public InExService(IInExUnitOfWork uowInEx, IMapper mapper) : base(uowInEx, mapper)
+    public InExService(IInExUnitOfWork uowInEx) : base(uowInEx)
     {
     }
 

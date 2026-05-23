@@ -1,8 +1,8 @@
-﻿using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
 using inex.Services.Exceptions;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
+using inex.Services.Models.Mappers;
 using inex.Services.Models.Records.Data;
 using ExchangeRateResponse = inex.Services.Models.Records.ExchangeRate.ExchangeRateResponse;
 using ExchangeApiResponse = inex.Services.Infrastructure.ExternalClients.ExchangeRate.ExchangeRateResponse;
@@ -23,7 +23,7 @@ public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
 
-    public ExchangeRateService(IInExUnitOfWork uowInEx, IMapper mapper, IExchangeRateClient apiClient, IExchangeRateClient fallbackClient, ILogger<ExchangeRateService> logger) : base(uowInEx, mapper)
+    public ExchangeRateService(IInExUnitOfWork uowInEx, IExchangeRateClient apiClient, IExchangeRateClient fallbackClient, ILogger<ExchangeRateService> logger) : base(uowInEx)
     {
         _apiClient = apiClient;
         _fallbackClient = fallbackClient;
@@ -110,7 +110,7 @@ public class ExchangeRateService : Service, IExchangeRateService
             await CreateTemporaryRatesForTodayIfNeeded(userId, today, baseCurrency, ct);
 
         IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate && i.FromCode == baseCurrency);
-        return BuildDataResponse<ExchangeRate, ExchangeRateResponse>(rates);
+        return BuildDataResponse<ExchangeRate, ExchangeRateResponse>(rates, ExchangeRateMapper.ToResponse);
     }
 
     /// <summary>

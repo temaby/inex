@@ -1,7 +1,7 @@
-﻿using AutoMapper;
 using System.Collections.Generic;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
+using inex.Services.Models.Mappers;
 using inex.Services.Models.Records.Base;
 using inex.Services.Services.Base;
 
@@ -11,7 +11,7 @@ public class CurrencyService : Service, ICurrencyService
 {
     #region Constructors
 
-    public CurrencyService(IInExUnitOfWork uowInEx, IMapper mapper) : base(uowInEx, mapper)
+    public CurrencyService(IInExUnitOfWork uowInEx) : base(uowInEx)
     {
 
     }
@@ -21,6 +21,6 @@ public class CurrencyService : Service, ICurrencyService
     public IEnumerable<NamedResponse> Get()
     {
         IEnumerable<Currency> items = DbInEx.CurrencyRepository.Get(true);
-        return Mapper.Map<IEnumerable<NamedResponse>>(items);
+        return items.Select(CurrencyMapper.ToNamedResponse);
     }
 }

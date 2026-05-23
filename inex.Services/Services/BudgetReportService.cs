@@ -1,4 +1,3 @@
-using AutoMapper;
 using inex.Data.Repositories.Base;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Data;
@@ -22,12 +21,11 @@ public class BudgetReportService : Service, IBudgetReportService
 
     public BudgetReportService(
         IInExUnitOfWork uowInEx,
-        IMapper mapper,
         IBudgetService budgetService,
         ITransactionService transactionService,
         IExchangeRateService exchangeRateService,
         IAccountService accountService,
-        ICategoryService categoryService) : base(uowInEx, mapper)
+        ICategoryService categoryService) : base(uowInEx)
     {
         _budgetService = budgetService;
         _transactionService = transactionService;

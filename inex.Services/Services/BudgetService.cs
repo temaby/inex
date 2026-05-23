@@ -1,7 +1,7 @@
-using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
 using inex.Services.Exceptions;
+using inex.Services.Models.Mappers;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
@@ -17,7 +17,7 @@ public class BudgetService : InExService, IBudgetService
 {
     #region Constructors
 
-    public BudgetService(IInExUnitOfWork uowInEx, IMapper mapper) : base(uowInEx, mapper)
+    public BudgetService(IInExUnitOfWork uowInEx) : base(uowInEx)
     {
 
     }
@@ -30,19 +30,19 @@ public class BudgetService : InExService, IBudgetService
     {
         var budget = await DbInEx.BudgetRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
-        return Mapper.Map<BudgetResponse>(budget);
+        return budget.ToResponse();
     }
 
     public ListResponse<BudgetResponse> Get(int userId, int? year = null, int? month = null)
     {
         IQueryable<Budget> items = DbInEx.BudgetRepository.Get(true, i => i.UserId == userId && (!year.HasValue || i.Year == year) && (!month.HasValue || i.Month == month), i => i.BudgetCategories).OrderBy(i => i.Name);
-        return BuildDataResponse<Budget, BudgetResponse>(items.ToList());
+        return BuildDataResponse<Budget, BudgetResponse>(items.ToList(), BudgetMapper.ToResponse);
     }
 
     public async Task<CreatedResponse> CreateAsync(CreateBudgetRequest itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
-        Budget budget = Mapper.Map<Budget>(itemDTO);
+        Budget budget = itemDTO.ToEntity();
 
         budget.UserId = userId;
         budget.CreatedBy = userId;
@@ -93,7 +93,7 @@ public class BudgetService : InExService, IBudgetService
         var source = await DbInEx.BudgetRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         // update item with new details
-        source = Mapper.Map(itemDTO, source);
+        source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
 
         ValidateCategoryUniqueness(userId, source.Year, source.Month, itemDTO.CategoryIds, id);
@@ -130,7 +130,7 @@ public class BudgetService : InExService, IBudgetService
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<BudgetResponse>(dest.Entity);
+        return dest.Entity.ToResponse();
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)

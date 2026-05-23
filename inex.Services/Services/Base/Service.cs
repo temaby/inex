@@ -1,20 +1,18 @@
-﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using inex.Data.Repositories.Base;
 using inex.Services.Models.Records.Data;
-using System;
 
 namespace inex.Services.Services.Base;
 
 public abstract class Service : IDisposable
 {
-    #region Constructors        
+    #region Constructors
 
-    public Service(IInExUnitOfWork uowInEx, IMapper mapper)
+    public Service(IInExUnitOfWork uowInEx)
     {
         DbInEx = uowInEx;
-        Mapper = mapper;
     }
 
     #endregion Constructors
@@ -23,12 +21,11 @@ public abstract class Service : IDisposable
 
     #region Properties
 
-    protected IMapper Mapper { get; }
     protected IInExUnitOfWork DbInEx { get; }
 
     #endregion Properties
 
-    public PagedResponse<K, PaginationMetadata> BuildPaginatedDataResponse<T, K>(IQueryable<T> items, int pageSize, int pageNumber)
+    public PagedResponse<K, PaginationMetadata> BuildPaginatedDataResponse<T, K>(IQueryable<T> items, int pageSize, int pageNumber, Func<T, K> map)
     {
         int total = items.Count();
 
@@ -41,26 +38,24 @@ public abstract class Service : IDisposable
         return new PagedResponse<K, PaginationMetadata>
         {
             Metadata = metadata,
-            Data = Mapper.Map<IEnumerable<K>>(items)
+            Data = items.Select(map)
         };
     }
 
-    public PagedResponse<K, ReportMetadata> BuildReportDataResponse<T, K>(IEnumerable<T> items, string name, string currency, DateTime? start = null, DateTime? end = null)
+    public PagedResponse<K, ReportMetadata> BuildReportDataResponse<T, K>(IEnumerable<T> items, string name, string currency, Func<T, K> map, DateTime? start = null, DateTime? end = null)
     {
-        int total = items.Count();
-
         return new PagedResponse<K, ReportMetadata>
         {
             Metadata = new ReportMetadata { Name = name, Currency = currency, Start = start, End = end },
-            Data = Mapper.Map<IEnumerable<K>>(items)
+            Data = items.Select(map)
         };
     }
 
-    public ListResponse<K> BuildDataResponse<T, K>(IEnumerable<T> items)
+    public ListResponse<K> BuildDataResponse<T, K>(IEnumerable<T> items, Func<T, K> map)
     {
         return new ListResponse<K>
         {
-            Data = Mapper.Map<IEnumerable<K>>(items)
+            Data = items.Select(map)
         };
     }
 

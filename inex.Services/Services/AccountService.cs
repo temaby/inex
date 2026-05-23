@@ -1,7 +1,7 @@
-using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
 using inex.Services.Exceptions;
+using inex.Services.Models.Mappers;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Base;
@@ -19,7 +19,7 @@ public class AccountService : InExService, IAccountService
 {
     #region Constructors
 
-    public AccountService(IInExUnitOfWork uowInEx, IMapper mapper) : base(uowInEx, mapper)
+    public AccountService(IInExUnitOfWork uowInEx) : base(uowInEx)
     {
 
     }
@@ -32,7 +32,7 @@ public class AccountService : InExService, IAccountService
     {
         var account = await DbInEx.AccountRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
-        return Mapper.Map<AccountResponse>(account);
+        return account.ToResponse();
     }
 
     public ListResponse<AccountResponse> Get(int userId, ActivityMode mode)
@@ -40,9 +40,9 @@ public class AccountService : InExService, IAccountService
         IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
         {
-            ActivityMode.ACTIVE => BuildDataResponse<Account, AccountResponse>(items.Where(i => i.IsEnabled)),
-            ActivityMode.INACTIVE => BuildDataResponse<Account, AccountResponse>(items.Where(i => !i.IsEnabled)),
-            ActivityMode.ALL => BuildDataResponse<Account, AccountResponse>(items),
+            ActivityMode.ACTIVE => BuildDataResponse<Account, AccountResponse>(items.Where(i => i.IsEnabled), AccountMapper.ToResponse),
+            ActivityMode.INACTIVE => BuildDataResponse<Account, AccountResponse>(items.Where(i => !i.IsEnabled), AccountMapper.ToResponse),
+            ActivityMode.ALL => BuildDataResponse<Account, AccountResponse>(items, AccountMapper.ToResponse),
             _ => throw new ArgumentException($"Unknown ActivityMode: {mode}")
         };
     }
@@ -67,7 +67,7 @@ public class AccountService : InExService, IAccountService
                 ThisMonthNet = i.Sum(j => j.Created >= monthStart && j.Created < monthEnd ? j.Value : (decimal)0)
             });
 
-        ListResponse<AccountSummary> resultDTO = BuildDataResponse<Account, AccountSummary>(items);
+        ListResponse<AccountSummary> resultDTO = BuildDataResponse<Account, AccountSummary>(items, AccountMapper.ToSummary);
         var lookup = accountDetails.ToDictionary(i => i.AccountId);
 
         return resultDTO with
@@ -83,7 +83,7 @@ public class AccountService : InExService, IAccountService
     public async Task<CreatedResponse> CreateAsync(CreateAccountRequest itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
-        Account account = Mapper.Map<Account>(itemDTO);
+        Account account = itemDTO.ToEntity();
         account.UserId = userId;
         account.CreatedBy = userId;
         // put information about created item to the database
@@ -105,14 +105,14 @@ public class AccountService : InExService, IAccountService
         var source = await DbInEx.AccountRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         // update item with new details
-        source = Mapper.Map(itemDTO, source);
+        source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
         // put information about updated item to the database
         EntityEntry<Account> dest = DbInEx.AccountRepository.Update(source);
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<AccountResponse>(dest.Entity);
+        return dest.Entity.ToResponse();
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)

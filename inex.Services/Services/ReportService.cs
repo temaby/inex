@@ -1,6 +1,6 @@
-﻿using AutoMapper;
 using inex.Data.Repositories.Base;
 using inex.Services.Helpers;
+using inex.Services.Models.Mappers;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Category;
@@ -20,7 +20,7 @@ public class ReportService : Service, IReportService
 {
     #region Constructors
 
-    public ReportService(IInExUnitOfWork uowInEx, IAccountService accountService, ICategoryService categoryService, ITransactionService transactionService, IExchangeRateService exchangeRateService, IMapper mapper) : base(uowInEx, mapper)
+    public ReportService(IInExUnitOfWork uowInEx, IAccountService accountService, ICategoryService categoryService, ITransactionService transactionService, IExchangeRateService exchangeRateService) : base(uowInEx)
     {
         _accountService = accountService;
         _categoryService = categoryService;
@@ -110,7 +110,7 @@ public class ReportService : Service, IReportService
         IEnumerable<CategoryResponse> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
         IEnumerable<TransactionResponse> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
-        PagedResponse<CategorySummary, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryResponse, CategorySummary>(categories, "Расходы по категориям", currency, start, end);
+        PagedResponse<CategorySummary, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryResponse, CategorySummary>(categories, "Расходы по категориям", currency, CategoryMapper.ToSummary, start, end);
 
         var categoryValues = new Dictionary<int, decimal>();
         foreach (TransactionResponse transaction in transactions)
