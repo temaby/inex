@@ -1,4 +1,3 @@
-using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
 using inex.Services.Exceptions;
@@ -17,7 +16,6 @@ namespace inex.Services.Tests.Services;
 public class ExchangeRateServiceTests
 {
     private readonly Mock<IInExUnitOfWork> _uowMock = new();
-    private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<IExchangeRateClient> _clientMock = new();
     private readonly Mock<IExchangeRateClient> _fallbackClientMock = new();
     private readonly Mock<IEditableRepository<ExchangeRate>> _exchangeRateRepoMock = new();
@@ -36,7 +34,7 @@ public class ExchangeRateServiceTests
     // --- Helpers ---
 
     private ExchangeRateService CreateSut() =>
-        new ExchangeRateService(_uowMock.Object, _mapperMock.Object, _clientMock.Object, _fallbackClientMock.Object, NullLogger<ExchangeRateService>.Instance);
+        new ExchangeRateService(_uowMock.Object, _clientMock.Object, _fallbackClientMock.Object, NullLogger<ExchangeRateService>.Instance);
 
     // AsAsyncQueryable() wraps a plain IEnumerable<T> so it satisfies both
     // IQueryable<T> (sync LINQ) and IAsyncEnumerable<T> (EF ToListAsync etc.).

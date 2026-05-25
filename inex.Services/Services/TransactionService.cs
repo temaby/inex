@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ using inex.Services.Models.Records.Transaction;
 using inex.Services.Services.Base;
 using inex.Services.Models.Enums;
 using inex.Services.Helpers;
+using inex.Services.Models.Mappers;
 
 namespace inex.Services.Services;
 
@@ -20,7 +20,7 @@ public class TransactionService : InExService, ITransactionService
 {
     #region Constructors
 
-    public TransactionService(IInExUnitOfWork uowInEx, IMapper mapper) : base(uowInEx, mapper)
+    public TransactionService(IInExUnitOfWork uowInEx) : base(uowInEx)
     {
     }
 
@@ -32,25 +32,25 @@ public class TransactionService : InExService, ITransactionService
     {
         var transaction = await DbInEx.TransactionRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
-        return Mapper.Map<TransactionResponse>(transaction);
+        return transaction.ToResponse();
     }
 
     public ListResponse<TransactionResponse> Get(int userId, ActivityMode mode, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
-        return BuildDataResponse<Transaction, TransactionResponse>(items);
+        return BuildDataResponse<Transaction, TransactionResponse>(items, TransactionMapper.ToResponse);
     }
 
     public PagedResponse<TransactionResponse, PaginationMetadata> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = GetTransactions(userId, mode, filters);
-        return BuildPaginatedDataResponse<Transaction, TransactionResponse>(items, pageSize, pageNumber);
+        return BuildPaginatedDataResponse<Transaction, TransactionResponse>(items, pageSize, pageNumber, TransactionMapper.ToResponse);
     }
 
     public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
 
-        Transaction transaction = Mapper.Map<Transaction>(itemDTO);
+        Transaction transaction = itemDTO.ToEntity();
         transaction.UserId = userId;
         transaction.CreatedBy = userId;
 
@@ -72,16 +72,16 @@ public class TransactionService : InExService, ITransactionService
         Account accountFrom = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountFromId);
         Account accountTo = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountToId);
 
-        TransferFromData transferFrom = Mapper.Map<TransferFromData>(itemDTO);
-        TransferToData transferTo = Mapper.Map<TransferToData>(itemDTO);
+        TransferFromData transferFrom = itemDTO.ToTransferFromData();
+        TransferToData transferTo = itemDTO.ToTransferToData();
 
-        Transaction transactionFrom = Mapper.Map<Transaction>(transferFrom);
+        Transaction transactionFrom = transferFrom.ToEntity();
         transactionFrom.UserId = userId;
         transactionFrom.CreatedBy = userId;
         transactionFrom.CategoryId = transferCategory.Id;
         transactionFrom.Comment = $"В {accountTo.Name} {transactionFrom.Comment}";
 
-        Transaction transactionTo = Mapper.Map<Transaction>(transferTo);
+        Transaction transactionTo = transferTo.ToEntity();
         transactionTo.UserId = userId;
         transactionTo.CreatedBy = userId;
         transactionTo.CategoryId = transferCategory.Id;
@@ -110,7 +110,7 @@ public class TransactionService : InExService, ITransactionService
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
 
         // update item with new details
-        source = Mapper.Map(itemDTO, source);
+        source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
         // update tags and refs details
         source = ProcessTagsRefs(source, userId);
@@ -119,7 +119,7 @@ public class TransactionService : InExService, ITransactionService
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<TransactionResponse>(dest.Entity);
+        return dest.Entity.ToResponse();
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)

@@ -1,7 +1,7 @@
-using AutoMapper;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
 using inex.Services.Exceptions;
+using inex.Services.Models.Mappers;
 using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Category;
@@ -18,7 +18,7 @@ public class CategoryService : InExService, ICategoryService
 {
     #region Constructors
 
-    public CategoryService(IInExUnitOfWork uowInEx, IMapper mapper) : base(uowInEx, mapper)
+    public CategoryService(IInExUnitOfWork uowInEx) : base(uowInEx)
     {
 
     }
@@ -31,7 +31,7 @@ public class CategoryService : InExService, ICategoryService
     {
         var category = await DbInEx.CategoryRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
-        return Mapper.Map<CategoryResponse>(category);
+        return category.ToResponse();
     }
 
     public ListResponse<CategoryResponse> Get(int userId, ActivityMode mode)
@@ -39,9 +39,9 @@ public class CategoryService : InExService, ICategoryService
         IQueryable<Category> items = DbInEx.CategoryRepository.Get(true).Where(i => i.UserId == userId).OrderBy(i => i.Name);
         return mode switch
         {
-            ActivityMode.ACTIVE => BuildDataResponse<Category, CategoryResponse>(items.Where(i => i.IsEnabled)),
-            ActivityMode.INACTIVE => BuildDataResponse<Category, CategoryResponse>(items.Where(i => !i.IsEnabled)),
-            ActivityMode.ALL => BuildDataResponse<Category, CategoryResponse>(items),
+            ActivityMode.ACTIVE => BuildDataResponse<Category, CategoryResponse>(items.Where(i => i.IsEnabled), CategoryMapper.ToResponse),
+            ActivityMode.INACTIVE => BuildDataResponse<Category, CategoryResponse>(items.Where(i => !i.IsEnabled), CategoryMapper.ToResponse),
+            ActivityMode.ALL => BuildDataResponse<Category, CategoryResponse>(items, CategoryMapper.ToResponse),
             _ => throw new ArgumentException($"Unknown ActivityMode: {mode}")
         };
     }
@@ -49,7 +49,7 @@ public class CategoryService : InExService, ICategoryService
     public async Task<CreatedResponse> CreateAsync(CreateCategoryRequest itemDTO, int userId, CancellationToken ct = default)
     {
         // create an item
-        Category category = Mapper.Map<Category>(itemDTO);
+        Category category = itemDTO.ToEntity();
         category.UserId = userId;
         category.CreatedBy = userId;
         // put information about created item to the database
@@ -71,14 +71,14 @@ public class CategoryService : InExService, ICategoryService
         var source = await DbInEx.CategoryRepository.GetAsync(id, ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         // update item with new details
-        source = Mapper.Map(itemDTO, source);
+        source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
         // put information about updated item to the database
         EntityEntry<Category> dest = DbInEx.CategoryRepository.Update(source);
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
 
-        return Mapper.Map<CategoryResponse>(dest.Entity);
+        return dest.Entity.ToResponse();
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)

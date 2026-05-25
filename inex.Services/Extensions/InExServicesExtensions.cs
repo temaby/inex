@@ -7,7 +7,6 @@ using inex.Services.Options;
 using Microsoft.Extensions.Configuration;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using Microsoft.Extensions.Options;
-using AutoMapper;
 using inex.Data.Repositories.Base;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -26,8 +25,6 @@ public static class InExServicesExtensions
         services.AddOptions<InviteOptions>().BindConfiguration(InviteOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<CurrencyApiSettings>().BindConfiguration(CurrencyApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<FrankfurterApiSettings>().BindConfiguration(FrankfurterApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
-
-        services.AddAutoMapper(typeof(InExServicesExtensions).Assembly);
 
         services.AddInExData(inexConnectionString);
 
@@ -88,11 +85,10 @@ public static class InExServicesExtensions
         services.AddScoped<IExchangeRateService>(serviceProvider =>
         {
             var uow = serviceProvider.GetRequiredService<IInExUnitOfWork>();
-            var mapper = serviceProvider.GetRequiredService<IMapper>();
             var primaryClient = serviceProvider.GetRequiredService<CurrencyApiClient>();
             var fallbackClient = serviceProvider.GetRequiredService<FrankfurterApiClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
-            return new ExchangeRateService(uow, mapper, primaryClient, fallbackClient, logger);
+            return new ExchangeRateService(uow, primaryClient, fallbackClient, logger);
         });
 
         return services;
