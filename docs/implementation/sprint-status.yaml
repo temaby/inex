@@ -1,0 +1,114 @@
+# generated: 2026-05-26T16:11:20.6477763+02:00
+# last_updated: 2026-05-26T18:30:44.3310702+02:00
+# project: inex
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: D:\work\inex/docs/implementation
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-05-26T16:11:20.6477763+02:00
+last_updated: 2026-05-26T18:30:44.3310702+02:00
+project: inex
+project_key: NOKEY
+tracking_system: file-system
+story_location: D:\work\inex/docs/implementation
+
+development_status:
+  epic-1: in-progress
+  1-1-enforce-object-level-authorization-in-service-methods: ready-for-dev
+  1-2-fix-refresh-token-rotation-race-condition: ready-for-dev
+  1-3-fix-account-update-returns-422: ready-for-dev
+  1-4-rotate-and-externalize-local-secrets: ready-for-dev
+  1-5-remove-tracked-frontend-build-artifacts: ready-for-dev
+  epic-1-retrospective: optional
+  epic-2: backlog
+  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: backlog
+  2-2-backend-injectable-clock-abstraction-and-utc-consistency: backlog
+  epic-2-retrospective: optional
+  epic-3: backlog
+  3-1-backend-registration-sends-confirmation-email: backlog
+  3-2-backend-confirm-email-and-resend-endpoints: backlog
+  3-3-frontend-email-confirmation-ui-flow: backlog
+  epic-3-retrospective: optional
+  epic-4: backlog
+  4-1-backend-move-tag-ref-filtering-to-database-side: backlog
+  4-2-backend-frontend-typed-transaction-filter-query-parameters: backlog
+  4-3-frontend-active-filter-indicator-on-transaction-list: backlog
+  epic-4-retrospective: optional
+  epic-5: backlog
+  5-1-backend-nbrb-exchange-rate-client-for-byn-rub: backlog
+  epic-5-retrospective: optional
+  epic-6: backlog
+  6-1-frontend-dashboard-home-page-and-navigation-restructure: backlog
+  6-2-frontend-month-summary-cards: backlog
+  6-3-frontend-spending-heatmap-calendar: backlog
+  6-4-backend-frontend-historical-net-worth-chart: backlog
+  6-5-backend-fix-category-report-data-gaps-and-localization: backlog
+  epic-6-retrospective: optional
+  epic-7: backlog
+  7-1-frontend-typed-api-models-eliminate-any-in-core-flows: backlog
+  7-2-frontend-route-based-code-splitting-and-vendor-chunks: backlog
+  7-3-frontend-introduce-vitest-and-react-testing-library: backlog
+  7-4a-frontend-rtk-query-pattern-for-transactions: backlog
+  7-4b-frontend-rtk-query-migration-for-accounts-and-categories: backlog
+  7-4c-frontend-rtk-query-migration-for-budgets-and-reports: backlog
+  epic-7-retrospective: optional
+  epic-8: backlog
+  8-1-backend-vsa-spike-copybudgets-as-mediatr-handler: backlog
+  8-2-backend-build-warning-cleanup: backlog
+  8-3a-backend-dto-naming-cleanup: backlog
+  8-3b-frontend-report-model-naming-cleanup: backlog
+  8-3c-backend-split-response-types-from-request-types: backlog
+  8-3d-backend-service-response-safety-cleanup: backlog
+  epic-8-retrospective: optional
+  epic-9: backlog
+  9-1-infra-ecr-image-push-from-ci: backlog
+  9-2-infra-rds-managed-mysql: backlog
+  9-3-infra-ecs-fargate-container-deployment: backlog
+  9-4-infra-alb-acm-https-termination: backlog
+  9-5-infra-route-53-custom-domain: backlog
+  9-6-infra-secrets-manager-runtime-injection: backlog
+  9-7-infra-cloudwatch-logs-alarms-and-dashboard: backlog
+  9-8-infra-ci-cd-github-actions-ecr-ecs-rolling-deploy: backlog
+  epic-9-retrospective: optional
+  epic-10: backlog
+  10-1a-frontend-ux-design-tokens-and-theme-bridge: backlog
+  10-1b-frontend-ux-shared-primitives: backlog
+  10-1c-frontend-ux-app-shell-and-navigation: backlog
+  10-2-frontend-ux-transactions-ledger-redesign: backlog
+  10-3a-frontend-ux-accounts-management-redesign: backlog
+  10-3b-frontend-ux-categories-management-redesign: backlog
+  10-3c-frontend-ux-budgets-management-redesign: backlog
+  10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome: backlog
+  10-5a-frontend-ux-profile-and-settings-redesign: backlog
+  10-5b-frontend-ux-login-and-registration-redesign: backlog
+  10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: backlog
+  epic-10-retrospective: optional
