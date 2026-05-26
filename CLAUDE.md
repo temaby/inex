@@ -4,7 +4,7 @@ Personal finance management app. Multi-user. Each user has fully isolated data.
 
 ## Tech Stack
 
-**Backend:** ASP.NET Core 8 · EF Core 8 + Pomelo MySQL · AutoMapper · Repository + UoW pattern · FluentValidation · Polly · Serilog · JWT with refresh token rotation · AWS CloudWatch (production)
+**Backend:** ASP.NET Core 8 · EF Core 8 + Pomelo MySQL · Custom static mappers (`inex.Services/Models/Mappers/`) · Repository + UoW pattern · FluentValidation · Polly · Serilog · JWT with refresh token rotation · AWS CloudWatch (production)
 
 **Frontend:** React 18 + TypeScript strict · Redux Toolkit · Ant Design v5 · Vite · react-i18next (EN/RU) · dayjs · recharts · Axios
 
