@@ -13,6 +13,7 @@ using inex.Services.Services.Base;
 using inex.Services.Models.Enums;
 using inex.Services.Helpers;
 using inex.Services.Models.Mappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace inex.Services.Services;
 
@@ -28,9 +29,11 @@ public class TransactionService : InExService, ITransactionService
 
     #region Public Interface
 
-    public async Task<TransactionResponse> GetAsync(int id, CancellationToken ct = default)
+    public async Task<TransactionResponse> GetAsync(int id, int userId, CancellationToken ct = default)
     {
-        var transaction = await DbInEx.TransactionRepository.GetAsync(id, ct)
+        var transaction = await DbInEx.TransactionRepository
+            .GetWithIncludePaths(false, i => i.Id == id && i.UserId == userId, "TransactionTagDetails.Tag")
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
         return transaction.ToResponse();
     }
@@ -49,6 +52,7 @@ public class TransactionService : InExService, ITransactionService
 
     public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
+        await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
 
         Transaction transaction = itemDTO.ToEntity();
         transaction.UserId = userId;
@@ -106,8 +110,12 @@ public class TransactionService : InExService, ITransactionService
         }
 
         // get item to update
-        var source = await DbInEx.TransactionRepository.GetAsync(id, ct)
+        var source = await DbInEx.TransactionRepository
+            .GetWithIncludePaths(false, i => i.Id == id && i.UserId == userId, "TransactionTagDetails.Tag")
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
+
+        await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
 
         // update item with new details
         source = itemDTO.ApplyTo(source);
@@ -122,9 +130,28 @@ public class TransactionService : InExService, ITransactionService
         return dest.Entity.ToResponse();
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
     {
-        await DbInEx.TransactionRepository.ExecuteDeleteAsync(i => ids.Contains(i.Id), ct);
+        var transaction = await DbInEx.TransactionRepository
+            .Get(false, i => i.Id == id && i.UserId == userId)
+            .SingleOrDefaultAsync(ct)
+            ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
+
+        DbInEx.TransactionRepository.Delete(transaction);
+        await DbInEx.SaveAsync(ct);
+    }
+
+    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
+    {
+        var transactions = DbInEx.TransactionRepository.Get(false, i => ids.Contains(i.Id) && i.UserId == userId).ToList();
+
+        DbInEx.TransactionRepository.Delete(transactions);
+        await DbInEx.SaveAsync(ct);
+    }
+
+    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    {
+        throw new OperationNotSupportedException("Transaction deletes require a current user id.");
     }
 
     public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, IDictionary<string, string> filters)
@@ -243,6 +270,27 @@ public class TransactionService : InExService, ITransactionService
         foreach (string item in tagsRemove)
         {
             transaction.TransactionTagDetails.Remove(transaction.TransactionTagDetails.First(i => i.TagId == tagsAll.First(i => i.Key == item).Id));
+        }
+    }
+
+    private async Task EnsureTransactionRelationsBelongToUserAsync(int accountId, int categoryId, int userId, CancellationToken ct)
+    {
+        bool accountExists = await DbInEx.AccountRepository
+            .Get(true, i => i.Id == accountId && i.UserId == userId)
+            .AnyAsync(ct);
+
+        if (!accountExists)
+        {
+            throw new ResourceNotFoundException($"Account {accountId} was not found.", "Account", accountId);
+        }
+
+        bool categoryExists = await DbInEx.CategoryRepository
+            .Get(true, i => i.Id == categoryId && i.UserId == userId)
+            .AnyAsync(ct);
+
+        if (!categoryExists)
+        {
+            throw new ResourceNotFoundException($"Category {categoryId} was not found.", "Category", categoryId);
         }
     }
 

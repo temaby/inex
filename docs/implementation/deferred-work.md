@@ -4,6 +4,18 @@ Items surfaced during review but out of scope for the originating story. Each en
 
 ---
 
+## From: Story 1.1 Object-Level Authorization
+
+- **Transfer creation still loads source and destination accounts by ID only** - `TransactionService.CreateAsync(CreateTransferRequest, userId)` uses `AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountFromId)` and the same pattern for `AccountToId`. Story 1.1 covered single-entity read/update/delete endpoints only; transfer creation needs a follow-up ownership predicate on both accounts before creating paired transactions.
+
+---
+
+## Deferred from: code review of 1-1-enforce-object-level-authorization-in-service-methods.md (2026-05-26)
+
+- **Transfer creation loads source and destination accounts by ID only** - `TransactionService.CreateAsync(CreateTransferRequest, userId)` loads `AccountFromId` and `AccountToId` without `UserId` predicates. This was pre-existing and explicitly called out by the story as adjacent follow-up work.
+
+---
+
 ## From: DTO Infrastructure Base Type Renames (Commit #1)
 
 - **`ResponseTransferDTO` not yet renamed** — Follows the same old `Response*DTO` pattern. Planned for PR #6 (Transactions domain) per the DTO migration plan in `docs/brainstorming/brainstorming-session-2026-05-20-1.md`.

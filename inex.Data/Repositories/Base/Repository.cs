@@ -49,6 +49,23 @@ public class Repository<T> : IRepository<T> where T : class
         return set;
     }
 
+    public IQueryable<T> GetWithIncludePaths(bool isReadOnly, Expression<Func<T, bool>>? predicate, params string[] includePaths)
+    {
+        IQueryable<T> set = isReadOnly ? Db.Set<T>().AsNoTracking() : Db.Set<T>();
+
+        if (predicate != null)
+        {
+            set = set.Where(predicate);
+        }
+
+        foreach (var includePath in includePaths)
+        {
+            set = set.Include(includePath);
+        }
+
+        return set;
+    }
+
     public virtual void Dispose()
     {
         Db?.Dispose();

@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.RateLimiting;
 using inex.Data;
+using inex.Data.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.RateLimiting;
@@ -93,6 +94,23 @@ public class InExWebApplicationFactory : WebApplicationFactory<Program>
         string username = "testuser",
         string password = "Password1!")
     {
+        using (var scope = Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            if (!db.Set<Currency>().Any(c => c.Id == 1))
+            {
+                db.Set<Currency>().Add(new Currency
+                {
+                    Id = 1,
+                    Key = "USD",
+                    Name = "USD",
+                    Created = DateTime.UtcNow,
+                    Updated = DateTime.UtcNow
+                });
+                await db.SaveChangesAsync();
+            }
+        }
+
         var anonClient = CreateClient();
 
         var response = await anonClient.PostAsJsonAsync("/api/auth/register", new

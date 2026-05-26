@@ -52,7 +52,7 @@ public class CategoriesController : ApiControllerBase
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        CategoryResponse resultDTO = await _categoryService.GetAsync(id, ct);
+        CategoryResponse resultDTO = await _categoryService.GetAsync(id, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -100,7 +100,7 @@ public class CategoriesController : ApiControllerBase
     [Route(DeleteRoute)]
     public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _categoryService.DeleteAsync(id, ct);
+        await _categoryService.DeleteAsync(id, CurrentUserId, ct);
         return Ok();
     }
 
@@ -110,7 +110,7 @@ public class CategoriesController : ApiControllerBase
     [Route(DeleteListRoute)]
     public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _categoryService.DeleteAsync(ids, ct);
+        await _categoryService.DeleteAsync(ids, CurrentUserId, ct);
         return Ok();
     }
 

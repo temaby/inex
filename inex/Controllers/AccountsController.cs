@@ -53,7 +53,7 @@ public class AccountsController : ApiControllerBase
     [ProducesResponseType(typeof(AccountResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        AccountResponse resultDTO = await _accountService.GetAsync(id, ct);
+        AccountResponse resultDTO = await _accountService.GetAsync(id, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -113,7 +113,7 @@ public class AccountsController : ApiControllerBase
     [Route(DeleteRoute)]
     public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _accountService.DeleteAsync(id, ct);
+        await _accountService.DeleteAsync(id, CurrentUserId, ct);
         return Ok();
     }
 
@@ -123,7 +123,7 @@ public class AccountsController : ApiControllerBase
     [Route(DeleteListRoute)]
     public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _accountService.DeleteAsync(ids, ct);
+        await _accountService.DeleteAsync(ids, CurrentUserId, ct);
         return Ok();
     }
 
