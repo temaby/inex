@@ -80,6 +80,18 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
     // ── PUT /api/accounts/{id} ────────────────────────────────────────────────
 
     [Fact]
+    public async Task Single_OtherUsersAccount_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int id = await CreateAccountAsync(userB, "other-get");
+
+        var response = await userA.GetAsync($"/api/accounts/{id}");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
     public async Task Update_ExistingAccount_Returns200WithUpdatedName()
     {
         var client = await _factory.CreateAuthenticatedClientAsync(
@@ -114,6 +126,25 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
         Assert.Equal("Renamed", body.GetProperty("name").GetString());
     }
 
+    [Fact]
+    public async Task Update_OtherUsersAccount_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int id = await CreateAccountAsync(userB, "other-put");
+
+        var response = await userA.PutAsJsonAsync($"/api/accounts/{id}", new
+        {
+            id,
+            key        = "other-put",
+            name       = "Attempted Rename",
+            currencyId = 1,
+            isEnabled  = true,
+        });
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
     // ── DELETE /api/accounts/{id} ─────────────────────────────────────────────
 
     [Fact]
@@ -140,6 +171,18 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Delete_OtherUsersAccount_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int id = await CreateAccountAsync(userB, "other-delete");
+
+        var response = await userA.DeleteAsync($"/api/accounts/{id}");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
     public async Task Delete_Unauthenticated_Returns401()
     {
         var client = _factory.CreateClient();
@@ -147,5 +190,25 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
         var response = await client.DeleteAsync("/api/accounts/1");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private Task<HttpClient> CreateAuthenticatedClientAsync() =>
+        _factory.CreateAuthenticatedClientAsync(
+            email: $"{Guid.NewGuid()}@example.com",
+            username: $"user-{Guid.NewGuid():N}");
+
+    private static async Task<int> CreateAccountAsync(HttpClient client, string key)
+    {
+        var createResponse = await client.PostAsJsonAsync("/api/accounts", new
+        {
+            key,
+            name       = key,
+            currencyId = 1,
+            isEnabled  = true,
+        });
+        createResponse.EnsureSuccessStatusCode();
+
+        var body = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
     }
 }

@@ -7,6 +7,7 @@ using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,9 +28,11 @@ public class CategoryService : InExService, ICategoryService
 
     #region Public Interface
 
-    public async Task<CategoryResponse> GetAsync(int id, CancellationToken ct = default)
+    public async Task<CategoryResponse> GetAsync(int id, int userId, CancellationToken ct = default)
     {
-        var category = await DbInEx.CategoryRepository.GetAsync(id, ct)
+        var category = await DbInEx.CategoryRepository
+            .Get(false, i => i.Id == id && i.UserId == userId)
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         return category.ToResponse();
     }
@@ -68,7 +71,9 @@ public class CategoryService : InExService, ICategoryService
         }
 
         // get item to update
-        var source = await DbInEx.CategoryRepository.GetAsync(id, ct)
+        var source = await DbInEx.CategoryRepository
+            .Get(false, i => i.Id == id && i.UserId == userId)
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
         // update item with new details
         source = itemDTO.ApplyTo(source);
@@ -81,11 +86,29 @@ public class CategoryService : InExService, ICategoryService
         return dest.Entity.ToResponse();
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
+    {
+        var category = await DbInEx.CategoryRepository
+            .Get(false, i => i.Id == id && i.UserId == userId)
+            .SingleOrDefaultAsync(ct)
+            ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
+
+        if (category.IsSystem)
+        {
+            throw new DomainRuleException(
+                "system-category-delete",
+                $"System categories cannot be deleted: {category.Id}.");
+        }
+
+        DbInEx.CategoryRepository.Delete(category);
+        await DbInEx.SaveAsync(ct);
+    }
+
+    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
         var systemIds = DbInEx.CategoryRepository
             .Get(true)
-            .Where(i => ids.Contains(i.Id) && i.IsSystem)
+            .Where(i => ids.Contains(i.Id) && i.UserId == userId && i.IsSystem)
             .Select(i => i.Id)
             .ToList();
 
@@ -94,8 +117,13 @@ public class CategoryService : InExService, ICategoryService
                 "system-category-delete",
                 $"System categories cannot be deleted: {string.Join(", ", systemIds)}.");
 
-        DbInEx.CategoryRepository.Delete(DbInEx.CategoryRepository.Get(false).Where(i => ids.Contains(i.Id)));
+        DbInEx.CategoryRepository.Delete(DbInEx.CategoryRepository.Get(false).Where(i => ids.Contains(i.Id) && i.UserId == userId));
         await DbInEx.SaveAsync(ct);
+    }
+
+    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    {
+        throw new OperationNotSupportedException("Category deletes require a current user id.");
     }
 
     #endregion Public Interface

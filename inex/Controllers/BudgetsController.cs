@@ -51,7 +51,7 @@ public class BudgetsController : ApiControllerBase
     [ProducesResponseType(typeof(BudgetResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult> Single(int id, CancellationToken ct)
     {
-        BudgetResponse resultDTO = await _budgetService.GetAsync(id, ct);
+        BudgetResponse resultDTO = await _budgetService.GetAsync(id, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 
@@ -107,7 +107,7 @@ public class BudgetsController : ApiControllerBase
     [Route(DeleteRoute)]
     public async Task<ActionResult> Delete(int id, CancellationToken ct)
     {
-        await _budgetService.DeleteAsync(id, ct);
+        await _budgetService.DeleteAsync(id, CurrentUserId, ct);
         return Ok();
     }
 
@@ -117,7 +117,7 @@ public class BudgetsController : ApiControllerBase
     [Route(DeleteListRoute)]
     public async Task<ActionResult> DeleteList([FromQuery] IEnumerable<int> ids, CancellationToken ct)
     {
-        await _budgetService.DeleteAsync(ids, ct);
+        await _budgetService.DeleteAsync(ids, CurrentUserId, ct);
         return Ok();
     }
 

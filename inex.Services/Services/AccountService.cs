@@ -7,6 +7,7 @@ using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
@@ -28,9 +29,11 @@ public class AccountService : InExService, IAccountService
 
     #region Public Interface
 
-    public async Task<AccountResponse> GetAsync(int id, CancellationToken ct = default)
+    public async Task<AccountResponse> GetAsync(int id, int userId, CancellationToken ct = default)
     {
-        var account = await DbInEx.AccountRepository.GetAsync(id, ct)
+        var account = await DbInEx.AccountRepository
+            .Get(false, i => i.Id == id && i.UserId == userId, i => i.Currency)
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         return account.ToResponse();
     }
@@ -102,7 +105,9 @@ public class AccountService : InExService, IAccountService
         }
 
         // get item to update
-        var source = await DbInEx.AccountRepository.GetAsync(id, ct)
+        var source = await DbInEx.AccountRepository
+            .Get(false, i => i.Id == id && i.UserId == userId, i => i.Currency)
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
         // update item with new details
         source = itemDTO.ApplyTo(source);
@@ -115,10 +120,26 @@ public class AccountService : InExService, IAccountService
         return dest.Entity.ToResponse();
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
     {
-        DbInEx.AccountRepository.Delete(DbInEx.AccountRepository.Get(false).Where(i => ids.Contains(i.Id)));
+        var account = await DbInEx.AccountRepository
+            .Get(false, i => i.Id == id && i.UserId == userId)
+            .SingleOrDefaultAsync(ct)
+            ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
+
+        DbInEx.AccountRepository.Delete(account);
         await DbInEx.SaveAsync(ct);
+    }
+
+    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
+    {
+        DbInEx.AccountRepository.Delete(DbInEx.AccountRepository.Get(false).Where(i => ids.Contains(i.Id) && i.UserId == userId));
+        await DbInEx.SaveAsync(ct);
+    }
+
+    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    {
+        throw new OperationNotSupportedException("Account deletes require a current user id.");
     }
 
     #endregion Public Interface

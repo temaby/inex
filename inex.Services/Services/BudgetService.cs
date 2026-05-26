@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using inex.Services.Models.Records.Budget;
+using Microsoft.EntityFrameworkCore;
 
 namespace inex.Services.Services;
 
@@ -26,9 +27,11 @@ public class BudgetService : InExService, IBudgetService
 
     #region Public Interface
 
-    public async Task<BudgetResponse> GetAsync(int id, CancellationToken ct = default)
+    public async Task<BudgetResponse> GetAsync(int id, int userId, CancellationToken ct = default)
     {
-        var budget = await DbInEx.BudgetRepository.GetAsync(id, ct)
+        var budget = await DbInEx.BudgetRepository
+            .Get(false, i => i.Id == id && i.UserId == userId, i => i.BudgetCategories)
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         return budget.ToResponse();
     }
@@ -51,6 +54,7 @@ public class BudgetService : InExService, IBudgetService
         if (budget.Year == 0) budget.Year = System.DateTime.Now.Year;
         if (budget.Month == 0) budget.Month = System.DateTime.Now.Month;
 
+        await EnsureCategoriesBelongToUserAsync(itemDTO.CategoryIds, userId, ct);
         ValidateCategoryUniqueness(userId, budget.Year, budget.Month, itemDTO.CategoryIds);
 
         // put information about created item to the database
@@ -90,12 +94,15 @@ public class BudgetService : InExService, IBudgetService
         }
 
         // get item to update with categories loaded
-        var source = await DbInEx.BudgetRepository.GetAsync(id, ct)
+        var source = await DbInEx.BudgetRepository
+            .Get(false, i => i.Id == id && i.UserId == userId, i => i.BudgetCategories)
+            .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
         // update item with new details
         source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
 
+        await EnsureCategoriesBelongToUserAsync(itemDTO.CategoryIds, userId, ct);
         ValidateCategoryUniqueness(userId, source.Year, source.Month, itemDTO.CategoryIds, id);
 
         // Handle category assignments: unassign removed categories and assign new ones
@@ -133,9 +140,25 @@ public class BudgetService : InExService, IBudgetService
         return dest.Entity.ToResponse();
     }
 
-    public override async Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
     {
-        var budgets = DbInEx.BudgetRepository.Get(false, i => ids.Contains(i.Id), i => i.BudgetCategories).ToList();
+        var budget = await DbInEx.BudgetRepository
+            .Get(false, i => i.Id == id && i.UserId == userId, i => i.BudgetCategories)
+            .SingleOrDefaultAsync(ct)
+            ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
+
+        if (budget.BudgetCategories != null && budget.BudgetCategories.Any())
+        {
+            DbInEx.BudgetCategoryRepository.Delete(budget.BudgetCategories);
+        }
+
+        DbInEx.BudgetRepository.Delete(budget);
+        await DbInEx.SaveAsync(ct);
+    }
+
+    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
+    {
+        var budgets = DbInEx.BudgetRepository.Get(false, i => ids.Contains(i.Id) && i.UserId == userId, i => i.BudgetCategories).ToList();
 
         foreach (var budget in budgets)
         {
@@ -147,6 +170,11 @@ public class BudgetService : InExService, IBudgetService
 
         DbInEx.BudgetRepository.Delete(budgets);
         await DbInEx.SaveAsync(ct);
+    }
+
+    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    {
+        throw new OperationNotSupportedException("Budget deletes require a current user id.");
     }
 
     public async Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default)
@@ -245,6 +273,23 @@ public class BudgetService : InExService, IBudgetService
             throw new DomainRuleException(
                 "category-uniqueness",
                 $"Categories already assigned in this period: {string.Join(", ", categoryNames)}");
+        }
+    }
+
+    private async Task EnsureCategoriesBelongToUserAsync(IEnumerable<int>? categoryIds, int userId, CancellationToken ct)
+    {
+        var requestedIds = categoryIds?.Distinct().ToList() ?? [];
+        if (requestedIds.Count == 0) return;
+
+        var ownedIds = await DbInEx.CategoryRepository
+            .Get(true, i => requestedIds.Contains(i.Id) && i.UserId == userId)
+            .Select(i => i.Id)
+            .ToListAsync(ct);
+
+        var missingId = requestedIds.Except(ownedIds).FirstOrDefault();
+        if (missingId > 0)
+        {
+            throw new ResourceNotFoundException($"Category {missingId} was not found.", "Category", missingId);
         }
     }
 

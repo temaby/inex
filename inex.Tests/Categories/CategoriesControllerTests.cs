@@ -82,6 +82,18 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
     // ── PUT /api/categories/{id} ──────────────────────────────────────────────
 
     [Fact]
+    public async Task Single_OtherUsersCategory_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int id = await CreateCategoryAsync(userB, "other-get");
+
+        var response = await userA.GetAsync($"/api/categories/{id}");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
     public async Task Update_ExistingCategory_Returns200WithUpdatedName()
     {
         var client = await _factory.CreateAuthenticatedClientAsync(
@@ -112,6 +124,25 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
 
         var body = await updateResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Renamed", body.GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task Update_OtherUsersCategory_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int id = await CreateCategoryAsync(userB, "other-put");
+
+        var response = await userA.PutAsJsonAsync($"/api/categories/{id}", new
+        {
+            id,
+            key       = "other-put",
+            name      = "Attempted Rename",
+            isEnabled = true,
+            isSystem  = false,
+        });
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
     }
 
     // ── DELETE /api/categories/{id} ───────────────────────────────────────────
@@ -169,6 +200,18 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
     }
 
     [Fact]
+    public async Task Delete_OtherUsersCategory_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int id = await CreateCategoryAsync(userB, "other-delete");
+
+        var response = await userA.DeleteAsync($"/api/categories/{id}");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
     public async Task Delete_Unauthenticated_Returns401()
     {
         var client = _factory.CreateClient();
@@ -176,5 +219,25 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
         var response = await client.DeleteAsync("/api/categories/1");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private Task<HttpClient> CreateAuthenticatedClientAsync() =>
+        _factory.CreateAuthenticatedClientAsync(
+            email: $"{Guid.NewGuid()}@example.com",
+            username: $"user-{Guid.NewGuid():N}");
+
+    private static async Task<int> CreateCategoryAsync(HttpClient client, string key)
+    {
+        var createResponse = await client.PostAsJsonAsync("/api/categories", new
+        {
+            key,
+            name      = key,
+            isEnabled = true,
+            isSystem  = false,
+        });
+        createResponse.EnsureSuccessStatusCode();
+
+        var body = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
     }
 }
