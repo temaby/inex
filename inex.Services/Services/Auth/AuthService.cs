@@ -12,6 +12,8 @@ namespace inex.Services.Services.Auth;
 
 public class AuthService : IAuthService
 {
+    private const int MaxRevocationRetries = 3;
+
     private readonly UserManager<AppUser> _userManager;
     private readonly InExDbContext _db;
     private readonly ITokenService _tokenService;
@@ -84,17 +86,12 @@ public class AuthService : IAuthService
         if (stored.ExpiresAt < DateTime.UtcNow)
             throw new AuthenticationFailedException("Refresh token has expired.");
 
-        // Grace window: parallel requests may reuse the same token within the configured window
         if (stored.UsedAt is not null)
         {
-            var withinGraceWindow = DateTime.UtcNow - stored.UsedAt.Value < TimeSpan.FromSeconds(_jwt.RefreshGraceWindowSeconds);
-            if (withinGraceWindow && stored.ReplacedByToken is not null)
-                return new AuthResult(
-                    _tokenService.GenerateAccessToken(stored.User),
-                    stored.ReplacedByToken,
-                    _jwt.AccessTokenExpirySeconds);
+            var withinRaceWindow = DateTime.UtcNow - stored.UsedAt.Value < TimeSpan.FromSeconds(_jwt.RefreshGraceWindowSeconds);
+            if (withinRaceWindow && stored.ReplacedByToken is not null)
+                throw new ConflictException("Refresh token rotation conflict detected.", stored.Id);
 
-            // Reuse outside grace window — potential token theft
             await RevokeAllUserTokensAsync(stored.UserId, ct);
             throw new AuthenticationFailedException("Token reuse detected. All sessions have been revoked.");
         }
@@ -103,15 +100,25 @@ public class AuthService : IAuthService
         var newRefreshToken = _tokenService.GenerateRefreshToken();
         stored.UsedAt = DateTime.UtcNow;
         stored.ReplacedByToken = newRefreshToken;
+        stored.ConcurrencyStamp = CreateConcurrencyStamp();
 
-        _db.RefreshTokens.Add(new RefreshToken
+        var replacement = new RefreshToken
         {
             Token = newRefreshToken,
             UserId = stored.UserId,
             ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpiryDays)
-        });
+        };
+        _db.RefreshTokens.Add(replacement);
 
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await RemoveFailedReplacementAsync(replacement, ct);
+            throw new ConflictException("Refresh token rotation conflict detected.", stored.Id);
+        }
 
         return new AuthResult(
             _tokenService.GenerateAccessToken(stored.User),
@@ -128,7 +135,15 @@ public class AuthService : IAuthService
             return; // idempotent — logout is safe to call multiple times
 
         stored.RevokedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
+        stored.ConcurrencyStamp = CreateConcurrencyStamp();
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            _db.ChangeTracker.Clear();
+        }
     }
 
     public async Task<AuthResult> UpdateProfileAsync(int userId, UpdateProfileRequest request, CancellationToken ct = default)
@@ -185,14 +200,49 @@ public class AuthService : IAuthService
 
     private async Task RevokeAllUserTokensAsync(int userId, CancellationToken ct = default)
     {
-        var tokens = await _db.RefreshTokens
-            .Where(t => t.UserId == userId && t.RevokedAt == null)
-            .ToListAsync(ct);
+        for (var attempt = 1; attempt <= MaxRevocationRetries; attempt++)
+        {
+            var tokens = await _db.RefreshTokens
+                .Where(t => t.UserId == userId && t.RevokedAt == null)
+                .ToListAsync(ct);
 
-        var now = DateTime.UtcNow;
-        foreach (var token in tokens)
-            token.RevokedAt = now;
+            if (tokens.Count == 0)
+                return;
 
+            var now = DateTime.UtcNow;
+            foreach (var token in tokens)
+            {
+                token.RevokedAt = now;
+                token.ConcurrencyStamp = CreateConcurrencyStamp();
+            }
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                return;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                _db.ChangeTracker.Clear();
+                if (attempt == MaxRevocationRetries)
+                    throw new ConflictException("Refresh token revocation conflict detected.", userId);
+            }
+        }
+    }
+
+    private static string CreateConcurrencyStamp() => Guid.NewGuid().ToString("N");
+
+    private async Task RemoveFailedReplacementAsync(RefreshToken replacement, CancellationToken ct)
+    {
+        _db.ChangeTracker.Clear();
+
+        var persistedReplacement = await _db.RefreshTokens
+            .FirstOrDefaultAsync(t => t.Token == replacement.Token, ct);
+
+        if (persistedReplacement is null)
+            return;
+
+        _db.RefreshTokens.Remove(persistedReplacement);
         await _db.SaveChangesAsync(ct);
     }
 }
