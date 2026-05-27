@@ -17,6 +17,11 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.Property(t => t.ReplacedByToken)
                .HasMaxLength(512);
 
+        builder.Property(t => t.ConcurrencyStamp)
+               .IsRequired()
+               .HasMaxLength(32)
+               .IsConcurrencyToken();
+
         builder.HasOne(t => t.User)
                .WithMany(u => u.RefreshTokens)
                .HasForeignKey(t => t.UserId)

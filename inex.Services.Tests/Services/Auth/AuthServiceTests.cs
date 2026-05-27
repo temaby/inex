@@ -27,8 +27,11 @@ public class AuthServiceTests
     // ── Fixtures ──────────────────────────────────────────────────────────────
 
     private static InExDbContext CreateContext() =>
+        CreateContext(Guid.NewGuid().ToString());
+
+    private static InExDbContext CreateContext(string databaseName) =>
         new(new DbContextOptionsBuilder<InExDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName)
             .Options);
 
     private static IOptions<JwtOptions> CreateJwtOptions(int graceSeconds = 30) =>
@@ -244,12 +247,8 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task RefreshAsync_WithinGraceWindow_ReturnsCachedToken()
+    public async Task RefreshAsync_LateDuplicateWithinRaceWindow_ThrowsConflictAndKeepsReplacementActive()
     {
-        // Grace window: two parallel requests both arrive with the same refresh token.
-        // The first one marks it UsedAt and stores ReplacedByToken.
-        // The second arrives within the grace window — should get the same new token
-        // rather than throwing a "token reuse detected" error.
         using var db = CreateContext();
         var user = new AppUser { Id = 1, UserName = "u", Email = "u@e.com" };
         db.Users.Add(user);
@@ -258,17 +257,80 @@ public class AuthServiceTests
             Token           = "shared-rt",
             UserId          = 1,
             ExpiresAt       = DateTime.UtcNow.AddDays(7),
-            UsedAt          = DateTime.UtcNow.AddSeconds(-5), // used 5 seconds ago
-            ReplacedByToken = "already-issued-rt",            // replacement already issued
+            UsedAt          = DateTime.UtcNow.AddSeconds(-5),
+            ReplacedByToken = "already-issued-rt",
+        });
+        db.RefreshTokens.Add(new RefreshToken
+        {
+            Token     = "other-active-rt",
+            UserId    = 1,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
         });
         await db.SaveChangesAsync();
 
         var service = CreateService(db, graceSeconds: 30);
 
-        // Second request within the grace window
-        var result = await service.RefreshAsync("shared-rt");
+        await Assert.ThrowsAsync<ConflictException>(
+            () => service.RefreshAsync("shared-rt"));
 
-        Assert.Equal("already-issued-rt", result.RefreshToken);
+        var tokens = await db.RefreshTokens.ToListAsync();
+        Assert.All(tokens, t => Assert.Null(t.RevokedAt));
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ConcurrentStaleRotation_AllowsOnlyOneReplacement()
+    {
+        var databaseName = Guid.NewGuid().ToString();
+
+        await using (var seedDb = CreateContext(databaseName))
+        {
+            var user = new AppUser { Id = 1, UserName = "u", Email = "u@e.com" };
+            seedDb.Users.Add(user);
+            seedDb.RefreshTokens.Add(new RefreshToken
+            {
+                Token     = "race-rt",
+                UserId    = 1,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+            });
+            await seedDb.SaveChangesAsync();
+        }
+
+        await using var firstDb = CreateContext(databaseName);
+        await using var secondDb = CreateContext(databaseName);
+
+        var firstTokenService = new Mock<ITokenService>();
+        firstTokenService.Setup(t => t.GenerateAccessToken(It.IsAny<AppUser>())).Returns("first-at");
+        firstTokenService.Setup(t => t.GenerateRefreshToken()).Returns("first-replacement-rt");
+
+        var secondTokenService = new Mock<ITokenService>();
+        secondTokenService.Setup(t => t.GenerateAccessToken(It.IsAny<AppUser>())).Returns("second-at");
+        secondTokenService.Setup(t => t.GenerateRefreshToken()).Returns("second-replacement-rt");
+
+        var firstService = CreateService(firstDb, tokenService: firstTokenService);
+        var secondService = CreateService(secondDb, tokenService: secondTokenService);
+
+        var firstStored = await firstDb.RefreshTokens.SingleAsync(t => t.Token == "race-rt");
+        var secondStored = await secondDb.RefreshTokens.SingleAsync(t => t.Token == "race-rt");
+        Assert.Null(firstStored.UsedAt);
+        Assert.Null(secondStored.UsedAt);
+
+        var firstResult = await firstService.RefreshAsync("race-rt");
+        var secondException = await Assert.ThrowsAsync<ConflictException>(
+            () => secondService.RefreshAsync("race-rt"));
+
+        Assert.Equal("first-replacement-rt", firstResult.RefreshToken);
+        Assert.Equal("Refresh token rotation conflict detected.", secondException.Message);
+
+        await using var verifyDb = CreateContext(databaseName);
+        var original = await verifyDb.RefreshTokens.SingleAsync(t => t.Token == "race-rt");
+        var replacements = await verifyDb.RefreshTokens
+            .Where(t => t.Token == "first-replacement-rt" || t.Token == "second-replacement-rt")
+            .ToListAsync();
+
+        Assert.NotNull(original.UsedAt);
+        Assert.Equal("first-replacement-rt", original.ReplacedByToken);
+        Assert.Single(replacements);
+        Assert.Equal("first-replacement-rt", replacements[0].Token);
     }
 
     [Fact]
@@ -466,5 +528,37 @@ public class AuthServiceTests
         // RevokedAt must not be overwritten
         var stored = await db.RefreshTokens.SingleAsync();
         Assert.Equal(revokedAt, stored.RevokedAt);
+    }
+
+    [Fact]
+    public async Task RevokeAsync_ConcurrentStaleRevoke_IsIdempotent()
+    {
+        var databaseName = Guid.NewGuid().ToString();
+
+        await using (var seedDb = CreateContext(databaseName))
+        {
+            var user = new AppUser { Id = 1, UserName = "u", Email = "u@e.com" };
+            seedDb.Users.Add(user);
+            seedDb.RefreshTokens.Add(new RefreshToken
+            {
+                Token     = "logout-rt",
+                UserId    = 1,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+            });
+            await seedDb.SaveChangesAsync();
+        }
+
+        await using var firstDb = CreateContext(databaseName);
+        await using var secondDb = CreateContext(databaseName);
+        _ = await firstDb.RefreshTokens.SingleAsync(t => t.Token == "logout-rt");
+        _ = await secondDb.RefreshTokens.SingleAsync(t => t.Token == "logout-rt");
+
+        var firstService = CreateService(firstDb);
+        var secondService = CreateService(secondDb);
+
+        await firstService.RevokeAsync("logout-rt");
+        var ex = await Record.ExceptionAsync(() => secondService.RevokeAsync("logout-rt"));
+
+        Assert.Null(ex);
     }
 }
