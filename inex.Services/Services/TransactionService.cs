@@ -130,28 +130,21 @@ public class TransactionService : InExService, ITransactionService
         return dest.Entity.ToResponse();
     }
 
-    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
+    public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var transaction = await DbInEx.TransactionRepository
-            .Get(false, i => i.Id == id && i.UserId == userId)
-            .SingleOrDefaultAsync(ct)
-            ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
+        var idList = ids.ToList();
+        var transactions = await DbInEx.TransactionRepository
+            .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
+            .ToListAsync(ct);
 
-        DbInEx.TransactionRepository.Delete(transaction);
-        await DbInEx.SaveAsync(ct);
-    }
-
-    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
-    {
-        var transactions = DbInEx.TransactionRepository.Get(false, i => ids.Contains(i.Id) && i.UserId == userId).ToList();
+        if (transactions.Count != idList.Count)
+        {
+            var notFoundIds = idList.Except(transactions.Select(a => a.Id));
+            throw new ResourceNotFoundException($"Transactions {string.Join(", ", notFoundIds)} were not found.", "Transaction", notFoundIds);
+        }
 
         DbInEx.TransactionRepository.Delete(transactions);
         await DbInEx.SaveAsync(ct);
-    }
-
-    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
-    {
-        throw new OperationNotSupportedException("Transaction deletes require a current user id.");
     }
 
     public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, IDictionary<string, string> filters)

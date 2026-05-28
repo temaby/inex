@@ -14,6 +14,4 @@ public interface IAccountService : IInExService
     ListResponse<AccountSummary> GetDetails(int userId, IEnumerable<int> ids);
     Task<CreatedResponse> CreateAsync(CreateAccountRequest itemDTO, int userId, CancellationToken ct = default);
     Task<AccountResponse> UpdateAsync(int id, UpdateAccountRequest itemDTO, int userId, CancellationToken ct = default);
-    Task DeleteAsync(int id, int userId, CancellationToken ct = default);
-    Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default);
 }

@@ -140,29 +140,22 @@ public class BudgetService : InExService, IBudgetService
         return dest.Entity.ToResponse();
     }
 
-    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
+    public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var budget = await DbInEx.BudgetRepository
-            .Get(false, i => i.Id == id && i.UserId == userId, i => i.BudgetCategories)
-            .SingleOrDefaultAsync(ct)
-            ?? throw new ResourceNotFoundException($"Budget {id} was not found.", "Budget", id);
+        var idList = ids.ToList();
+        var budgets = await DbInEx.BudgetRepository
+            .Get(false, i => idList.Contains(i.Id) && i.UserId == userId, i => i.BudgetCategories)
+            .ToListAsync(ct);
 
-        if (budget.BudgetCategories != null && budget.BudgetCategories.Any())
+        if (budgets.Count != idList.Count)
         {
-            DbInEx.BudgetCategoryRepository.Delete(budget.BudgetCategories);
+            var notFoundIds = idList.Except(budgets.Select(a => a.Id));
+            throw new ResourceNotFoundException($"Budgets {string.Join(", ", notFoundIds)} were not found.", "Budget", notFoundIds);
         }
-
-        DbInEx.BudgetRepository.Delete(budget);
-        await DbInEx.SaveAsync(ct);
-    }
-
-    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
-    {
-        var budgets = DbInEx.BudgetRepository.Get(false, i => ids.Contains(i.Id) && i.UserId == userId, i => i.BudgetCategories).ToList();
 
         foreach (var budget in budgets)
         {
-            if (budget.BudgetCategories != null && budget.BudgetCategories.Any())
+            if (budget.BudgetCategories.Any())
             {
                 DbInEx.BudgetCategoryRepository.Delete(budget.BudgetCategories);
             }
@@ -170,11 +163,6 @@ public class BudgetService : InExService, IBudgetService
 
         DbInEx.BudgetRepository.Delete(budgets);
         await DbInEx.SaveAsync(ct);
-    }
-
-    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
-    {
-        throw new OperationNotSupportedException("Budget deletes require a current user id.");
     }
 
     public async Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default)
@@ -229,20 +217,17 @@ public class BudgetService : InExService, IBudgetService
             await DbInEx.SaveAsync(ct); // Save to get ID
 
             // Copy categories
-            if (sourceBudget.BudgetCategories != null)
+            foreach (var bc in sourceBudget.BudgetCategories)
             {
-                foreach (var bc in sourceBudget.BudgetCategories)
+                await DbInEx.BudgetCategoryRepository.CreateAsync(new BudgetCategory
                 {
-                    await DbInEx.BudgetCategoryRepository.CreateAsync(new BudgetCategory
-                    {
-                        BudgetId = result.Entity.Id,
-                        CategoryId = bc.CategoryId,
-                        CreatedBy = userId,
-                        UpdatedBy = userId,
-                        Created = System.DateTime.Now,
-                        Updated = System.DateTime.Now
-                    }, ct);
-                }
+                    BudgetId = result.Entity.Id,
+                    CategoryId = bc.CategoryId,
+                    CreatedBy = userId,
+                    UpdatedBy = userId,
+                    Created = System.DateTime.Now,
+                    Updated = System.DateTime.Now
+                }, ct);
             }
         }
 

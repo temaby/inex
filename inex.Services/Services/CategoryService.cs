@@ -86,44 +86,26 @@ public class CategoryService : InExService, ICategoryService
         return dest.Entity.ToResponse();
     }
 
-    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
+    public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var category = await DbInEx.CategoryRepository
-            .Get(false, i => i.Id == id && i.UserId == userId)
-            .SingleOrDefaultAsync(ct)
-            ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
+        var idList = ids.ToList();
+        var categories = await DbInEx.CategoryRepository
+            .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
+            .ToListAsync(ct);
 
-        if (category.IsSystem)
+        if (categories.Count != idList.Count)
         {
-            throw new DomainRuleException(
-                "system-category-delete",
-                $"System categories cannot be deleted: {category.Id}.");
+            var notFoundIds = idList.Except(categories.Select(a => a.Id));
+            throw new ResourceNotFoundException($"Categories {string.Join(", ", notFoundIds)} were not found.", "Category", notFoundIds);
         }
 
-        DbInEx.CategoryRepository.Delete(category);
-        await DbInEx.SaveAsync(ct);
-    }
-
-    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
-    {
-        var systemIds = DbInEx.CategoryRepository
-            .Get(true)
-            .Where(i => ids.Contains(i.Id) && i.UserId == userId && i.IsSystem)
-            .Select(i => i.Id)
-            .ToList();
+        var systemIds = categories.Where(i => i.IsSystem).Select(i => i.Id).ToList();
 
         if (systemIds.Count > 0)
-            throw new DomainRuleException(
-                "system-category-delete",
-                $"System categories cannot be deleted: {string.Join(", ", systemIds)}.");
+            throw new DomainRuleException("system-category-delete", $"System categories cannot be deleted: {string.Join(", ", systemIds)}.");
 
-        DbInEx.CategoryRepository.Delete(DbInEx.CategoryRepository.Get(false).Where(i => ids.Contains(i.Id) && i.UserId == userId));
+        DbInEx.CategoryRepository.Delete(categories);
         await DbInEx.SaveAsync(ct);
-    }
-
-    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
-    {
-        throw new OperationNotSupportedException("Category deletes require a current user id.");
     }
 
     #endregion Public Interface

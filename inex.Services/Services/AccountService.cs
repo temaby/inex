@@ -120,26 +120,21 @@ public class AccountService : InExService, IAccountService
         return dest.Entity.ToResponse();
     }
 
-    public async Task DeleteAsync(int id, int userId, CancellationToken ct = default)
+    public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var account = await DbInEx.AccountRepository
-            .Get(false, i => i.Id == id && i.UserId == userId)
-            .SingleOrDefaultAsync(ct)
-            ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
+        var idList = ids.ToList();
+        var accounts = await DbInEx.AccountRepository
+            .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
+            .ToListAsync(ct);
 
-        DbInEx.AccountRepository.Delete(account);
+        if (accounts.Count != idList.Count)
+        {
+            var notFoundIds = idList.Except(accounts.Select(a => a.Id));
+            throw new ResourceNotFoundException($"Accounts {string.Join(", ", notFoundIds)} were not found.", "Account", notFoundIds);
+        }
+
+        DbInEx.AccountRepository.Delete(accounts);
         await DbInEx.SaveAsync(ct);
-    }
-
-    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
-    {
-        DbInEx.AccountRepository.Delete(DbInEx.AccountRepository.Get(false).Where(i => ids.Contains(i.Id) && i.UserId == userId));
-        await DbInEx.SaveAsync(ct);
-    }
-
-    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
-    {
-        throw new OperationNotSupportedException("Account deletes require a current user id.");
     }
 
     #endregion Public Interface
