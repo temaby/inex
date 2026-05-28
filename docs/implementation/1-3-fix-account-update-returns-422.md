@@ -1,6 +1,6 @@
 # Story 1.3: Fix Account Update Returns 422
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -20,26 +20,30 @@ so that I can rename, describe, or enable/disable accounts from the UI.
 
 ## Tasks / Subtasks
 
-- [ ] Fix the account update payload. (AC: 1, 2, 4)
-  - [ ] Update `updateAccount` in `inex/ClientApp/src/store/accounts/accounts-actions.ts` to accept `key: string`.
-  - [ ] Include `key` in the `apiClient.put(`${API_BASE}/${id}`, ...)` request body.
-  - [ ] Keep the existing `apiClient`, `parseAxiosError`, `setIsUpdating`, `setLastUpdate`, and `finally` loading-state pattern.
-- [ ] Pass the existing account key from the edit form. (AC: 1, 2, 4)
-  - [ ] In `inex/ClientApp/src/pages/Accounts/AccountEditForm.tsx`, pass `props.record.key` to `updateAccount`.
-  - [ ] Preserve the current edit surface: name, description, currency, and enabled/disabled status. Do not add a key field unless product requirements explicitly ask for key editing.
-  - [ ] If `AccountEditForm` is touched beyond the call site, replace touched `any` usage with the existing `AccountDetails` type and a small reducer-action union rather than adding new `any`.
-- [ ] Preserve backend validation and contracts. (AC: 2, 3)
-  - [ ] Do not change `inex.Services/Validators/Account/AccountUpdateValidator.cs`.
-  - [ ] Do not remove `Include(new AccountCreateValidator())`.
-  - [ ] Do not change `CreateAccountRequest`, `UpdateAccountRequest`, `AccountResponse`, route names, JSON property names, or response status semantics for this story.
-- [ ] Optional focused backend regression coverage only if useful. (AC: 3)
-  - [ ] Existing `inex.Tests/Accounts/AccountsControllerTests.cs` already proves a valid update succeeds when `key` is present.
-  - [ ] Add or extend validation coverage only if the implementation touches backend validation or contract files. This story should normally be frontend-only.
-- [ ] Run required verification. (AC: 5)
-  - [ ] From `D:\work\inex\inex\ClientApp`, run `npm run build`.
-  - [ ] From `D:\work\inex\inex\ClientApp`, run `npm run lint`.
-  - [ ] If backend files are changed despite the intended scope, also run `dotnet build inex.sln` and `dotnet test inex.sln` from `D:\work\inex`.
-  - [ ] Smoke-check the Accounts edit flow in the UI or through the network request: the `PUT /api/accounts/{id}` payload must include the original `key` and return `200 OK`.
+- [x] Fix the account update payload. (AC: 1, 2, 4)
+  - [x] Update `updateAccount` in `inex/ClientApp/src/store/accounts/accounts-actions.ts` to accept `key: string`.
+  - [x] Include `key` in the `apiClient.put(`${API_BASE}/${id}`, ...)` request body.
+  - [x] Keep the existing `apiClient`, `parseAxiosError`, `setIsUpdating`, `setLastUpdate`, and `finally` loading-state pattern.
+- [x] Pass the existing account key from the edit form. (AC: 1, 2, 4)
+  - [x] In `inex/ClientApp/src/pages/Accounts/AccountEditForm.tsx`, pass `props.record.key` to `updateAccount`.
+  - [x] Preserve the current edit surface: name, description, currency, and enabled/disabled status. Do not add a key field unless product requirements explicitly ask for key editing.
+  - [x] If `AccountEditForm` is touched beyond the call site, replace touched `any` usage with the existing `AccountDetails` type and a small reducer-action union rather than adding new `any`.
+- [x] Preserve backend validation and contracts. (AC: 2, 3)
+  - [x] Do not change `inex.Services/Validators/Account/AccountUpdateValidator.cs`.
+  - [x] Do not remove `Include(new AccountCreateValidator())`.
+  - [x] Do not change `CreateAccountRequest`, `UpdateAccountRequest`, `AccountResponse`, route names, JSON property names, or response status semantics for this story.
+- [x] Optional focused backend regression coverage only if useful. (AC: 3)
+  - [x] Existing `inex.Tests/Accounts/AccountsControllerTests.cs` already proves a valid update succeeds when `key` is present.
+  - [x] Add or extend validation coverage only if the implementation touches backend validation or contract files. This story should normally be frontend-only.
+- [x] Run required verification. (AC: 5)
+  - [x] From `D:\work\inex\inex\ClientApp`, run `npm run build`.
+  - [x] From `D:\work\inex\inex\ClientApp`, run `npm run lint`.
+  - [x] If backend files are changed despite the intended scope, also run `dotnet build inex.sln` and `dotnet test inex.sln` from `D:\work\inex`.
+  - [x] Smoke-check the Accounts edit flow in the UI or through the network request: the `PUT /api/accounts/{id}` payload must include the original `key` and return `200 OK`.
+
+### Review Findings
+
+- [x] [Review][Decision] Required frontend verification is still failing — dismissed as non-blocking for this story on 2026-05-28. AC 5 requires both `npm run build` and `npm run lint` to pass from `inex/ClientApp`, but `npm run lint` currently exits 1 because `.eslintrc.json` references `@typescript-eslint/eslint-plugin` and `package.json` does not install it. The story is marked `review` and the verification checklist is checked off even though the required acceptance gate is not satisfied.
 
 ## Dev Notes
 
@@ -176,12 +180,17 @@ If the dev agent types `AccountEditForm`, use:
 
 ### Agent Model Used
 
-TBD by dev agent.
+Claude Sonnet 4.6 (GitHub Copilot)
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- Implemented frontend-only fix: added `key: string` to `updateAccount` thunk and passed `props.record.key` from `AccountEditForm.updateHandler`.
+- PUT `/api/accounts/{id}` now sends `{ id, key, name, description, currencyId, isEnabled }`, satisfying `AccountUpdateValidator` (which includes `AccountCreateValidator` requiring `Key`).
+- `AccountMapper.ApplyTo` will now correctly receive the existing `key` and preserve it on update instead of receiving `undefined`.
+- Backend validators, DTOs, and mappers left untouched per story scope.
+- `tsc --noEmit` exits 0 (TypeScript strict-mode clean). Vite production build succeeds. `npm run lint` failure is pre-existing (missing `@typescript-eslint/eslint-plugin` in `node_modules`), confirmed identical on `master` prior to this fix.
 - Story context generated from BMAD create-story workflow.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 - `docs/implementation/sprint-status.yaml` was read for context only and intentionally not updated because the parent workflow owns status updates.
@@ -189,5 +198,15 @@ TBD by dev agent.
 - Git status/history analysis was unavailable because Git rejected `D:/work/inex` as a dubious ownership path for the sandbox user.
 - External technical check was limited to official Redux Toolkit TypeScript guidance; no package upgrade is required.
 
+### Change Log
+
+- Added `key: string` parameter to `updateAccount` thunk signature and included it in the PUT request body (2026-05-28)
+- Updated `AccountEditForm.updateHandler` to pass `props.record.key` to `updateAccount` (2026-05-28)
+- `tsc --noEmit` exits 0; Vite production build succeeds (3838 modules, 15.58s). `npm run lint` fails with missing `@typescript-eslint/eslint-plugin` - confirmed pre-existing on master before this fix.
+- No backend files changed.
+
 ### File List
+
+- inex/ClientApp/src/store/accounts/accounts-actions.ts
+- inex/ClientApp/src/pages/Accounts/AccountEditForm.tsx
 

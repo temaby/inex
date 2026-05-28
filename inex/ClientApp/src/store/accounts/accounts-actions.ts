@@ -33,11 +33,11 @@ export const createAccount = (key: string, name: string, description: string, cu
   };
 };
 
-export const updateAccount = (id: number, name: string, description: string, currencyId: number, isEnabled: boolean) => {
+export const updateAccount = (id: number, key: string, name: string, description: string, currencyId: number, isEnabled: boolean) => {
   return async (dispatch: AppDispatch) => {
     try {
       dispatch(accountsActions.setIsUpdating({ isUpdating: true }));
-      await apiClient.put(`${API_BASE}/${id}`, { id, name, description, currencyId, isEnabled });
+      await apiClient.put(`${API_BASE}/${id}`, { id, key, name, description, currencyId, isEnabled });
       dispatch(accountsActions.setLastUpdate());
     } catch (error) {
       dispatch(accountsActions.setError(parseAxiosError(error, "Could not update account")));
