@@ -55,7 +55,7 @@ public abstract class Service : IDisposable
     {
         return new ListResponse<K>
         {
-            Data = items.Select(map)
+            Data = items.Select(map).ToList()
         };
     }
 
