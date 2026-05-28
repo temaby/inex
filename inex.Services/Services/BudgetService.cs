@@ -165,11 +165,6 @@ public class BudgetService : InExService, IBudgetService
         await DbInEx.SaveAsync(ct);
     }
 
-    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
-    {
-        throw new OperationNotSupportedException("Budget deletes require a current user id.");
-    }
-
     public async Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default)
     {
         // Get source budgets
