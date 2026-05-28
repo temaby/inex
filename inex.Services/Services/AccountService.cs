@@ -122,7 +122,7 @@ public class AccountService : InExService, IAccountService
 
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var idList = ids.ToList();
+        var idList = ids.Distinct().ToList();
         var accounts = await DbInEx.AccountRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
             .ToListAsync(ct);
@@ -130,7 +130,9 @@ public class AccountService : InExService, IAccountService
         if (accounts.Count != idList.Count)
         {
             var notFoundIds = idList.Except(accounts.Select(a => a.Id));
-            throw new ResourceNotFoundException($"Accounts {string.Join(", ", notFoundIds)} were not found.", "Account", notFoundIds);
+            throw notFoundIds.Count() > 1
+            ? new ResourceNotFoundException($"Accounts {string.Join(", ", notFoundIds)} were not found.", "Account", notFoundIds)
+            : new ResourceNotFoundException($"Account {notFoundIds.First()} was not found.", "Account", notFoundIds.First());
         }
 
         DbInEx.AccountRepository.Delete(accounts);

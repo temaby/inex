@@ -88,7 +88,7 @@ public class CategoryService : InExService, ICategoryService
 
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var idList = ids.ToList();
+        var idList = ids.Distinct().ToList();
         var categories = await DbInEx.CategoryRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
             .ToListAsync(ct);
@@ -96,7 +96,9 @@ public class CategoryService : InExService, ICategoryService
         if (categories.Count != idList.Count)
         {
             var notFoundIds = idList.Except(categories.Select(a => a.Id));
-            throw new ResourceNotFoundException($"Categories {string.Join(", ", notFoundIds)} were not found.", "Category", notFoundIds);
+            throw notFoundIds.Count() > 1
+            ? new ResourceNotFoundException($"Categories {string.Join(", ", notFoundIds)} were not found.", "Categories", notFoundIds)
+            : new ResourceNotFoundException($"Category {notFoundIds.First()} was not found.", "Category", notFoundIds.First());
         }
 
         var systemIds = categories.Where(i => i.IsSystem).Select(i => i.Id).ToList();
