@@ -137,5 +137,16 @@ public class AccountService : InExService, IAccountService
         await DbInEx.SaveAsync(ct);
     }
 
+    public async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
+    {
+        DbInEx.AccountRepository.Delete(DbInEx.AccountRepository.Get(false).Where(i => ids.Contains(i.Id) && i.UserId == userId));
+        await DbInEx.SaveAsync(ct);
+    }
+
+    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    {
+        throw new OperationNotSupportedException("Account deletes require a current user id.");
+    }
+
     #endregion Public Interface
 }

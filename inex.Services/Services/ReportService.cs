@@ -51,7 +51,7 @@ public class ReportService : Service, IReportService
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
 
         // 3. Get Accounts (to know transaction currency)
-        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
+        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(a => a.Id);
 
         // 4. Get Categories (to exclude system transfers)
         var categories = _categoryService.Get(userId, ActivityMode.ALL).Data;
@@ -70,7 +70,7 @@ public class ReportService : Service, IReportService
             foreach (var t in monthTransactions)
             {
                 // Determine transaction currency
-                var account = accounts.FirstOrDefault(a => a.Id == t.AccountId);
+                accounts.TryGetValue(t.AccountId, out var account);
                 var tCurrency = account?.Currency ?? currency;
 
                 // Convert amount if needed
@@ -106,8 +106,9 @@ public class ReportService : Service, IReportService
         IEnumerable<ExchangeRateResponse> rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
         var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
         foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
-        IEnumerable<AccountResponse> accounts = _accountService.Get(userId, ActivityMode.ALL).Data;
-        IEnumerable<CategoryResponse> categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem);
+        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(a => a.Id);
+        var categories = _categoryService.Get(userId, ActivityMode.ACTIVE).Data.Where(i => !i.IsSystem).ToList();
+        var categoryIds = categories.Select(c => c.Id).ToHashSet();
         IEnumerable<TransactionResponse> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
 
         PagedResponse<CategorySummary, ReportMetadata> resultDTO = BuildReportDataResponse<CategoryResponse, CategorySummary>(categories, "Расходы по категориям", currency, CategoryMapper.ToSummary, start, end);
@@ -115,12 +116,11 @@ public class ReportService : Service, IReportService
         var categoryValues = new Dictionary<int, decimal>();
         foreach (TransactionResponse transaction in transactions)
         {
-            var account = accounts.FirstOrDefault(i => i.Id == transaction.AccountId);
-            if (account == null) continue;
+            if (!accounts.TryGetValue(transaction.AccountId, out var account)) continue;
             rateMap.TryGetValue((account.Currency, transaction.Created.Date), out ExchangeRateResponse? rate);
-            if (categories.Any(i => i.Id == transaction.CategoryId))
+            if (categoryIds.Contains(transaction.CategoryId))
             {
-                decimal amount = rate != null ? transaction.Amount / rate.Rate : transaction.Amount;
+                decimal amount = rate != null && rate.Rate != 0 ? transaction.Amount / rate.Rate : transaction.Amount;
                 categoryValues[transaction.CategoryId] = categoryValues.GetValueOrDefault(transaction.CategoryId) + amount;
             }
         }

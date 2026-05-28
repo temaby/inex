@@ -53,7 +53,7 @@ public class BudgetReportService : Service, IBudgetReportService
 
         // 2.1 Get Accounts to resolve currency correctly
         var accountsResponse = _accountService.Get(userId, ActivityMode.ALL);
-        var accounts = accountsResponse.Data;
+        var accounts = accountsResponse.Data.ToDictionary(a => a.Id);
 
         // 2.2 Get Categories to identify system categories
         var categoriesResponse = _categoryService.Get(userId, ActivityMode.ALL);
@@ -84,7 +84,7 @@ public class BudgetReportService : Service, IBudgetReportService
             decimal amountInTargetCurrency = 0;
 
             // Resolve account currency from the accounts list
-            var account = accounts.FirstOrDefault(a => a.Id == transaction.AccountId);
+            accounts.TryGetValue(transaction.AccountId, out var account);
             var transactionCurrency = account?.Currency ?? transaction.AccountCurrency;
 
             // If transaction currency matches report currency, use amount directly
@@ -95,7 +95,7 @@ public class BudgetReportService : Service, IBudgetReportService
             else
             {
                 // O(1) exact-date lookup
-                if (rateMap.TryGetValue((transactionCurrency, transaction.Created.Date), out var rate))
+                if (rateMap.TryGetValue((transactionCurrency, transaction.Created.Date), out var rate) && rate.Rate != 0)
                 {
                     amountInTargetCurrency = transaction.Amount / rate.Rate;
                 }
@@ -103,7 +103,7 @@ public class BudgetReportService : Service, IBudgetReportService
                 {
                     // Fallback: nearest date for the same currency pair
                     var fallbackRate = rates
-                        .Where(r => r.CurrencyTo == transactionCurrency)
+                        .Where(r => r.CurrencyTo == transactionCurrency && r.Rate != 0)
                         .OrderBy(r => Math.Abs((r.Date.Date - transaction.Created.Date).TotalDays))
                         .FirstOrDefault();
 

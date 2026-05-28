@@ -1,6 +1,6 @@
 # Story 1.2: Fix Refresh Token Rotation Race Condition
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -20,33 +20,41 @@ so that my session security does not depend on request timing.
 
 ## Tasks / Subtasks
 
-- [ ] Replace the current grace-window refresh success behavior with single-winner rotation. (AC: 1, 2, 3)
-  - [ ] Update `AuthService.RefreshAsync` so an already-used token never returns `stored.ReplacedByToken` as a successful refresh.
-  - [ ] Keep reuse detection: when a request initially observes `UsedAt is not null`, revoke all active refresh tokens for the user and throw an auth failure.
-  - [ ] For a pure concurrent lost race, return one consistent non-success response without issuing a replacement token; prefer `409 Conflict` for a detected write race or `401 Unauthorized` if implemented through the existing auth-failure path.
-- [ ] Implement a built-in EF Core single-winner strategy. (AC: 1, 3)
-  - [ ] Preferred path: add an application-managed concurrency token to `RefreshToken`, configure it in `RefreshTokenConfiguration`, and update it whenever a refresh token row is mutated.
-  - [ ] Add an EF migration if the chosen strategy changes the `RefreshTokens` schema.
-  - [ ] Alternative path: use a transaction plus conditional database update and verify row-count equals 1 before inserting the replacement token.
-  - [ ] Do not add distributed locks, Redis, new auth libraries, or frontend changes for this story.
-- [ ] Preserve existing refresh-token lifecycle semantics. (AC: 2, 5)
-  - [ ] Keep invalid, revoked, and expired refresh tokens rejected as `401 Unauthorized`.
-  - [ ] Keep logout idempotent and continue clearing the `refreshToken` cookie in `AuthController.Logout`.
-  - [ ] Keep refresh cookie attributes unchanged: `HttpOnly`, `SameSite.Strict`, environment-dependent `Secure`, expiry based on `RefreshTokenExpiryDays`, and `Path = "/api/auth"`.
-  - [ ] Keep `TokenResponse` body shape as `{ accessToken, expiresIn }`; the refresh token stays in the HTTP-only cookie only.
-- [ ] Update or replace auth unit tests that encode the old grace-window behavior. (AC: 1, 2)
-  - [ ] Replace `RefreshAsync_WithinGraceWindow_ReturnsCachedToken` with a test proving used-token reuse is rejected and active user tokens are revoked.
-  - [ ] Add a focused service-level race test if the implementation uses EF concurrency tokens and can be exercised with two `InExDbContext` instances sharing the same test database.
-  - [ ] Ensure mocked refresh-token generation returns distinct replacement token values to avoid testing unique-index collisions instead of rotation behavior.
-- [ ] Add API-level concurrency regression coverage in `inex.Tests/Auth/AuthControllerTests.cs`. (AC: 1, 4, 5)
-  - [ ] Register or log in with a cookie-aware client, then extract the issued `refreshToken` from the `Set-Cookie` header for test setup.
-  - [ ] Send two concurrent `POST /api/auth/refresh` requests with the same cookie value using separate clients or manual `Cookie` headers so both requests use the original token.
-  - [ ] Assert exactly one response is `200 OK`; assert the other response is the chosen non-success status.
-  - [ ] Assert only one new replacement refresh token is persisted for the original token chain.
-- [ ] Verify provider-sensitive behavior. (AC: 1, 3, 4)
-  - [ ] Run `dotnet test inex.sln` from the repo root.
-  - [ ] If a schema/concurrency-token migration is added, run `dotnet build inex.sln` and verify migration generation does not modify unrelated schema.
-  - [ ] Because `InExWebApplicationFactory` replaces MySQL with EF InMemory, manually verify the chosen concurrency strategy against MySQL or document the blocker in completion notes before marking done.
+- [x] Replace the current grace-window refresh success behavior with single-winner rotation. (AC: 1, 2, 3)
+  - [x] Update `AuthService.RefreshAsync` so an already-used token never returns `stored.ReplacedByToken` as a successful refresh.
+  - [x] Keep reuse detection: when a request initially observes `UsedAt is not null`, revoke all active refresh tokens for the user and throw an auth failure.
+  - [x] For a pure concurrent lost race, return one consistent non-success response without issuing a replacement token; prefer `409 Conflict` for a detected write race or `401 Unauthorized` if implemented through the existing auth-failure path.
+- [x] Implement a built-in EF Core single-winner strategy. (AC: 1, 3)
+  - [x] Preferred path: add an application-managed concurrency token to `RefreshToken`, configure it in `RefreshTokenConfiguration`, and update it whenever a refresh token row is mutated.
+  - [x] Add an EF migration if the chosen strategy changes the `RefreshTokens` schema.
+  - [x] Alternative path not used; preferred EF concurrency-token path implemented.
+  - [x] Do not add distributed locks, Redis, new auth libraries, or frontend changes for this story.
+- [x] Preserve existing refresh-token lifecycle semantics. (AC: 2, 5)
+  - [x] Keep invalid, revoked, and expired refresh tokens rejected as `401 Unauthorized`.
+  - [x] Keep logout idempotent and continue clearing the `refreshToken` cookie in `AuthController.Logout`.
+  - [x] Keep refresh cookie attributes unchanged: `HttpOnly`, `SameSite.Strict`, environment-dependent `Secure`, expiry based on `RefreshTokenExpiryDays`, and `Path = "/api/auth"`.
+  - [x] Keep `TokenResponse` body shape as `{ accessToken, expiresIn }`; the refresh token stays in the HTTP-only cookie only.
+- [x] Update or replace auth unit tests that encode the old grace-window behavior. (AC: 1, 2)
+  - [x] Replace `RefreshAsync_WithinGraceWindow_ReturnsCachedToken` with a test proving used-token reuse is rejected and active user tokens are revoked.
+  - [x] Add a focused service-level race test if the implementation uses EF concurrency tokens and can be exercised with two `InExDbContext` instances sharing the same test database.
+  - [x] Ensure mocked refresh-token generation returns distinct replacement token values to avoid testing unique-index collisions instead of rotation behavior.
+- [x] Add API-level concurrency regression coverage in `inex.Tests/Auth/AuthControllerTests.cs`. (AC: 1, 4, 5)
+  - [x] Register or log in with a cookie-aware client, then extract the issued `refreshToken` from the `Set-Cookie` header for test setup.
+  - [x] Send two concurrent `POST /api/auth/refresh` requests with the same cookie value using separate clients or manual `Cookie` headers so both requests use the original token.
+  - [x] Assert exactly one response is `200 OK`; assert the other response is the chosen non-success status.
+  - [x] Assert only one new replacement refresh token is persisted for the original token chain.
+- [x] Verify provider-sensitive behavior. (AC: 1, 3, 4)
+  - [x] Run `dotnet test inex.sln` from the repo root.
+  - [x] If a schema/concurrency-token migration is added, run `dotnet build inex.sln` and verify migration generation does not modify unrelated schema.
+  - [x] Because `InExWebApplicationFactory` replaces MySQL with EF InMemory, manually verify the chosen concurrency strategy against MySQL or document the blocker in completion notes before marking done.
+
+### Review Findings
+
+- [x] [Review][Patch] Late duplicate refresh can revoke the winning replacement token [inex.Services/Services/Auth/AuthService.cs:87]
+- [x] [Review][Patch] Concurrent logout can return 500 instead of remaining idempotent [inex.Services/Services/Auth/AuthService.cs:131]
+- [x] [Review][Patch] Reuse-detection revocation can roll back on token concurrency conflicts [inex.Services/Services/Auth/AuthService.cs:190]
+- [x] [Review][Patch] API regression test misses extra or revoked replacement tokens [inex.Tests/Auth/AuthControllerTests.cs:292]
+- [x] [Review][Patch] MySQL runtime concurrency verification remains unproven while provider-sensitive work is checked complete [docs/implementation/1-2-fix-refresh-token-rotation-race-condition.md:46]
 
 ## Dev Notes
 
@@ -163,17 +171,50 @@ If using conditional update instead of a concurrency token:
 
 ### Agent Model Used
 
-TBD by dev agent.
+GPT-5 Codex
 
 ### Debug Log References
+
+- 2026-05-27: Created branch `story-1-2-fix-refresh-token-rotation-race-condition`.
+- 2026-05-27: Confirmed red phase with `dotnet test D:\work\inex\inex.Services.Tests\inex.Services.Tests.csproj --filter AuthServiceTests`; new reuse and stale-concurrency tests failed against old grace-window behavior.
+- 2026-05-27: Ran focused green checks: `dotnet test D:\work\inex\inex.Services.Tests\inex.Services.Tests.csproj --filter AuthServiceTests` and `dotnet test D:\work\inex\inex.Tests\inex.Tests.csproj --filter AuthControllerTests`.
+- 2026-05-27: Ran final verification: `dotnet test D:\work\inex\inex.sln` and `dotnet build D:\work\inex\inex.sln`.
+- 2026-05-27: Generated MySQL migration SQL with `dotnet ef migrations script 20260424070214_AddExchangeRateUniqueConstraint 20260527052323_AddRefreshTokenConcurrencyStamp`; SQL only adds `RefreshTokens.ConcurrencyStamp`.
+- 2026-05-27: Addressed code-review findings and ran focused auth verification: `dotnet test D:\work\inex\inex.Services.Tests\inex.Services.Tests.csproj --filter AuthServiceTests` and `dotnet test D:\work\inex\inex.Tests\inex.Tests.csproj --filter AuthControllerTests`.
+- 2026-05-27: Ran final post-review verification: `dotnet test D:\work\inex\inex.sln`.
+- 2026-05-27: Ran disposable MySQL EF concurrency probe against local `inex-mysql`; two contexts racing on the same refresh-token concurrency stamp produced one successful replacement and one `DbUpdateConcurrencyException`.
 
 ### Completion Notes List
 
 - Story context generated from BMAD create-story workflow.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
-- `docs/implementation/sprint-status.yaml` was read for context only and intentionally not updated because the parent workflow owns status updates.
-- Git status/history analysis was unavailable because Git rejected `D:/work/inex` as a dubious ownership path for the sandbox user.
-- Web research was limited to official Microsoft EF Core documentation for concurrency-token and affected-row-count guidance.
+- `docs/implementation/sprint-status.yaml` was updated from `ready-for-dev` to `in-progress`, then to `review`.
+- Git branch `story-1-2-fix-refresh-token-rotation-race-condition` was created before implementation.
+- No new external library dependencies were added.
+- Implemented single-winner refresh-token rotation with an application-managed EF Core concurrency token on `RefreshToken`.
+- Removed grace-window successful reuse; observed used-token reuse now revokes active refresh tokens and returns the existing authentication failure path.
+- Concurrent stale writes now map to `ConflictException` / `409 Conflict` and clean up the failed replacement token for EF InMemory test consistency.
+- Added `AddRefreshTokenConcurrencyStamp` migration; generated SQL was reviewed to avoid unrelated schema or seed-data churn.
+- Added service-level tests for used-token reuse revocation and two-context stale rotation conflict with distinct replacement tokens.
+- Added API-level concurrent refresh regression coverage using two manual-cookie clients and asserting exactly one success plus one replacement token.
+- MySQL provider note: local `inex-mysql` was available; generated migration SQL was reviewed, and a disposable MySQL database probe verified EF concurrency-token behavior with two contexts racing on the same refresh-token row.
+- Code review findings were resolved: late duplicate refresh now returns `409 Conflict` within the configured race window without revoking the winning replacement, logout treats stale revoke races idempotently, reuse-detection revocation retries concurrency conflicts, and API coverage asserts exactly one active replacement token.
 
 ### File List
+
+- `docs/implementation/1-2-fix-refresh-token-rotation-race-condition.md`
+- `docs/implementation/sprint-status.yaml`
+- `inex.Data/Models/RefreshToken.cs`
+- `inex.Data/Configurations/RefreshTokenConfiguration.cs`
+- `inex.Data/Migrations/20260527052323_AddRefreshTokenConcurrencyStamp.cs`
+- `inex.Data/Migrations/20260527052323_AddRefreshTokenConcurrencyStamp.Designer.cs`
+- `inex.Data/Migrations/InExDbContextModelSnapshot.cs`
+- `inex.Services/Services/Auth/AuthService.cs`
+- `inex.Services.Tests/Services/Auth/AuthServiceTests.cs`
+- `inex.Tests/Auth/AuthControllerTests.cs`
+
+### Change Log
+
+- 2026-05-27: Implemented Story 1.2 refresh-token single-winner rotation fix and moved story to review.
+- 2026-05-27: Resolved code-review findings for Story 1.2.
 

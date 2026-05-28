@@ -9,6 +9,7 @@ public class RefreshToken
     public DateTime? UsedAt { get; set; }
     public DateTime? RevokedAt { get; set; }
     public string? ReplacedByToken { get; set; }
+    public string ConcurrencyStamp { get; set; } = Guid.NewGuid().ToString("N");
 
     public AppUser User { get; set; } = null!;
 }

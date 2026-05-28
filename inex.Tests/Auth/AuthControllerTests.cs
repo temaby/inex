@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
+using inex.Data;
 using inex.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using static inex.Tests.Infrastructure.InExWebApplicationFactory;
 
 namespace inex.Tests.Auth;
@@ -256,6 +259,48 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
     // ── Me ────────────────────────────────────────────────────────────────────
 
     [Fact]
+    public async Task Refresh_WithSameCookieConcurrently_AllowsOnlyOneSuccessfulRotation()
+    {
+        var registerClient = _factory.CreateClient();
+        var registerResponse = await registerClient.PostAsJsonAsync("/api/auth/register", new
+        {
+            username    = $"user-{Guid.NewGuid():N}",
+            email       = $"{Guid.NewGuid()}@example.com",
+            password    = "Password1!",
+            inviteToken = TestInviteToken,
+            currencyId  = 1,
+        });
+        registerResponse.EnsureSuccessStatusCode();
+
+        var refreshToken = ExtractRefreshToken(registerResponse);
+        var firstClient = _factory.CreateClient();
+        var secondClient = _factory.CreateClient();
+        firstClient.DefaultRequestHeaders.Add("Cookie", $"refreshToken={refreshToken}");
+        secondClient.DefaultRequestHeaders.Add("Cookie", $"refreshToken={refreshToken}");
+
+        var responses = await Task.WhenAll(
+            firstClient.PostAsync("/api/auth/refresh", null),
+            secondClient.PostAsync("/api/auth/refresh", null));
+
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.OK));
+        var nonSuccess = Assert.Single(responses, r => r.StatusCode != HttpStatusCode.OK);
+        Assert.Contains(nonSuccess.StatusCode, new[] { HttpStatusCode.Unauthorized, HttpStatusCode.Conflict });
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+        var original = await db.RefreshTokens.SingleAsync(t => t.Token == refreshToken);
+        var replacements = await db.RefreshTokens
+            .Where(t => t.UserId == original.UserId && t.Token != refreshToken)
+            .ToListAsync();
+
+        Assert.NotNull(original.UsedAt);
+        Assert.False(string.IsNullOrEmpty(original.ReplacedByToken));
+        Assert.Single(replacements);
+        Assert.Equal(original.ReplacedByToken, replacements[0].Token);
+        Assert.Null(replacements[0].RevokedAt);
+    }
+
+    [Fact]
     public async Task Me_WithValidToken_Returns200WithUserProfile()
     {
         var email  = $"{Guid.NewGuid()}@example.com";
@@ -390,5 +435,22 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
         // now-revoked cookie, because the token is marked RevokedAt in the DB
         var refreshAfterLogout = await client.PostAsync("/api/auth/refresh", null);
         Assert.Equal(HttpStatusCode.Unauthorized, refreshAfterLogout.StatusCode);
+    }
+
+    private static string ExtractRefreshToken(HttpResponseMessage response)
+    {
+        var setCookie = response.Headers
+            .FirstOrDefault(h => h.Key.Equals("Set-Cookie", StringComparison.OrdinalIgnoreCase))
+            .Value?.FirstOrDefault(h => h.StartsWith("refreshToken=", StringComparison.OrdinalIgnoreCase));
+
+        Assert.False(string.IsNullOrWhiteSpace(setCookie));
+
+        var tokenStart = "refreshToken=".Length;
+        var tokenEnd = setCookie.IndexOf(';', tokenStart);
+        var token = tokenEnd < 0
+            ? setCookie[tokenStart..]
+            : setCookie[tokenStart..tokenEnd];
+
+        return Uri.UnescapeDataString(token);
     }
 }
