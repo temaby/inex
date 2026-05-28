@@ -71,7 +71,7 @@ const AccountEditForm = (props: any) => {
     }, [props.record]);
 
     const updateHandler = () => {
-        dispatch(updateAccount(+props.record.id, state.name, state.description, state.currencyId, state.isEnabled));
+        dispatch(updateAccount(+props.record.id, props.record.key, state.name, state.description, state.currencyId, state.isEnabled));
     };
 
     const deleteHandler = () => {
