@@ -142,7 +142,7 @@ public class BudgetService : InExService, IBudgetService
 
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var idList = ids.ToList();
+        var idList = ids.Distinct().ToList();
         var budgets = await DbInEx.BudgetRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId, i => i.BudgetCategories)
             .ToListAsync(ct);
@@ -150,12 +150,14 @@ public class BudgetService : InExService, IBudgetService
         if (budgets.Count != idList.Count)
         {
             var notFoundIds = idList.Except(budgets.Select(a => a.Id));
-            throw new ResourceNotFoundException($"Budgets {string.Join(", ", notFoundIds)} were not found.", "Budget", notFoundIds);
+            throw notFoundIds.Count() > 1
+            ? new ResourceNotFoundException($"Budgets {string.Join(", ", notFoundIds)} were not found.", "Budgets", notFoundIds)
+            : new ResourceNotFoundException($"Budget {notFoundIds.First()} was not found.", "Budget", notFoundIds.First());
         }
 
         foreach (var budget in budgets)
         {
-            if (budget.BudgetCategories.Any())
+            if (budget.BudgetCategories != null && budget.BudgetCategories.Any())
             {
                 DbInEx.BudgetCategoryRepository.Delete(budget.BudgetCategories);
             }
@@ -217,17 +219,20 @@ public class BudgetService : InExService, IBudgetService
             await DbInEx.SaveAsync(ct); // Save to get ID
 
             // Copy categories
-            foreach (var bc in sourceBudget.BudgetCategories)
+            if (sourceBudget.BudgetCategories != null)
             {
-                await DbInEx.BudgetCategoryRepository.CreateAsync(new BudgetCategory
+                foreach (var bc in sourceBudget.BudgetCategories)
                 {
-                    BudgetId = result.Entity.Id,
-                    CategoryId = bc.CategoryId,
-                    CreatedBy = userId,
-                    UpdatedBy = userId,
-                    Created = System.DateTime.Now,
-                    Updated = System.DateTime.Now
-                }, ct);
+                    await DbInEx.BudgetCategoryRepository.CreateAsync(new BudgetCategory
+                    {
+                        BudgetId = result.Entity.Id,
+                        CategoryId = bc.CategoryId,
+                        CreatedBy = userId,
+                        UpdatedBy = userId,
+                        Created = System.DateTime.Now,
+                        Updated = System.DateTime.Now
+                    }, ct);
+                }
             }
         }
 

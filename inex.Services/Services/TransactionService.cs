@@ -132,7 +132,7 @@ public class TransactionService : InExService, ITransactionService
 
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
-        var idList = ids.ToList();
+        var idList = ids.Distinct().ToList();
         var transactions = await DbInEx.TransactionRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
             .ToListAsync(ct);
@@ -140,7 +140,9 @@ public class TransactionService : InExService, ITransactionService
         if (transactions.Count != idList.Count)
         {
             var notFoundIds = idList.Except(transactions.Select(a => a.Id));
-            throw new ResourceNotFoundException($"Transactions {string.Join(", ", notFoundIds)} were not found.", "Transaction", notFoundIds);
+            throw notFoundIds.Count() > 1
+            ? new ResourceNotFoundException($"Transactions {string.Join(", ", notFoundIds)} were not found.", "Transactions", notFoundIds)
+            : new ResourceNotFoundException($"Transaction {notFoundIds.First()} was not found.", "Transaction", notFoundIds.First());
         }
 
         DbInEx.TransactionRepository.Delete(transactions);
