@@ -108,10 +108,5 @@ public class CategoryService : InExService, ICategoryService
         await DbInEx.SaveAsync(ct);
     }
 
-    public override Task DeleteAsync(IEnumerable<int> ids, CancellationToken ct = default)
-    {
-        throw new OperationNotSupportedException("Category deletes require a current user id.");
-    }
-
     #endregion Public Interface
 }
