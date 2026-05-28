@@ -15,6 +15,4 @@ public interface ITransactionService : IInExService
     Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default);
     Task<TransferResponse> CreateAsync(CreateTransferRequest itemDTO, int userId, CancellationToken ct = default);
     Task<TransactionResponse> UpdateAsync(int id, UpdateTransactionRequest itemDTO, int userId, CancellationToken ct = default);
-    Task DeleteAsync(int id, int userId, CancellationToken ct = default);
-    Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default);
 }

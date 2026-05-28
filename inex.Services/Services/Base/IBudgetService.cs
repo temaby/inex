@@ -11,7 +11,5 @@ public interface IBudgetService : IInExService
     ListResponse<BudgetResponse> Get(int userId, int? year = null, int? month = null);
     Task<CreatedResponse> CreateAsync(CreateBudgetRequest itemDTO, int userId, CancellationToken ct = default);
     Task<BudgetResponse> UpdateAsync(int id, UpdateBudgetRequest itemDTO, int userId, CancellationToken ct = default);
-    Task DeleteAsync(int id, int userId, CancellationToken ct = default);
-    Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default);
     Task CopyBudgetsAsync(int userId, int sourceYear, int sourceMonth, int targetYear, int targetMonth, CancellationToken ct = default);
 }

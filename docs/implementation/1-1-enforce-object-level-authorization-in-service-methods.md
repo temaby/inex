@@ -183,6 +183,7 @@ GPT-5 Codex
 - 2026-05-26: Added failing cross-user API tests for accounts, categories, budgets, and transactions; confirmed targeted failures before implementation.
 - 2026-05-26: Implemented ownership-aware service reads, updates, and deletes; updated controllers to pass `CurrentUserId`.
 - 2026-05-26: Ran targeted unsafe-pattern searches and `dotnet test inex.sln` successfully.
+- 2026-05-28: Added follow-up cleanup to make the base delete contract ownership-aware and remove duplicated delete declarations from domain service interfaces.
 
 ### Completion Notes List
 
@@ -191,6 +192,7 @@ GPT-5 Codex
 - Git history analysis was not available in the sandbox because Git rejected the repository as a dubious ownership path.
 - Single-entity read, update, and delete paths now use `Id` plus `UserId` predicates in the four affected domain services.
 - User-owned delete routes now call ownership-aware service overloads; the inherited no-user delete path is guarded for these services.
+- Base delete service contract now requires `userId`, so user-owned services cannot accidentally route through a no-user delete path.
 - Added API regression tests that create data through authenticated clients and assert cross-user `404` ProblemDetails responses.
 - Recorded the out-of-scope transfer-create account ownership risk in deferred work.
 
@@ -205,6 +207,8 @@ GPT-5 Codex
 - inex.Services/Services/CategoryService.cs
 - inex.Services/Services/BudgetService.cs
 - inex.Services/Services/TransactionService.cs
+- inex.Services/Services/Base/IInExService.cs
+- inex.Services/Services/Base/InExService.cs
 - inex.Services/Services/Base/IAccountService.cs
 - inex.Services/Services/Base/ICategoryService.cs
 - inex.Services/Services/Base/IBudgetService.cs
@@ -224,4 +228,5 @@ GPT-5 Codex
 
 - 2026-05-26: Enforced object-level authorization for single-entity account, category, budget, and transaction read/update/delete paths.
 - 2026-05-26: Added cross-user API regression coverage and completed solution-level verification.
+- 2026-05-28: Follow-up commit tightened the shared delete interface so delete operations require the current user id at the base service boundary.
 
