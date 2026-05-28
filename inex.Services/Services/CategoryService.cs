@@ -97,7 +97,7 @@ public class CategoryService : InExService, ICategoryService
         {
             var notFoundIds = idList.Except(categories.Select(a => a.Id));
             throw notFoundIds.Count() > 1
-            ? new ResourceNotFoundException($"Categories {string.Join(", ", notFoundIds)} were not found.", "Categories", notFoundIds)
+            ? new ResourceNotFoundException($"Categories {string.Join(", ", notFoundIds)} were not found.", "Category", notFoundIds)
             : new ResourceNotFoundException($"Category {notFoundIds.First()} was not found.", "Category", notFoundIds.First());
         }
 

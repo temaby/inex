@@ -151,7 +151,7 @@ public class BudgetService : InExService, IBudgetService
         {
             var notFoundIds = idList.Except(budgets.Select(a => a.Id));
             throw notFoundIds.Count() > 1
-            ? new ResourceNotFoundException($"Budgets {string.Join(", ", notFoundIds)} were not found.", "Budgets", notFoundIds)
+            ? new ResourceNotFoundException($"Budgets {string.Join(", ", notFoundIds)} were not found.", "Budget", notFoundIds)
             : new ResourceNotFoundException($"Budget {notFoundIds.First()} was not found.", "Budget", notFoundIds.First());
         }
 
