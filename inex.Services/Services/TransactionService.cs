@@ -141,7 +141,7 @@ public class TransactionService : InExService, ITransactionService
         {
             var notFoundIds = idList.Except(transactions.Select(a => a.Id));
             throw notFoundIds.Count() > 1
-            ? new ResourceNotFoundException($"Transactions {string.Join(", ", notFoundIds)} were not found.", "Transactions", notFoundIds)
+            ? new ResourceNotFoundException($"Transactions {string.Join(", ", notFoundIds)} were not found.", "Transaction", notFoundIds)
             : new ResourceNotFoundException($"Transaction {notFoundIds.First()} was not found.", "Transaction", notFoundIds.First());
         }
 
