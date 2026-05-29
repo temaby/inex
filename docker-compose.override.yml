@@ -1,4 +1,4 @@
-# Dev overrides — auto-loaded by docker compose up (no -f flag needed)
+﻿# Dev overrides -- auto-loaded by docker compose up (no -f flag needed)
 services:
   mysql:
     ports:
@@ -12,4 +12,16 @@ services:
       - "5000:80"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ExchangeApiSettings__ApiKey: ${EXCHANGE_API_KEY}
+      # CORS for local SPA development
+      AllowedOrigins__0: http://localhost:3000
+      AllowedOrigins__1: https://localhost:3000
+      # JWT (required, validated at startup)
+      JwtOptions__Secret: ${JWT_SECRET}
+      JwtOptions__Issuer: ${JWT_ISSUER}
+      JwtOptions__Audience: ${JWT_AUDIENCE}
+      JwtOptions__AccessTokenExpiryMinutes: ${JWT_ACCESS_TOKEN_EXPIRY_MINUTES:-15}
+      JwtOptions__RefreshTokenExpiryDays: ${JWT_REFRESH_TOKEN_EXPIRY_DAYS:-7}
+      # Registration (required, validated at startup)
+      InviteOptions__Token: ${INVITE_TOKEN}
+      # Exchange rate API (required, validated at startup)
+      CurrencyApiSettings__ApiKey: ${CURRENCY_API_KEY}
