@@ -21,6 +21,7 @@ public class ExchangeRateServiceTests
     private readonly Mock<IEditableRepository<ExchangeRate>> _exchangeRateRepoMock = new();
     private readonly Mock<IRepository<Currency>> _currencyRepoMock = new();
     private readonly Mock<IRepository<AppUser>> _userRepoMock = new();
+    private readonly FakeClock _clock = new(new DateTime(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc));
 
     public ExchangeRateServiceTests()
     {
@@ -34,7 +35,7 @@ public class ExchangeRateServiceTests
     // --- Helpers ---
 
     private ExchangeRateService CreateSut() =>
-        new ExchangeRateService(_uowMock.Object, _clientMock.Object, _fallbackClientMock.Object, NullLogger<ExchangeRateService>.Instance);
+        new ExchangeRateService(_uowMock.Object, _clientMock.Object, _fallbackClientMock.Object, NullLogger<ExchangeRateService>.Instance, _clock);
 
     // AsAsyncQueryable() wraps a plain IEnumerable<T> so it satisfies both
     // IQueryable<T> (sync LINQ) and IAsyncEnumerable<T> (EF ToListAsync etc.).
@@ -131,7 +132,7 @@ public class ExchangeRateServiceTests
         // Arrange
         // Today's rates cannot be fetched from the provider. Instead the service
         // creates temporary rates copied from the latest known date — no API call is made.
-        var today = DateTime.UtcNow.Date;
+        var today = _clock.UtcNow.Date;
         var baseCurrency = "EUR";
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
@@ -200,7 +201,7 @@ public class ExchangeRateServiceTests
     public async Task Get_Range_WhenDateIsToday_CreatesTemporaryRatesFromLatest()
     {
         // Arrange
-        var today = DateTime.UtcNow.Date;
+        var today = _clock.UtcNow.Date;
         var yesterday = today.AddDays(-1);
         var baseCurrency = "EUR";
         var targetCode = "USD";

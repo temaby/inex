@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using inex.Data.Models;
+using inex.Services.Infrastructure.Time;
 using inex.Services.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -12,10 +13,12 @@ namespace inex.Services.Services.Auth;
 public class TokenService : ITokenService
 {
     private readonly JwtOptions _jwt;
+    private readonly IClock _clock;
 
-    public TokenService(IOptions<JwtOptions> options)
+    public TokenService(IOptions<JwtOptions> options, IClock clock)
     {
         _jwt = options.Value;
+        _clock = clock;
     }
 
     public string GenerateAccessToken(AppUser user)
@@ -38,7 +41,7 @@ public class TokenService : ITokenService
             issuer: _jwt.Issuer,
             audience: _jwt.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenExpiryMinutes),
+            expires: _clock.UtcNow.AddMinutes(_jwt.AccessTokenExpiryMinutes),
             signingCredentials: credentials
         );
 

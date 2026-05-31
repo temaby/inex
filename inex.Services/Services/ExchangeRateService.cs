@@ -7,6 +7,7 @@ using inex.Services.Models.Records.Data;
 using ExchangeRateResponse = inex.Services.Models.Records.ExchangeRate.ExchangeRateResponse;
 using ExchangeApiResponse = inex.Services.Infrastructure.ExternalClients.ExchangeRate.ExchangeRateResponse;
 using inex.Services.Services.Base;
+using inex.Services.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -23,11 +24,12 @@ public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
 
-    public ExchangeRateService(IInExUnitOfWork uowInEx, IExchangeRateClient apiClient, IExchangeRateClient fallbackClient, ILogger<ExchangeRateService> logger) : base(uowInEx)
+    public ExchangeRateService(IInExUnitOfWork uowInEx, IExchangeRateClient apiClient, IExchangeRateClient fallbackClient, ILogger<ExchangeRateService> logger, IClock clock) : base(uowInEx)
     {
         _apiClient = apiClient;
         _fallbackClient = fallbackClient;
         _logger = logger;
+        _clock = clock;
     }
 
     #endregion Constructors
@@ -53,7 +55,7 @@ public class ExchangeRateService : Service, IExchangeRateService
 
         DateTime startDate = start.Date;
         DateTime endDate = end.Date;
-        DateTime today = DateTime.UtcNow.Date;
+        DateTime today = _clock.UtcNow.Date;
         endDate = endDate <= today ? endDate : today;
 
         // One query to find which dates already have a full set of actual rates cached.
@@ -367,6 +369,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     private readonly IExchangeRateClient _apiClient;
     private readonly IExchangeRateClient _fallbackClient;
     private readonly ILogger<ExchangeRateService> _logger;
+    private readonly IClock _clock;
 
     #endregion Private Fields
 }

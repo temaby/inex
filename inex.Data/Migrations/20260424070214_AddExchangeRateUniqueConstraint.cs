@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -16,42 +16,42 @@ namespace inex.Data.Migrations
                 keyColumn: "currency_pk",
                 keyValue: 1,
                 columns: new[] { "created", "updated" },
-                values: new object[] { new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7621), new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7624) });
+                values: new object[] { new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc) });
 
             migrationBuilder.UpdateData(
                 table: "currency",
                 keyColumn: "currency_pk",
                 keyValue: 2,
                 columns: new[] { "created", "updated" },
-                values: new object[] { new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7626), new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7627) });
+                values: new object[] { new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc) });
 
             migrationBuilder.UpdateData(
                 table: "currency",
                 keyColumn: "currency_pk",
                 keyValue: 3,
                 columns: new[] { "created", "updated" },
-                values: new object[] { new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7628), new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7628) });
+                values: new object[] { new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc) });
 
             migrationBuilder.UpdateData(
                 table: "currency",
                 keyColumn: "currency_pk",
                 keyValue: 4,
                 columns: new[] { "created", "updated" },
-                values: new object[] { new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7630), new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7630) });
+                values: new object[] { new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc) });
 
             migrationBuilder.UpdateData(
                 table: "currency",
                 keyColumn: "currency_pk",
                 keyValue: 5,
                 columns: new[] { "created", "updated" },
-                values: new object[] { new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7631), new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7631) });
+                values: new object[] { new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc) });
 
             migrationBuilder.UpdateData(
                 table: "currency",
                 keyColumn: "currency_pk",
                 keyValue: 6,
                 columns: new[] { "created", "updated" },
-                values: new object[] { new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7632), new DateTime(2026, 4, 24, 7, 2, 12, 382, DateTimeKind.Utc).AddTicks(7633) });
+                values: new object[] { new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2021, 12, 14, 0, 0, 0, 0, DateTimeKind.Utc) });
 
             migrationBuilder.CreateIndex(
                 name: "IX_exchange_rate_created_from_code_to_code",

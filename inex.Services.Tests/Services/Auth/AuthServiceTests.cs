@@ -4,6 +4,7 @@ using inex.Services.Exceptions;
 using inex.Services.Models.Records.Auth;
 using inex.Services.Services.Auth;
 using inex.Services.Services.Base;
+using inex.Services.Tests.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -69,6 +70,8 @@ public class AuthServiceTests
     private static IOptions<InviteOptions> CreateInviteOptions(string token = "test-invite-token") =>
         Microsoft.Extensions.Options.Options.Create(new InviteOptions { Token = token });
 
+    private static FakeClock CreateClock() => new(DateTime.UtcNow);
+
     private static AuthService CreateService(
         InExDbContext db,
         Mock<UserManager<AppUser>>? userManager  = null,
@@ -86,7 +89,8 @@ public class AuthServiceTests
             (tokenService ?? CreateTokenServiceMock()).Object,
             onboarding.Object,
             CreateJwtOptions(graceSeconds),
-            CreateInviteOptions(inviteToken));
+            CreateInviteOptions(inviteToken),
+            CreateClock());
     }
 
     // ── LoginAsync ────────────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ using inex.Data.Repositories.Base;
 using Microsoft.Extensions.Logging;
 using Polly;
 using inex.Services.Infrastructure.Resilience;
+using inex.Services.Infrastructure.Time;
 
 namespace inex.Services.Extensions;
 
@@ -28,6 +29,7 @@ public static class InExServicesExtensions
 
         services.AddInExData(inexConnectionString);
 
+        services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserOnboardingService, UserOnboardingService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -88,7 +90,8 @@ public static class InExServicesExtensions
             var primaryClient = serviceProvider.GetRequiredService<CurrencyApiClient>();
             var fallbackClient = serviceProvider.GetRequiredService<FrankfurterApiClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
-            return new ExchangeRateService(uow, primaryClient, fallbackClient, logger);
+            var clock = serviceProvider.GetRequiredService<IClock>();
+            return new ExchangeRateService(uow, primaryClient, fallbackClient, logger, clock);
         });
 
         return services;
