@@ -6,6 +6,7 @@ using inex.Services.Models.Enums;
 using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
+using inex.Services.Infrastructure.Time;
 using inex.Services.Services.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -20,9 +21,9 @@ public class AccountService : InExService, IAccountService
 {
     #region Constructors
 
-    public AccountService(IInExUnitOfWork uowInEx) : base(uowInEx)
+    public AccountService(IInExUnitOfWork uowInEx, IClock clock) : base(uowInEx)
     {
-
+        _clock = clock;
     }
 
     #endregion Constructors
@@ -52,7 +53,7 @@ public class AccountService : InExService, IAccountService
 
     public ListResponse<AccountSummary> GetDetails(int userId, IEnumerable<int> ids)
     {
-        var now = DateTime.UtcNow;
+        var now = _clock.UtcNow;
         var monthStart = new DateTime(now.Year, now.Month, 1);
         var monthEnd = monthStart.AddMonths(1);
 
@@ -140,4 +141,6 @@ public class AccountService : InExService, IAccountService
     }
 
     #endregion Public Interface
+
+    private readonly IClock _clock;
 }

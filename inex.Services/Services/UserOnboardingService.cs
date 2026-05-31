@@ -1,6 +1,7 @@
 using inex.Data.Models;
 using inex.Data.Models.Base;
 using inex.Data.Repositories.Base;
+using inex.Services.Infrastructure.Time;
 using inex.Services.Services.Base;
 
 namespace inex.Services.Services;
@@ -13,10 +14,12 @@ namespace inex.Services.Services;
 public class UserOnboardingService : IUserOnboardingService
 {
     private readonly IInExUnitOfWork _db;
+    private readonly IClock _clock;
 
-    public UserOnboardingService(IInExUnitOfWork db)
+    public UserOnboardingService(IInExUnitOfWork db, IClock clock)
     {
         _db = db;
+        _clock = clock;
     }
 
     public async Task SeedAsync(int userId, int currencyId, string? languageCode = null, CancellationToken ct = default)
@@ -30,7 +33,7 @@ public class UserOnboardingService : IUserOnboardingService
 
     private async Task SeedCategoriesAsync(int userId, string? languageCode, CancellationToken ct)
     {
-        var now   = DateTime.UtcNow;
+        var now   = _clock.UtcNow;
         var names = languageCode == "ru" ? CategoryNamesRu : CategoryNamesEn;
 
         foreach (var proto in CategorySeed)
@@ -53,7 +56,7 @@ public class UserOnboardingService : IUserOnboardingService
 
     private async Task SeedAccountAsync(int userId, int currencyId, string? languageCode, CancellationToken ct)
     {
-        var now         = DateTime.UtcNow;
+        var now         = _clock.UtcNow;
         var accountName = languageCode == "ru" ? "Основной счёт" : "Main Account";
 
         await _db.AccountRepository.CreateAsync(new Account

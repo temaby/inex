@@ -1,6 +1,7 @@
 using inex.Data;
 using inex.Data.Models;
 using inex.Services.Exceptions;
+using inex.Services.Infrastructure.Time;
 using inex.Services.Models.Records.Auth;
 using inex.Services.Options;
 using inex.Services.Services.Base;
@@ -20,6 +21,7 @@ public class AuthService : IAuthService
     private readonly IUserOnboardingService _onboarding;
     private readonly JwtOptions _jwt;
     private readonly InviteOptions _invite;
+    private readonly IClock _clock;
 
     public AuthService(
         UserManager<AppUser> userManager,
@@ -27,7 +29,8 @@ public class AuthService : IAuthService
         ITokenService tokenService,
         IUserOnboardingService onboarding,
         IOptions<JwtOptions> jwtOptions,
-        IOptions<InviteOptions> inviteOptions)
+        IOptions<InviteOptions> inviteOptions,
+        IClock clock)
     {
         _userManager = userManager;
         _db = db;
@@ -35,6 +38,7 @@ public class AuthService : IAuthService
         _onboarding = onboarding;
         _jwt = jwtOptions.Value;
         _invite = inviteOptions.Value;
+        _clock = clock;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -83,12 +87,14 @@ public class AuthService : IAuthService
         if (stored is null || stored.RevokedAt is not null)
             throw new AuthenticationFailedException("Invalid refresh token.");
 
-        if (stored.ExpiresAt < DateTime.UtcNow)
+        var now = _clock.UtcNow;
+
+        if (stored.ExpiresAt < now)
             throw new AuthenticationFailedException("Refresh token has expired.");
 
         if (stored.UsedAt is not null)
         {
-            var withinRaceWindow = DateTime.UtcNow - stored.UsedAt.Value < TimeSpan.FromSeconds(_jwt.RefreshGraceWindowSeconds);
+            var withinRaceWindow = now - stored.UsedAt.Value < TimeSpan.FromSeconds(_jwt.RefreshGraceWindowSeconds);
             if (withinRaceWindow && stored.ReplacedByToken is not null)
                 throw new ConflictException("Refresh token rotation conflict detected.", stored.Id);
 
@@ -98,7 +104,7 @@ public class AuthService : IAuthService
 
         // Normal rotation: mark old token as used, issue new one
         var newRefreshToken = _tokenService.GenerateRefreshToken();
-        stored.UsedAt = DateTime.UtcNow;
+        stored.UsedAt = now;
         stored.ReplacedByToken = newRefreshToken;
         stored.ConcurrencyStamp = CreateConcurrencyStamp();
 
@@ -106,7 +112,7 @@ public class AuthService : IAuthService
         {
             Token = newRefreshToken,
             UserId = stored.UserId,
-            ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpiryDays)
+            ExpiresAt = now.AddDays(_jwt.RefreshTokenExpiryDays)
         };
         _db.RefreshTokens.Add(replacement);
 
@@ -134,7 +140,7 @@ public class AuthService : IAuthService
         if (stored is null || stored.RevokedAt is not null)
             return; // idempotent — logout is safe to call multiple times
 
-        stored.RevokedAt = DateTime.UtcNow;
+        stored.RevokedAt = _clock.UtcNow;
         stored.ConcurrencyStamp = CreateConcurrencyStamp();
         try
         {
@@ -187,7 +193,7 @@ public class AuthService : IAuthService
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpiryDays)
+            ExpiresAt = _clock.UtcNow.AddDays(_jwt.RefreshTokenExpiryDays)
         });
 
         await _db.SaveChangesAsync(ct);
@@ -209,7 +215,7 @@ public class AuthService : IAuthService
             if (tokens.Count == 0)
                 return;
 
-            var now = DateTime.UtcNow;
+            var now = _clock.UtcNow;
             foreach (var token in tokens)
             {
                 token.RevokedAt = now;

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using inex.Services.Infrastructure.Time;
 using inex.Services.Models.Records.Budget;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,9 +19,9 @@ public class BudgetService : InExService, IBudgetService
 {
     #region Constructors
 
-    public BudgetService(IInExUnitOfWork uowInEx) : base(uowInEx)
+    public BudgetService(IInExUnitOfWork uowInEx, IClock clock) : base(uowInEx)
     {
-
+        _clock = clock;
     }
 
     #endregion Constructors
@@ -50,9 +51,9 @@ public class BudgetService : InExService, IBudgetService
         budget.UserId = userId;
         budget.CreatedBy = userId;
 
-        // Ensure Year/Month are set
-        if (budget.Year == 0) budget.Year = System.DateTime.Now.Year;
-        if (budget.Month == 0) budget.Month = System.DateTime.Now.Month;
+        var now = _clock.UtcNow;
+        if (budget.Year == 0) budget.Year = now.Year;
+        if (budget.Month == 0) budget.Month = now.Month;
 
         await EnsureCategoriesBelongToUserAsync(itemDTO.CategoryIds, userId, ct);
         ValidateCategoryUniqueness(userId, budget.Year, budget.Month, itemDTO.CategoryIds);
@@ -74,8 +75,8 @@ public class BudgetService : InExService, IBudgetService
                     CategoryId = categoryId,
                     CreatedBy = userId,
                     UpdatedBy = userId,
-                    Created = System.DateTime.Now,
-                    Updated = System.DateTime.Now
+                    Created = now,
+                    Updated = now
                 }, ct);
             }
 
@@ -106,6 +107,7 @@ public class BudgetService : InExService, IBudgetService
         ValidateCategoryUniqueness(userId, source.Year, source.Month, itemDTO.CategoryIds, id);
 
         // Handle category assignments: unassign removed categories and assign new ones
+        var now = _clock.UtcNow;
         var currentCategoryIds = source.BudgetCategories.Select(c => c.CategoryId).ToList();
         var newCategoryIds = itemDTO.CategoryIds?.ToList() ?? new List<int>();
 
@@ -127,8 +129,8 @@ public class BudgetService : InExService, IBudgetService
                 CategoryId = categoryId,
                 CreatedBy = userId,
                 UpdatedBy = userId,
-                Created = System.DateTime.Now,
-                Updated = System.DateTime.Now
+                Created = now,
+                Updated = now
             }, ct);
         }
 
@@ -184,6 +186,7 @@ public class BudgetService : InExService, IBudgetService
 
         ValidateCategoryUniqueness(userId, targetYear, targetMonth, allSourceCategoryIds);
 
+        var now = _clock.UtcNow;
         foreach (var sourceBudget in sourceBudgets)
         {
             // Generate unique key
@@ -229,8 +232,8 @@ public class BudgetService : InExService, IBudgetService
                         CategoryId = bc.CategoryId,
                         CreatedBy = userId,
                         UpdatedBy = userId,
-                        Created = System.DateTime.Now,
-                        Updated = System.DateTime.Now
+                        Created = now,
+                        Updated = now
                     }, ct);
                 }
             }
@@ -284,4 +287,6 @@ public class BudgetService : InExService, IBudgetService
     }
 
     #endregion Public Interface
+
+    private readonly IClock _clock;
 }

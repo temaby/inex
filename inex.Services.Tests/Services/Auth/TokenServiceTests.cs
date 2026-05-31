@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using inex.Data.Models;
 using inex.Services.Services.Auth;
+using inex.Services.Tests.Helpers;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using JwtOptions = inex.Services.Options.JwtOptions;
@@ -25,8 +26,10 @@ public class TokenServiceTests
         RefreshGraceWindowSeconds = 30,
     };
 
+    private static readonly DateTime FixedNow = new(2030, 5, 31, 10, 0, 0, DateTimeKind.Utc);
+
     private static TokenService CreateService() =>
-        new(Microsoft.Extensions.Options.Options.Create(TestJwt));
+        new(Microsoft.Extensions.Options.Options.Create(TestJwt), new FakeClock(FixedNow));
 
     private static AppUser CreateUser(int id = 1) => new()
     {
@@ -64,16 +67,13 @@ public class TokenServiceTests
     public void GenerateAccessToken_ExpiresAtConfiguredTime()
     {
         var service = CreateService();
-        var before  = DateTime.UtcNow;
 
         var token = service.GenerateAccessToken(CreateUser());
 
         var handler = new JwtSecurityTokenHandler();
         var jwt     = handler.ReadJwtToken(token);
 
-        var expectedExpiry = before.AddMinutes(TestJwt.AccessTokenExpiryMinutes);
-        // Allow a 5-second window for test execution time
-        Assert.InRange(jwt.ValidTo, expectedExpiry.AddSeconds(-5), expectedExpiry.AddSeconds(5));
+        Assert.Equal(FixedNow.AddMinutes(TestJwt.AccessTokenExpiryMinutes), jwt.ValidTo);
     }
 
     [Fact]
