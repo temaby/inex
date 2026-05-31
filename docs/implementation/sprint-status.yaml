@@ -50,7 +50,7 @@ development_status:
   1-5-remove-tracked-frontend-build-artifacts: ready-for-dev
   epic-1-retrospective: optional
   epic-2: backlog
-  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: backlog
+  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: review
   2-2-backend-injectable-clock-abstraction-and-utc-consistency: review
   epic-2-retrospective: optional
   epic-3: backlog

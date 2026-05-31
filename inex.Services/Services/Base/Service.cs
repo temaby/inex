@@ -61,7 +61,6 @@ public abstract class Service : IDisposable
 
     public void Dispose()
     {
-        DbInEx?.Dispose();
     }
 
     #endregion Public Interface
