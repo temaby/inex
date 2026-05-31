@@ -32,22 +32,6 @@ public sealed partial class InExUnitOfWork : UnitOfWork, IInExUnitOfWork
 
     public override void Dispose(bool disposing)
     {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                _currencyRepository?.Dispose();
-                _userRepository?.Dispose();
-                _categoryRepository?.Dispose();
-                _budgetRepository?.Dispose();
-                _accountRepository?.Dispose();
-                _tagRepository?.Dispose();
-                _transactionRepository?.Dispose();
-                _exchangeRateRepository?.Dispose();
-                _budgetCategoryRepository?.Dispose();
-            }
-            _disposed = true;
-        }
     }
 
     #endregion Public Interface
@@ -63,8 +47,6 @@ public sealed partial class InExUnitOfWork : UnitOfWork, IInExUnitOfWork
     private IEditableRepository<Transaction>? _transactionRepository;
     private IEditableRepository<ExchangeRate>? _exchangeRateRepository;
     private IEditableRepository<BudgetCategory>? _budgetCategoryRepository;
-
-    private bool _disposed = false;
 
     #endregion Private Fields
 }

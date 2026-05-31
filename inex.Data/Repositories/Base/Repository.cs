@@ -66,11 +66,6 @@ public class Repository<T> : IRepository<T> where T : class
         return set;
     }
 
-    public virtual void Dispose()
-    {
-        Db?.Dispose();
-    }
-
     #endregion Public Interface
 }
 

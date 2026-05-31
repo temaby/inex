@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-05-27T08:25:00+02:00
+last_updated: 2026-05-31T00:00:00+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -50,7 +50,7 @@ development_status:
   1-5-remove-tracked-frontend-build-artifacts: ready-for-dev
   epic-1-retrospective: optional
   epic-2: backlog
-  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: backlog
+  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: review
   2-2-backend-injectable-clock-abstraction-and-utc-consistency: backlog
   epic-2-retrospective: optional
   epic-3: backlog

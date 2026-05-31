@@ -2,7 +2,7 @@
 
 namespace inex.Data.Repositories.Base;
 
-public interface IRepository<T> : IDisposable
+public interface IRepository<T>
 {
     T? Get(int id);
     Task<T?> GetAsync(int id, CancellationToken ct = default);
