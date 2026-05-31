@@ -49,9 +49,9 @@ development_status:
   1-4-rotate-and-externalize-local-secrets: ready-for-dev
   1-5-remove-tracked-frontend-build-artifacts: ready-for-dev
   epic-1-retrospective: optional
-  epic-2: backlog
-  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: review
-  2-2-backend-injectable-clock-abstraction-and-utc-consistency: review
+  epic-2: done
+  2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: done
+  2-2-backend-injectable-clock-abstraction-and-utc-consistency: done
   epic-2-retrospective: optional
   epic-3: backlog
   3-1-backend-registration-sends-confirmation-email: backlog

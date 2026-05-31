@@ -1,6 +1,6 @@
 # Story 2.1: Backend — Fix Repository Disposal and DbContext Lifetime
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
