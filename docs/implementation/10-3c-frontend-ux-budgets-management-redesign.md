@@ -13,7 +13,7 @@ so that monthly budget health is easy to compare.
 1. Given the Budgets design reference, when /budgets is rebuilt, then it includes a month switcher, burn-rate summary, copy-from-previous-month action, add budget action, budget rows, progress bars, over-budget state, and remaining/spent scan targets.
 2. Given empty or filter-empty states on Budgets, when no data or no matching results are shown, then the page uses shared InEx empty-state patterns with product-specific EN/RU copy and useful primary actions.
 3. Given 390px and 360px mobile viewports, when Budgets is opened with populated data, then toolbars wrap, wide controls scroll internally, rows stack cleanly, and no page-level horizontal overflow appears.
-4. Given the story is complete, when npm run build, npm run lint, and visual QA run from inex/ClientApp, then all pass and screenshots cover populated, empty, and drawer-open states.
+4. Given the story is complete, when npm run build, npm run lint, and visual QA run from inex/ClientApp, then all pass with no new `any` in touched TypeScript files and screenshots/checks cover populated, empty, and drawer-open states at 1440px, 1024px, 390px, and 360px where applicable.
 
 ## Tasks / Subtasks
 

@@ -216,7 +216,7 @@ return (
 - **Do NOT add** Google Fonts loading — 10.1a and 10.1b use CSS font-family stacks and fallbacks only; explicit Inter / JetBrains Mono loading requires a separate task
 - **Do NOT introduce** any new npm dependencies — this story uses only existing packages
 - **Do NOT use** CSS variable references as Ant Design token values — AntD v5 needs raw values
-- **Do NOT break** the existing `anytype` behavior or introduce `@ts-ignore` suppressors
+- **Do NOT break** existing behavior or introduce `@ts-ignore` suppressors
 
 ---
 
@@ -257,7 +257,7 @@ Before marking this story complete:
 
 **TypeScript:** `ThemeConfig` is exported from `'antd'` — import it as a type. The `inexTheme` constant should satisfy TypeScript strict mode without any type assertions.
 
-**Import location:** Importing `tokens.css` in `index.tsx` (rather than `App.tsx`) ensures it loads before React renders anything, including the AntD reset. This is the correct placement for a global CSS baseline.
+**Import location:** Importing `tokens.css` in `index.tsx` (rather than `App.tsx`) ensures it loads before React renders anything. Because `App.tsx` imports `antd/dist/reset.css`, verify the final CSS order keeps the Ant Design reset and token layer predictable for the global baseline.
 
 **No visual regression expected:** The AntD theme change will shift primary button color from AntD's default blue (`#1677ff`) to InEx income-teal (`#2F8F82`). This is intentional and correct. All other AntD component colors (error red, warning amber) will also align with InEx semantics. This is a visual improvement, not a regression.
 

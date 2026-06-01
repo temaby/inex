@@ -40,7 +40,7 @@ So that category structure and spend signals remain clear.
 
 8. **Given** the story is complete
    **When** `npm run build`, `npm run lint`, and visual QA run from `inex/ClientApp`
-   **Then** all pass with no new `any` in touched files, and screenshots cover: desktop populated (tree mode), desktop populated (by-spend mode), mobile populated, filter-active/no-results, empty first-use, and inline-edit-open states.
+   **Then** all pass with no new `any` in touched files, and screenshots cover: desktop populated (tree mode), desktop populated (by-spend mode), mobile populated, filter-active/no-results, empty first-use, add-drawer-open, and inline-edit-open states.
 
 ---
 
@@ -49,17 +49,16 @@ So that category structure and spend signals remain clear.
 This story **must** be implemented after:
 
 - **Story 10.1a** вЂ” design tokens (`--brand-ink`, `--income-*`, `--expense-*`, `--fg-*`, `--bg-stripe`, `--border-1`, `--shadow-1`, `--font-num`, etc.) are available as CSS custom properties.
-- **Story 10.1b** вЂ” shared primitive components are available: `Button`, `IconButton`, `Drawer`, `MoneyValue`, `EmptyState`, `FilterEmpty`, `SegmentedControl`, `Field`, `Input`, `Select`, `Progress`.
-- **Story 10.1c** вЂ” `InExShell` app shell is in place; `BasicPage` is replaced; route `/categories` is already wired.
+- **Story 10.1b** вЂ” shared primitive components are available from `src/components/primitives`: `InExButton`, `IconBtn`, `InExDrawer`, `Num`, `EmptyState`, `FilterEmpty`, `SegmentedControl`, `Field`, `Input`, `Select`, and `BudgetProgress`.
+- **Story 10.1c** вЂ” `AppShell` / `BasicPage` compatibility shell contract is in place; route `/categories` is already wired.
 
-The `Drawer`, `Button`, `EmptyState`, `FilterEmpty`, and `SegmentedControl` components are consumed from `src/components/` as established by 10.1b вЂ” do **not** rebuild them here.
+The `InExDrawer`, `InExButton`, `EmptyState`, `FilterEmpty`, and `SegmentedControl` components are consumed from `src/components/primitives` as established by 10.1b. Do **not** rebuild them here.
 
 ---
 
 ## Files To Create
 
 ```
-inex/ClientApp/src/pages/Categories.tsx                    (replace entirely)
 inex/ClientApp/src/pages/Categories/CategoryRow.tsx        (new)
 inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx (new)
 inex/ClientApp/src/pages/Categories/CategoriesHero.tsx     (new)
@@ -71,6 +70,7 @@ inex/ClientApp/src/pages/Categories/categories.css         (new)
 ### Files To Modify
 
 ```
+inex/ClientApp/src/pages/Categories.tsx                    (replace existing page implementation)
 inex/ClientApp/public/locales/en/translation.json   (add new keys under "categories")
 inex/ClientApp/public/locales/ru/translation.json   (add Russian equivalents)
 ```
@@ -93,7 +93,7 @@ inex/ClientApp/src/pages/Categories/CategoryEditForm.tsx      (replace via Categ
 
 The current file uses:
 
-- `BasicPage` layout wrapper (being replaced by `InExShell` from 10.1c).
+- `BasicPage` layout wrapper (being replaced by the Story 10.1c `AppShell` / `BasicPage` compatibility contract).
 - Ant Design `Table` with `expandable.expandedRowRender` for inline edit.
 - `getCategoriesTree(filteredCategories, true)` to get a flat list with `depth` field.
 - `showOnlyEnabled` checkbox filter.
@@ -254,7 +254,7 @@ Left column shows:
 Right column shows:
 
 - "By Category" label.
-- `DistributionBar` (shared primitive from 10.1b) with top-5 expense parents and an "Other" segment.
+- Shared distribution visualization for top-5 expense parents and an "Other" segment. Use `DistributionBar` only if Story 10.1b has been updated to own it as a shared primitive; otherwise use an existing shared primitive and keep this page from creating a local design-system replacement.
 - Legend grid: 8px color square + name + percentage.
 
 > **Data source:** Hero uses `state.categories.items` (flat list) and `state.transactions` (if available from Redux). If transactions slice is not available, render a loading/empty-data treatment rather than crashing. The design reference computes spend from transaction data вЂ” only show real spend if transaction data is loaded; otherwise show zero/empty hero. Do **not** fetch transactions just for this page вЂ” check if they already exist in the store.
@@ -584,14 +584,15 @@ Required RU key groups mirror the EN structure above:
 
 | Component                    | Location                              | Usage in this story                             |
 | ---------------------------- | ------------------------------------- | ----------------------------------------------- |
-| `Button`                     | `src/components/Button.tsx`           | Save, Cancel, Delete, "Add category" CTA        |
-| `IconButton`                 | `src/components/IconButton.tsx`       | Settings icon in leaf rows                      |
-| `Drawer`                     | `src/components/Drawer.tsx`           | "Add category" drawer, Escape close, focus trap |
-| `EmptyState`                 | `src/components/EmptyState.tsx`       | First-use empty page                            |
-| `FilterEmpty`                | `src/components/FilterEmpty.tsx`      | Filter-active no-results state                  |
-| `SegmentedControl`           | `src/components/SegmentedControl.tsx` | Active/All scope, Tree/By-spend view            |
-| `DistributionBar`            | `src/components/DistributionBar.tsx`  | Hero spend distribution                         |
-| `Field` + `Input` + `Select` | `src/components/`                     | Inline edit form fields                         |
+| `InExButton`                 | `src/components/primitives/Button.tsx`           | Save, Cancel, Delete, "Add category" CTA        |
+| `IconBtn`                    | `src/components/primitives/IconBtn.tsx`          | Settings icon in leaf rows                      |
+| `InExDrawer`                 | `src/components/primitives/InExDrawer.tsx`       | "Add category" drawer, Escape close, focus trap |
+| `EmptyState`                 | `src/components/primitives/EmptyState.tsx`       | First-use empty page                            |
+| `FilterEmpty`                | `src/components/primitives/EmptyState.tsx`       | Filter-active no-results state                  |
+| `SegmentedControl`           | `src/components/primitives/SegmentedControl.tsx` | Active/All scope, Tree/By-spend view            |
+| `Field` + `Input` + `Select` | `src/components/primitives/`                     | Inline edit form fields                         |
+
+`DistributionBar` is not part of the original 10.1b primitive surface. Resolve this before implementation by either adding it to Story 10.1b as a shared primitive or replacing the hero distribution treatment with an already-established shared primitive. Do not create a page-local `DistributionBar` in this story.
 
 > If any of these components are not yet available (e.g., Story 10.1b is incomplete), **do not inline-create them**. Block on the dependency and note which component is missing.
 

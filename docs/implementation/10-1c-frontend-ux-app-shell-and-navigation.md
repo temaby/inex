@@ -35,7 +35,7 @@ so that desktop and mobile navigation are predictable across authenticated workf
 - [ ] Wire pages to the new shell with minimal blast radius (AC: 1, 4)
   - [ ] Choose either direct import migration or `BasicPage` re-export shim
   - [ ] Update only files that currently import `BasicPage`
-  - [ ] Do not modify route definitions except optional `SignageProvider` wrap if still missing
+  - [ ] Do not modify route definitions; `SignageProvider` is owned by Story 10.1b and must already be present before this story starts
 - [ ] Validate localization and quality gates (AC: 5, 6)
   - [ ] Add missing nav keys in EN/RU locale files if needed
   - [ ] Run `npm run build` and `npm run lint` from `inex/ClientApp`
@@ -65,7 +65,7 @@ Implementation sequence:
 
 **Do not rebuild any page content in this story.** Shell scope = `BasicPage.tsx`, routing structure in `App.tsx`, and the new shell CSS file. Page interiors are 10.2 through 10.5b scope.
 
-**Epic 1 is done**, so the auth/data-isolation prerequisite is satisfied.
+Epic 1 must be complete before broad UI rollout. If `docs/implementation/sprint-status.yaml` still shows `epic-1` or any Epic 1 story as not `done`, do not treat this prerequisite as satisfied; either complete Epic 1 first or record the explicit delivery decision before starting this story.
 
 ## Design References
 

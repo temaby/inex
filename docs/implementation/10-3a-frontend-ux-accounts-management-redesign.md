@@ -21,6 +21,8 @@ so that account balances are easy to compare on desktop and mobile.
   - [ ] Story 10.1a token/theme bridge is complete and page styles consume those tokens instead of hardcoded palette constants.
   - [ ] Story 10.1b shared primitives are complete for drawer, segmented controls, empty/filter-empty states, money/signage rendering, and form fields.
   - [ ] Story 10.1c app shell/bottom navigation is complete so Accounts spacing and mobile safe-area behavior are implemented against the final shell.
+  - [ ] Story 10.2 Transactions redesign is complete or explicitly waived for this management-page wave, preserving the fixed Epic 10 order.
+  - [ ] If 10.3a, 10.3b, and 10.3c run in parallel, coordinate shared EN/RU locale files and shared primitive assumptions before editing.
 - [ ] Rebuild `/accounts` as a management workspace while preserving existing data contracts and route ownership. (AC: 1)
   - [ ] Replace the current table-first composition in `inex/ClientApp/src/pages/Accounts.tsx` with the design-system workspace flow: hero, toolbar/filter bar, grouped/flat list, and inline-edit or drawer interactions.
   - [ ] Keep route path, auth guarding (`ProtectedRoute`), and shell integration from Story 10.1c unchanged.

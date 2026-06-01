@@ -54,7 +54,7 @@ FR-INF-1: Docker multi-stage build + docker-compose
 FR-INF-2: GitHub Actions CI: build + test + coverage
 FR-INF-3: AWS E-track: ECR + EC2 t4g.small (ARM) + nginx + Let's Encrypt + Porkbun DNS
 FR-INF-4: CloudWatch structured logging via Serilog sink
-FR-INF-5: MySQL daily backup to S3 (30-day retention, 02:00 UTC cron)
+FR-INF-5: MySQL daily backup to S3 (30-day retention, 02:00 UTC cron; operational runbook: `docs/operations/mysql-backups.md`)
 FR-INF-6: Secrets in SSM Parameter Store; never in source
 
 **Section 5 — Roadmap (work to be done)**
@@ -114,7 +114,7 @@ NFR-PERF-1: All filtering must execute database-side before count and pagination
 NFR-PERF-2: Cold-cache yearly report triggers ≤2 external exchange rate API calls
 NFR-PERF-3: Frontend initial bundle ≤ 500 KB minified per Vite threshold — currently violated (~1.9 MB)
 NFR-REL-1: Startup DB validation via EnsureDatabaseInitialized + /health endpoint
-NFR-REL-2: MySQL daily backup to S3 with 30-day retention
+NFR-REL-2: MySQL daily backup to S3 with 30-day retention; operational runbook: `docs/operations/mysql-backups.md`
 NFR-OBS-1: Structured JSON logs to CloudWatch via Serilog in production
 NFR-OBS-2: After DX-001 completes, dotnet build inex.sln produces zero CS1591 XML documentation warnings
 NFR-I18N-1: All user-visible strings through react-i18next; no hardcoded UI text

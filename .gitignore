@@ -22,6 +22,8 @@ docs/*
 !docs/planning/**
 !docs/implementation/
 !docs/implementation/**
+!docs/operations/
+!docs/operations/**
 **/logs/
 *.pem
 *.stackdump

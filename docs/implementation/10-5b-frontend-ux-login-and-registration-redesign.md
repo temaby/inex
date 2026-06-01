@@ -542,6 +542,14 @@ import { AlertCircle } from "lucide-react";
 
 **Add these keys inside the `"auth"` object:**
 
+The auth story must also add EN/RU keys for every visible `AuthShell` string, not only form headings. Required coverage includes:
+
+- Brand panel copy: tagline, highlighted phrase, and any supporting microcopy.
+- Feature bullets: title and description for multi-currency/accounts, privacy/invite-only access, and reports/reflection.
+- Footer copy and auth route links.
+- Placeholders, including username and email placeholder text. If `you@example.com` is kept as an email-format example, document it as an intentional placeholder exception; otherwise localize it.
+- API/banner error mappings: invalid credentials, generic login failure, generic registration failure, duplicate email, invalid/expired invite token, and unknown fallback error.
+
 ```json
 "welcomeBack": "Welcome back",
 "signInTitle": "Sign in to InEx",
@@ -565,7 +573,7 @@ import { AlertCircle } from "lucide-react";
 
 ### `inex/ClientApp/public/locales/ru/translation.json`
 
-**Add the matching Russian keys inside `"auth"`:**
+**Add the matching Russian keys inside `"auth"`**, including the full AuthShell, footer, placeholder, and API/banner error mapping coverage listed above. Do not add English-only screen text and do not rely on backend English messages for known auth errors.
 
 ```json
 "welcomeBack": "С возвращением",
@@ -610,8 +618,8 @@ The auth thunks currently store `error.response?.data?.detail ?? error.message ?
 Resolve the localized-error requirement at the display boundary:
 
 - Add a small mapper near the auth form/ErrorBanner layer that receives `auth.error` and `t`.
-- If `auth.error` matches a known backend detail or fallback string, render the mapped locale key (for example invalid credentials, invite token invalid/expired, duplicate email, generic login failure, generic registration failure).
-- If the backend detail is unknown and user-actionable, display the backend detail verbatim so diagnostics are not lost.
+- If `auth.error` matches a known backend detail or fallback string, render the mapped locale key (for example invalid credentials, invite token invalid/expired, duplicate email, generic login failure, generic registration failure). These known cases must never display raw English backend/fallback text.
+- If the backend detail is unknown and user-actionable, display the backend detail verbatim only after the mapper fails to classify it; this is an intentional diagnostics fallback, not the normal localization path.
 - If there is no usable backend detail, render localized fallback copy from `translation.json`.
 - Keep field-level `Form.Item` validation messages fully localized via `t()` and separate from API/banner errors.
 
@@ -627,11 +635,7 @@ Story 10.1b installs and establishes `lucide-react` as the icon library. Use nam
 import { AlertCircle, Wallet, Target, BarChart3 } from "lucide-react";
 ```
 
-If story 10.1b is not yet done and `lucide-react` is not installed, run from `inex/ClientApp/`:
-
-```bash
-npm install lucide-react
-```
+If Story 10.1b is not done or `lucide-react` is not installed, block this story and complete/fix Story 10.1b first. This story must not run `npm install`, edit `package.json`, or edit `package-lock.json`.
 
 Do **not** use `<i data-lucide="..." />` DOM attribute syntax — that requires a global DOM scan and is a mockup-only pattern.
 
@@ -708,6 +712,7 @@ Before marking this story done, verify:
 - [ ] Currency dropdown on register still pre-selects EUR from the API response
 - [ ] EN ↔ RU locale switch shows all new `auth.*` keys in both languages (no missing translation fallback to key names)
 - [ ] At 390px: no horizontal overflow, brand panel hidden, mobile logo visible, form accessible
+- [ ] At 360px: no horizontal overflow, brand panel hidden, mobile logo visible, form accessible
 - [ ] At 1440px: two-column grid renders, brand panel visible
 
 ## Visual QA Spec
@@ -722,6 +727,8 @@ Before marking this story done, verify:
 | register-api-error         | 1440px   | ErrorBanner showing API error (e.g., duplicate email)                  |
 | login-mobile               | 390px    | Default state, brand panel hidden, mobile logo visible                 |
 | register-mobile            | 390px    | Default state, single-column                                           |
+| login-mobile-narrow        | 360px    | Default state, no horizontal overflow                                  |
+| register-mobile-narrow     | 360px    | Default state, no horizontal overflow                                  |
 
 ## Dev Agent Record
 
