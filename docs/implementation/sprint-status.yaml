@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-05-31T00:00:00+02:00
+last_updated: 2026-06-01T07:09:43+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -58,10 +58,10 @@ development_status:
   3-2-backend-confirm-email-and-resend-endpoints: backlog
   3-3-frontend-email-confirmation-ui-flow: backlog
   epic-3-retrospective: optional
-  epic-4: backlog
-  4-1-backend-move-tag-ref-filtering-to-database-side: backlog
-  4-2-backend-frontend-typed-transaction-filter-query-parameters: backlog
-  4-3-frontend-active-filter-indicator-on-transaction-list: backlog
+  epic-4: in-progress
+  4-1-backend-move-tag-ref-filtering-to-database-side: review
+  4-2-backend-frontend-typed-transaction-filter-query-parameters: review
+  4-3-frontend-active-filter-indicator-on-transaction-list: review
   epic-4-retrospective: optional
   epic-5: backlog
   5-1-backend-nbrb-exchange-rate-client-for-byn-rub: backlog
@@ -99,16 +99,16 @@ development_status:
   9-7-infra-cloudwatch-logs-alarms-and-dashboard: backlog
   9-8-infra-ci-cd-github-actions-ecr-ecs-rolling-deploy: backlog
   epic-9-retrospective: optional
-  epic-10: backlog
-  10-1a-frontend-ux-design-tokens-and-theme-bridge: backlog
-  10-1b-frontend-ux-shared-primitives: backlog
-  10-1c-frontend-ux-app-shell-and-navigation: backlog
-  10-2-frontend-ux-transactions-ledger-redesign: backlog
-  10-3a-frontend-ux-accounts-management-redesign: backlog
-  10-3b-frontend-ux-categories-management-redesign: backlog
-  10-3c-frontend-ux-budgets-management-redesign: backlog
-  10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome: backlog
-  10-5a-frontend-ux-profile-and-settings-redesign: backlog
-  10-5b-frontend-ux-login-and-registration-redesign: backlog
-  10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: backlog
+  epic-10: in-progress
+  10-1a-frontend-ux-design-tokens-and-theme-bridge: ready-for-dev
+  10-1b-frontend-ux-shared-primitives: ready-for-dev
+  10-1c-frontend-ux-app-shell-and-navigation: ready-for-dev
+  10-2-frontend-ux-transactions-ledger-redesign: ready-for-dev
+  10-3a-frontend-ux-accounts-management-redesign: ready-for-dev
+  10-3b-frontend-ux-categories-management-redesign: ready-for-dev
+  10-3c-frontend-ux-budgets-management-redesign: ready-for-dev
+  10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome: ready-for-dev
+  10-5a-frontend-ux-profile-and-settings-redesign: ready-for-dev
+  10-5b-frontend-ux-login-and-registration-redesign: ready-for-dev
+  10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: ready-for-dev
   epic-10-retrospective: optional

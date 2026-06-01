@@ -10,7 +10,7 @@ import { DatePicker } from "antd";
 const { RangePicker } = DatePicker;
 
 import { useMemo, useState, useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useAppDispatch } from "../../store/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import Dropdown from "../../components/Dropdown";
@@ -18,6 +18,8 @@ import { defaultCategory, CategoryDetails, getCategoriesTree } from "../../model
 import { defaultAccount, AccountDetails } from "../../model/Account/AccountDetails";
 
 import { transactionsDefaultFilter, transactionsActions } from "../../store/transactions/transactions-slice";
+import type { TransactionFilter } from "../../store/transactions/transactions-slice";
+import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./transaction-filter-url";
 
 const TransactionFilterForm = (props: any) => {
     const { t } = useTranslation();
@@ -25,69 +27,31 @@ const TransactionFilterForm = (props: any) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const filterData = useAppSelector(state => state.transactions.filter);
-    const [localFilter, setLocalFilter] = useState(transactionsDefaultFilter);
+    const [localFilter, setLocalFilter] = useState<TransactionFilter>(transactionsDefaultFilter);
+    const [tagsAndRefsInput, setTagsAndRefsInput] = useState("");
     const { categories, accounts, filter } = props;
 
     useEffect(() => {
-        var queryFilter: { [id: string]: string[] } = {};
+        const queryFilter = parseTransactionFilterParam(filter);
 
-        if (filter) {
-            filter.split(";").map((filterPart: string) => {
-                const parts: string[] = filterPart.split(":");
-                if (parts.length === 2) {
-                    const key: string = parts[0];
-                    const value: string[] = parts[1].split(",");
-                    queryFilter[key] = value;
-                }
-            });
-        }
-
-        if (!queryFilter.accountIds && !queryFilter.categoryIds && (!queryFilter.start || !queryFilter.end) && !queryFilter.tags && !queryFilter.refs) {
+        if (!queryFilter) {
             dispatch(transactionsActions.resetFilter());
             setLocalFilter(transactionsDefaultFilter);
+            setTagsAndRefsInput("");
         } else {
-            let accountIds: number[] = [];
-            let categoryIds: number[] = [];
-            let tags: string[] = [];
-            let refs: string[] = [];
-            let range: [number, number] = [0, 0];
-
-            if (queryFilter.accountIds) {
-                accountIds = queryFilter.accountIds.map((i: string) => +i).filter((i: number) => i > 0);
-                setLocalFilter((prevState: any) => ({ ...prevState, accountIds: accountIds }));
-            }
-            if (queryFilter.categoryIds) {
-                categoryIds = queryFilter.categoryIds.map((i: string) => +i).filter((i: number) => i > 0);
-                setLocalFilter((prevState: any) => ({ ...prevState, categoryIds: categoryIds }));
-            }
-            if (queryFilter.start && queryFilter.end) {
-                range = [dayjs(queryFilter.start[0], "YYYY-MM-DD").unix(), dayjs(queryFilter.end[0], "YYYY-MM-DD").unix()];
-                setLocalFilter((prevState: any) => ({ ...prevState, range: range }));
-            }
-            if (queryFilter.tags) {
-                tags = queryFilter.tags.map((i: string) => i).filter((i: string) => i !== "");
-                setLocalFilter((prevState: any) => ({ ...prevState, tags: tags }));
-            }
-            if (queryFilter.refs) {
-                refs = queryFilter.refs.map((i: string) => i).filter((i: string) => i !== "");
-                setLocalFilter((prevState: any) => ({ ...prevState, refs: refs }));
-            }
+            setLocalFilter(queryFilter);
+            setTagsAndRefsInput([
+                queryFilter.tags.map((tag: string) => `#${tag}`).join(" "),
+                queryFilter.refs.map((ref: string) => `@${ref}`).join(" "),
+            ].filter(Boolean).join(" "));
 
             dispatch(
                 transactionsActions.setFilter({
-                    filter: {
-                        ...filterData,
-                        categoryIds: categoryIds,
-                        accountIds: accountIds,
-                        tags: tags,
-                        refs: refs,
-                        range: range,
-                    },
+                    filter: queryFilter,
                 })
             );
         }
-    }, [filter]);
+    }, [dispatch, filter]);
 
     const isFilterActive: any =
         localFilter.categoryIds.find((i: number) => i > 0) ||
@@ -114,10 +78,10 @@ const TransactionFilterForm = (props: any) => {
         return {
             accounts: filteredAccounts.length === 0 ? [defaultAccount] : filteredAccounts,
             categories: filteredCategories.length === 0 ? [defaultCategory] : filteredCategories,
-            tagsAndRefs: localFilter.tagsAndRefs || combinedTagsAndRefs,
+            tagsAndRefs: tagsAndRefsInput || combinedTagsAndRefs,
             range: range
         };
-    }, [categories, accounts, localFilter]);
+    }, [categories, accounts, localFilter, tagsAndRefsInput]);
 
     const setAccountsHandler = (item: any) => {
         setLocalFilter((prevState: any) => ({
@@ -157,8 +121,8 @@ const TransactionFilterForm = (props: any) => {
             ...prevState,
             tags: tags,
             refs: refs,
-            tagsAndRefs: input
         }));
+        setTagsAndRefsInput(input);
     };
 
     const setRangeHandler = (dates: any) => {
@@ -173,29 +137,7 @@ const TransactionFilterForm = (props: any) => {
     }
 
     const applyFilterHandler = () => {
-        let filter: string = "filter=";
-
-        if (localFilter.categoryIds.length > 0) {
-            filter += `categoryIds:${localFilter.categoryIds.join(",")};`;
-        }
-
-        if (localFilter.accountIds.length > 0) {
-            filter += `accountIds:${localFilter.accountIds.join(",")};`;
-        }
-
-        if (localFilter.range.length === 2) {
-            filter += `start:${dayjs.unix(localFilter.range[0]).format("YYYY-MM-DD")};end:${dayjs.unix(localFilter.range[1]).format("YYYY-MM-DD")};`;
-        }
-
-        if (localFilter.tags.length > 0) {
-            filter += `tags:${localFilter.tags.join(",")};`;
-        }
-
-        if (localFilter.refs.length > 0) {
-            filter += `refs:${localFilter.refs.join(",")};`;
-        }
-
-        navigate(`${location.pathname}${filter === "filter=" ? "" : `?${filter}`}`, { replace: true });
+        navigate(`${location.pathname}${buildTransactionFilterSearch(localFilter)}`, { replace: true });
     }
 
     const rangePresets = useMemo((): Record<string, [Dayjs, Dayjs]> => ({

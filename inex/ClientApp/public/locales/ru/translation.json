@@ -62,6 +62,7 @@
     "addDrawerTitle": "Добавить транзакцию",
     "add": "Добавить",
     "filter": "Фильтр",
+    "filtersActive": "Фильтры применены",
     "status": "Статус",
     "amount": "Сумма",
     "comment": "Комментарий",

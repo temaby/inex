@@ -4,27 +4,34 @@ import type { Dayjs } from "dayjs";
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { transactionsActions } from "./transactions-slice";
+import type { TransactionFilter } from "./transactions-slice";
 import type { AppDispatch } from "../index";
 
 const API_BASE = "/transactions";
 
-export const fetchTransactions = (pageSize: number, pageNumber: number, filter: any) => {
+export const fetchTransactions = (pageSize: number, page: number, filter: TransactionFilter) => {
     return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsLoading({ isLoading: true }));
 
-            const tagsStr: string = filter.tags.length > 0 ? `Tags:${filter.tags.toString()};` : "";
-            const refsStr: string = filter.refs.length > 0 ? `Refs:${filter.refs.toString()};` : "";
-            const accountIdsStr: string = filter.accountIds.length > 0 ? `AccountId:${filter.accountIds.toString()};` : "";
-            const categoryIdsStr: string = filter.categoryIds.length > 0 ? `CategoryId:${filter.categoryIds.toString()};` : "";
-            const startStr: string = filter.range.length === 2 && filter.range[0] > 0 ? `Start:${dayjs.unix(filter.range[0]).format("YYYY-MM-DD")};` : "";
-            const endStr: string = filter.range.length === 2 && filter.range[1] > 0 ? `End:${dayjs.unix(filter.range[1]).format("YYYY-MM-DD")};` : "";
-            const filterStr: string = accountIdsStr !== "" || categoryIdsStr !== "" || tagsStr !== "" || refsStr !== "" || startStr !== "" || endStr !== "" ?
-                `&filter=${accountIdsStr}${categoryIdsStr}${startStr}${endStr}${tagsStr}${refsStr}` : "";
+            const params = new URLSearchParams();
+            params.set("mode", "active");
+            params.set("pageSize", String(pageSize));
+            params.set("page", String(page));
 
-            const { data } = await apiClient.get(
-                `${API_BASE}?mode=active&pageSize=${pageSize}&pageNumber=${pageNumber}${filterStr}`
-            );
+            filter.accountIds.forEach(id => params.append("accountId", String(id)));
+            filter.categoryIds.forEach(id => params.append("categoryId", String(id)));
+            filter.tags.forEach(tag => params.append("tag", tag));
+            filter.refs.forEach(ref => params.append("ref", ref));
+
+            if (filter.range.length === 2 && filter.range[0] > 0) {
+                params.set("startDate", dayjs.unix(filter.range[0]).format("YYYY-MM-DD"));
+            }
+            if (filter.range.length === 2 && filter.range[1] > 0) {
+                params.set("endDate", dayjs.unix(filter.range[1]).format("YYYY-MM-DD"));
+            }
+
+            const { data } = await apiClient.get(`${API_BASE}?${params.toString()}`);
 
             dispatch(transactionsActions.setTransactions({ items: data.data || [] }));
             dispatch(transactionsActions.setTotal({ total: data.metadata.totalItems }));

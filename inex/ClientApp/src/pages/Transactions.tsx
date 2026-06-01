@@ -37,7 +37,8 @@ const Transactions = (props: any) => {
         filterState.categoryIds.length > 0 ||
         filterState.tags.length > 0 ||
         filterState.refs.length > 0 ||
-        filterState.range.length > 0;
+        (filterState.range.length === 2 && (filterState.range[0] > 0 || filterState.range[1] > 0));
+    const filterIndicatorTitle = isFilterActive ? t("transactions.filtersActive") : undefined;
 
     const screens = useBreakpoint();
     const isMobile = screens.md === false;
@@ -51,7 +52,7 @@ const Transactions = (props: any) => {
 
     const extraButtons = [
         isMobile && (
-            <Badge key="filterBadge" dot={isFilterActive}>
+            <Badge key="filterBadge" dot={isFilterActive} title={filterIndicatorTitle}>
                 <Button
                     key="filterButton"
                     icon={<FilterOutlined />}
@@ -114,7 +115,7 @@ const Transactions = (props: any) => {
                                 },
                                 {
                                     key: "filter",
-                                    label: <Badge dot={isFilterActive} offset={[6, 0]}>{t("transactions.filter")}</Badge>,
+                                    label: <Badge dot={isFilterActive} offset={[6, 0]} title={filterIndicatorTitle}>{t("transactions.filter")}</Badge>,
                                     children: <TransactionFilterForm accounts={activeAccounts} categories={activeCategories} filter={filter} />,
                                     style: { padding: "20px" },
                                 },

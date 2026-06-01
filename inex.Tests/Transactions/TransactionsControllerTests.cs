@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
+using inex.Data;
+using inex.Services.Services;
 using inex.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace inex.Tests.Transactions;
 
@@ -180,6 +183,165 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
     }
 
+    [Fact]
+    public async Task Filter_ByTag_ReturnOnlyMatchingTransactions()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "filter-tag-account");
+        int categoryId = await CreateCategoryAsync(client, "filter-tag-category");
+        int expectedId = await CreateTransactionWithCommentAsync(client, accountId, categoryId, "weekly shop #groceries");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "weekly shop #other");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "weekly shop");
+
+        var response = await client.GetAsync("/api/transactions?tag=groceries&pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = body.GetProperty("data").EnumerateArray().ToList();
+        var transaction = Assert.Single(data);
+        Assert.Equal(expectedId, transaction.GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public async Task Filter_ByRef_ReturnOnlyMatchingTransactions()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "filter-ref-account");
+        int categoryId = await CreateCategoryAsync(client, "filter-ref-category");
+        int expectedId = await CreateTransactionWithCommentAsync(client, accountId, categoryId, "paid back @alice");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "paid back @bob");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "paid back");
+
+        var response = await client.GetAsync("/api/transactions?ref=alice&pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = body.GetProperty("data").EnumerateArray().ToList();
+        var transaction = Assert.Single(data);
+        Assert.Equal(expectedId, transaction.GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public async Task Filter_ByTagAndRef_Combined_ReturnsOnlyMatchingTransactions()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "filter-combined-account");
+        int categoryId = await CreateCategoryAsync(client, "filter-combined-category");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "tagged only #groceries");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "ref only @alice");
+        int expectedId = await CreateTransactionWithCommentAsync(client, accountId, categoryId, "both #groceries @alice");
+
+        var response = await client.GetAsync("/api/transactions?tag=groceries&ref=alice&pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = body.GetProperty("data").EnumerateArray().ToList();
+        var transaction = Assert.Single(data);
+        Assert.Equal(expectedId, transaction.GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public async Task Filter_ByTag_WithPagination_CountReflectsFilteredTotal()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "filter-pagination-account");
+        int categoryId = await CreateCategoryAsync(client, "filter-pagination-category");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "food 1 #food");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "food 2 #food");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "food 3 #food");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "plain 1");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "plain 2");
+
+        var response = await client.GetAsync("/api/transactions?tag=food&pageSize=2&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(3, body.GetProperty("metadata").GetProperty("totalItems").GetInt32());
+        Assert.Equal(2, body.GetProperty("data").EnumerateArray().Count());
+    }
+
+    [Fact]
+    public async Task List_WithMultipleAccountIds_ReturnsOnlyMatchingTransactions()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int firstAccountId = await CreateAccountAsync(client, "filter-multi-account-1");
+        int secondAccountId = await CreateAccountAsync(client, "filter-multi-account-2");
+        int otherAccountId = await CreateAccountAsync(client, "filter-multi-account-other");
+        int categoryId = await CreateCategoryAsync(client, "filter-multi-account-category");
+        int firstId = await CreateTransactionWithCommentAsync(client, firstAccountId, categoryId, "first account");
+        int secondId = await CreateTransactionWithCommentAsync(client, secondAccountId, categoryId, "second account");
+        await CreateTransactionWithCommentAsync(client, otherAccountId, categoryId, "other account");
+
+        var response = await client.GetAsync($"/api/transactions?accountId={firstAccountId}&accountId={secondAccountId}&pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = body.GetProperty("data").EnumerateArray().ToList();
+        Assert.Equal(2, data.Count);
+        Assert.All(data, transaction => Assert.Contains(transaction.GetProperty("accountId").GetInt32(), new[] { firstAccountId, secondAccountId }));
+        Assert.Contains(data, transaction => transaction.GetProperty("id").GetInt32() == firstId);
+        Assert.Contains(data, transaction => transaction.GetProperty("id").GetInt32() == secondId);
+    }
+
+    [Fact]
+    public async Task List_WithUrlEncodedTag_ReturnsMatchingTransactions()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "filter-encoded-tag-account");
+        int categoryId = await CreateCategoryAsync(client, "filter-encoded-tag-category");
+        int expectedId = await CreateTransactionWithCommentAsync(client, accountId, categoryId, "coffee #café");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "coffee #cafe");
+
+        var response = await client.GetAsync("/api/transactions?tag=caf%C3%A9&pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = body.GetProperty("data").EnumerateArray().ToList();
+        var transaction = Assert.Single(data);
+        Assert.Equal(expectedId, transaction.GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public async Task List_WithMultipleTagFilters_ReturnsTransactionsMatchingAll()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "filter-multi-tag-account");
+        int categoryId = await CreateCategoryAsync(client, "filter-multi-tag-category");
+        int expectedId = await CreateTransactionWithCommentAsync(client, accountId, categoryId, "dinner #food #family");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "dinner #food");
+        await CreateTransactionWithCommentAsync(client, accountId, categoryId, "dinner #family");
+
+        var response = await client.GetAsync("/api/transactions?tag=food&tag=family&pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = body.GetProperty("data").EnumerateArray().ToList();
+        var transaction = Assert.Single(data);
+        Assert.Equal(expectedId, transaction.GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public void ApplyFilters_ByTagAndRef_ProducesDatabaseSideSql()
+    {
+        var options = new DbContextOptionsBuilder<InExDbContext>()
+            .UseMySql("Server=localhost;Database=inex;User=root;Password=password;", new MySqlServerVersion(new Version(8, 0, 0)))
+            .Options;
+
+        using var db = new InExDbContext(options);
+        var query = TransactionService.ApplyFilters(db.Transactions, new Dictionary<string, string>
+        {
+            ["tags"] = "groceries",
+            ["refs"] = "alice",
+        });
+
+        string sql = query.ToQueryString();
+
+        Assert.Contains("EXISTS", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("transaction_tag_map", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("`key`", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("tag_type", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
     private Task<HttpClient> CreateAuthenticatedClientAsync() =>
         _factory.CreateAuthenticatedClientAsync(
             email: $"{Guid.NewGuid()}@example.com",
@@ -233,6 +395,22 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
             created = DateTime.UtcNow,
             amount  = 10m,
             comment = "initial",
+        });
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
+    }
+
+    private static async Task<int> CreateTransactionWithCommentAsync(HttpClient client, int accountId, int categoryId, string comment)
+    {
+        var response = await client.PostAsJsonAsync("/api/transactions", new
+        {
+            accountId,
+            categoryId,
+            created = DateTime.UtcNow,
+            amount  = 10m,
+            comment,
         });
         response.EnsureSuccessStatusCode();
 

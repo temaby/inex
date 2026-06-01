@@ -50,6 +50,12 @@ public class TransactionService : InExService, ITransactionService
         return BuildPaginatedDataResponse<Transaction, TransactionResponse>(items, pageSize, pageNumber, TransactionMapper.ToResponse);
     }
 
+    public PagedResponse<TransactionResponse, PaginationMetadata> Get(int userId, ActivityMode mode, int pageSize, int page, TransactionFilterQuery filter)
+    {
+        IQueryable<Transaction> items = GetTransactions(userId, mode, filter);
+        return BuildPaginatedDataResponse<Transaction, TransactionResponse>(items, pageSize, page, TransactionMapper.ToResponse);
+    }
+
     public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
         await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
@@ -166,15 +172,15 @@ public class TransactionService : InExService, ITransactionService
         IEnumerable<string> refs = FilterHelper.GetStringArrayFromFilter(filters, nameof(TransactionResponse.Refs));
         if (refs.Count() > 0)
         {
-            IEnumerable<string> markedRefs = refs.Select(i => $"@{i}").ToList();
-            items = items.AsEnumerable().Where(i => markedRefs.Any(markedRef => i.Comment != null && i.Comment.Contains(markedRef))).AsQueryable();
+            var refList = refs.ToList();
+            items = items.Where(t => t.TransactionTagDetails.Any(ttd => ttd.Tag.Type == TagType.REF && refList.Contains(ttd.Tag.Key)));
         }
 
         IEnumerable<string> tags = FilterHelper.GetStringArrayFromFilter(filters, nameof(TransactionResponse.Tags));
         if (tags.Count() > 0)
         {
-            IList<string> markedTags = tags.Select(i => $"#{i}").ToList();
-            items = items.AsEnumerable().Where(i => markedTags.Any(markedTag => i.Comment != null && i.Comment.Contains(markedTag))).AsQueryable();
+            var tagList = tags.ToList();
+            items = items.Where(t => t.TransactionTagDetails.Any(ttd => ttd.Tag.Type == TagType.TAG && tagList.Contains(ttd.Tag.Key)));
         }
 
         DateTime start = FilterHelper.GetDateTimeFromFilter(filters, "Start");
@@ -192,6 +198,49 @@ public class TransactionService : InExService, ITransactionService
         return items;
     }
 
+    public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, TransactionFilterQuery filter)
+    {
+        if (filter.AccountIds is { Length: > 0 } accountIds)
+        {
+            items = items.Where(i => accountIds.Contains(i.AccountId));
+        }
+
+        if (filter.CategoryIds is { Length: > 0 } categoryIds)
+        {
+            items = items.Where(i => categoryIds.Contains(i.CategoryId));
+        }
+
+        if (filter.Tags is { Length: > 0 } tags)
+        {
+            foreach (string tag in tags)
+            {
+                string marker = $"#{tag}";
+                items = items.Where(i => i.Comment != null && i.Comment.Contains(marker));
+            }
+        }
+
+        if (filter.Refs is { Length: > 0 } refs)
+        {
+            foreach (string reference in refs)
+            {
+                string marker = $"@{reference}";
+                items = items.Where(i => i.Comment != null && i.Comment.Contains(marker));
+            }
+        }
+
+        if (filter.StartDate is DateTime startDate)
+        {
+            items = items.Where(i => i.Created >= startDate);
+        }
+
+        if (filter.EndDate is DateTime endDate)
+        {
+            items = items.Where(i => i.Created <= endDate);
+        }
+
+        return items;
+    }
+
     #endregion Public Interface
 
     #region Private Methods
@@ -199,6 +248,19 @@ public class TransactionService : InExService, ITransactionService
     internal IQueryable<Transaction> GetTransactions(int userId, ActivityMode mode, IDictionary<string, string> filters)
     {
         IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository.Get(true, null, i => i.Account, i => i.Category).Where(i => i.UserId == userId).OrderByDescending(i => i.Created).ThenByDescending(i => i.Id), filters);
+
+        return mode switch
+        {
+            ActivityMode.ACTIVE => items.Where(i => i.Account.IsEnabled && i.Category.IsEnabled),
+            ActivityMode.INACTIVE => items.Where(i => !i.Account.IsEnabled || !i.Category.IsEnabled),
+            ActivityMode.ALL => items,
+            _ => throw new ArgumentException($"Unknown ActivityMode: {mode}")
+        };
+    }
+
+    internal IQueryable<Transaction> GetTransactions(int userId, ActivityMode mode, TransactionFilterQuery filter)
+    {
+        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository.Get(true, null, i => i.Account, i => i.Category).Where(i => i.UserId == userId).OrderByDescending(i => i.Created).ThenByDescending(i => i.Id), filter);
 
         return mode switch
         {
