@@ -261,8 +261,13 @@ The production React app implements the `docs/design` visual system: custom shel
 **Dependencies:**
 - Epic 1 must complete before broad UI rollout so redesigned screens do not expand usage of known object-level authorization defects
 - Epic 4 should complete before the Transactions redesign ships, because the redesigned filter chips and drawer should bind to typed, database-side filtering semantics
-- Epic 7 Story 7.1 should complete before or alongside this epic so new primitives and pages do not add new `any` usage
+- Epic 7 Story 7.1 should complete before Story 10.1b or the first TypeScript-heavy page rebuild; every Epic 10 story remains responsible for adding no new `any` usage even if 7.1 is not complete
 - Epic 7 Story 7.2 may be scheduled with this epic, but route lazy-loading remains Epic 7 ownership
+
+**Execution order:**
+10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6.
+
+Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b are done.
 
 ---
 
@@ -1293,6 +1298,8 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b are done.
+
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 
 As an invited InEx user,
@@ -1315,6 +1322,8 @@ So that later UI work shares a stable visual foundation.
 
 ### Story 10.1b: Frontend UX - Shared Primitives
 
+**Dependency:** Story 10.1b must start only after Story 10.1a is complete. Story 10.1c and later page stories consume the primitive surface and must not run ahead of it.
+
 As an invited InEx user,
 I want controls and finance values to behave consistently across every route,
 So that financial workflows are easier to scan and operate on desktop and mobile.
@@ -1322,8 +1331,8 @@ So that financial workflows are easier to scan and operate on desktop and mobile
 **Acceptance Criteria:**
 
 **Given** shared production primitives are introduced
-**When** a feature page uses buttons, icon buttons, drawers, segmented controls, fields, selects, progress bars, empty states, and money values
-**Then** it uses the shared InEx primitives or documented wrappers rather than page-local one-off styling
+**When** the primitive modules are imported and rendered in isolation
+**Then** buttons, icon buttons, drawers, segmented controls, fields, selects, progress bars, empty states, and money values are created, exported, typed without `any`, and behave according to their documented accessibility and interaction contracts; page adoption is left to later page and shell stories
 
 **Given** money movement is rendered
 **When** income, expense, and transfer values appear in shared primitives
@@ -1338,6 +1347,8 @@ So that financial workflows are easier to scan and operate on desktop and mobile
 **Then** both pass with no new `any` usage in touched files
 
 ### Story 10.1c: Frontend UX - App Shell And Navigation
+
+**Dependency:** Story 10.1c must start only after Story 10.1a and Story 10.1b are complete. Story 10.1b owns the shared primitive surface and icon dependency.
 
 As an invited InEx user,
 I want the app shell and route navigation to match the design guide,
