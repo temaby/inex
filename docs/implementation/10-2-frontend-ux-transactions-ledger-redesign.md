@@ -80,6 +80,10 @@ so that I can scan recent movement, filter quickly, and understand cash flow wit
   - Uses legacy filter DSL (`filter=accountIds:...;categoryIds:...;start:...;end:...;tags:...;refs:...;`).
   - Maintains canonical Redux filter state (`transactions.filter`) and URL sync.
   - Redesign should keep compatibility while adding explicit chips and indicator UX.
+- `inex/ClientApp/src/pages/Transactions/TransactionSummary.tsx`
+  - Existing summary/KPI behavior must be reviewed before rebuilding the ledger KPI strip so totals remain compatible with current Redux data.
+- `inex/ClientApp/src/pages/Transactions/transaction-filter-url.ts`
+  - Existing filter URL compatibility must be preserved while exposing redesigned filter chips and drawer affordances.
 - `inex/ClientApp/src/pages/Transactions/TransactionCreate.tsx` and `TransactionEditForm.tsx`
   - Existing create/edit flows and action dispatch wiring are working and should be preserved.
   - These flows are candidates for visual wrapper updates, not business-logic rewrites.
@@ -166,9 +170,9 @@ Files to avoid changing unless required:
 
 ### Previous Story Intelligence
 
-- Story 10.1a (tokens/theme bridge) established tokenized color/typography contracts that this story must consume, not override with ad hoc palette constants.
-- Story 10.1b (shared primitives) established shared money and drawer contracts; this story should reuse those primitives and avoid duplicating control patterns.
-- Story 10.1c (app shell/navigation) established top-nav/bottom-nav behavior and mobile safe-area rules; this story must preserve bottom-nav compatibility and content padding.
+- After Story 10.1a is done, consume its tokenized color/typography contracts instead of ad hoc palette constants.
+- After Story 10.1b is done, reuse its shared money and drawer contracts and avoid duplicating control patterns.
+- After Story 10.1c is done, preserve its top-nav/bottom-nav behavior and mobile safe-area rules.
 
 ### Git Intelligence Summary (Recent Repository History)
 

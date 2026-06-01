@@ -71,11 +71,11 @@ Epic 10 rebuilds the production React app to implement the `docs/design` visual 
 10.1a → 10.1b → 10.1c → 10.2 → 10.3a/b/c → 10.4 → 10.5a/b → 10.6 (this story)
 ```
 
-**Dashboard route:** Per Epic 6 Story 6.1 and Epic 10 Story 10.4, the dashboard/home route is `/dashboard`. `/` may redirect there, but QA must capture `/dashboard` directly so the baseline matches the implemented landing route.
+**Dashboard route:** QA verifies `/dashboard` as delivered by Story 10.4 on top of completed Epic 6 dashboard/report data work. `/` may redirect there, but QA must capture `/dashboard` directly so the baseline matches the implemented landing route. Story 10.6 must not implement or duplicate Epic 6 dashboard/report data or API behavior.
 
 **Dependencies from epics.md:**
 
-- Epic 1 is **done** — data isolation is safe for QA runs with test accounts.
+- Epic 1 must be complete before broad UI rollout. If `docs/implementation/sprint-status.yaml` still shows `epic-1` or any Epic 1 story as not `done`, record that as a preflight blocker or obtain an explicit delivery decision before running the final Epic 10 QA gate.
 - Epic 4 should be done before Transactions QA (filter chips bind to database-side filtering).
 - This story has no backend changes. All work is documentation, visual inspection, and regression fixes.
 
@@ -427,6 +427,23 @@ Design guide reference: docs/design/docs/design-implementation-guide.md Section 
 - ⚠️ EXCEPTION — accepted known issue with rationale
 - ➖ SKIPPED — story not done yet or state unavailable
 
+## QA Commands / Screenshot Capture
+
+Record the exact commands and workflow used for this run. Include both manual browser steps and any Playwright-assisted commands.
+
+```bash
+# Example only; replace with the actual commands used for this run.
+npm run build
+npm run lint
+node qa-screenshots.mjs
+```
+
+- Browser/tool used:
+- Local URL:
+- Viewports captured: 1440px, 1024px, 390px, 360px
+- Screenshot output folder:
+- Notes for Windows/macOS/Linux differences:
+
 ## Desktop QA Results
 
 | Route                   | State                | 1440px | 1024px | Screenshot | Notes |
@@ -579,7 +596,13 @@ Any of the following findings is a build-blocking regression, not a cosmetic fol
 - Chart blankness (chart container with height 0)
 - Long translated label overflow at any production breakpoint
 
-Known exceptions must be accepted explicitly in the Exceptions table of `visual-qa-checklist.md` with owner, rationale, and date.
+### Known Exceptions
+
+Known exceptions must be listed here and in the Exceptions table of `visual-qa-checklist.md` with owner-visible rationale and date. If no exceptions are accepted, write: `None accepted as of {date}`.
+
+| Route | Viewport | Issue | Rationale | Accepted by | Date |
+| ----- | -------- | ----- | --------- | ----------- | ---- |
+| None accepted as of {date} | | | | | |
 ```
 
 ## Regression Fix Workflow

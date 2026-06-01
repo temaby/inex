@@ -21,11 +21,11 @@ so that quick financial status and deeper analysis are separated but connected.
 ## Tasks / Subtasks
 
 - [ ] Add dashboard landing route and preserve existing route protections. (AC: 1, 5)
-  - [ ] Add a protected dashboard page route (`/dashboard`) and update post-login default redirect from `/` to `/dashboard`.
+  - [ ] Finalize the protected dashboard page route (`/dashboard`) and update post-login default redirect from `/` to `/dashboard` by consuming the route/data work delivered by Epic 6; do not recreate Epic 6 functional implementation here.
   - [ ] Keep `/reports` nested report routes intact (`index`, `category`, `budget`, `history`) with no behavior regression.
   - [ ] Keep `ProtectedRoute` ownership unchanged; do not move auth routes.
 - [ ] Build dashboard month-summary landing surface. (AC: 1, 5)
-  - [ ] Implement month summary cards (income, expenses, net savings, MoM delta) on dashboard using existing report/state data flows.
+  - [ ] Apply final Epic 10 visual/chrome treatment to month summary cards (income, expenses, net savings, MoM delta) on dashboard using existing Epic 6 report/state data flows.
   - [ ] Provide no-data neutral state (0 values + explanatory copy), not blank or error-only UI.
   - [ ] Keep all visible strings in EN/RU locale files.
 - [ ] Rebuild reports hub as launch-card navigation, not table rows. (AC: 2, 5)
@@ -54,6 +54,8 @@ so that quick financial status and deeper analysis are separated but connected.
 - Story 10.1a (tokens/theme bridge) is mandatory before starting this story so dashboard/reports chrome uses token contracts, not ad hoc colors.
 - Story 10.1b (shared primitives) is mandatory before starting this story so button, icon, action, empty-state, and card treatments use the shared Epic 10 primitives.
 - Story 10.1c (app shell/navigation) is mandatory before starting this story. Build 10.4 against the implemented authenticated shell/navigation contract, then add `/dashboard` navigation and default-landing behavior as this story's route ownership.
+- Epic 6 dashboard/report data work is mandatory before starting this story. Story 6.1 must provide the dashboard route/navigation restructure baseline, Story 6.2 must provide the month-summary card data behavior, and Story 6.5 must be complete before any category-report preview metric is shown from category report data.
+- If the branch lacks the Epic 6 `/dashboard` route, month-summary data surface, or required report data fixes, block this story and send the missing functional work back to Epic 6. Story 10.4 owns final visual design, Reports hub/drill-down chrome, action placement, and chart accessibility polish; it does not create backend reporting endpoints or duplicate dashboard/report data flows.
 - If a branch still has `BasicPage` as the only available shell, do not start 10.4 as a fallback implementation. Merge or rebase the 10.1c shell/navigation work first, then implement dashboard/reports chrome on that baseline.
 
 ## Anti-Patterns / Guardrails
@@ -62,7 +64,7 @@ so that quick financial status and deeper analysis are separated but connected.
 | --- | --- |
 | Keep `/` redirecting to `/transactions` after adding dashboard | Move protected default landing to `/dashboard` while preserving all existing protected routes |
 | Put Share/Export/Print buttons on `/reports` hub | Keep those actions on drill-down routes only (`/reports/category`, `/reports/budget`, `/reports/history`) |
-| Build dashboard cards from new backend endpoints | Reuse existing report/transaction data contracts and thunks |
+| Build dashboard cards from new backend endpoints or recreate Epic 6 dashboard data logic | Reuse existing Epic 6 report/transaction data contracts and thunks; block if the functional data surface is missing |
 | Treat hub cards as static marketing tiles | Make cards route launch points with meaningful metric/context copy |
 | Expose chart visuals without accessible summary | Add text/table summary adjacent to each dashboard/drill-down chart |
 | Introduce new `any` while refactoring reports pages | Narrow existing types where possible and avoid adding any new untyped surface |

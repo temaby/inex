@@ -54,6 +54,7 @@ so that profile, currency, language, and password changes are easy to complete o
 - Story 10.1a (tokens/theme bridge) is mandatory before starting this story so profile/settings surfaces use the Epic 10 CSS variable and Ant Design theme bridge instead of local color constants.
 - Story 10.1b (shared primitives) is mandatory before starting this story so settings actions, empty/help states, error banners, and icon buttons align with the shared primitive contracts.
 - Story 10.1c (app shell/navigation) is mandatory before starting this story. `/profile` must be rebuilt inside the implemented authenticated app shell/navigation contract, including mobile bottom-nav spacing and no page-level horizontal overflow at 390px and 360px.
+- Story 10.4 is a sequencing prerequisite for this story unless the team explicitly waives the fixed Epic 10 order in the story handoff. Profile/settings should be rebuilt after dashboard/reports route chrome is stable so app-shell navigation and `/dashboard` landing behavior are not reworked in parallel.
 
 ## Profile/Settings Validation Matrix
 
@@ -71,6 +72,7 @@ so that profile, currency, language, and password changes are easy to complete o
 ### Story Intelligence From Planning Artifacts
 
 - Epic 10 covers FR-UX-001 through FR-UX-007 and this story maps directly to FR-UX-006 (profile/settings + auth redesign quality requirements). [Source: `docs/planning/epics.md`]
+- Visual QA must explicitly cover 1440px desktop and 390px/360px mobile checks for profile/settings. Use shared primitives from Story 10.1b; do not create profile-local replacements for shared action, empty/help, icon-button, or error-banner contracts.
 - The design update plan identifies profile as a known gap with explicit mobile overflow risk; this story is responsible for eliminating that risk in production UI, not mockup only. [Source: `docs/planning/design-update-plan.md`]
 - UX planning explicitly points to three sources to combine for implementation quality: design implementation guide, design update plan, and Epic 10 story criteria. [Source: `docs/planning/ux-design.md`]
 - PRD aligns FR-UX-006 with production validation/loading/error state expectations and i18n correctness, so redesign is not visual-only. [Source: `docs/planning/prds/prd-inex-2026-05-20/prd.md`]

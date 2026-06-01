@@ -40,7 +40,7 @@ This story (10.1b) creates the component library that stories 10.1c through 10.5
 
 **Dependencies from epics.md:**
 
-- Epic 1 must complete before broad UI rollout (auth/data-isolation safety). Epic 1 is **done**.
+- Epic 1 must complete before broad UI rollout (auth/data-isolation safety). If `docs/implementation/sprint-status.yaml` still shows Epic 1 work as not `done`, do not treat this prerequisite as satisfied without an explicit delivery decision.
 - Epic 4 should complete before the Transactions redesign (not this story).
 - Epic 7 Story 7.1 should complete before this story or before the first TypeScript-heavy Epic 10 page rebuild. Regardless of 7.1 status, this story must be `any`-free and must not weaken strict typing.
 
@@ -143,7 +143,7 @@ inex/ClientApp/src/components/primitives/
 | --------------------------------- | ---------------------------------------------------------------- |
 | `inex/ClientApp/src/App.tsx`      | Wrap app in `<SignageProvider>`                                  |
 | `inex/ClientApp/package.json`     | Add `lucide-react` dependency after `npm install`                |
-| `inex/ClientApp/package-lock.json` | Commit lockfile changes produced by `npm install lucide-react`    |
+| `inex/ClientApp/package-lock.json` | Include lockfile changes produced by `npm install lucide-react`    |
 
 ### Files to NOT Touch
 
@@ -318,12 +318,14 @@ export type TagKind =
 
 export interface TagProps {
   kind?: TagKind;
-  onClick?: React.MouseEventHandler<HTMLSpanElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
 }
 ```
 
 Padding: `2px 8px`, radius: `var(--radius-1)` (4px), fontSize: 10.5px, fontWeight: 600, letterSpacing: `0.04em`.
+
+Clickable tags must render as `<button type="button">` with visible focus styles. Non-clickable tags may render as `<span>`. Do not attach `onClick` to a non-focusable `span`; keyboard activation and focus visibility are part of the shared primitive contract.
 
 **`KindChip` props:**
 
@@ -475,6 +477,7 @@ export interface BudgetProgressProps {
   max: number; // budget limit
   height?: number; // default 6px
   showLabel?: boolean; // show percentage label
+  overBudgetLabel: string; // localized screen-reader label from i18next
 }
 ```
 
@@ -488,7 +491,7 @@ Track: `var(--bg-muted)`, radius `var(--radius-pill)`. Bar: same radius, transit
 
 Clamp filled width at 100% (do not overflow bar on over-budget).
 
-When over budget, add `aria-label` with "Over budget" text.
+When over budget, add an `aria-label` using localized EN/RU copy. Either pass `overBudgetLabel={t("budgets.overBudget")}` from the consumer or add a primitive-level translation key consumed through `react-i18next`; do not hardcode English screen-reader text.
 
 ### `EmptyState.tsx` (exports `EmptyState` and `FilterEmpty`)
 
@@ -496,7 +499,6 @@ When over budget, add `aria-label` with "Over budget" text.
 
 ```tsx
 export interface EmptyStateProps {
-  icon?: string; // Lucide icon name string — render via dynamic import or pass React node
   iconNode?: React.ReactNode; // preferred: pass <WalletIcon size={26} /> directly
   title: string;
   description: string;
@@ -528,6 +530,16 @@ export interface FilterEmptyProps {
 
 Smaller inline variant. Padding `48px 24px`. SearchX icon (40×40px container, `var(--bg-stripe)` fill). Uses `InExButton kind="ghost" size="sm"` with a Lucide `<X>` icon for the clear action.
 
+### Responsive Primitive Ownership
+
+Story 10.1b owns shared responsive helpers that page stories can reuse without creating page-local design-system replacements. Add these exports under `src/components/primitives`:
+
+- `PageSection` or equivalent spacing wrapper for tokenized vertical rhythm.
+- `ResponsiveStack` for row-to-column collapse using the Epic 10 breakpoints.
+- `ResponsiveGrid` for repeatable card/list layouts with stable gaps.
+
+Story 10.1c owns shell-level responsive behavior, including top navigation, bottom navigation, safe-area padding, and route chrome. Page stories may add page-specific CSS, but must consume 10.1b/10.1c responsive contracts instead of inventing alternate shared layout primitives.
+
 ## i18n Keys Required
 
 Add these keys to both `inex/ClientApp/public/locales/en/translation.json` and `inex/ClientApp/public/locales/ru/translation.json`:
@@ -553,6 +565,9 @@ Add these keys to both `inex/ClientApp/public/locales/en/translation.json` and `
       "transfer": "Transfer",
       "neutral": "Amount",
       "warn": "Warning amount"
+    },
+    "progress": {
+      "overBudget": "Over budget"
     }
   }
 }
@@ -560,7 +575,7 @@ Add these keys to both `inex/ClientApp/public/locales/en/translation.json` and `
 
 **Russian (`ru/translation.json`):** add equivalent keys with Russian translations.
 
-**Important:** `Num` uses `t('primitives.kindLabel.income')` etc. for `aria-label` text. `FilterEmpty` uses `t('primitives.filterEmpty.*')` for its text. Other primitives use prop-driven strings so callers provide translated text.
+**Important:** `Num` uses `t('primitives.kindLabel.income')` etc. for `aria-label` text. `FilterEmpty` uses `t('primitives.filterEmpty.*')` for its text. `BudgetProgress` uses localized over-budget copy either from `t('primitives.progress.overBudget')` or a required `overBudgetLabel` prop. Other primitives use prop-driven strings so callers provide translated text.
 
 ## Barrel Export (`index.ts`)
 
@@ -710,7 +725,7 @@ This is the **only** change to `App.tsx`. Do not touch routing, session restore,
 - [ ] **Create `Progress.tsx`** (AC: 1)
   - [ ] Three color thresholds: green/amber/red based on `value / max` ratio
   - [ ] Bar width clamped at 100% for over-budget state
-  - [ ] `aria-label` includes "Over budget" text when `value >= max`
+  - [ ] `aria-label` uses localized EN/RU over-budget text when `value >= max`; do not hardcode English screen-reader text
   - [ ] Track + fill use pill radius (`var(--radius-pill)`)
 
 - [ ] **Create `EmptyState.tsx`** (AC: 1)
@@ -730,7 +745,7 @@ This is the **only** change to `App.tsx`. Do not touch routing, session restore,
 - [ ] **Verify build and lint** (AC: 4)
   - [ ] Run `npm run build` from `inex/ClientApp/` — must pass with no new TypeScript errors
   - [ ] Run `npm run lint` from `inex/ClientApp/` — must pass with no new `any` violations
-  - [ ] Confirm no bundle size regressions (Vite will warn if new `any` types are introduced or if lucide-react is not tree-shaken)
+  - [ ] Confirm no bundle size regressions and no new `any` in touched TypeScript files; TypeScript/lint should catch typing regressions, while Vite should only be treated as a bundle/build signal
   - [ ] Verify Ant Design drawer in Transactions page still opens correctly
 
 - [ ] **Manual smoke tests** (AC: 3)
@@ -770,7 +785,7 @@ The following are explicitly excluded from this story:
 
 - Story 10.1a already defines the token contract and Ant Design bridge through `src/styles/tokens.css` and `src/styles/antd-theme.ts`; this story must consume those tokens instead of introducing new color/radius constants.
 - `App.tsx` currently wraps routes in `ConfigProvider` and has critical bootstrap effects (session restore + initial data fetches). Only the `SignageProvider` wrapper is allowed here; all auth/data effects must remain untouched.
-- Story 10.1a intentionally avoided new dependencies. Story 10.1b may add only `lucide-react`, must commit the matching `package-lock.json` update, and should avoid any additional package churn.
+- Story 10.1a intentionally avoided new dependencies. Story 10.1b may add only `lucide-react`, must include the matching `package-lock.json` update, and should avoid any additional package churn.
 
 ## Git Intelligence Summary
 
