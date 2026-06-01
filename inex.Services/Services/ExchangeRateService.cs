@@ -24,10 +24,17 @@ public class ExchangeRateService : Service, IExchangeRateService
 {
     #region Constructors
 
-    public ExchangeRateService(IInExUnitOfWork uowInEx, IExchangeRateClient apiClient, IExchangeRateClient fallbackClient, ILogger<ExchangeRateService> logger, IClock clock) : base(uowInEx)
+    public ExchangeRateService(
+        IInExUnitOfWork uowInEx,
+        IExchangeRateClient apiClient,
+        IExchangeRateClient fallbackClient,
+        INbrbApiClient nbrbClient,
+        ILogger<ExchangeRateService> logger,
+        IClock clock) : base(uowInEx)
     {
         _apiClient = apiClient;
         _fallbackClient = fallbackClient;
+        _nbrbClient = nbrbClient;
         _logger = logger;
         _clock = clock;
     }
@@ -92,20 +99,15 @@ public class ExchangeRateService : Service, IExchangeRateService
             if (hasChanges)
                 await DbInEx.SaveAsync(ct);
 
-            // Carry forward rates for non-trading days (weekends, holidays) from the nearest prior trading day.
-            var noDataDates = missingDates
-                .Where(d => !rangeRates.ContainsKey(d))
-                .OrderBy(d => d)
-                .ToList();
-
-            if (noDataDates.Count > 0)
+            // Carry forward missing currencies for non-trading days or partial provider data.
+            bool hasCarryForwardChanges = false;
+            foreach (var date in missingDates.OrderBy(d => d))
             {
-                bool hasCarryForwardChanges = false;
-                foreach (var date in noDataDates)
-                    hasCarryForwardChanges |= await CarryForwardRatesFromPriorDay(userId, date, baseCurrency, ct);
-                if (hasCarryForwardChanges)
-                    await DbInEx.SaveAsync(ct);
+                hasCarryForwardChanges |= await CarryForwardMissingRatesFromPriorDay(userId, date, baseCurrency, targetCurrencyCodes, ct);
             }
+
+            if (hasCarryForwardChanges)
+                await DbInEx.SaveAsync(ct);
         }
 
         if (endDate >= today)
@@ -163,60 +165,94 @@ public class ExchangeRateService : Service, IExchangeRateService
     private async Task<Dictionary<DateTime, ExchangeApiResponse>> FetchRatesForRange(
         DateTime start, DateTime end, string baseCurrency, string[] targetCurrencies, CancellationToken ct = default)
     {
-        // Pass 1: Frankfurter range call (single HTTP request).
-        var result = new Dictionary<DateTime, ExchangeApiResponse>();
-        try
-        {
-            result = await _fallbackClient.GetRatesForRangeAsync(start, end, baseCurrency, targetCurrencies, ct)
-                     ?? new Dictionary<DateTime, ExchangeApiResponse>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Frankfurter range fetch failed for {Start}..{End}/{BaseCurrency}.", start, end, baseCurrency);
-        }
-
-        // Pass 2: supplement currencies not returned by Frankfurter (e.g. BYN) via CurrencyAPI.
-        var coveredCurrencies = result.Values
-            .SelectMany(r => r.Data.Keys)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var uncoveredCurrencies = targetCurrencies
-            .Where(c => !coveredCurrencies.Contains(c))
+        var nbrbTargetCurrencies = targetCurrencies
+            .Where(targetCurrency => IsBynRubPath(baseCurrency, targetCurrency))
             .ToArray();
 
-        if (uncoveredCurrencies.Length > 0)
-        {
-            // Only iterate dates Frankfurter returned (trading days); weekends/holidays get carry-forward.
-            // If Frankfurter returned nothing at all, fall back to all dates in range.
-            var datesToFetch = result.Count > 0
-                ? result.Keys.ToList()
-                : Enumerable.Range(0, (end.Date - start.Date).Days + 1).Select(i => start.Date.AddDays(i)).ToList();
+        var standardTargetCurrencies = targetCurrencies
+            .Where(targetCurrency => !nbrbTargetCurrencies.Contains(targetCurrency, StringComparer.OrdinalIgnoreCase))
+            .ToArray();
 
-            foreach (var date in datesToFetch)
+        // Pass 1: Frankfurter range call (single HTTP request).
+        var result = new Dictionary<DateTime, ExchangeApiResponse>();
+        if (standardTargetCurrencies.Length > 0)
+        {
+            try
             {
-                try
+                result = await _fallbackClient.GetRatesForRangeAsync(start, end, baseCurrency, standardTargetCurrencies, ct)
+                         ?? new Dictionary<DateTime, ExchangeApiResponse>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Frankfurter range fetch failed for {Start}..{End}/{BaseCurrency}.", start, end, baseCurrency);
+            }
+
+            // Pass 2: supplement currencies not returned by Frankfurter (e.g. BYN) via CurrencyAPI.
+            var coveredCurrencies = result.Values
+                .SelectMany(r => r.Data.Keys)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var uncoveredCurrencies = standardTargetCurrencies
+                .Where(c => !coveredCurrencies.Contains(c))
+                .ToArray();
+
+            if (uncoveredCurrencies.Length > 0)
+            {
+                // Only iterate dates Frankfurter returned (trading days); weekends/holidays get carry-forward.
+                // If Frankfurter returned nothing at all, fall back to all dates in range.
+                var datesToFetch = result.Count > 0
+                    ? result.Keys.ToList()
+                    : Enumerable.Range(0, (end.Date - start.Date).Days + 1).Select(i => start.Date.AddDays(i)).ToList();
+
+                foreach (var date in datesToFetch)
                 {
-                    var singleDay = await _apiClient.GetRatesAsync(date, baseCurrency, uncoveredCurrencies, ct);
-                    if (singleDay?.Data?.Count > 0)
+                    try
                     {
-                        if (result.TryGetValue(date, out var existing))
+                        var singleDay = await _apiClient.GetRatesAsync(date, baseCurrency, uncoveredCurrencies, ct);
+                        if (singleDay?.Data?.Count > 0)
                         {
-                            foreach (var kvp in singleDay.Data)
-                                existing.Data.TryAdd(kvp.Key, kvp.Value);
-                        }
-                        else
-                        {
-                            result[date] = singleDay;
+                            MergeRates(result, date, singleDay);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "CurrencyAPI fetch failed for {Date}/{BaseCurrency}/{Currencies}.", date, baseCurrency, string.Join(",", uncoveredCurrencies));
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "CurrencyAPI fetch failed for {Date}/{BaseCurrency}/{Currencies}.", date, baseCurrency, string.Join(",", uncoveredCurrencies));
+                    }
                 }
             }
         }
 
+        foreach (var nbrbTargetCurrency in nbrbTargetCurrencies)
+        {
+            try
+            {
+                var nbrbRates = await _nbrbClient.GetRatesForRangeAsync(start, end, baseCurrency, nbrbTargetCurrency, ct)
+                                ?? new Dictionary<DateTime, ExchangeApiResponse>();
+
+                foreach (var (date, response) in nbrbRates)
+                {
+                    MergeRates(result, date, response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "NBRB range fetch failed for {Start}..{End}/{BaseCurrency}/{TargetCurrency}.", start, end, baseCurrency, nbrbTargetCurrency);
+            }
+        }
+
         return result;
+    }
+
+    private static void MergeRates(Dictionary<DateTime, ExchangeApiResponse> result, DateTime date, ExchangeApiResponse response)
+    {
+        if (result.TryGetValue(date.Date, out var existing))
+        {
+            foreach (var kvp in response.Data)
+                existing.Data[kvp.Key] = kvp.Value;
+        }
+        else
+        {
+            result[date.Date] = response;
+        }
     }
 
     /// <summary>
@@ -328,22 +364,24 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// fully cached and not re-queried on subsequent calls.
     /// Returns <see langword="true"/> if any records were created (caller must save).
     /// </summary>
-    private async Task<bool> CarryForwardRatesFromPriorDay(int userId, DateTime date, string baseCurrency, CancellationToken ct = default)
+    private async Task<bool> CarryForwardMissingRatesFromPriorDay(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
     {
-        bool alreadyExists = DbInEx.ExchangeRateRepository.Get(true)
-            .Any(r => r.Created == date.Date && r.FromCode == baseCurrency);
-        if (alreadyExists) return false;
+        var existingTargetCodes = DbInEx.ExchangeRateRepository.Get(true)
+            .Where(r => r.Created == date.Date && r.FromCode == baseCurrency)
+            .Select(r => r.ToCode)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        DateTime? priorDate = DbInEx.ExchangeRateRepository.Get(true)
-            .Where(r => r.Created < date.Date && r.FromCode == baseCurrency && !r.IsTemporary)
-            .OrderByDescending(r => r.Created)
-            .Select(r => (DateTime?)r.Created)
-            .FirstOrDefault();
-
-        if (!priorDate.HasValue) return false;
+        var missingTargetCodes = targetCurrencyCodes
+            .Where(targetCode => !existingTargetCodes.Contains(targetCode))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (missingTargetCodes.Count == 0) return false;
 
         var priorRates = DbInEx.ExchangeRateRepository.Get(true)
-            .Where(r => r.Created == priorDate.Value && r.FromCode == baseCurrency)
+            .Where(r => r.Created < date.Date && r.FromCode == baseCurrency && !r.IsTemporary)
+            .OrderByDescending(r => r.Created)
+            .Where(r => missingTargetCodes.Contains(r.ToCode))
+            .GroupBy(r => r.ToCode)
+            .Select(g => g.First())
             .ToList();
 
         foreach (var rate in priorRates)
@@ -362,12 +400,19 @@ public class ExchangeRateService : Service, IExchangeRateService
         return priorRates.Count > 0;
     }
 
+    private static bool IsBynRubPath(string baseCurrency, string targetCurrency) =>
+        string.Equals(baseCurrency, "BYN", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(targetCurrency, "RUB", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(baseCurrency, "RUB", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(targetCurrency, "BYN", StringComparison.OrdinalIgnoreCase);
+
     #endregion Private Methods
 
     #region Private Fields
 
     private readonly IExchangeRateClient _apiClient;
     private readonly IExchangeRateClient _fallbackClient;
+    private readonly INbrbApiClient _nbrbClient;
     private readonly ILogger<ExchangeRateService> _logger;
     private readonly IClock _clock;
 

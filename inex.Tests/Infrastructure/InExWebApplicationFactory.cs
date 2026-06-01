@@ -39,6 +39,7 @@ public class InExWebApplicationFactory : WebApplicationFactory<Program>
                 ["CurrencyApiSettings:BaseUrl"]       = "https://dummy.invalid/",
                 ["CurrencyApiSettings:ApiKey"]        = "test-key",
                 ["FrankfurterApiSettings:BaseUrl"]    = "https://dummy.invalid/",
+                ["NbrbApiSettings:BaseUrl"]           = "https://dummy.invalid/",
                 // Provide a real secret so JWT middleware can sign and validate tokens
                 ["JwtOptions:Secret"]                 = TestJwtSecret,
                 ["JwtOptions:Issuer"]                 = "inex-api",

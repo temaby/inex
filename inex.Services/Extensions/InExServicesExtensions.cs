@@ -26,6 +26,7 @@ public static class InExServicesExtensions
         services.AddOptions<InviteOptions>().BindConfiguration(InviteOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<CurrencyApiSettings>().BindConfiguration(CurrencyApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<FrankfurterApiSettings>().BindConfiguration(FrankfurterApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<NbrbApiSettings>().BindConfiguration(NbrbApiSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddInExData(inexConnectionString);
 
@@ -57,6 +58,13 @@ public static class InExServicesExtensions
                 var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("InEx.Resilience");
                 return HttpResiliencePolicyFactory.CreateRetryPolicy(logger, "FrankfurterApiClient");
             });
+        services.AddKeyedSingleton<IAsyncPolicy<HttpResponseMessage>>(
+            "NbrbApiRetry",
+            (sp, _) =>
+            {
+                var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("InEx.Resilience");
+                return HttpResiliencePolicyFactory.CreateRetryPolicyHonoringRetryAfter(logger, "NbrbApiClient");
+            });
 
         services.AddHttpClient<CurrencyApiClient>((serviceProvider, client) =>
         {
@@ -83,15 +91,29 @@ public static class InExServicesExtensions
         .AddPolicyHandler((sp, _) => sp.GetRequiredKeyedService<IAsyncPolicy<HttpResponseMessage>>("FrankfurterApiRetry"))
         .AddPolicyHandler(HttpResiliencePolicyFactory.CreateTimeoutPolicy());
 
+        services.AddHttpClient<NbrbApiClient>((serviceProvider, client) =>
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<NbrbApiSettings>>().Value;
+            if (string.IsNullOrEmpty(settings.BaseUrl))
+                throw new InvalidOperationException("NBRB API BaseUrl is not configured.");
+            client.BaseAddress = new Uri(settings.BaseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = Timeout.InfiniteTimeSpan; // Rely on Polly timeout policy
+        })
+        .AddTypedClient<INbrbApiClient>((client, _) => new NbrbApiClient(client))
+        .AddPolicyHandler((sp, _) => sp.GetRequiredKeyedService<IAsyncPolicy<HttpResponseMessage>>("NbrbApiRetry"))
+        .AddPolicyHandler(HttpResiliencePolicyFactory.CreateTimeoutPolicy());
+
         // Register ExchangeRateService with manual resolution of both clients
         services.AddScoped<IExchangeRateService>(serviceProvider =>
         {
             var uow = serviceProvider.GetRequiredService<IInExUnitOfWork>();
             var primaryClient = serviceProvider.GetRequiredService<CurrencyApiClient>();
             var fallbackClient = serviceProvider.GetRequiredService<FrankfurterApiClient>();
+            var nbrbClient = serviceProvider.GetRequiredService<INbrbApiClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
             var clock = serviceProvider.GetRequiredService<IClock>();
-            return new ExchangeRateService(uow, primaryClient, fallbackClient, logger, clock);
+            return new ExchangeRateService(uow, primaryClient, fallbackClient, nbrbClient, logger, clock);
         });
 
         return services;
