@@ -1,6 +1,6 @@
 # Story 1.5: Remove Tracked Frontend Build Artifacts
 
-Status: complete
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

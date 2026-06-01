@@ -5,10 +5,10 @@ inputDocuments:
   - docs/project-context.md
   - docs/planning/epics.md
 inputScope:
-  epics: "Epic 1: Security & Production Hygiene"
+  epics: "Epic 1: Security & Production Hygiene; Epic 10: Frontend Design System Rebuild"
 workflowType: 'architecture'
 lastStep: 8
-status: 'ready-for-epic-1'
+status: 'ready-for-epic-1-and-epic-10'
 project_name: 'inex'
 user_name: 'Artiom'
 date: '2026-05-26'
@@ -209,6 +209,62 @@ Epic 1 is security and production hygiene. Larger frontend modernization is alre
 - account edit flow
 - shared authenticated `apiClient` usage
 - frontend build/lint verification
+
+### Epic 10 Frontend Architecture Addendum
+
+**Decision: Epic 10 rebuilds visual structure through a token and primitive layer while preserving the existing application architecture.**
+
+Epic 10 may replace the authenticated shell, route chrome, page layout components, and visual primitives needed by `docs/design`, but it must not replace the current React 18, TypeScript strict, Vite, Ant Design 5, Redux Toolkit, Axios, React Router 6, i18next, or Recharts stack unless an individual story explicitly requires a dependency change.
+
+**Token And Theme Bridge:**
+- Story 10.1a owns the production token baseline and Ant Design theme bridge.
+- Production tokens should live in frontend source as CSS custom properties derived from `docs/design/tokens.css`; the design mockup files remain references, not runtime dependencies.
+- Ant Design v5 stays available for existing forms, layout primitives, drawers, modals, selects, tables, and feedback components. Map InEx color, typography, radius, border, background, and focus decisions into `ConfigProvider` theme tokens where AntD components are still used.
+- Do not hard-code page-local colors, shadows, radii, spacing scales, or money semantics when a shared token exists.
+
+**Primitive Ownership:**
+- Story 10.1b owns shared primitives and wrappers for finance values, buttons, icon buttons, drawers, segmented controls, fields/selects, empty states, progress, page headers, responsive layout helpers, and accessible chart summaries where needed.
+- Shared primitives should live under the production frontend source tree and expose typed React/TypeScript APIs. Do not import from `docs/design/*.jsx`.
+- Page stories should consume the primitives rather than creating one-off CSS or duplicate component contracts. Page-local styling is acceptable only for layout details unique to that route.
+- Money primitives must use tabular numerics, explicit income/expense/transfer semantics, and a non-color-only signal.
+
+**App Shell And Routing Migration:**
+- Story 10.1c owns replacement of the current authenticated Ant Design shell with the documented desktop top navigation, mobile bottom navigation, brand mark, page header, user pill, logout affordance, and removal of authenticated-route footer chrome.
+- Existing route definitions, `ProtectedRoute`, auth state, logout behavior, locale switching, and relative `/api` behavior must continue to work during the shell migration.
+- If Story 10.4 introduces or confirms a dashboard/home landing route, keep legacy route redirects or navigation affordances explicit so existing user entry points do not silently break.
+- App shell changes must not move data fetching out of existing Redux thunks or bypass the shared `apiClient`.
+
+**Responsive And Visual QA Workflow:**
+- Converted routes must be checked at 1440px, 1024px, 390px, and 360px. At minimum, story-level QA should cover the states named by each story; Story 10.6 is the full regression gate for every top-level route.
+- Page-level horizontal overflow, clipped controls, overlapping text, bottom-nav occlusion, inaccessible drawer focus behavior, and blank charts are acceptance failures for converted routes.
+- For frontend stories, run `npm run build` and `npm run lint` from `inex/ClientApp`. Visual QA evidence should be recorded in the story or the visual QA checklist, not as committed generated screenshots unless a story explicitly asks for artifacts.
+
+**Dependency Policy:**
+- Do not add a new styling framework, routing framework, state library, data-fetching library, i18n library, charting library, or component library during Epic 10.
+- Ant Design and Recharts may be wrapped, themed, or progressively reduced at page level, but they remain part of the supported stack for Epic 10.
+- New dependencies require story-level justification, manifest and lockfile updates, and build/lint verification. Prefer existing browser APIs, React, AntD, Recharts, and local primitives before adding packages.
+
+**I18n, Accessibility, And Error Handling:**
+- All user-visible strings added or changed by Epic 10 must go through `react-i18next` locale files for EN/RU.
+- Forms must preserve existing validation and API error handling through established helpers and slice/thunk patterns. Do not replace machine-readable validation keys with prose-only UI assumptions.
+- Drawers, menus, segmented controls, icon buttons, tabs, mobile navigation, and chart summaries must be keyboard accessible and screen-reader labeled.
+- Loading, empty, filter-empty, disabled, success, and API-error states are part of the production UI contract, not optional polish.
+
+**Coexistence With Existing Redux/Axios/Ant Design Architecture:**
+- Redux slices and thunks remain the source of shared domain data during Epic 10. RTK Query migration remains Epic 7 scope unless explicitly reprioritized.
+- Authenticated API calls must continue through `apiClient`; do not introduce raw `fetch`, raw authenticated `axios`, or component-local API clients.
+- Existing Ant Design components may remain inside new shell/page layouts if wrapped or themed consistently. Rebuild the visual surface incrementally without forcing unrelated domain state or API rewrites.
+- Epic 10 work should avoid backend contract changes. If a visual flow exposes a missing API capability, record the dependency instead of changing backend behavior inside the frontend story.
+
+**Affects:**
+- `inex/ClientApp/src/App.tsx`
+- `inex/ClientApp/src/index.tsx`
+- `inex/ClientApp/src/layouts/*`
+- `inex/ClientApp/src/components/*`
+- `inex/ClientApp/src/pages/*`
+- `inex/ClientApp/src/store/*`
+- `inex/ClientApp/public/locales/*`
+- `docs/design/docs/design-implementation-guide.md`
 
 ### Infrastructure & Deployment
 
@@ -673,9 +729,9 @@ No blocking validation issues were found. The refresh-token provider-verificatio
 
 ### Architecture Readiness Assessment
 
-**Overall Status:** READY FOR EPIC 1 IMPLEMENTATION
+**Overall Status:** READY FOR EPIC 1 AND EPIC 10 IMPLEMENTATION
 
-This architecture document is ready for Epic 1 implementation only. It does not authorize implementation of Epic 9 managed infrastructure or Epic 10 frontend design-system rebuild without additional architecture guidance.
+This architecture document is ready for Epic 1 implementation and, through the Epic 10 frontend architecture addendum, ready for Epic 10 frontend design-system rebuild implementation. It does not authorize implementation of Epic 9 managed infrastructure without additional architecture guidance.
 
 **Confidence Level:** High
 
@@ -685,11 +741,12 @@ This architecture document is ready for Epic 1 implementation only. It does not 
 - Security-sensitive boundaries are explicit.
 - Implementation conflict points are called out with examples.
 - Requirements map to concrete source and test locations.
+- Epic 10 now has explicit frontend architecture guidance for tokens, primitives, shell migration, QA, dependencies, accessibility, i18n, error handling, and coexistence with Redux/Axios/Ant Design.
 
 **Areas for Future Enhancement:**
 - Provider-backed MySQL verification for refresh-token concurrency.
 - Story-level checklists for Epic 1 implementation.
-- Later architecture work for repository boundary cleanup, UTC clock abstraction, Epic 9 managed infrastructure, and Epic 10 frontend design-system rollout remains intentionally deferred.
+- Later architecture work for repository boundary cleanup, UTC clock abstraction, and Epic 9 managed infrastructure remains intentionally deferred.
 
 ### Implementation Handoff
 
@@ -697,8 +754,8 @@ This architecture document is ready for Epic 1 implementation only. It does not 
 - Follow all architectural decisions exactly as documented.
 - Use implementation patterns consistently across all affected components.
 - Respect project structure and boundaries.
-- Treat this document as the source of truth for Epic 1 architecture questions.
-- Do not expand Epic 1 into deferred architecture or frontend modernization work.
+- Treat this document as the source of truth for Epic 1 and Epic 10 architecture questions.
+- Do not expand Epic 1 into deferred architecture or frontend modernization work. Do not expand Epic 10 into backend contract changes, RTK Query migration, or production infrastructure work.
 
 **First Implementation Priority:**
 Implement Story 1.1 object-level authorization first, because it is the highest-risk production data isolation issue and blocks safer expansion of later work.
