@@ -1,5 +1,5 @@
 # generated: 2026-05-26T16:11:20.6477763+02:00
-# last_updated: 2026-05-31T00:00:00+02:00
+# last_updated: 2026-06-01T00:00:00+02:00
 # project: inex
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-01T07:09:43+02:00
+last_updated: 2026-06-01T12:33:53+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -63,8 +63,8 @@ development_status:
   4-2-backend-frontend-typed-transaction-filter-query-parameters: review
   4-3-frontend-active-filter-indicator-on-transaction-list: review
   epic-4-retrospective: optional
-  epic-5: backlog
-  5-1-backend-nbrb-exchange-rate-client-for-byn-rub: backlog
+  epic-5: in-progress
+  5-1-backend-nbrb-exchange-rate-client-for-byn-rub: review
   epic-5-retrospective: optional
   epic-6: backlog
   6-1-frontend-dashboard-home-page-and-navigation-restructure: backlog
