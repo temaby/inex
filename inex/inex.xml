@@ -154,12 +154,12 @@
             <param name="id">Transaction id</param>
             <returns>Transaction details</returns>
         </member>
-        <member name="M:inex.Controllers.TransactionsController.List(System.String,System.Int32,System.Int32,System.String)">
+        <member name="M:inex.Controllers.TransactionsController.List(System.String,System.Int32,System.Int32,inex.Services.Models.Records.Transaction.TransactionFilterQuery)">
             <summary>Get list of transactions for a user</summary>
             <param name="mode">Activity mode (all, active, inactive)</param>
             <param name="pageSize">Amount of items per page</param>
-            <param name="pageNumber">Current page number</param>
-            <param name="filter">Filter items (filter=field1:value;field2:value2). Supported fields: AccountId, CategoryId, Start, End</param>
+            <param name="page">Current page number</param>
+            <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
             <returns>List of transactions with pagination metadata</returns>
         </member>
         <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransactionRequest,System.Threading.CancellationToken)">

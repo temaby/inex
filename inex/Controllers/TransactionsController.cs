@@ -11,7 +11,6 @@ using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.Transaction;
 using inex.Services.Services.Base;
-using inex.Services.Helpers;
 
 namespace inex.Controllers;
 
@@ -62,17 +61,16 @@ public class TransactionsController : ApiControllerBase
     /// <summary>Get list of transactions for a user</summary>
     /// <param name="mode">Activity mode (all, active, inactive)</param>
     /// <param name="pageSize">Amount of items per page</param>
-    /// <param name="pageNumber">Current page number</param>
-    /// <param name="filter">Filter items (filter=field1:value;field2:value2). Supported fields: AccountId, CategoryId, Start, End</param>
+    /// <param name="page">Current page number</param>
+    /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
     /// <returns>List of transactions with pagination metadata</returns>
     [HttpGet]
     [Route(GetAllRoute)]
     [ProducesResponseType(typeof(IEnumerable<TransactionResponse>), StatusCodes.Status200OK)]
-    public ActionResult List(string? mode, int pageSize, int pageNumber, string? filter)
+    public ActionResult List(string? mode, int pageSize, int page, [FromQuery] TransactionFilterQuery filter)
     {
-        IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, TransactionResponse.FieldsList);
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        PagedResponse<TransactionResponse, PaginationMetadata> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, pageNumber, filters);
+        PagedResponse<TransactionResponse, PaginationMetadata> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, page, filter);
         return Ok(resultsDTO);
     }
 

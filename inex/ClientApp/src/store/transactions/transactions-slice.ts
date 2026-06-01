@@ -1,12 +1,32 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const defaultFilter = {
-    accountIds: [] as number[],
-    categoryIds: [] as number[],
-    tags: [] as string[],
-    refs: [] as string[],
-    tagsAndRefs: "",
-    range: [] as number[],
+export interface TransactionFilter {
+    accountIds: number[];
+    categoryIds: number[];
+    tags: string[];
+    refs: string[];
+    range: number[];
+}
+
+interface TransactionsState {
+    items: any[];
+    total: number;
+    isLoading: boolean;
+    isCreating: boolean;
+    isDeleting: boolean;
+    isUpdating: boolean;
+    summaryItems: any[];
+    lastUpdate: string;
+    filter: TransactionFilter;
+    error: string | null;
+}
+
+const defaultFilter: TransactionFilter = {
+    accountIds: [],
+    categoryIds: [],
+    tags: [],
+    refs: [],
+    range: [],
 };
 
 const transactionsSlice = createSlice({
@@ -22,7 +42,7 @@ const transactionsSlice = createSlice({
         lastUpdate: Date(),
         filter: defaultFilter,
         error: null as string | null,
-    },
+    } as TransactionsState,
     reducers: {
         setTransactions(state, action) {
             state.items = action.payload.items;

@@ -11,6 +11,7 @@ import type { TableColumnsType } from "antd";
 import { CategoryDetails } from '../../model/Category/CategoryDetails';
 import { fetchTransactions } from '../../store/transactions/transactions-actions';
 import TransactionEditForm from './TransactionEditForm';
+import { buildSingleTagOrRefFilterSearch } from './transaction-filter-url';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -74,11 +75,11 @@ const TransactionList = (props: any) => {
     };
 
     const handleTagClick = (tag: string) => {
-        navigate(`../../transactions?filter=tags:${tag};`, { replace: false });
+        navigate(`../../transactions${buildSingleTagOrRefFilterSearch("tags", tag)}`, { replace: false });
     };
 
     const handleRefClick = (ref: string) => {
-        navigate(`../../transactions?filter=refs:${ref};`, { replace: false });
+        navigate(`../../transactions${buildSingleTagOrRefFilterSearch("refs", ref)}`, { replace: false });
     };
 
     // Shared helpers used by both desktop columns and mobile cards

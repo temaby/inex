@@ -62,6 +62,7 @@
     "addDrawerTitle": "Add Transaction",
     "add": "Add",
     "filter": "Filter",
+    "filtersActive": "Filters active",
     "status": "Status",
     "amount": "Amount",
     "comment": "Comment",
