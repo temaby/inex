@@ -1,20 +1,17 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Grid, Space } from "antd";
 
 const { useBreakpoint } = Grid;
 import type { TableColumnsType } from "antd";
 import BasicPage from "../layouts/BasicPage";
-import { AccountDetails } from "../model/Account/AccountDetails";
 import AccountCreateForm from "./Accounts/AccountCreateForm";
 import AccountEditForm from "./Accounts/AccountEditForm";
-import { fetchAccounts } from "../store/accounts/accounts-actions";
+import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 
 const Accounts = () => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
@@ -22,16 +19,14 @@ const Accounts = () => {
     const screens = useBreakpoint();
     const isMobile = screens.md === false;
 
-    const accounts = useAppSelector(state => state.accounts.items);
-    const accountsLastUpdate = useAppSelector(state => state.accounts.lastUpdate);
-    const filteredAccounts = showOnlyEnabled ? accounts.filter((a: any) => a.isEnabled) : accounts;
+    const { data: accounts = [], isLoading } = useGetAccountsQuery("ALL");
+    const filteredAccounts = showOnlyEnabled ? accounts.filter((a: AccountResponse) => a.isEnabled) : accounts;
 
     useEffect(() => {
-        dispatch(fetchAccounts("ALL"));
         setExpandedRows([]);
-    }, [accountsLastUpdate]);
+    }, [accounts]);
 
-    const columns: TableColumnsType<AccountDetails> = [
+    const columns: TableColumnsType<AccountResponse> = [
         {
             title: t("accounts.account"),
             dataIndex: "name",
@@ -57,9 +52,9 @@ const Accounts = () => {
         },
     ];
 
-    const expandedRowRender = (record: any) => <AccountEditForm record={record} />;
+    const expandedRowRender = (record: AccountResponse) => <AccountEditForm record={record} />;
 
-    const rowExpandHandler = (expanded: boolean, record: any) => {
+    const rowExpandHandler = (expanded: boolean, record: AccountResponse) => {
         setExpandedRows(expanded && record ? [record.id.toString()] : []);
     };
 
@@ -98,7 +93,8 @@ const Accounts = () => {
                     <Table
                         dataSource={filteredAccounts}
                         columns={columns}
-                        rowKey={(record: any) => record.id.toString()}
+                        rowKey={(record) => record.id.toString()}
+                        loading={isLoading}
                         pagination={false}
                         scroll={{ x: "max-content" }}
                         locale={{ emptyText: t("accounts.empty") }}

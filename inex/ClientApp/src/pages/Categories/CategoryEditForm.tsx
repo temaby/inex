@@ -3,10 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Input, Button, Space, Divider, Radio, Popconfirm } from "antd";
 import { Form, Col, Row } from 'antd';
 import { useEffect, useReducer } from "react";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { CategoryEditState } from "../../model/Category/CategoryEditState";
 
-import { updateCategory, deleteCategory } from "../../store/categories/categories-actions";
+import { CategoryResponse, useDeleteCategoryMutation, useUpdateCategoryMutation } from "../../store/categories/categories-api";
 
 const defaultState: CategoryEditState = new CategoryEditState();
 
@@ -25,11 +24,15 @@ const reducer = (state: CategoryEditState, action: any): CategoryEditState => {
     }
 };
 
-const CategoryEditForm = (props: any) => {
-    const { t } = useTranslation();
-    const dispatch = useAppDispatch();
+interface CategoryEditFormProps {
+    record: CategoryResponse;
+}
 
-    const isUpdating = useAppSelector(state => state.categories.isUpdating);
+const CategoryEditForm = (props: CategoryEditFormProps) => {
+    const { t } = useTranslation();
+
+    const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
+    const [deleteCategory] = useDeleteCategoryMutation();
 
     const [state, dispatchAction] = useReducer(reducer, defaultState);
 
@@ -39,7 +42,7 @@ const CategoryEditForm = (props: any) => {
         const currentRecord: CategoryEditState = new CategoryEditState();
 
         currentRecord.name = record.name;
-        currentRecord.description = record.description;
+        currentRecord.description = record.description ?? "";
         currentRecord.isEnabled = record.isEnabled;
 
         dispatchAction({ type: "INIT", value: currentRecord });
@@ -58,11 +61,17 @@ const CategoryEditForm = (props: any) => {
     };
 
     const updateCategoryHandler = async () => {
-        dispatch(updateCategory(+props.record.id, state.name, state.description, state.isEnabled));
+        await updateCategory({
+            id: +props.record.id,
+            key: props.record.key,
+            name: state.name,
+            description: state.description,
+            isEnabled: state.isEnabled,
+        }).unwrap();
     };
 
     const deleteCategoryHandler = async () => {
-        dispatch(deleteCategory(+props.record.id));
+        await deleteCategory(+props.record.id).unwrap();
     };
 
     return (

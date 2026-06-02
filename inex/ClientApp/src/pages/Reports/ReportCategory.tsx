@@ -10,8 +10,9 @@ import type { Dayjs } from "dayjs";
 import { DatePicker } from "antd";
 import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
 import type { TableColumnsType } from "antd";
-import { fetchReport } from "../../store/report/report-actions";
 import { reportActions } from "../../store/report/report-slice";
+import { CategoryResponse, useGetCategoriesQuery } from "../../store/categories/categories-api";
+import { useGetCategoryReportQuery } from "../../store/report/report-api";
 
 const { Text, Title } = Typography;
 
@@ -30,13 +31,18 @@ const ReportCategory = (props: any) => {
     const queryParams: URLSearchParams = new URLSearchParams(location.search);
     const interval: string | null = queryParams.get("interval");
     const currentDate: Dayjs = useMemo(() => interval ? dayjs(interval, dateFormat) : dayjs(), [interval]);
+    const startDate = currentDate.isValid() ? currentDate.startOf("month").format("YYYY-MM-DD") : "";
+    const endDate = currentDate.isValid() ? currentDate.endOf("month").format("YYYY-MM-DD") : "";
 
-    const allCategories = useAppSelector(state => state.categories.items);
-    const activeCategories = allCategories.filter((c: any) => c.isEnabled);
-    const reportData = useAppSelector(state => state.report.items);
-    const currency = useAppSelector(state => state.report.currency);
+    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+    const activeCategories = allCategories.filter((c: CategoryResponse) => c.isEnabled);
+    const { data: reportResponse, isLoading } = useGetCategoryReportQuery(
+        { startDate, endDate },
+        { skip: !currentDate.isValid() }
+    );
+    const reportData = reportResponse?.data ?? [];
+    const currency = reportResponse?.metadata.currency ?? "";
     const filter = useAppSelector(state => state.report.filter);
-    const isLoading = useAppSelector(state => state.report.isLoading);
 
     const report: ReportCategoryDetails[] = getCategoryReport(activeCategories, reportData);
 
@@ -59,12 +65,20 @@ const ReportCategory = (props: any) => {
     }, [currentDate]);
 
     useEffect(() => {
-        if (filter.range.length === 0) {
+        setExpandedRows([]);
+    }, [startDate, endDate]);
+
+    useEffect(() => {
+        if (!reportResponse) {
             return;
         }
-        dispatch(fetchReport("category", filter));
-        setExpandedRows([]);
-    }, [filter]);
+
+        dispatch(reportActions.setDetails({
+            title: reportResponse.metadata.name,
+            items: reportResponse.data,
+            currency: reportResponse.metadata.currency,
+        }));
+    }, [dispatch, reportResponse]);
 
     const setIntervalHandler = (date: any) => {
         if (date) {

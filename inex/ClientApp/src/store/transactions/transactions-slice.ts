@@ -1,4 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+import { TransactionFilterState } from "../../model/Transaction/TransactionFilterState";
 
 export interface TransactionFilter {
     accountIds: number[];
@@ -9,72 +11,33 @@ export interface TransactionFilter {
 }
 
 interface TransactionsState {
-    items: any[];
-    total: number;
-    isLoading: boolean;
-    isCreating: boolean;
-    isDeleting: boolean;
-    isUpdating: boolean;
-    summaryItems: any[];
-    lastUpdate: string;
-    filter: TransactionFilter;
+    filter: TransactionFilterState;
     error: string | null;
 }
 
-const defaultFilter: TransactionFilter = {
+const defaultFilter: TransactionFilterState = {
     accountIds: [],
     categoryIds: [],
     tags: [],
     refs: [],
+    tagsAndRefs: "",
     range: [],
 };
 
 const transactionsSlice = createSlice({
     name: "transactions",
     initialState: {
-        items: [] as any[],
-        total: 0,
-        isLoading: false,
-        isCreating: false,
-        isDeleting: false,
-        isUpdating: false,
-        summaryItems: [] as any[],
-        lastUpdate: Date(),
         filter: defaultFilter,
         error: null as string | null,
     } as TransactionsState,
     reducers: {
-        setTransactions(state, action) {
-            state.items = action.payload.items;
-        },
-        setTotal(state, action) {
-            state.total = action.payload.total;
-        },
-        setIsLoading(state, action) {
-            state.isLoading = action.payload.isLoading;
-        },
-        setIsCreating(state, action) {
-            state.isCreating = action.payload.isCreating;
-        },
-        setIsDeleting(state, action) {
-            state.isDeleting = action.payload.isDeleting;
-        },
-        setIsUpdating(state, action) {
-            state.isUpdating = action.payload.isUpdating;
-        },
-        setLastUpdate(state) {
-            state.lastUpdate = Date();
-        },
-        setTransactionsSummaryForAccounts(state, action) {
-            state.summaryItems = action.payload.items;
-        },
-        setFilter(state, action) {
-            state.filter = action.payload.filter;
+        setFilter(state, action: PayloadAction<{ filter: TransactionFilterState | TransactionFilter }>) {
+            state.filter = { ...defaultFilter, ...action.payload.filter };
         },
         resetFilter(state) {
             state.filter = defaultFilter;
         },
-        setError(state, action) {
+        setError(state, action: PayloadAction<{ error: string | null }>) {
             state.error = action.payload.error;
         },
     },

@@ -2,16 +2,18 @@ import * as React from 'react';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from "react-i18next";
-import { Drawer, Grid, Pagination, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, Drawer, Grid, Pagination, Spin, Table, Tag, Typography } from 'antd';
 import { CalendarOutlined } from "@ant-design/icons";
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
 import { useNavigate } from "react-router-dom";
 import type { TableColumnsType } from "antd";
 
-import { CategoryDetails } from '../../model/Category/CategoryDetails';
-import { fetchTransactions } from '../../store/transactions/transactions-actions';
+import { TransactionResponse } from '../../model/Transaction/TransactionResponse';
+import { useGetTransactionsQuery, type TransactionFilterParams } from '../../store/transactions/transactions-api';
 import TransactionEditForm from './TransactionEditForm';
 import { buildSingleTagOrRefFilterSearch } from './transaction-filter-url';
+import { AccountResponse } from '../../store/accounts/accounts-api';
+import { CategoryResponse } from '../../store/categories/categories-api';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -19,27 +21,51 @@ const { useBreakpoint } = Grid;
 const headerSpan = { colSpan: 0 };
 const HEADER_COLSPAN = 100;
 
-const TransactionList = (props: any) => {
+interface TransactionListProps {
+    accounts: AccountResponse[];
+    categories: CategoryResponse[];
+}
+
+interface TransactionDateHeader {
+    _isDateHeader: true;
+    _date: string;
+    id: string;
+}
+
+type TransactionRow = TransactionResponse | TransactionDateHeader;
+
+const isDateHeader = (record: TransactionRow): record is TransactionDateHeader =>
+    "_isDateHeader" in record;
+
+const TransactionList = (props: TransactionListProps) => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const screens = useBreakpoint();
-    const transactions = useAppSelector(state => state.transactions.items);
-    const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
-    const total = useAppSelector(state => state.transactions.total);
     const filter = useAppSelector(state => state.transactions.filter);
-    const isLoading = useAppSelector(state => state.transactions.isLoading);
 
     const [pagination, setPagination] = useState({ current: 1, total: 0, size: 25 });
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
-    const [mobileEditRecord, setMobileEditRecord] = useState<any>(null);
+    const [mobileEditRecord, setMobileEditRecord] = useState<TransactionResponse | null>(null);
 
     const isMobile = screens.md === false;
     const { categories, accounts } = props;
     const { size: pageSize, current: currentPage } = pagination;
+    const queryFilter = useMemo<TransactionFilterParams>(() => ({
+        accountIds: filter.accountIds,
+        categoryIds: filter.categoryIds,
+        tags: filter.tags,
+        refs: filter.refs,
+        range: filter.range,
+    }), [filter]);
+    const { data, isError, isLoading } = useGetTransactionsQuery(
+        { pageSize, page: currentPage, filter: queryFilter },
+        { skip: accounts.length === 0 || categories.length === 0 },
+    );
+    const transactions = data?.data ?? [];
+    const total = data?.metadata.totalItems ?? 0;
 
     const dataSource = useMemo(() => {
-        const result: any[] = [];
+        const result: TransactionRow[] = [];
         let lastDate: string | null = null;
         for (const tx of transactions) {
             const txDate = dayjs(tx.created).format("YYYY-MM-DD");
@@ -57,10 +83,8 @@ const TransactionList = (props: any) => {
     }, [total]);
 
     useEffect(() => {
-        if (accounts.length === 0 || categories.length === 0) return;
-        dispatch(fetchTransactions(pageSize, currentPage, filter));
         setExpandedRows([]);
-    }, [categories, accounts, pageSize, currentPage, filter, transactionsLastUpdate]);
+    }, [pageSize, currentPage, queryFilter]);
 
     const paginationChangedHandler = (page: number, pageSize: number) => {
         setPagination(prev => {
@@ -70,7 +94,12 @@ const TransactionList = (props: any) => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const rowExpandHandler = (expanded: boolean, record: any) => {
+    const rowExpandHandler = (expanded: boolean, record: TransactionRow) => {
+        if (isDateHeader(record)) {
+            setExpandedRows([]);
+            return;
+        }
+
         setExpandedRows(expanded && record ? [record.id.toString()] : []);
     };
 
@@ -91,9 +120,9 @@ const TransactionList = (props: any) => {
             : d.format("dddd, D MMM YYYY");
     };
 
-    const getAmountDisplay = (record: any) => {
-        const account = props.accounts.find((a: any) => a.id === record.accountId);
-        const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
+    const getAmountDisplay = (record: TransactionResponse) => {
+        const account = props.accounts.find((a) => a.id === record.accountId);
+        const category = props.categories.find((c) => c.id === record.categoryId);
         const isTransfer = category?.isSystem ?? false;
         const abs = (Math.round(Math.abs(record.amount) * 100) / 100).toFixed(2);
         const sign = record.amount >= 0 ? "+" : "-";
@@ -101,19 +130,19 @@ const TransactionList = (props: any) => {
         return { label: `${sign}${abs} ${account?.currency ?? ''}`, color };
     };
 
-    const renderNotes = (record: any, stopProp = false) => {
+    const renderNotes = (record: TransactionResponse, stopProp = false) => {
         const hasTags = record.tags?.length > 0 || record.refs?.length > 0;
         const clean = record.comment?.replace(/#\S+/g, '').replace(/@\S+/g, '').trim();
         const wrap = (fn: (v: string) => void, val: string) =>
             (e: React.MouseEvent) => { if (stopProp) e.stopPropagation(); fn(val); };
         return (
             <>
-                {record.tags?.map((tag: any) => (
+                {record.tags?.map((tag: string) => (
                     <Tag color="green" key={tag} style={{ cursor: "pointer" }} onClick={wrap(handleTagClick, tag)}>
                         {tag.toUpperCase()}
                     </Tag>
                 ))}
-                {record.refs?.map((ref: any) => (
+                {record.refs?.map((ref: string) => (
                     <Tag color="geekblue" key={ref} style={{ cursor: "pointer" }} onClick={wrap(handleRefClick, ref)}>
                         {ref.toUpperCase()}
                     </Tag>
@@ -161,8 +190,15 @@ const TransactionList = (props: any) => {
 
                 <Spin spinning={isLoading}>
                     <div style={{ background: "white" }}>
+                        {isError && (
+                            <Alert
+                                type="error"
+                                message={t("transactions.error")}
+                                style={{ margin: 16 }}
+                            />
+                        )}
                         {dataSource.map(record => {
-                            if (record._isDateHeader) {
+                            if (isDateHeader(record)) {
                                 return (
                                     <div
                                         key={record.id}
@@ -181,8 +217,8 @@ const TransactionList = (props: any) => {
                                 );
                             }
 
-                            const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
-                            const account = props.accounts.find((a: any) => a.id === record.accountId);
+                            const category = props.categories.find((c) => c.id === record.categoryId);
+                            const account = props.accounts.find((a) => a.id === record.accountId);
                             const { label: amountLabel, color: amountColor } = getAmountDisplay(record);
                             const hasNotes = record.tags?.length > 0 || record.refs?.length > 0 || record.comment;
 
@@ -220,7 +256,7 @@ const TransactionList = (props: any) => {
     }
 
     // Desktop table layout
-    const renderDateHeader = (record: any) => ({
+    const renderDateHeader = (record: TransactionDateHeader) => ({
         children: (
             <span style={{ fontSize: 12, color: "#595959", fontWeight: 600 }}>
                 <CalendarOutlined style={{ marginRight: 6, color: "#1677ff" }} />
@@ -230,15 +266,15 @@ const TransactionList = (props: any) => {
         props: { colSpan: HEADER_COLSPAN },
     });
 
-    const columns: TableColumnsType<any> = [
+    const columns: TableColumnsType<TransactionRow> = [
         {
             title: t("transactions.category"),
             width: "28%",
             dataIndex: "categoryId",
             key: "categoryId",
-            render: (categoryId: number, record: any) => {
-                if (record._isDateHeader) return renderDateHeader(record);
-                const category = props.categories.find((c: CategoryDetails) => c.id === categoryId);
+            render: (_value: unknown, record: TransactionRow) => {
+                if (isDateHeader(record)) return renderDateHeader(record);
+                const category = props.categories.find((c) => c.id === record.categoryId);
                 return category?.name;
             },
         },
@@ -247,9 +283,9 @@ const TransactionList = (props: any) => {
             width: "22%",
             dataIndex: "accountId",
             key: "accountId",
-            render: (accountId: number, record: any) => {
-                if (record._isDateHeader) return { children: null, props: headerSpan };
-                const account = props.accounts.find((a: any) => a.id === accountId);
+            render: (_value: unknown, record: TransactionRow) => {
+                if (isDateHeader(record)) return { children: null, props: headerSpan };
+                const account = props.accounts.find((a) => a.id === record.accountId);
                 return account?.name;
             },
         },
@@ -258,8 +294,8 @@ const TransactionList = (props: any) => {
             key: "amount",
             width: "16%",
             align: "right",
-            render: (_: string, record: any) => {
-                if (record._isDateHeader) return { children: null, props: headerSpan };
+            render: (_value: unknown, record: TransactionRow) => {
+                if (isDateHeader(record)) return { children: null, props: headerSpan };
                 const { label, color } = getAmountDisplay(record);
                 return <span style={{ color }}>{label}</span>;
             },
@@ -268,31 +304,40 @@ const TransactionList = (props: any) => {
             title: t("transactions.comment"),
             key: "notes",
             width: "34%",
-            render: (_: any, record: any) => {
-                if (record._isDateHeader) return { children: null, props: headerSpan };
+            render: (_value: unknown, record: TransactionRow) => {
+                if (isDateHeader(record)) return { children: null, props: headerSpan };
                 return <span>{renderNotes(record)}</span>;
             },
         },
     ];
 
-    const expandedRowRender = (record: any) =>
-        <TransactionEditForm record={record} accounts={props.accounts} categories={props.categories} />;
+    const expandedRowRender = (record: TransactionRow) => {
+        if (isDateHeader(record)) return null;
+        return <TransactionEditForm record={record} accounts={props.accounts} categories={props.categories} />;
+    };
 
     return (
         <>
+            {isError && (
+                <Alert
+                    type="error"
+                    message={t("transactions.error")}
+                    style={{ marginBottom: 16 }}
+                />
+            )}
             <Table
-                rowKey={(record: any) => record.id.toString()}
+                rowKey={(record: TransactionRow) => record.id.toString()}
                 loading={isLoading}
                 columns={columns}
                 dataSource={dataSource}
                 onRow={(record) => ({
-                    style: record._isDateHeader
+                    style: isDateHeader(record)
                         ? { backgroundColor: "#f0f5ff", cursor: "default", borderTop: "2px solid #e8e8e8" }
                         : undefined,
                 })}
                 expandable={{
                     expandedRowRender,
-                    rowExpandable: (record) => !record._isDateHeader,
+                    rowExpandable: (record) => !isDateHeader(record),
                     showExpandColumn: false,
                     expandRowByClick: true,
                     onExpand: rowExpandHandler,

@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Checkbox, Grid, Space } from "antd";
 
 const { useBreakpoint } = Grid;
@@ -12,11 +11,10 @@ import { CategoryDetails, getCategoriesTree } from '../model/Category/CategoryDe
 import CategoryEditForm from './Categories/CategoryEditForm';
 import CategoryCreateForm from './Categories/CategoryCreateForm';
 
-import { fetchCategories } from '../store/categories/categories-actions';
+import { CategoryResponse, useGetCategoriesQuery } from '../store/categories/categories-api';
 
 const Categories = () => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const screens = useBreakpoint();
     const isMobile = screens.md === false;
 
@@ -24,15 +22,13 @@ const Categories = () => {
     const [showOnlyEnabled, setShowOnlyEnabled] = useState(true);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-    const categories = useAppSelector(state => state.categories.items);
-    const categoriesLastUpdate = useAppSelector(state => state.categories.lastUpdate);
-    const filteredCategories = showOnlyEnabled ? categories.filter((c: any) => c.isEnabled) : categories;
+    const { data: categories = [], isLoading } = useGetCategoriesQuery("ALL");
+    const filteredCategories = showOnlyEnabled ? categories.filter((c: CategoryResponse) => c.isEnabled) : categories;
     const categoryFlatList = useMemo(() => getCategoriesTree(filteredCategories, true) as (Omit<CategoryDetails, "children"> & { depth: number })[], [filteredCategories]);
 
     useEffect(() => {
-        dispatch(fetchCategories("ALL"));
         setExpandedRows([]);
-    }, [categoriesLastUpdate]);
+    }, [categories]);
 
     const closeModalHandler = () => {
         setAddModalVisible(false);
@@ -42,7 +38,7 @@ const Categories = () => {
         setAddModalVisible(true);
     };
 
-    const rowExpandHandler = (expanded: boolean, record: any) => {
+    const rowExpandHandler = (expanded: boolean, record: Omit<CategoryDetails, "children"> & { depth: number }) => {
         if (expanded) {
             setExpandedRows(record ? [record.id.toString()] : []);
         } else {
@@ -113,7 +109,8 @@ const Categories = () => {
                     <Table
                         dataSource={categoryFlatList}
                         columns={columns}
-                        rowKey={(record: any) => record.id.toString()}
+                        rowKey={(record) => record.id.toString()}
+                        loading={isLoading}
                         pagination={false}
                         scroll={{ x: "max-content" }}
                         locale={{ emptyText: t("categories.empty") }}

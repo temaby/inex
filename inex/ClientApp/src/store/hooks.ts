@@ -14,7 +14,7 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
  * Import this everywhere instead of plain useSelector().
  *
  * Usage:
- *   const accounts = useAppSelector(state => state.accounts.items);
+ *   const filter = useAppSelector(state => state.transactions.filter);
  *   //    ^ AccountDetails[]  — inferred automatically
  */
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

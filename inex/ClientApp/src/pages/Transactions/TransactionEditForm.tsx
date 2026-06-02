@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { useEffect, useMemo, useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useAppDispatch } from "../../store/hooks";
 
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
@@ -14,8 +14,9 @@ import { DatePicker } from "antd";
 import { CategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionEditState } from "../../model/Transaction/TransactionEditState";
 import Dropdown from "../../components/Dropdown";
-import { removeTransaction, updateTransaction } from "../../store/transactions/transactions-actions";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
+import { transactionsActions } from "../../store/transactions/transactions-slice";
+import { useDeleteTransactionMutation, useUpdateTransactionMutation } from "../../store/transactions/transactions-api";
 
 
 const defaultState: TransactionEditState = new TransactionEditState();
@@ -41,8 +42,8 @@ const TransactionEditForm = (props: any) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const isDeleting = useAppSelector(state => state.transactions.isDeleting);
-    const isUpdating = useAppSelector(state => state.transactions.isUpdating);
+    const [updateTransactionMutation, { isLoading: isUpdating }] = useUpdateTransactionMutation();
+    const [deleteTransactionMutation, { isLoading: isDeleting }] = useDeleteTransactionMutation();
 
     const [state, dispatchTransactionAction] = useReducer(reducer, defaultState);
 
@@ -106,11 +107,26 @@ const TransactionEditForm = (props: any) => {
     };
 
     const updateTransactionHandler = async () => {
-      dispatch(updateTransaction(+props.record.id, +state.account.id, +state.category.id, state.amount, state.comment, state.date));
+      try {
+        await updateTransactionMutation({
+          id: +props.record.id,
+          accountId: +state.account.id,
+          categoryId: +state.category.id,
+          amount: state.amount,
+          comment: state.comment,
+          created: state.date.format("YYYY-MM-DD"),
+        }).unwrap();
+      } catch {
+        dispatch(transactionsActions.setError({ error: "Could not update a transaction" }));
+      }
     };
 
     const removeTransactionHandler = async () => {
-      dispatch(removeTransaction(+props.record.id));
+      try {
+        await deleteTransactionMutation(+props.record.id).unwrap();
+      } catch {
+        dispatch(transactionsActions.setError({ error: "Could not delete a transaction" }));
+      }
     };
 
     return (

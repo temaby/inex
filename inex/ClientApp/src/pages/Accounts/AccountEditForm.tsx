@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Grid, Radio, Select, Space, Divider, Popconfirm } from "antd";
 
 const { useBreakpoint } = Grid;
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { updateAccount, deleteAccount } from "../../store/accounts/accounts-actions";
+import { AccountResponse, useDeleteAccountMutation, useUpdateAccountMutation } from "../../store/accounts/accounts-api";
 import apiClient from "../../utils/apiClient";
 
 interface Currency {
@@ -39,10 +38,14 @@ const reducer = (state: AccountEditState, action: any): AccountEditState => {
     }
 };
 
-const AccountEditForm = (props: any) => {
+interface AccountEditFormProps {
+    record: AccountResponse;
+}
+
+const AccountEditForm = (props: AccountEditFormProps) => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const isUpdating = useAppSelector(state => state.accounts.isUpdating);
+    const [updateAccount, { isLoading: isUpdating }] = useUpdateAccountMutation();
+    const [deleteAccount] = useDeleteAccountMutation();
     const [currencies, setCurrencies] = useState<Currency[]>([]);
 
     const screens = useBreakpoint();
@@ -70,12 +73,19 @@ const AccountEditForm = (props: any) => {
         }});
     }, [props.record]);
 
-    const updateHandler = () => {
-        dispatch(updateAccount(+props.record.id, props.record.key, state.name, state.description, state.currencyId, state.isEnabled));
+    const updateHandler = async () => {
+        await updateAccount({
+            id: +props.record.id,
+            key: props.record.key,
+            name: state.name,
+            description: state.description,
+            currencyId: state.currencyId,
+            isEnabled: state.isEnabled,
+        }).unwrap();
     };
 
-    const deleteHandler = () => {
-        dispatch(deleteAccount(+props.record.id));
+    const deleteHandler = async () => {
+        await deleteAccount(+props.record.id).unwrap();
     };
 
     return (

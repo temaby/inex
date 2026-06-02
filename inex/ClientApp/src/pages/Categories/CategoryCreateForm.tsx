@@ -2,9 +2,7 @@ import * as React from "react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Radio, Select } from "antd";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { createCategory } from "../../store/categories/categories-actions";
-import { CategoryDetails } from "../../model/Category/CategoryDetails";
+import { CategoryResponse, useCreateCategoryMutation, useGetCategoriesQuery } from "../../store/categories/categories-api";
 
 interface CategoryCreateFormProps {
     onCreated: () => void;
@@ -12,14 +10,13 @@ interface CategoryCreateFormProps {
 
 const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const [form] = Form.useForm();
-    const isCreating = useAppSelector(state => state.categories.isCreating);
-    const allCategories = useAppSelector(state => state.categories.items);
+    const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
+    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
 
     // Only active, non-system, root-level categories can be parents (1 level of nesting)
     const parentOptions = useMemo(() =>
-        (allCategories as CategoryDetails[]).filter(
+        allCategories.filter(
             c => c.isEnabled && !c.isSystem && (c.parentId === null || c.parentId === undefined)
         ),
         [allCategories]
@@ -28,14 +25,19 @@ const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
     const toKey = (name: string) =>
         name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-    const onFinish = async (values: any) => {
-        await dispatch(createCategory(
-            toKey(values.name),
-            values.name,
-            values.description ?? "",
-            values.isEnabled,
-            values.parentId ?? null,
-        ));
+    const onFinish = async (values: {
+        name: string;
+        description?: string;
+        isEnabled: boolean;
+        parentId?: number;
+    }) => {
+        await createCategory({
+            key: toKey(values.name),
+            name: values.name,
+            description: values.description ?? "",
+            isEnabled: values.isEnabled,
+            parentId: values.parentId ?? null,
+        }).unwrap();
         form.resetFields();
         onCreated();
     };
@@ -60,7 +62,7 @@ const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
                     size="large"
                     allowClear
                     placeholder={t("categories.parentCategoryPlaceholder")}
-                    options={parentOptions.map(c => ({ value: c.id, label: c.name }))}
+                    options={parentOptions.map((c: CategoryResponse) => ({ value: c.id, label: c.name }))}
                 />
             </Form.Item>
             <Form.Item name="isEnabled" label={t("categories.status")}>

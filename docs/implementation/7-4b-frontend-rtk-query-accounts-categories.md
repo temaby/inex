@@ -1,6 +1,6 @@
 # Story 7.4b: Frontend — RTK Query Migration For Accounts And Categories
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -38,20 +38,20 @@ so that shared cache and invalidation conventions are reused instead of reinvent
 
 ### Prerequisite: Verify 7.4a foundation
 
-- [ ] Confirm `axiosBaseQuery` exists at `src/store/axiosBaseQuery.ts` (created in 7.4a). (AC: 1)
-  - [ ] If missing, STOP — 7.4b cannot proceed until 7.4a is complete.
-- [ ] Confirm `src/store/transactions/transactions-api.ts` exists (created in 7.4a) and is wired in `store/index.ts`. (AC: 1)
-  - [ ] If missing, STOP — do not invent a parallel RTK Query pattern in this story.
-- [ ] Confirm `store/index.ts` has `getDefaultMiddleware().concat(transactionsApi.middleware)` or equivalent from 7.4a. (AC: 1)
-- [ ] Note the exact RTK version from `node_modules/@reduxjs/toolkit/package.json` — follow whatever import/middleware pattern 7.4a established.
-- [ ] Confirm Story 7.3 test infrastructure exists before implementing AC6 (`package.json` has `test` script; Vitest + RTL deps are installed). (AC: 6)
-  - [ ] If missing, mark AC6 blocked by Story 7.3 and proceed with implementation work that does not depend on tests.
+- [x] Confirm `axiosBaseQuery` exists at `src/store/axiosBaseQuery.ts` (created in 7.4a). (AC: 1)
+  - [x] If missing, STOP — 7.4b cannot proceed until 7.4a is complete.
+- [x] Confirm `src/store/transactions/transactions-api.ts` exists (created in 7.4a) and is wired in `store/index.ts`. (AC: 1)
+  - [x] If missing, STOP — do not invent a parallel RTK Query pattern in this story.
+- [x] Confirm `store/index.ts` has `getDefaultMiddleware().concat(transactionsApi.middleware)` or equivalent from 7.4a. (AC: 1)
+- [x] Note the exact RTK version from `node_modules/@reduxjs/toolkit/package.json` — follow whatever import/middleware pattern 7.4a established.
+- [x] Confirm Story 7.3 test infrastructure exists before implementing AC6 (`package.json` has `test` script; Vitest + RTL deps are installed). (AC: 6)
+  - [x] If missing, mark AC6 blocked by Story 7.3 and proceed with implementation work that does not depend on tests.
 
 ### Accounts API slice
 
-- [ ] Create `src/store/accounts/accounts-api.ts`. (AC: 1, 2)
-  - [ ] Import `createApi` from `@reduxjs/toolkit/query/react` and `axiosBaseQuery` from `../axiosBaseQuery`.
-  - [ ] Define local response interfaces before `createApi` because the current frontend `AccountDetails` model does not include every field this API returns/uses:
+- [x] Create `src/store/accounts/accounts-api.ts`. (AC: 1, 2)
+  - [x] Import `createApi` from `@reduxjs/toolkit/query/react` and `axiosBaseQuery` from `../axiosBaseQuery`.
+  - [x] Define local response interfaces before `createApi` because the current frontend `AccountDetails` model does not include every field this API returns/uses:
     ```typescript
     interface ListResponse<T> {
       data: T[];
@@ -72,39 +72,39 @@ so that shared cache and invalidation conventions are reused instead of reinvent
       thisMonthNet: number;
     }
     ```
-  - [ ] Set `reducerPath: 'accountsApi'` and `tagTypes: ['Account']`.
-  - [ ] Implement `getAccounts` query:
+  - [x] Set `reducerPath: 'accountsApi'` and `tagTypes: ['Account']`.
+  - [x] Implement `getAccounts` query:
     - Arg: `mode: string` (call sites always pass `"ALL"`)
     - URL: `/accounts?mode=${mode}` (GET)
     - Return type: `AccountResponse[]`.
     - Add `transformResponse: (response: ListResponse<AccountResponse>) => response.data ?? []` so hook call sites receive an array, not the backend wrapper.
     - `providesTags: (result) => result ? [...result.map(({ id }) => ({ type: 'Account' as const, id })), { type: 'Account', id: 'LIST' }] : [{ type: 'Account', id: 'LIST' }]`
     - Note: backend returns `{ data: [...] }`; `axiosBaseQuery` returns that object as `data`, so each list endpoint must unwrap it before exposing hook data.
-  - [ ] Implement `getAccountsSummary` query for the existing `/accounts/details` endpoint:
+  - [x] Implement `getAccountsSummary` query for the existing `/accounts/details` endpoint:
     - Arg: `ids: number[]`
     - URL: `/accounts/details?mode=active&${ids.map((id, i) => `ids[${i}]=${id}`).join("&")}` (GET)
     - Return type: `AccountSummary[]`.
     - Add `transformResponse: (response: ListResponse<AccountSummary>) => response.data ?? []`.
     - `providesTags: (result) => result ? [...result.map(({ id }) => ({ type: 'Account' as const, id })), { type: 'Account', id: 'SUMMARY' }] : [{ type: 'Account', id: 'SUMMARY' }]`
-  - [ ] Implement `createAccount` mutation:
+  - [x] Implement `createAccount` mutation:
     - Body: `{ key: string; name: string; description: string; currencyId: number; isEnabled: boolean }`
     - Method: `POST /accounts`
     - `invalidatesTags: [{ type: 'Account', id: 'LIST' }]`
-  - [ ] Implement `updateAccount` mutation (handles both field edits and `isEnabled` status toggle — there is no separate toggle endpoint):
+  - [x] Implement `updateAccount` mutation (handles both field edits and `isEnabled` status toggle — there is no separate toggle endpoint):
     - Arg: `{ id: number; key: string; name: string; description: string; currencyId: number; isEnabled: boolean }`
     - Method: `PUT /accounts/${id}`
     - `invalidatesTags: (result, error, { id }) => [{ type: 'Account' as const, id }, { type: 'Account', id: 'LIST' }]`
-  - [ ] Implement `deleteAccount` mutation:
+  - [x] Implement `deleteAccount` mutation:
     - Arg: `id: number`
     - Method: `DELETE /accounts/${id}`
     - `invalidatesTags: (result, error, id) => [{ type: 'Account' as const, id }, { type: 'Account', id: 'LIST' }]`
-  - [ ] Export `useGetAccountsQuery`, `useGetAccountsSummaryQuery`, `useCreateAccountMutation`, `useUpdateAccountMutation`, `useDeleteAccountMutation`.
+  - [x] Export `useGetAccountsQuery`, `useGetAccountsSummaryQuery`, `useCreateAccountMutation`, `useUpdateAccountMutation`, `useDeleteAccountMutation`.
 
 ### Categories API slice
 
-- [ ] Create `src/store/categories/categories-api.ts`. (AC: 1, 3, 4)
-  - [ ] Import `createApi` from `@reduxjs/toolkit/query/react` and `axiosBaseQuery` as above.
-  - [ ] Define local response interfaces before `createApi`:
+- [x] Create `src/store/categories/categories-api.ts`. (AC: 1, 3, 4)
+  - [x] Import `createApi` from `@reduxjs/toolkit/query/react` and `axiosBaseQuery` as above.
+  - [x] Define local response interfaces before `createApi`:
     ```typescript
     interface ListResponse<T> {
       data: T[];
@@ -122,166 +122,166 @@ so that shared cache and invalidation conventions are reused instead of reinvent
       children?: CategoryResponse[];
     }
     ```
-  - [ ] Set `reducerPath: 'categoriesApi'` and `tagTypes: ['Category']`.
-  - [ ] Implement `getCategories` query:
+  - [x] Set `reducerPath: 'categoriesApi'` and `tagTypes: ['Category']`.
+  - [x] Implement `getCategories` query:
     - Arg: `mode: string`
     - URL: `/categories?mode=${mode}` (GET)
     - Return type: `CategoryResponse[]`.
     - Add `transformResponse: (response: ListResponse<CategoryResponse>) => response.data ?? []`.
     - Same array-based `providesTags` pattern as accounts but with `'Category'` type.
-  - [ ] Implement `createCategory` mutation:
+  - [x] Implement `createCategory` mutation:
     - Body: `{ key: string; name: string; description: string; isEnabled: boolean; parentId: number | null }`
     - Method: `POST /categories`
     - `invalidatesTags: [{ type: 'Category', id: 'LIST' }]`
-  - [ ] Implement `updateCategory` mutation (handles field edits and `isEnabled` status toggle; `key` is included only to satisfy the current backend validator and is not user-editable here):
+  - [x] Implement `updateCategory` mutation (handles field edits and `isEnabled` status toggle; `key` is included only to satisfy the current backend validator and is not user-editable here):
     - Arg: `{ id: number; key: string; name: string; description: string; isEnabled: boolean }`
     - Method: `PUT /categories/${id}`
     - `invalidatesTags: (result, error, { id }) => [{ type: 'Category' as const, id }, { type: 'Category', id: 'LIST' }]`
-  - [ ] Implement `deleteCategory` mutation:
+  - [x] Implement `deleteCategory` mutation:
     - Arg: `id: number`
     - Method: `DELETE /categories/${id}`
     - `invalidatesTags: (result, error, id) => [{ type: 'Category' as const, id }, { type: 'Category', id: 'LIST' }]`
-  - [ ] Export `useGetCategoriesQuery`, `useCreateCategoryMutation`, `useUpdateCategoryMutation`, `useDeleteCategoryMutation`.
+  - [x] Export `useGetCategoriesQuery`, `useCreateCategoryMutation`, `useUpdateCategoryMutation`, `useDeleteCategoryMutation`.
 
 ### Wire API slices into store
 
-- [ ] Update `src/store/index.ts`. (AC: 1)
-  - [ ] Add `[accountsApi.reducerPath]: accountsApi.reducer` and `[categoriesApi.reducerPath]: categoriesApi.reducer` to the reducer map.
-  - [ ] Chain `.concat(accountsApi.middleware, categoriesApi.middleware)` onto the existing middleware chain from 7.4a.
-  - [ ] **Keep** `accounts: accountsSlice.reducer` and `categories: categoriesSlice.reducer` until all consumers are confirmed migrated and the old slices are safe to remove.
+- [x] Update `src/store/index.ts`. (AC: 1)
+  - [x] Add `[accountsApi.reducerPath]: accountsApi.reducer` and `[categoriesApi.reducerPath]: categoriesApi.reducer` to the reducer map.
+  - [x] Chain `.concat(accountsApi.middleware, categoriesApi.middleware)` onto the existing middleware chain from 7.4a.
+  - [x] **Keep** `accounts: accountsSlice.reducer` and `categories: categoriesSlice.reducer` until all consumers are confirmed migrated and the old slices are safe to remove.
 
 ### Migrate Accounts.tsx
 
-- [ ] Replace the thunk-based fetch with RTK Query hook. (AC: 2, 5)
-  - [ ] Replace `import { fetchAccounts } from "../store/accounts/accounts-actions"` with `import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api"`.
-  - [ ] Remove `useAppSelector(state => state.accounts.items)` and `useAppSelector(state => state.accounts.lastUpdate)`.
-  - [ ] Add `const { data: accounts = [], isLoading } = useGetAccountsQuery("ALL");`.
-  - [ ] Remove the `useEffect` that dispatched `fetchAccounts("ALL")` on `accountsLastUpdate`.
-  - [ ] Preserve the `showOnlyEnabled` filter: `const filteredAccounts = showOnlyEnabled ? accounts.filter((a: AccountResponse) => a.isEnabled) : accounts;`.
-  - [ ] Change the table type and edit form record type from the incomplete `AccountDetails` model to `AccountResponse`.
-  - [ ] Add `loading={isLoading}` prop to the `<Table>`.
+- [x] Replace the thunk-based fetch with RTK Query hook. (AC: 2, 5)
+  - [x] Replace `import { fetchAccounts } from "../store/accounts/accounts-actions"` with `import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api"`.
+  - [x] Remove `useAppSelector(state => state.accounts.items)` and `useAppSelector(state => state.accounts.lastUpdate)`.
+  - [x] Add `const { data: accounts = [], isLoading } = useGetAccountsQuery("ALL");`.
+  - [x] Remove the `useEffect` that dispatched `fetchAccounts("ALL")` on `accountsLastUpdate`.
+  - [x] Preserve the `showOnlyEnabled` filter: `const filteredAccounts = showOnlyEnabled ? accounts.filter((a: AccountResponse) => a.isEnabled) : accounts;`.
+  - [x] Change the table type and edit form record type from the incomplete `AccountDetails` model to `AccountResponse`.
+  - [x] Add `loading={isLoading}` prop to the `<Table>`.
 
 ### Migrate AccountCreateForm.tsx
 
-- [ ] Replace `createAccount` thunk with mutation hook. (AC: 2)
-  - [ ] Replace `import { createAccount } from "../../store/accounts/accounts-actions"` with `import { useCreateAccountMutation } from "../../store/accounts/accounts-api"`.
-  - [ ] Remove `useAppSelector(state => state.accounts.isCreating)`.
-  - [ ] Add `const [createAccount, { isLoading: isCreating }] = useCreateAccountMutation();`.
-  - [ ] In `onFinish`, call `await createAccount({ key, name, description, currencyId, isEnabled }).unwrap()` — no manual dispatch needed.
-  - [ ] **Keep** the direct `apiClient.get("/currencies")` call — currencies are not in scope for this story.
+- [x] Replace `createAccount` thunk with mutation hook. (AC: 2)
+  - [x] Replace `import { createAccount } from "../../store/accounts/accounts-actions"` with `import { useCreateAccountMutation } from "../../store/accounts/accounts-api"`.
+  - [x] Remove `useAppSelector(state => state.accounts.isCreating)`.
+  - [x] Add `const [createAccount, { isLoading: isCreating }] = useCreateAccountMutation();`.
+  - [x] In `onFinish`, call `await createAccount({ key, name, description, currencyId, isEnabled }).unwrap()` — no manual dispatch needed.
+  - [x] **Keep** the direct `apiClient.get("/currencies")` call — currencies are not in scope for this story.
 
 ### Migrate AccountEditForm.tsx
 
-- [ ] Replace `updateAccount` and `deleteAccount` thunks. (AC: 2)
-  - [ ] Replace import with `import { useUpdateAccountMutation, useDeleteAccountMutation } from "../../store/accounts/accounts-api"`.
-  - [ ] Remove `useAppSelector(state => state.accounts.isUpdating)`.
-  - [ ] Add `const [updateAccount, { isLoading: isUpdating }] = useUpdateAccountMutation();` and `const [deleteAccount] = useDeleteAccountMutation();`.
-  - [ ] In `updateHandler`, call `updateAccount({ id: +props.record.id, key: props.record.key, name: state.name, description: state.description, currencyId: state.currencyId, isEnabled: state.isEnabled }).unwrap()`.
-  - [ ] In `deleteHandler`, call `deleteAccount(+props.record.id).unwrap()`.
-  - [ ] **Keep** the direct `apiClient.get("/currencies")` call.
+- [x] Replace `updateAccount` and `deleteAccount` thunks. (AC: 2)
+  - [x] Replace import with `import { useUpdateAccountMutation, useDeleteAccountMutation } from "../../store/accounts/accounts-api"`.
+  - [x] Remove `useAppSelector(state => state.accounts.isUpdating)`.
+  - [x] Add `const [updateAccount, { isLoading: isUpdating }] = useUpdateAccountMutation();` and `const [deleteAccount] = useDeleteAccountMutation();`.
+  - [x] In `updateHandler`, call `updateAccount({ id: +props.record.id, key: props.record.key, name: state.name, description: state.description, currencyId: state.currencyId, isEnabled: state.isEnabled }).unwrap()`.
+  - [x] In `deleteHandler`, call `deleteAccount(+props.record.id).unwrap()`.
+  - [x] **Keep** the direct `apiClient.get("/currencies")` call.
 
 ### Migrate Categories.tsx
 
-- [ ] Replace the thunk-based fetch with RTK Query hook. (AC: 3, 5)
-  - [ ] Replace `import { fetchCategories } from '../store/categories/categories-actions'` with `import { useGetCategoriesQuery } from '../store/categories/categories-api'`.
-  - [ ] Remove `useAppSelector(state => state.categories.items)` and `useAppSelector(state => state.categories.lastUpdate)`.
-  - [ ] Add `const { data: categories = [], isLoading } = useGetCategoriesQuery("ALL");`.
-  - [ ] Remove the `useEffect` that dispatched `fetchCategories("ALL")` on `categoriesLastUpdate`.
-  - [ ] Add `loading={isLoading}` to the `<Table>`.
+- [x] Replace the thunk-based fetch with RTK Query hook. (AC: 3, 5)
+  - [x] Replace `import { fetchCategories } from '../store/categories/categories-actions'` with `import { useGetCategoriesQuery } from '../store/categories/categories-api'`.
+  - [x] Remove `useAppSelector(state => state.categories.items)` and `useAppSelector(state => state.categories.lastUpdate)`.
+  - [x] Add `const { data: categories = [], isLoading } = useGetCategoriesQuery("ALL");`.
+  - [x] Remove the `useEffect` that dispatched `fetchCategories("ALL")` on `categoriesLastUpdate`.
+  - [x] Add `loading={isLoading}` to the `<Table>`.
 
 ### Migrate CategoryCreateForm.tsx
 
-- [ ] Replace thunk and Redux selector with mutation hook and query hook. (AC: 3, 4)
-  - [ ] Replace `import { createCategory } from "../../store/categories/categories-actions"` with `import { useCreateCategoryMutation, useGetCategoriesQuery } from "../../store/categories/categories-api"`.
-  - [ ] Remove `useAppSelector(state => state.categories.isCreating)` and `useAppSelector(state => state.categories.items)`.
-  - [ ] Add `const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();`.
-  - [ ] Add `const { data: allCategories = [] } = useGetCategoriesQuery("ALL");` — replaces the `state.categories.items` selector for the parent dropdown. RTK Query caches the result so this does NOT cause a duplicate network call if `Categories.tsx` is already mounted.
-  - [ ] In `onFinish`, call `await createCategory({ key, name, description, isEnabled, parentId: values.parentId ?? null }).unwrap()`.
+- [x] Replace thunk and Redux selector with mutation hook and query hook. (AC: 3, 4)
+  - [x] Replace `import { createCategory } from "../../store/categories/categories-actions"` with `import { useCreateCategoryMutation, useGetCategoriesQuery } from "../../store/categories/categories-api"`.
+  - [x] Remove `useAppSelector(state => state.categories.isCreating)` and `useAppSelector(state => state.categories.items)`.
+  - [x] Add `const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();`.
+  - [x] Add `const { data: allCategories = [] } = useGetCategoriesQuery("ALL");` — replaces the `state.categories.items` selector for the parent dropdown. RTK Query caches the result so this does NOT cause a duplicate network call if `Categories.tsx` is already mounted.
+  - [x] In `onFinish`, call `await createCategory({ key, name, description, isEnabled, parentId: values.parentId ?? null }).unwrap()`.
 
 ### Migrate CategoryEditForm.tsx
 
-- [ ] Replace `updateCategory` and `deleteCategory` thunks. (AC: 3)
-  - [ ] Replace import with `import { useUpdateCategoryMutation, useDeleteCategoryMutation } from "../../store/categories/categories-api"`.
-  - [ ] Remove `useAppSelector(state => state.categories.isUpdating)`.
-  - [ ] Add `const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();` and `const [deleteCategory] = useDeleteCategoryMutation();`.
-  - [ ] In `updateCategoryHandler`, call `updateCategory({ id: +props.record.id, key: props.record.key, name: state.name, description: state.description, isEnabled: state.isEnabled }).unwrap()`.
-  - [ ] In `deleteCategoryHandler`, call `deleteCategory(+props.record.id).unwrap()`.
+- [x] Replace `updateCategory` and `deleteCategory` thunks. (AC: 3)
+  - [x] Replace import with `import { useUpdateCategoryMutation, useDeleteCategoryMutation } from "../../store/categories/categories-api"`.
+  - [x] Remove `useAppSelector(state => state.categories.isUpdating)`.
+  - [x] Add `const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();` and `const [deleteCategory] = useDeleteCategoryMutation();`.
+  - [x] In `updateCategoryHandler`, call `updateCategory({ id: +props.record.id, key: props.record.key, name: state.name, description: state.description, isEnabled: state.isEnabled }).unwrap()`.
+  - [x] In `deleteCategoryHandler`, call `deleteCategory(+props.record.id).unwrap()`.
 
 ### Migrate Budgets.tsx (categories consumer)
 
-- [ ] Replace `fetchCategories` in `Budgets.tsx` with RTK Query. (AC: 3, 4, 5)
-  - [ ] Replace `import { fetchCategories } from "../store/categories/categories-actions"` with `import { useGetCategoriesQuery } from "../store/categories/categories-api"`.
-  - [ ] Remove the `dispatch(fetchCategories("ALL"))` + `categoriesLastUpdate` pattern.
-  - [ ] Add `const { data: categories = [] } = useGetCategoriesQuery("ALL");` for the category selector in the budgets form.
-  - [ ] Replace any remaining `state.categories.items` selectors within the file.
-- [ ] Replace the category selector in `Budgets/BudgetEditForm.tsx` with RTK Query before removing the category slice. (AC: 3, 4, 5)
-  - [ ] Import `useGetCategoriesQuery` from `../../store/categories/categories-api`.
-  - [ ] Remove `useAppSelector(state => state.categories?.items || [])`.
-  - [ ] Add `const { data: allCategories = [] } = useGetCategoriesQuery("ALL");`.
-  - [ ] Keep budget-specific Redux selectors and budget mutations unchanged; budget data ownership moves in Story 7.4c.
+- [x] Replace `fetchCategories` in `Budgets.tsx` with RTK Query. (AC: 3, 4, 5)
+  - [x] Replace `import { fetchCategories } from "../store/categories/categories-actions"` with `import { useGetCategoriesQuery } from "../store/categories/categories-api"`.
+  - [x] Remove the `dispatch(fetchCategories("ALL"))` + `categoriesLastUpdate` pattern.
+  - [x] Add `const { data: categories = [] } = useGetCategoriesQuery("ALL");` for the category selector in the budgets form.
+  - [x] Replace any remaining `state.categories.items` selectors within the file.
+- [x] Replace the category selector in `Budgets/BudgetEditForm.tsx` with RTK Query before removing the category slice. (AC: 3, 4, 5)
+  - [x] Import `useGetCategoriesQuery` from `../../store/categories/categories-api`.
+  - [x] Remove `useAppSelector(state => state.categories?.items || [])`.
+  - [x] Add `const { data: allCategories = [] } = useGetCategoriesQuery("ALL");`.
+  - [x] Keep budget-specific Redux selectors and budget mutations unchanged; budget data ownership moves in Story 7.4c.
 
 ### Migrate shared consumers outside Accounts/Categories pages
 
-- [ ] Migrate `Transactions.tsx` to RTK Query for account/category source data. (AC: 4, 5)
-  - [ ] Replace `useAppSelector(state => state.accounts.items)` with `useGetAccountsQuery("ALL")`.
-  - [ ] Replace `useAppSelector(state => state.categories.items)` with `useGetCategoriesQuery("ALL")`.
-  - [ ] Keep `state.transactions.filter` selector (belongs to transactions UI state, not this migration).
-- [ ] Migrate `Transactions/TransactionSummary.tsx` from the retained accounts summary thunk to RTK Query. (AC: 2, 5)
-  - [ ] Replace `fetchTransactionsSummaryForAccounts(accountIds)` with `useGetAccountsSummaryQuery(accountIds, { skip: accountIds.length === 0 })`.
-  - [ ] Remove `useAppSelector(state => state.transactions.summaryItems)` from this component; derive `accountsDetails` from the query result: `const accountsDetails = data ?? []`.
-  - [ ] Remove `useAppSelector(state => state.transactions.lastUpdate)` from this component; account mutations now invalidate `Account` tags and refetch summary data through RTK Query.
-  - [ ] After this migration, remove `summaryItems`, `setTransactionsSummaryForAccounts`, `lastUpdate`, and `setLastUpdate` from `transactions-slice.ts` only if transaction mutation success paths invalidate `Account/SUMMARY` through `accountsApi.util.invalidateTags`.
-  - [ ] Delete `fetchTransactionsSummaryForAccounts` from `transactions-actions.ts` only after a stale-reference search confirms no imports remain.
-- [ ] Update the Story 7.4a transaction mutation success handlers if `TransactionSummary.tsx` is migrated off `lastUpdate`. (AC: 2, 5)
-  - [ ] In `TransactionCreate.tsx` and `TransactionEditForm.tsx`, replace the retained `transactionsActions.setLastUpdate()` summary refresh trigger with `dispatch(accountsApi.util.invalidateTags([{ type: "Account", id: "SUMMARY" }]))` after successful `.unwrap()` calls.
-  - [ ] Keep this invalidation limited to the summary tag; transaction mutations do not need to invalidate the account/category list tags.
-- [ ] Migrate `ReportCategory.tsx` category source to RTK Query. (AC: 4, 5)
-  - [ ] Replace `useAppSelector(state => state.categories.items)` with `useGetCategoriesQuery("ALL")`.
-  - [ ] Keep report-specific Redux state (`state.report.*`) unchanged in this story.
+- [x] Migrate `Transactions.tsx` to RTK Query for account/category source data. (AC: 4, 5)
+  - [x] Replace `useAppSelector(state => state.accounts.items)` with `useGetAccountsQuery("ALL")`.
+  - [x] Replace `useAppSelector(state => state.categories.items)` with `useGetCategoriesQuery("ALL")`.
+  - [x] Keep `state.transactions.filter` selector (belongs to transactions UI state, not this migration).
+- [x] Migrate `Transactions/TransactionSummary.tsx` from the retained accounts summary thunk to RTK Query. (AC: 2, 5)
+  - [x] Replace `fetchTransactionsSummaryForAccounts(accountIds)` with `useGetAccountsSummaryQuery(accountIds, { skip: accountIds.length === 0 })`.
+  - [x] Remove `useAppSelector(state => state.transactions.summaryItems)` from this component; derive `accountsDetails` from the query result: `const accountsDetails = data ?? []`.
+  - [x] Remove `useAppSelector(state => state.transactions.lastUpdate)` from this component; account mutations now invalidate `Account` tags and refetch summary data through RTK Query.
+  - [x] After this migration, remove `summaryItems`, `setTransactionsSummaryForAccounts`, `lastUpdate`, and `setLastUpdate` from `transactions-slice.ts` only if transaction mutation success paths invalidate `Account/SUMMARY` through `accountsApi.util.invalidateTags`.
+  - [x] Delete `fetchTransactionsSummaryForAccounts` from `transactions-actions.ts` only after a stale-reference search confirms no imports remain.
+- [x] Update the Story 7.4a transaction mutation success handlers if `TransactionSummary.tsx` is migrated off `lastUpdate`. (AC: 2, 5)
+  - [x] In `TransactionCreate.tsx` and `TransactionEditForm.tsx`, replace the retained `transactionsActions.setLastUpdate()` summary refresh trigger with `dispatch(accountsApi.util.invalidateTags([{ type: "Account", id: "SUMMARY" }]))` after successful `.unwrap()` calls.
+  - [x] Keep this invalidation limited to the summary tag; transaction mutations do not need to invalidate the account/category list tags.
+- [x] Migrate `ReportCategory.tsx` category source to RTK Query. (AC: 4, 5)
+  - [x] Replace `useAppSelector(state => state.categories.items)` with `useGetCategoriesQuery("ALL")`.
+  - [x] Keep report-specific Redux state (`state.report.*`) unchanged in this story.
 
 ### Migrate App.tsx bootstrap
 
-- [ ] Remove global `fetchAccounts` and `fetchCategories` dispatches from `App.tsx`. (AC: 5)
-  - [ ] Remove `import { fetchAccounts } from './store/accounts/accounts-actions'`.
-  - [ ] Remove `import { fetchCategories } from './store/categories/categories-actions'`.
-  - [ ] Remove the `useEffect(() => { if (!accessToken) return; dispatch(fetchAccounts("ALL")); }, [accessToken])` block (currently around line 64).
-  - [ ] Remove the `useEffect(() => { if (!accessToken) return; dispatch(fetchCategories("ALL")); }, [accessToken])` block (currently around line 69).
-  - [ ] Components now fetch on mount via RTK Query (`Accounts.tsx`, `Categories.tsx`, `Budgets.tsx`, `Budgets/BudgetEditForm.tsx`, `Transactions.tsx`, `Transactions/TransactionSummary.tsx`, `ReportCategory.tsx`).
-  - [ ] If there is visible stale-data flash during testing, add `store.dispatch(accountsApi.endpoints.getAccounts.initiate('ALL'))` and `store.dispatch(categoriesApi.endpoints.getCategories.initiate('ALL'))` inside the auth-restore effect as prefetches — but try the simple removal first.
+- [x] Remove global `fetchAccounts` and `fetchCategories` dispatches from `App.tsx`. (AC: 5)
+  - [x] Remove `import { fetchAccounts } from './store/accounts/accounts-actions'`.
+  - [x] Remove `import { fetchCategories } from './store/categories/categories-actions'`.
+  - [x] Remove the `useEffect(() => { if (!accessToken) return; dispatch(fetchAccounts("ALL")); }, [accessToken])` block (currently around line 64).
+  - [x] Remove the `useEffect(() => { if (!accessToken) return; dispatch(fetchCategories("ALL")); }, [accessToken])` block (currently around line 69).
+  - [x] Components now fetch on mount via RTK Query (`Accounts.tsx`, `Categories.tsx`, `Budgets.tsx`, `Budgets/BudgetEditForm.tsx`, `Transactions.tsx`, `Transactions/TransactionSummary.tsx`, `ReportCategory.tsx`).
+  - [x] If there is visible stale-data flash during testing, add `store.dispatch(accountsApi.endpoints.getAccounts.initiate('ALL'))` and `store.dispatch(categoriesApi.endpoints.getCategories.initiate('ALL'))` inside the auth-restore effect as prefetches — but try the simple removal first.
 
 ### Remove legacy files (only after all consumers verified)
 
-- [ ] After `npm run build` passes with zero TypeScript errors (confirming no remaining `state.accounts.*` or `state.categories.*` selectors or thunk imports): (AC: 1)
-  - [ ] Delete `src/store/accounts/accounts-actions.ts`.
-  - [ ] Remove `accountsSlice.reducer` from `store/index.ts` and delete `src/store/accounts/accounts-slice.ts`.
-  - [ ] Delete `src/store/categories/categories-actions.ts`.
-  - [ ] Remove `categoriesSlice.reducer` from `store/index.ts` and delete `src/store/categories/categories-slice.ts`.
-  - [ ] Confirm there are no remaining account/category selector dependencies in non-domain pages (`Transactions.tsx`, `Transactions/TransactionSummary.tsx`, `Budgets.tsx`, `Budgets/BudgetEditForm.tsx`, `ReportCategory.tsx`) before deleting legacy slices.
-  - [ ] Run a stale-reference search for `state.accounts`, `state.categories`, `fetchAccounts`, `fetchCategories`, `accountsActions`, and `categoriesActions`.
-  - [ ] Run a stale-reference search for the 7.4a retained account-summary thunk/slice fields: `fetchTransactionsSummaryForAccounts`, `summaryItems`, `setTransactionsSummaryForAccounts`, `state.transactions.lastUpdate`, and `setLastUpdate`.
-  - [ ] **Do NOT delete** until TypeScript confirms zero references — the compiler enforces this automatically.
+- [x] After `npm run build` passes with zero TypeScript errors (confirming no remaining `state.accounts.*` or `state.categories.*` selectors or thunk imports): (AC: 1)
+  - [x] Delete `src/store/accounts/accounts-actions.ts`.
+  - [x] Remove `accountsSlice.reducer` from `store/index.ts` and delete `src/store/accounts/accounts-slice.ts`.
+  - [x] Delete `src/store/categories/categories-actions.ts`.
+  - [x] Remove `categoriesSlice.reducer` from `store/index.ts` and delete `src/store/categories/categories-slice.ts`.
+  - [x] Confirm there are no remaining account/category selector dependencies in non-domain pages (`Transactions.tsx`, `Transactions/TransactionSummary.tsx`, `Budgets.tsx`, `Budgets/BudgetEditForm.tsx`, `ReportCategory.tsx`) before deleting legacy slices.
+  - [x] Run a stale-reference search for `state.accounts`, `state.categories`, `fetchAccounts`, `fetchCategories`, `accountsActions`, and `categoriesActions`.
+  - [x] Run a stale-reference search for the 7.4a retained account-summary thunk/slice fields: `fetchTransactionsSummaryForAccounts`, `summaryItems`, `setTransactionsSummaryForAccounts`, `state.transactions.lastUpdate`, and `setLastUpdate`.
+  - [x] **Do NOT delete** until TypeScript confirms zero references — the compiler enforces this automatically.
 
 ### Tests
 
-- [ ] Write Vitest tests for `accounts-api.ts` following patterns from Story 7.4a. (AC: 6)
-  - [ ] `getAccounts` success: mock the backend wrapper `{ data: AccountResponse[] }`, assert the endpoint exposes `AccountResponse[]` after `transformResponse`, and assert `Account/LIST` tag provided.
-  - [ ] `getAccountsSummary` success: mock `{ data: AccountSummary[] }`, assert the endpoint exposes `AccountSummary[]`, and assert `Account/SUMMARY` plus per-account tags are provided.
-  - [ ] `createAccount` success: assert `Account/LIST` tag invalidated.
-  - [ ] `updateAccount` success: assert `Account/{id}` and `Account/LIST` tags invalidated.
-  - [ ] `deleteAccount` success: assert `Account/{id}` and `Account/LIST` tags invalidated.
-  - [ ] `getAccounts` error: mock API failure, assert error state returned (no crash, error shape matches 7.4a pattern).
-- [ ] Write Vitest tests for `categories-api.ts` following same patterns. (AC: 6)
-  - [ ] `getCategories` success: mock the backend wrapper `{ data: CategoryResponse[] }`, assert the endpoint exposes `CategoryResponse[]` after `transformResponse`, and assert `Category/LIST` tag provided.
-  - [ ] `createCategory` success: assert `Category/LIST` tag invalidated.
-  - [ ] `updateCategory` success: assert payload includes the record's existing `key`; assert `Category/{id}` and `Category/LIST` tags invalidated.
-  - [ ] `deleteCategory` success: assert `Category/{id}` and `Category/LIST` tags invalidated.
-  - [ ] `getCategories` error: assert error state returned.
+- [x] Write Vitest tests for `accounts-api.ts` following patterns from Story 7.4a. (AC: 6)
+  - [x] `getAccounts` success: mock the backend wrapper `{ data: AccountResponse[] }`, assert the endpoint exposes `AccountResponse[]` after `transformResponse`, and assert `Account/LIST` tag provided.
+  - [x] `getAccountsSummary` success: mock `{ data: AccountSummary[] }`, assert the endpoint exposes `AccountSummary[]`, and assert `Account/SUMMARY` plus per-account tags are provided.
+  - [x] `createAccount` success: assert `Account/LIST` tag invalidated.
+  - [x] `updateAccount` success: assert `Account/{id}` and `Account/LIST` tags invalidated.
+  - [x] `deleteAccount` success: assert `Account/{id}` and `Account/LIST` tags invalidated.
+  - [x] `getAccounts` error: mock API failure, assert error state returned (no crash, error shape matches 7.4a pattern).
+- [x] Write Vitest tests for `categories-api.ts` following same patterns. (AC: 6)
+  - [x] `getCategories` success: mock the backend wrapper `{ data: CategoryResponse[] }`, assert the endpoint exposes `CategoryResponse[]` after `transformResponse`, and assert `Category/LIST` tag provided.
+  - [x] `createCategory` success: assert `Category/LIST` tag invalidated.
+  - [x] `updateCategory` success: assert payload includes the record's existing `key`; assert `Category/{id}` and `Category/LIST` tags invalidated.
+  - [x] `deleteCategory` success: assert `Category/{id}` and `Category/LIST` tags invalidated.
+  - [x] `getCategories` error: assert error state returned.
 
 ### Build and lint
 
-- [ ] `npm run build` from `inex/ClientApp/` — zero TypeScript errors, no new chunk-size warnings. (AC: 6)
-- [ ] `npm run lint` from `inex/ClientApp/` — no new lint errors; no `any` introduced. (AC: 6)
-- [ ] `npm test` — all tests pass including new RTK Query endpoint tests. (AC: 6)
+- [x] `npm run build` from `inex/ClientApp/` — zero TypeScript errors, no new chunk-size warnings. (AC: 6)
+- [x] `npm run lint` from `inex/ClientApp/` — no new lint errors; no `any` introduced. (AC: 6)
+- [x] `npm test` — all tests pass including new RTK Query endpoint tests. (AC: 6)
 
 ## Dev Notes
 
@@ -552,6 +552,54 @@ claude-sonnet-4-5
 
 ### Debug Log References
 
+- 2026-06-02: Verified 7.4a foundation (`axiosBaseQuery.ts`, `transactions-api.ts`, store middleware) and Story 7.3 frontend test infrastructure. Installed RTK version is 1.9.7.
+- 2026-06-02: Initial non-escalated `npm run build` passed TypeScript but failed Vite output cleanup with `EPERM`; escalated reruns completed successfully.
+- 2026-06-02: Stale-reference searches for account/category Redux selectors/thunks and retained transaction summary thunk/slice fields returned no matches after cleanup.
+- 2026-06-02: Final integration centralized account summary invalidation in `transactionsApi`; transaction form components no longer dispatch account cache invalidation directly.
+
 ### Completion Notes List
 
+- Implemented `accountsApi` and `categoriesApi` RTK Query slices with list-wrapper transforms, list/item/summary tags, CRUD mutations, and generated hooks.
+- Migrated account/category pages, forms, budget category consumers, transaction account/category consumers, transaction account summary, and category report consumers from legacy Redux account/category state to RTK Query hooks.
+- Removed `App.tsx` account/category bootstrap dispatches; account/category data now loads from component-owned RTK Query hooks.
+- Replaced legacy transaction summary refresh triggers with RTK Query account summary invalidation; final integration moved that invalidation from transaction form components into `transactionsApi` mutation lifecycle handlers.
+- Removed legacy account/category actions and slices, obsolete category slice test, and obsolete transaction summary thunk/slice fields after TypeScript build gate passed.
+- Added Vitest endpoint tests for account/category success transforms, mutation invalidation/refetch behavior, update payload key coverage, and API error state.
+
 ### File List
+
+- inex/ClientApp/src/App.tsx
+- inex/ClientApp/src/pages/Accounts.tsx
+- inex/ClientApp/src/pages/Accounts/AccountCreateForm.tsx
+- inex/ClientApp/src/pages/Accounts/AccountEditForm.tsx
+- inex/ClientApp/src/pages/Budgets.tsx
+- inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx
+- inex/ClientApp/src/pages/Categories.tsx
+- inex/ClientApp/src/pages/Categories/CategoryCreateForm.tsx
+- inex/ClientApp/src/pages/Categories/CategoryEditForm.tsx
+- inex/ClientApp/src/pages/Reports/ReportCategory.tsx
+- inex/ClientApp/src/pages/Transactions.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreate.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionEditForm.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionList.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionSummary.tsx
+- inex/ClientApp/src/store/accounts/__tests__/accounts-api.test.ts
+- inex/ClientApp/src/store/accounts/accounts-actions.ts (deleted)
+- inex/ClientApp/src/store/accounts/accounts-api.ts
+- inex/ClientApp/src/store/accounts/accounts-slice.ts (deleted)
+- inex/ClientApp/src/store/categories/__tests__/categories-api.test.ts
+- inex/ClientApp/src/store/categories/categories-actions.ts (deleted)
+- inex/ClientApp/src/store/categories/categories-api.ts
+- inex/ClientApp/src/store/categories/categories-slice.test.ts (deleted)
+- inex/ClientApp/src/store/categories/categories-slice.ts (deleted)
+- inex/ClientApp/src/store/hooks.ts
+- inex/ClientApp/src/store/index.ts
+- inex/ClientApp/src/store/transactions/transactions-actions.ts (deleted)
+- inex/ClientApp/src/store/transactions/transactions-slice.ts
+- docs/implementation/7-4b-frontend-rtk-query-accounts-categories.md
+- docs/implementation/sprint-status.yaml
+
+### Change Log
+
+- 2026-06-02: Migrated accounts/categories frontend data ownership to RTK Query, removed legacy slices/actions, added endpoint tests, and marked story ready for review.
+- 2026-06-02: Integrated final review cleanup by centralizing transaction-driven account summary invalidation in the RTK API layer.

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
-import { Layout, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
+import { Alert, Layout, Card, Row, Col, Statistic, Progress, Spin, Table, Tabs, Space, Typography } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined, WarningOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
 
-import { fetchBudgetReport } from "../../store/budgetReport/budgetReport-actions";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
+import { useGetBudgetReportQuery } from "../../store/budgetReport/budgetReport-api";
+import { budgetReportActions } from "../../store/budgetReport/budgetReport-slice";
 
 const { Title } = Typography;
 
@@ -16,20 +17,30 @@ const ReportBudgetSpending: React.FC = () => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { items, isLoading, selectedYear, selectedMonth, error, metadata } = useAppSelector(state => state.budgetReport);
     const currency = useAppSelector(state => state.report.currency) || "USD";
+    const { selectedYear, selectedMonth } = useAppSelector(state => state.budgetReport);
 
     const [localDate, setLocalDate] = useState(dayjs(`${selectedYear}-${selectedMonth}`, "YYYY-M"));
-
-    useEffect(() => {
-        dispatch(fetchBudgetReport(localDate.year(), localDate.month() + 1, currency));
-    }, [localDate, currency, dispatch]);
+    const { data, isError, isLoading } = useGetBudgetReportQuery({
+        year: localDate.year(),
+        month: localDate.month() + 1,
+        currency,
+    });
+    const items = data?.data ?? [];
+    const metadata = data?.metadata;
 
     const handleDateChange = (date: any) => {
         if (date) {
             setLocalDate(date);
         }
     };
+
+    useEffect(() => {
+        dispatch(budgetReportActions.setPeriod({
+            year: localDate.year(),
+            month: localDate.month() + 1,
+        }));
+    }, [dispatch, localDate]);
 
     const totalBudget = items.reduce((sum: number, item: BudgetComparisonDTO) => sum + item.budgetedAmount, 0);
     const totalSpent = items.reduce((sum: number, item: BudgetComparisonDTO) => sum + item.spentAmount, 0);
@@ -113,6 +124,13 @@ const ReportBudgetSpending: React.FC = () => {
                         inputReadOnly={true}
                     />
                 </Space>
+
+                {isError && (
+                    <Alert
+                        type="error"
+                        message={t("reports.budgetReportError")}
+                    />
+                )}
 
                 <Spin spinning={isLoading}>
                     <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>

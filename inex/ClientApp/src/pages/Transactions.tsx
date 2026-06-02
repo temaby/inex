@@ -15,6 +15,8 @@ import TransactionCreate from "./Transactions/TransactionCreate";
 import TransactionList from "./Transactions/TransactionList";
 import TransactionSummary from "./Transactions/TransactionSummary";
 import TransactionFilterForm from "./Transactions/TransactionFilterForm";
+import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
+import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
 
 const Transactions = (props: any) => {
     const { t } = useTranslation();
@@ -25,12 +27,12 @@ const Transactions = (props: any) => {
     const filter: string | null = queryParams.get("filter");
     const sideMode: string = filter === null ? "status" : "filter";
 
-    const allAccounts = useAppSelector(state => state.accounts.items);
-    const allCategories = useAppSelector(state => state.categories.items);
+    const { data: allAccounts = [] } = useGetAccountsQuery("ALL");
+    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
     const filterState = useAppSelector(state => state.transactions.filter);
 
-    const activeAccounts = allAccounts.filter((a: any) => a.isEnabled);
-    const activeCategories = allCategories.filter((c: any) => c.isEnabled);
+    const activeAccounts = allAccounts.filter((a: AccountResponse) => a.isEnabled);
+    const activeCategories = allCategories.filter((c: CategoryResponse) => c.isEnabled);
 
     const isFilterActive =
         filterState.accountIds.length > 0 ||
