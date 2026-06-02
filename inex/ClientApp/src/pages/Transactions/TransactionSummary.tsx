@@ -1,23 +1,27 @@
 import * as React from 'react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useAppSelector } from "../../store/hooks";
 import { Typography, Divider, Tooltip } from 'antd';
-import { fetchTransactionsSummaryForAccounts } from '../../store/transactions/transactions-actions';
+import { AccountResponse, AccountSummary, useGetAccountsSummaryQuery } from '../../store/accounts/accounts-api';
 
 const { Text, Title } = Typography;
 
 const fmt = (value: number) => (Math.round(value * 100) / 100).toFixed(2);
 
-const TransactionSummary = (props: any) => {
-    const { t } = useTranslation();
-    const dispatch = useAppDispatch();
+interface TransactionSummaryProps {
+    accounts: AccountResponse[];
+}
 
-    const accountsDetails = useAppSelector(state => state.transactions.summaryItems);
-    const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
+const TransactionSummary = (props: TransactionSummaryProps) => {
+    const { t } = useTranslation();
+
     const exchangeRates = useAppSelector(state => state.rates.items);
 
     const { accounts } = props;
+    const accountIds = useMemo(() => accounts.map((i) => i.id), [accounts]);
+    const { data } = useGetAccountsSummaryQuery(accountIds, { skip: accountIds.length === 0 });
+    const accountsDetails = data ?? [];
 
     const baseCurrency: string = exchangeRates[0]?.currencyFrom ?? '';
 
@@ -28,7 +32,7 @@ const TransactionSummary = (props: any) => {
     };
 
     const grouped = useMemo(() => {
-        const groups: Record<string, any[]> = {};
+        const groups: Record<string, AccountSummary[]> = {};
         for (const item of accountsDetails) {
             if (!groups[item.currency]) groups[item.currency] = [];
             groups[item.currency].push(item);
@@ -37,12 +41,12 @@ const TransactionSummary = (props: any) => {
     }, [accountsDetails]);
 
     const total = useMemo(
-        () => accountsDetails.reduce((sum: number, item: any) => sum + toBase(item.value, item.currency), 0),
+        () => accountsDetails.reduce((sum: number, item) => sum + toBase(item.value, item.currency), 0),
         [accountsDetails, exchangeRates]
     );
 
     const thisMonthNet = useMemo(
-        () => accountsDetails.reduce((sum: number, item: any) => sum + toBase(item.thisMonthNet ?? 0, item.currency), 0),
+        () => accountsDetails.reduce((sum: number, item) => sum + toBase(item.thisMonthNet ?? 0, item.currency), 0),
         [accountsDetails, exchangeRates]
     );
 
@@ -53,11 +57,6 @@ const TransactionSummary = (props: any) => {
 
     const currencyCount = Object.keys(grouped).length;
     const accountCount = accountsDetails.length;
-
-    useEffect(() => {
-        const accountIds = accounts.map((i: any) => i.id);
-        dispatch(fetchTransactionsSummaryForAccounts(accountIds));
-    }, [accounts, transactionsLastUpdate]);
 
     return (
         <div>
@@ -81,7 +80,7 @@ const TransactionSummary = (props: any) => {
             <Divider style={{ margin: 0 }} />
 
             {Object.entries(grouped).map(([currency, items]) => {
-                const subtotal = items.reduce((sum: number, i: any) => sum + i.value, 0);
+                const subtotal = items.reduce((sum: number, i) => sum + i.value, 0);
                 const isBase = !baseCurrency || currency === baseCurrency;
                 const headerValue = isBase
                     ? `${fmt(subtotal)} ${currency}`
@@ -94,7 +93,7 @@ const TransactionSummary = (props: any) => {
                             <Text type="secondary" style={{ fontSize: 12 }}>{headerValue}</Text>
                         </div>
 
-                        {items.map((item: any) => (
+                        {items.map((item) => (
                             <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 16px' }}>
                                 <Text style={{ flex: 1, marginRight: 8 }}>{item.name}</Text>
                                 <span style={{ color: item.value < 0 ? '#ff4d4f' : 'inherit' }}>

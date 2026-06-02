@@ -2,18 +2,18 @@ import * as React from 'react';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from "react-i18next";
-import { Drawer, Grid, Pagination, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, Drawer, Grid, Pagination, Spin, Table, Tag, Typography } from 'antd';
 import { CalendarOutlined } from "@ant-design/icons";
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
 import { useNavigate } from "react-router-dom";
 import type { TableColumnsType } from "antd";
 
-import { AccountDetails } from '../../model/Account/AccountDetails';
-import { CategoryDetails } from '../../model/Category/CategoryDetails';
 import { TransactionResponse } from '../../model/Transaction/TransactionResponse';
-import { fetchTransactions } from '../../store/transactions/transactions-actions';
+import { useGetTransactionsQuery, type TransactionFilterParams } from '../../store/transactions/transactions-api';
 import TransactionEditForm from './TransactionEditForm';
 import { buildSingleTagOrRefFilterSearch } from './transaction-filter-url';
+import { AccountResponse } from '../../store/accounts/accounts-api';
+import { CategoryResponse } from '../../store/categories/categories-api';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -22,8 +22,8 @@ const headerSpan = { colSpan: 0 };
 const HEADER_COLSPAN = 100;
 
 interface TransactionListProps {
-    accounts: AccountDetails[];
-    categories: CategoryDetails[];
+    accounts: AccountResponse[];
+    categories: CategoryResponse[];
 }
 
 interface TransactionDateHeader {
@@ -39,14 +39,9 @@ const isDateHeader = (record: TransactionRow): record is TransactionDateHeader =
 
 const TransactionList = (props: TransactionListProps) => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const screens = useBreakpoint();
-    const transactions = useAppSelector(state => state.transactions.items);
-    const transactionsLastUpdate = useAppSelector(state => state.transactions.lastUpdate);
-    const total = useAppSelector(state => state.transactions.total);
     const filter = useAppSelector(state => state.transactions.filter);
-    const isLoading = useAppSelector(state => state.transactions.isLoading);
 
     const [pagination, setPagination] = useState({ current: 1, total: 0, size: 25 });
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
@@ -55,6 +50,19 @@ const TransactionList = (props: TransactionListProps) => {
     const isMobile = screens.md === false;
     const { categories, accounts } = props;
     const { size: pageSize, current: currentPage } = pagination;
+    const queryFilter = useMemo<TransactionFilterParams>(() => ({
+        accountIds: filter.accountIds,
+        categoryIds: filter.categoryIds,
+        tags: filter.tags,
+        refs: filter.refs,
+        range: filter.range,
+    }), [filter]);
+    const { data, isError, isLoading } = useGetTransactionsQuery(
+        { pageSize, page: currentPage, filter: queryFilter },
+        { skip: accounts.length === 0 || categories.length === 0 },
+    );
+    const transactions = data?.data ?? [];
+    const total = data?.metadata.totalItems ?? 0;
 
     const dataSource = useMemo(() => {
         const result: TransactionRow[] = [];
@@ -75,10 +83,8 @@ const TransactionList = (props: TransactionListProps) => {
     }, [total]);
 
     useEffect(() => {
-        if (accounts.length === 0 || categories.length === 0) return;
-        dispatch(fetchTransactions(pageSize, currentPage, filter));
         setExpandedRows([]);
-    }, [categories, accounts, pageSize, currentPage, filter, transactionsLastUpdate]);
+    }, [pageSize, currentPage, queryFilter]);
 
     const paginationChangedHandler = (page: number, pageSize: number) => {
         setPagination(prev => {
@@ -115,8 +121,8 @@ const TransactionList = (props: TransactionListProps) => {
     };
 
     const getAmountDisplay = (record: TransactionResponse) => {
-        const account = props.accounts.find((a: AccountDetails) => a.id === record.accountId);
-        const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
+        const account = props.accounts.find((a) => a.id === record.accountId);
+        const category = props.categories.find((c) => c.id === record.categoryId);
         const isTransfer = category?.isSystem ?? false;
         const abs = (Math.round(Math.abs(record.amount) * 100) / 100).toFixed(2);
         const sign = record.amount >= 0 ? "+" : "-";
@@ -184,6 +190,13 @@ const TransactionList = (props: TransactionListProps) => {
 
                 <Spin spinning={isLoading}>
                     <div style={{ background: "white" }}>
+                        {isError && (
+                            <Alert
+                                type="error"
+                                message={t("transactions.error")}
+                                style={{ margin: 16 }}
+                            />
+                        )}
                         {dataSource.map(record => {
                             if (isDateHeader(record)) {
                                 return (
@@ -204,8 +217,8 @@ const TransactionList = (props: TransactionListProps) => {
                                 );
                             }
 
-                            const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
-                            const account = props.accounts.find((a: AccountDetails) => a.id === record.accountId);
+                            const category = props.categories.find((c) => c.id === record.categoryId);
+                            const account = props.accounts.find((a) => a.id === record.accountId);
                             const { label: amountLabel, color: amountColor } = getAmountDisplay(record);
                             const hasNotes = record.tags?.length > 0 || record.refs?.length > 0 || record.comment;
 
@@ -261,7 +274,7 @@ const TransactionList = (props: TransactionListProps) => {
             key: "categoryId",
             render: (_value: unknown, record: TransactionRow) => {
                 if (isDateHeader(record)) return renderDateHeader(record);
-                const category = props.categories.find((c: CategoryDetails) => c.id === record.categoryId);
+                const category = props.categories.find((c) => c.id === record.categoryId);
                 return category?.name;
             },
         },
@@ -272,7 +285,7 @@ const TransactionList = (props: TransactionListProps) => {
             key: "accountId",
             render: (_value: unknown, record: TransactionRow) => {
                 if (isDateHeader(record)) return { children: null, props: headerSpan };
-                const account = props.accounts.find((a: AccountDetails) => a.id === record.accountId);
+                const account = props.accounts.find((a) => a.id === record.accountId);
                 return account?.name;
             },
         },
@@ -305,6 +318,13 @@ const TransactionList = (props: TransactionListProps) => {
 
     return (
         <>
+            {isError && (
+                <Alert
+                    type="error"
+                    message={t("transactions.error")}
+                    style={{ marginBottom: 16 }}
+                />
+            )}
             <Table
                 rowKey={(record: TransactionRow) => record.id.toString()}
                 loading={isLoading}

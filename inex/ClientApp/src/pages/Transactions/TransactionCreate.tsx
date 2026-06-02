@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useReducer, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Tabs, Space, Button } from 'antd';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch } from '../../store/hooks';
 
 import TransactionCreateExpenseForm from './TransactionCreateExpenseForm';
 import TransactionCreateIncomeForm from './TransactionCreateIncomeForm';
@@ -13,7 +13,8 @@ import { CategoryDetails, getCategoriesTree } from '../../model/Category/Categor
 import { TransactionSetState } from '../../model/Transaction/TransactionSetState';
 import { TransactionType } from '../../model/Transaction/TransactionType';
 import type { Dayjs } from 'dayjs';
-import { createTransaction, createTransfer } from '../../store/transactions/transactions-actions';
+import { transactionsActions } from '../../store/transactions/transactions-slice';
+import { useCreateTransactionMutation, useCreateTransferMutation } from '../../store/transactions/transactions-api';
 
 const defaultState: TransactionSetState = new TransactionSetState();
 
@@ -42,7 +43,8 @@ const TransactionCreate = (props: any) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const isCreating = useAppSelector(state => state.transactions.isCreating);
+    const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
+    const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
 
     const { categories } = props;
 
@@ -96,13 +98,37 @@ const TransactionCreate = (props: any) => {
     };
 
     const saveTransactionHandler = async () => {
+      try {
         if (state.mode === TransactionType.EXPENSE) {
-          dispatch(createTransaction(+state.fromAccount.id, +state.category.id, 0 - state.fromAmount, state.comment, state.date));
+          await createTransactionMutation({
+            accountId: +state.fromAccount.id,
+            categoryId: +state.category.id,
+            amount: 0 - state.fromAmount,
+            comment: state.comment,
+            created: state.date.format("YYYY-MM-DD"),
+          }).unwrap();
         } else if (state.mode === TransactionType.INCOME) {
-          dispatch(createTransaction(+state.toAccount.id, +state.category.id, +state.toAmount, state.comment, state.date));
+          await createTransactionMutation({
+            accountId: +state.toAccount.id,
+            categoryId: +state.category.id,
+            amount: +state.toAmount,
+            comment: state.comment,
+            created: state.date.format("YYYY-MM-DD"),
+          }).unwrap();
         } else if (state.mode === TransactionType.TRANSFER) {
-          dispatch(createTransfer(+state.fromAccount.id, +state.toAccount.id, +state.fromAmount, +state.toAmount, state.comment, state.date));
+          await createTransferMutation({
+            accountFromId: +state.fromAccount.id,
+            accountToId: +state.toAccount.id,
+            amountFrom: +state.fromAmount,
+            amountTo: +state.toAmount,
+            comment: state.comment,
+            created: state.date.format("YYYY-MM-DD"),
+          }).unwrap();
         }
+      } catch {
+        dispatch(transactionsActions.setError({ error: "Could not create a transaction" }));
+        return;
+      }
 
         setModeHandler(TransactionType.EXPENSE);
         props.onSubmit();
@@ -181,7 +207,7 @@ const TransactionCreate = (props: any) => {
           items={tabItems}
         />
         <Space>
-          <Button loading={isCreating} onClick={saveTransactionHandler} type="primary">
+          <Button loading={isCreating || isCreatingTransfer} onClick={saveTransactionHandler} type="primary">
             {t("transactions.save")}
           </Button>
         </Space>

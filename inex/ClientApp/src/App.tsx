@@ -9,9 +9,6 @@ import dayjs from "dayjs";
 import { useAppDispatch, useAppSelector } from './store/hooks';
 
 import { restoreSession } from './store/auth/auth-actions';
-import { fetchAccounts } from './store/accounts/accounts-actions';
-import { fetchCategories } from './store/categories/categories-actions';
-import { fetchBudgets } from './store/budgets/budgets-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
 
 import "antd/dist/reset.css";
@@ -68,21 +65,6 @@ const App = () => {
      * which triggers these effects. If the user logs out and back in within
      * the same tab, the data is re-fetched automatically.
      */
-    useEffect(() => {
-        if (!accessToken) return;
-        dispatch(fetchAccounts("ALL"));
-    }, [accessToken]);
-
-    useEffect(() => {
-        if (!accessToken) return;
-        dispatch(fetchCategories("ALL"));
-    }, [accessToken]);
-
-    useEffect(() => {
-        if (!accessToken) return;
-        dispatch(fetchBudgets());
-    }, [accessToken]);
-
     useEffect(() => {
         if (!accessToken) return;
         dispatch(fetchRatesForDate(date));

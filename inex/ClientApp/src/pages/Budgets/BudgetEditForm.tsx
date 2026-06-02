@@ -1,15 +1,18 @@
 import * as React from "react";
 import { useEffect, useReducer, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { Form, Input, Button, Divider, Row, Col, InputNumber, Popconfirm, message } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { BudgetEditState } from "../../model/Budget/BudgetEditState";
-import { updateBudget, deleteBudget } from "../../store/budgets/budgets-actions";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { getCategoriesTree, CategoryDetails } from "../../model/Category/CategoryDetails";
 import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
+import { CategoryResponse, useGetCategoriesQuery } from "../../store/categories/categories-api";
+import {
+    useDeleteBudgetMutation,
+    useUpdateBudgetMutation,
+} from "../../store/budgets/budgets-api";
 
 const defaultState: BudgetEditState & { hasActiveChanges: boolean } = {
     id: 0,
@@ -36,12 +39,13 @@ const reducer = (state: typeof defaultState, action: any): typeof defaultState =
 
 const BudgetEditForm = (props: any) => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const { record, currency } = props;
 
-    const isUpdating = useAppSelector(state => state.budgets.isUpdating);
-    const allCategories = useAppSelector(state => state.categories?.items || []);
-    const categories = useMemo(() => allCategories.filter((c: any) => c.isEnabled), [allCategories]);
+    const [updateBudget, { isLoading: isUpdateLoading }] = useUpdateBudgetMutation();
+    const [deleteBudget, { isLoading: isDeleteLoading }] = useDeleteBudgetMutation();
+    const isUpdating = isUpdateLoading || isDeleteLoading;
+    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+    const categories = useMemo(() => allCategories.filter((c: CategoryResponse) => c.isEnabled), [allCategories]);
     const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
     const [state, dispatchLocal] = useReducer(reducer, defaultState);
@@ -70,16 +74,16 @@ const BudgetEditForm = (props: any) => {
 
     const updateHandler = async () => {
         try {
-            await dispatch(updateBudget(
-                state.id,
-                state.key,
-                state.name,
-                state.description,
-                state.value,
-                state.categoryIds,
-                state.year,
-                state.month
-            ));
+            await updateBudget({
+                id: state.id,
+                key: state.key,
+                name: state.name,
+                description: state.description,
+                value: state.value,
+                categoryIds: state.categoryIds,
+                year: state.year,
+                month: state.month,
+            }).unwrap();
             message.success(t("budgets.updated"));
             if (props.onCollapse) {
                 props.onCollapse();
@@ -91,7 +95,11 @@ const BudgetEditForm = (props: any) => {
 
     const deleteHandler = async () => {
         try {
-            await dispatch(deleteBudget(state.id));
+            await deleteBudget({
+                id: state.id,
+                year: state.year,
+                month: state.month,
+            }).unwrap();
             message.success(t("budgets.deleted"));
             if (props.onCollapse) {
                 props.onCollapse();

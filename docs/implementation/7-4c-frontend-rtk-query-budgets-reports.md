@@ -1,6 +1,6 @@
 # Story 7.4c: Frontend — RTK Query Migration For Budgets And Reports
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -64,127 +64,127 @@ So that period-based cache keys and report invalidation are handled deliberately
 
 ## Tasks / Subtasks
 
-- [ ] **Prerequisite checks (must pass before coding)** (AC7, AC8)
-  - [ ] Verify Story 7.4a foundation exists in code: `inex/ClientApp/src/store/axiosBaseQuery.ts` and at least one `*-api.ts` slice pattern to mirror. If missing, stop and complete 7.4a first.
-  - [ ] Verify Story 7.3 test infrastructure exists (`package.json` has `test` script and Vitest deps). If missing, stop and complete 7.3 before claiming AC8/Task 10 or final story completion; do not mark 7.4c done with cache-key tests skipped.
-  - [ ] Verify whether Story 7.4b is already merged. If yes, use `useGetCategoriesQuery("ALL")` and `useGetAccountsQuery("ALL")` in budgets flows instead of deleted legacy slices; if no, keep existing category/account sourcing behavior temporarily and do not remove those legacy selectors in this story.
+- [x] **Prerequisite checks (must pass before coding)** (AC7, AC8)
+  - [x] Verify Story 7.4a foundation exists in code: `inex/ClientApp/src/store/axiosBaseQuery.ts` and at least one `*-api.ts` slice pattern to mirror. If missing, stop and complete 7.4a first.
+  - [x] Verify Story 7.3 test infrastructure exists (`package.json` has `test` script and Vitest deps). If missing, stop and complete 7.3 before claiming AC8/Task 10 or final story completion; do not mark 7.4c done with cache-key tests skipped.
+  - [x] Verify whether Story 7.4b is already merged. If yes, use `useGetCategoriesQuery("ALL")` and `useGetAccountsQuery("ALL")` in budgets flows instead of deleted legacy slices; if no, keep existing category/account sourcing behavior temporarily and do not remove those legacy selectors in this story.
 
-- [ ] **Task 1: Create `store/budgets/budgets-api.ts`** (AC1, AC2, AC3, AC7)
-  - [ ] Import `createApi` from `@reduxjs/toolkit/query/react`; import `axiosBaseQuery` from the shared utility established in Story 7.4a (expected path: `store/axiosBaseQuery.ts`)
-  - [ ] Define tag type `"BudgetsList"` with `id` pattern `"${year}-${month}"` (e.g. `"2026-5"`)
-  - [ ] Define typed request/param interfaces:
+- [x] **Task 1: Create `store/budgets/budgets-api.ts`** (AC1, AC2, AC3, AC7)
+  - [x] Import `createApi` from `@reduxjs/toolkit/query/react`; import `axiosBaseQuery` from the shared utility established in Story 7.4a (expected path: `store/axiosBaseQuery.ts`)
+  - [x] Define tag type `"BudgetsList"` with `id` pattern `"${year}-${month}"` (e.g. `"2026-5"`)
+  - [x] Define typed request/param interfaces:
     - `ListResponse<T>: { data: T[] }`
     - `BudgetListParams: { year: number; month: number }`
     - `BudgetCreateRequest: { key: string; name: string; description: string; value: number; categoryIds: number[]; year: number; month: number }`
     - `BudgetUpdateRequest: BudgetCreateRequest & { id: number }`
     - `CopyBudgetsRequest: { sourceYear: number; sourceMonth: number; targetYear: number; targetMonth: number }`
-  - [ ] Define `getBudgets` query endpoint:
+  - [x] Define `getBudgets` query endpoint:
     - Use the typed arg object `{ year, month }` as the RTK Query argument; build the request as `{ url: "/budgets", params: { year, month } }` if the 7.4a `axiosBaseQuery` supports `params` (preferred), otherwise use `/budgets?year=${year}&month=${month}` only for the HTTP URL.
     - Return type exposed to hooks: `BudgetDetails[]`.
     - Add `transformResponse: (response: ListResponse<BudgetDetails>) => response.data ?? []` because `GET /api/budgets` returns the backend wrapper `{ data: [...] }`.
     - `providesTags`: `[{ type: "BudgetsList", id: "${year}-${month}" }]`
-  - [ ] Define `createBudget` mutation endpoint:
+  - [x] Define `createBudget` mutation endpoint:
     - URL: `POST /budgets`
     - `invalidatesTags`: `[{ type: "BudgetsList", id: "${year}-${month}" }]` using request body year/month
-  - [ ] Define `updateBudget` mutation endpoint:
+  - [x] Define `updateBudget` mutation endpoint:
     - URL: `PUT /budgets/${id}`
     - `invalidatesTags`: `[{ type: "BudgetsList", id: "${year}-${month}" }]` using request body year/month
-  - [ ] Define `deleteBudget` mutation endpoint:
+  - [x] Define `deleteBudget` mutation endpoint:
     - URL: `DELETE /budgets/${id}`
     - `invalidatesTags`: derive the period from the cache (pass year/month in the mutation arg as `{ id, year, month }` or use `onQueryStarted` to get from cache)
     - **Note**: Because delete only receives an `id`, the mutation arg must include `year` and `month` to construct the tag. Define: `deleteBudget` arg type as `{ id: number; year: number; month: number }`.
-  - [ ] Define `copyBudgets` mutation endpoint:
+  - [x] Define `copyBudgets` mutation endpoint:
     - Request: `POST /budgets/copy` with query params `{ sourceYear, sourceMonth, targetYear, targetMonth }` (prefer `params` on `axiosBaseQuery`; avoid hand-concatenating unless 7.4a lacks params support)
     - `invalidatesTags`: invalidate both target and source periods by default for deterministic freshness: `[{ type: "BudgetsList", id: "${targetYear}-${targetMonth}" }, { type: "BudgetsList", id: "${sourceYear}-${sourceMonth}" }]` (target invalidation is mandatory)
-  - [ ] Export the api slice and its generated hooks (`useGetBudgetsQuery`, `useCreateBudgetMutation`, `useUpdateBudgetMutation`, `useDeleteBudgetMutation`, `useCopyBudgetsMutation`)
-  - [ ] Add the api reducer and middleware to `store/index.ts` following the pattern from Story 7.4a
+  - [x] Export the api slice and its generated hooks (`useGetBudgetsQuery`, `useCreateBudgetMutation`, `useUpdateBudgetMutation`, `useDeleteBudgetMutation`, `useCopyBudgetsMutation`)
+  - [x] Add the api reducer and middleware to `store/index.ts` following the pattern from Story 7.4a
 
-- [ ] **Task 2: Wire `Budgets.tsx` to RTK Query hooks** (AC1, AC2, AC3)
-  - [ ] Replace `useAppSelector(state => state.budgets.items)` with `useGetBudgetsQuery({ year, month })` — derive year/month from `selectedMonth` dayjs state (already present)
-  - [ ] Replace `dispatch(fetchBudgets(...))` calls with RTK Query auto-fetch (the query triggers automatically when params change)
-  - [ ] Refactor the current combined `useEffect` (budgets + categories) into separate concerns so budget query refreshes are not coupled to category fetch dispatches
-  - [ ] Replace `dispatch(createBudget(...))` with `createBudget` mutation hook call; call `await createBudget(args).unwrap()` for error propagation (RTK Query mutations use `.unwrap()`, not `unwrapResult`)
-  - [ ] Replace `dispatch(copyBudgets(...))` with `copyBudgets` mutation hook call; the mutation invalidates target and source periods so no manual `dispatch(budgetsActions.setLastUpdate())` is needed
-  - [ ] Remove `lastUpdate` dependency from the budgets re-fetch flow (RTK Query handles this via tag invalidation)
-  - [ ] Keep category sourcing aligned with 7.4b status:
+- [x] **Task 2: Wire `Budgets.tsx` to RTK Query hooks** (AC1, AC2, AC3)
+  - [x] Replace `useAppSelector(state => state.budgets.items)` with `useGetBudgetsQuery({ year, month })` — derive year/month from `selectedMonth` dayjs state (already present)
+  - [x] Replace `dispatch(fetchBudgets(...))` calls with RTK Query auto-fetch (the query triggers automatically when params change)
+  - [x] Refactor the current combined `useEffect` (budgets + categories) into separate concerns so budget query refreshes are not coupled to category fetch dispatches
+  - [x] Replace `dispatch(createBudget(...))` with `createBudget` mutation hook call; call `await createBudget(args).unwrap()` for error propagation (RTK Query mutations use `.unwrap()`, not `unwrapResult`)
+  - [x] Replace `dispatch(copyBudgets(...))` with `copyBudgets` mutation hook call; the mutation invalidates target and source periods so no manual `dispatch(budgetsActions.setLastUpdate())` is needed
+  - [x] Remove `lastUpdate` dependency from the budgets re-fetch flow (RTK Query handles this via tag invalidation)
+  - [x] Keep category sourcing aligned with 7.4b status:
     - If 7.4b is complete: use `useGetCategoriesQuery("ALL")`
     - If 7.4b is not complete: keep existing category thunk flow temporarily and do not block 7.4c completion on category migration
-  - [ ] Keep account/currency sourcing aligned with 7.4b status:
+  - [x] Keep account/currency sourcing aligned with 7.4b status:
     - If 7.4b is complete and the accounts slice was removed: use `useGetAccountsQuery("ALL")` to derive the display currency fallback currently read from `state.accounts.items`
     - If 7.4b is not complete: preserve the existing `state.accounts.items` selector for the currency fallback
-  - [ ] Keep `isLoading`, `isCreating` states mapped from RTK Query hook return values (`.isLoading`, `.isLoading` on mutation)
+  - [x] Keep `isLoading`, `isCreating` states mapped from RTK Query hook return values (`.isLoading`, `.isLoading` on mutation)
 
-- [ ] **Task 3: Wire `BudgetEditForm.tsx` to RTK Query mutations** (AC3)
-  - [ ] Replace `dispatch(updateBudget(...))` with `updateBudget` mutation hook; use `await updateBudget(args).unwrap()` for error propagation; `year`/`month` are on `state` from local reducer
-  - [ ] Replace `dispatch(deleteBudget(id))` with `deleteBudget` mutation hook; call `await deleteBudget({ id: state.id, year: state.year, month: state.month }).unwrap()` — the year/month are needed so the mutation can construct the invalidation tag
-- [ ] **Task 4: Create `store/budgetReport/budgetReport-api.ts`** (AC4)
-  - [ ] Define tag type `"BudgetReport"` with id `"${year}-${month}-${currency}"`
-  - [ ] Define typed param interface: `BudgetReportParams: { year: number; month: number; currency: string }`
-  - [ ] Define `getBudgetReport` query endpoint:
+- [x] **Task 3: Wire `BudgetEditForm.tsx` to RTK Query mutations** (AC3)
+  - [x] Replace `dispatch(updateBudget(...))` with `updateBudget` mutation hook; use `await updateBudget(args).unwrap()` for error propagation; `year`/`month` are on `state` from local reducer
+  - [x] Replace `dispatch(deleteBudget(id))` with `deleteBudget` mutation hook; call `await deleteBudget({ id: state.id, year: state.year, month: state.month }).unwrap()` — the year/month are needed so the mutation can construct the invalidation tag
+- [x] **Task 4: Create `store/budgetReport/budgetReport-api.ts`** (AC4)
+  - [x] Define tag type `"BudgetReport"` with id `"${year}-${month}-${currency}"`
+  - [x] Define typed param interface: `BudgetReportParams: { year: number; month: number; currency: string }`
+  - [x] Define `getBudgetReport` query endpoint:
     - URL: `/reports/budget/comparison?year=${year}&month=${month}&currency=${currency}`
     - `providesTags`: `[{ type: "BudgetReport", id: "${year}-${month}-${currency}" }]`
-  - [ ] Return type: `{ data: BudgetComparisonDTO[]; metadata: ReportMetadataDTO }` from `model/Report/BudgetReport.ts`
-  - [ ] Export hooks: `useGetBudgetReportQuery`
+  - [x] Return type: `{ data: BudgetComparisonDTO[]; metadata: ReportMetadataDTO }` from `model/Report/BudgetReport.ts`
+  - [x] Export hooks: `useGetBudgetReportQuery`
 
-- [ ] **Task 5: Wire `ReportBudgetSpending.tsx` to RTK Query** (AC4)
-  - [ ] Replace `dispatch(fetchBudgetReport(...))` + `useAppSelector(state => state.budgetReport)` with `useGetBudgetReportQuery({ year, month, currency })`
-  - [ ] Drive `localDate` state (already present) as the source for `year`/`month` params — no change to UI behavior
-  - [ ] Map `isLoading`, `error`, `items`, `metadata` from hook return value
+- [x] **Task 5: Wire `ReportBudgetSpending.tsx` to RTK Query** (AC4)
+  - [x] Replace `dispatch(fetchBudgetReport(...))` + `useAppSelector(state => state.budgetReport)` with `useGetBudgetReportQuery({ year, month, currency })`
+  - [x] Drive `localDate` state (already present) as the source for `year`/`month` params — no change to UI behavior
+  - [x] Map `isLoading`, `error`, `items`, `metadata` from hook return value
 
-- [ ] **Task 6: Create `store/report/report-api.ts`** (AC5, AC6)
-  - [ ] Define tag types: `"CategoryReport"`, `"HistoryReport"`
-  - [ ] Define typed param interfaces:
+- [x] **Task 6: Create `store/report/report-api.ts`** (AC5, AC6)
+  - [x] Define tag types: `"CategoryReport"`, `"HistoryReport"`
+  - [x] Define typed param interfaces:
     - `CategoryReportParams: { startDate: string; endDate: string }` — `YYYY-MM-DD` strings matching the typed params API from Epic 4 Story 4-2
     - `HistoryReportParams: { year: number; currency: string }`
-  - [ ] Define `getCategoryReport` query endpoint:
+  - [x] Define `getCategoryReport` query endpoint:
     - RTK Query argument/cache key must be `CategoryReportParams` (`{ startDate, endDate }`) only. The legacy DSL string is request formatting, not the cache argument; the tag id is also not the RTK Query cache key.
     - URL: `/reports/category?filter=Start:${startDate};End:${endDate};` — uses the **existing backend DSL format** (Epic 4 Story 4-2 only changes the transactions API, not reports)
     - `providesTags: [{ type: "CategoryReport", id: "${startDate}_${endDate}" }]` for targeted invalidation if a later story adds it; this tag id is not the RTK Query cache key.
     - Return type: `{ data: ReportCategoryDetails[]; metadata: { name: string; currency: string } }` using `ReportCategoryDetails` from `model/Report/ReportCategoryDetails.ts`
-  - [ ] Define `getHistoryReport` query endpoint:
+  - [x] Define `getHistoryReport` query endpoint:
     - URL: `/reports/history/${year}?currency=${currency}`
     - `providesTags`: `[{ type: "HistoryReport", id: "${year}-${currency}" }]`
     - Return type: `{ data: HistoryReportItem[] }` where `HistoryReportItem` is a local interface in `report-api.ts` with at minimum `{ month: number; monthName: string; income: number; expense: number; savings: number }` (matches `ReportMonthlyHistory.tsx` usage)
-  - [ ] Export hooks: `useGetCategoryReportQuery`, `useGetHistoryReportQuery`
+  - [x] Export hooks: `useGetCategoryReportQuery`, `useGetHistoryReportQuery`
 
-- [ ] **Task 7: Wire `ReportCategory.tsx` to RTK Query** (AC5)
-  - [ ] Compute typed params from `currentDate` (already derived from URL `interval` param): `startDate = currentDate.startOf("month").format("YYYY-MM-DD")` and `endDate = currentDate.endOf("month").format("YYYY-MM-DD")`
-  - [ ] Replace `dispatch(fetchReport("category", filter))` (second `useEffect` on `[filter]`) with `useGetCategoryReportQuery({ startDate, endDate })` — RTK Query auto-fetches when params change
-  - [ ] Replace `useAppSelector(state => state.report.items)` and `useAppSelector(state => state.report.currency)` with data from the RTK Query hook
-  - [ ] Keep category source aligned with 7.4b status: if 7.4b is complete, use `useGetCategoriesQuery("ALL")` for active categories; if not, keep `useAppSelector(state => state.categories.items)` until 7.4b migrates it
-  - [ ] Skip the call when `currentDate` is not valid: `useGetCategoryReportQuery({ startDate, endDate }, { skip: !currentDate.isValid() })`
-  - [ ] **KEEP the first `useEffect` on `[currentDate]`** that dispatches `reportActions.setFilter({ filter: { range: [...unix timestamps...] } })` — the navigation links in the row `onClick` handlers still read `filter.range[0]` and `filter.range[1]` to construct the transaction navigation URL (`navigate(../../transactions?filter=...)`). Do NOT remove this dispatch.
-  - [ ] **KEEP the cleanup** `return () => dispatch(reportActions.setFilter({ filter: { range: [] } }))` — clears state on unmount
-  - [ ] Remove ONLY the second `useEffect` on `[filter]` that called `dispatch(fetchReport("category", filter))` and `setExpandedRows([])`; the `setExpandedRows([])` call can be moved to a param-change effect if needed
+- [x] **Task 7: Wire `ReportCategory.tsx` to RTK Query** (AC5)
+  - [x] Compute typed params from `currentDate` (already derived from URL `interval` param): `startDate = currentDate.startOf("month").format("YYYY-MM-DD")` and `endDate = currentDate.endOf("month").format("YYYY-MM-DD")`
+  - [x] Replace `dispatch(fetchReport("category", filter))` (second `useEffect` on `[filter]`) with `useGetCategoryReportQuery({ startDate, endDate })` — RTK Query auto-fetches when params change
+  - [x] Replace `useAppSelector(state => state.report.items)` and `useAppSelector(state => state.report.currency)` with data from the RTK Query hook
+  - [x] Keep category source aligned with 7.4b status: if 7.4b is complete, use `useGetCategoriesQuery("ALL")` for active categories; if not, keep `useAppSelector(state => state.categories.items)` until 7.4b migrates it
+  - [x] Skip the call when `currentDate` is not valid: `useGetCategoryReportQuery({ startDate, endDate }, { skip: !currentDate.isValid() })`
+  - [x] **KEEP the first `useEffect` on `[currentDate]`** that dispatches `reportActions.setFilter({ filter: { range: [...unix timestamps...] } })` — the navigation links in the row `onClick` handlers still read `filter.range[0]` and `filter.range[1]` to construct the transaction navigation URL (`navigate(../../transactions?filter=...)`). Do NOT remove this dispatch.
+  - [x] **KEEP the cleanup** `return () => dispatch(reportActions.setFilter({ filter: { range: [] } }))` — clears state on unmount
+  - [x] Remove ONLY the second `useEffect` on `[filter]` that called `dispatch(fetchReport("category", filter))` and `setExpandedRows([])`; the `setExpandedRows([])` call can be moved to a param-change effect if needed
 
-- [ ] **Task 8: Wire `ReportMonthlyHistory.tsx` to RTK Query** (AC6)
-  - [ ] Replace `dispatch(fetchHistory(year))` + `useAppSelector(state => state.report.history)` with `useGetHistoryReportQuery({ year, currency: "USD" })`
-  - [ ] `year` is already local state driven by year picker
-  - [ ] Remove the `useEffect([dispatch, year])` pattern; RTK Query fetches automatically on param change
+- [x] **Task 8: Wire `ReportMonthlyHistory.tsx` to RTK Query** (AC6)
+  - [x] Replace `dispatch(fetchHistory(year))` + `useAppSelector(state => state.report.history)` with `useGetHistoryReportQuery({ year, currency: "USD" })`
+  - [x] `year` is already local state driven by year picker
+  - [x] Remove the `useEffect([dispatch, year])` pattern; RTK Query fetches automatically on param change
 
-- [ ] **Task 9: Mark old action files as superseded** (AC7)
-  - [ ] Add comment to top of `budgets-actions.ts`: `// SUPERSEDED by store/budgets/budgets-api.ts (Story 7.4c) — retained until RTK Query wiring is verified`
-  - [ ] Add comment to top of `budgetReport-actions.ts`: `// SUPERSEDED by store/budgetReport/budgetReport-api.ts (Story 7.4c) — retained until RTK Query wiring is verified`
-  - [ ] Add comment to top of `report-actions.ts`: `// SUPERSEDED by store/report/report-api.ts (Story 7.4c) — retained until RTK Query wiring is verified`
-  - [ ] Do NOT delete slice files (`*-slice.ts`) — `report-slice.ts` still holds `filter` state used for transaction navigation; `budgets-slice.ts` and `budgetReport-slice.ts` may be retained or their non-RTK state merged
+- [x] **Task 9: Mark old action files as superseded** (AC7)
+  - [x] Add comment to top of `budgets-actions.ts`: `// SUPERSEDED by store/budgets/budgets-api.ts (Story 7.4c) — retained until RTK Query wiring is verified`
+  - [x] Add comment to top of `budgetReport-actions.ts`: `// SUPERSEDED by store/budgetReport/budgetReport-api.ts (Story 7.4c) — retained until RTK Query wiring is verified`
+  - [x] Add comment to top of `report-actions.ts`: `// SUPERSEDED by store/report/report-api.ts (Story 7.4c) — retained until RTK Query wiring is verified`
+  - [x] Do NOT delete slice files (`*-slice.ts`) — `report-slice.ts` still holds `filter` state used for transaction navigation; `budgets-slice.ts` and `budgetReport-slice.ts` may be retained or their non-RTK state merged
 
-- [ ] **Task 10: Write tests** (AC8)
-  - [ ] Requires Story 7.3 Vitest setup to be complete; if `npm test` is unavailable, the story is blocked, not complete
-  - [ ] Create `store/budgets/__tests__/budgets-api.test.ts`:
+- [x] **Task 10: Write tests** (AC8)
+  - [x] Requires Story 7.3 Vitest setup to be complete; if `npm test` is unavailable, the story is blocked, not complete
+  - [x] Create `store/budgets/__tests__/budgets-api.test.ts`:
     - Test: two distinct `{ year, month }` fetches store independent RTK Query cache entries by selecting each endpoint with its original typed args (do not treat tag id strings as the cache key)
     - Test: `copyBudgets` call invalidates both tags `BudgetsList:2026-5` (target) and `BudgetsList:2026-4` (source)
     - Test: `createBudget` invalidates the corresponding period's list tag
     - Test: error response surfaces as `.error` on `useGetBudgetsQuery` — not thrown
-  - [ ] Create `store/budgetReport/__tests__/budgetReport-api.test.ts`:
+  - [x] Create `store/budgetReport/__tests__/budgetReport-api.test.ts`:
     - Test: `{ year: 2026, month: 5, currency: "USD" }` and `{ year: 2026, month: 5, currency: "EUR" }` produce independent cache entries via typed endpoint args
-  - [ ] Create `store/report/__tests__/report-api.test.ts`:
+  - [x] Create `store/report/__tests__/report-api.test.ts`:
     - Test: category report cache selection uses typed `{ startDate: "2026-05-01", endDate: "2026-05-31" }` args, while the outbound request uses the legacy `filter=Start:...;End:...;` DSL
     - Test: `{ year: 2025, currency: "USD" }` and `{ year: 2026, currency: "USD" }` produce independent history cache entries via typed endpoint args
 
-- [ ] **Task 11: Final build and lint verification** (AC9)
-  - [ ] Run `npm run build` from `inex/ClientApp/` — must pass with zero errors
-  - [ ] Run `npm run lint` — must pass with no new `any` usages in migrated files
-  - [ ] Run `npm test` — all tests pass
+- [x] **Task 11: Final build and lint verification** (AC9)
+  - [x] Run `npm run build` from `inex/ClientApp/` — must pass with zero errors
+  - [x] Run `npm run lint` — must pass with no new `any` usages in migrated files
+  - [x] Run `npm test` — all tests pass
 
 ## Dev Notes
 
@@ -435,10 +435,50 @@ Do not rely on hardcoded branch/commit snapshots in this story file. Validate pr
 
 ### Agent Model Used
 
-claude-sonnet-4-5
+GPT-5 Codex
 
 ### Debug Log References
 
+- `npm test` from `inex/ClientApp/`: passed, 7 test files and 24 tests.
+- `npm run build` from `inex/ClientApp/`: first sandboxed run failed with `EPERM` while Vite tried to unlink an existing `build/assets` file; rerun with build-output write approval passed.
+- `npm run lint` from `inex/ClientApp/`: passed.
+- Stale reference search: migrated pages no longer call budget/report thunks; `App.tsx` budget bootstrap dispatch was removed during integration; old thunk exports remain intentionally retained.
+- 2026-06-02: Final BMad code review found budget/report dependent-cache invalidation, budget report error-state, report currency bridge, and persisted period gaps; fixed and reran `npm test`, `npm run lint`, `npm run build`, and stale-reference audit successfully.
+
 ### Completion Notes List
 
+- Added RTK Query API slices for budgets, budget comparison reports, category reports, and monthly history reports using typed query arguments for cache identity and scoped tags for invalidation.
+- Wired `Budgets.tsx`, `BudgetEditForm.tsx`, `ReportBudgetSpending.tsx`, `ReportCategory.tsx`, and `ReportMonthlyHistory.tsx` to the new hooks while preserving the category report filter state used for transaction navigation.
+- Registered `budgetsApi`, `budgetReportApi`, and `reportApi` reducers and middleware in the existing store alongside the uncommitted transactions/accounts/categories API slices.
+- Marked old budget/report thunk files as superseded without deleting them.
+- Removed the global `fetchBudgets()` bootstrap dispatch from `App.tsx`; budget data is now sourced by subscribed RTK Query views.
+- Added Vitest coverage for budget period cache independence, budget mutation invalidation, report typed cache keys, legacy category report DSL request formatting, and query error state handling.
+- Budget mutations now invalidate budget comparison report caches, and transaction mutations invalidate budget/category/history report caches through RTK Query lifecycle handlers.
+- `ReportBudgetSpending.tsx` now preserves the selected month through the retained `budgetReport` period state and surfaces RTK query error state.
+- `ReportCategory.tsx` writes the fetched report currency into the retained report slice so downstream budget report queries use the current report currency.
+
 ### File List
+
+- `inex/ClientApp/src/store/budgets/budgets-api.ts`
+- `inex/ClientApp/src/store/budgets/__tests__/budgets-api.test.ts`
+- `inex/ClientApp/src/store/budgetReport/budgetReport-api.ts`
+- `inex/ClientApp/src/store/budgetReport/__tests__/budgetReport-api.test.ts`
+- `inex/ClientApp/src/store/report/report-api.ts`
+- `inex/ClientApp/src/store/report/__tests__/report-api.test.ts`
+- `inex/ClientApp/src/store/index.ts`
+- `inex/ClientApp/src/App.tsx`
+- `inex/ClientApp/src/pages/Budgets.tsx`
+- `inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx`
+- `inex/ClientApp/src/pages/Reports/ReportBudgetSpending.tsx`
+- `inex/ClientApp/src/pages/Reports/ReportCategory.tsx`
+- `inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx`
+- `inex/ClientApp/src/store/transactions/transactions-api.ts`
+- `inex/ClientApp/src/store/budgets/budgets-actions.ts`
+- `inex/ClientApp/src/store/budgetReport/budgetReport-actions.ts`
+- `inex/ClientApp/src/store/report/report-actions.ts`
+- `docs/implementation/7-4c-frontend-rtk-query-budgets-reports.md`
+
+### Change Log
+
+- 2026-06-02: Migrated budgets and reports to RTK Query, added cache/invalidation tests, removed stale budget bootstrap fetch, marked old thunks superseded, and moved story to review.
+- 2026-06-02: Integrated final review fixes for budget/report cache invalidation, budget report error UI, report currency propagation, persisted budget report period, and expanded report API error tests.

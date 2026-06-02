@@ -1,3 +1,4 @@
+// SUPERSEDED by store/report/report-api.ts (Story 7.4c) — retained until RTK Query wiring is verified
 import dayjs from "dayjs";
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";

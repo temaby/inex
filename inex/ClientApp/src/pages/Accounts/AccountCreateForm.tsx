@@ -2,8 +2,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Radio, Select } from "antd";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { createAccount } from "../../store/accounts/accounts-actions";
+import { useCreateAccountMutation } from "../../store/accounts/accounts-api";
 import apiClient from "../../utils/apiClient";
 
 interface Currency {
@@ -18,9 +17,8 @@ interface AccountCreateFormProps {
 
 const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
     const [form] = Form.useForm();
-    const isCreating = useAppSelector(state => state.accounts.isCreating);
+    const [createAccount, { isLoading: isCreating }] = useCreateAccountMutation();
     const [currencies, setCurrencies] = useState<Currency[]>([]);
 
     useEffect(() => {
@@ -30,8 +28,19 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
     const toKey = (name: string) =>
         name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-    const onFinish = async (values: any) => {
-        await dispatch(createAccount(toKey(values.name), values.name, values.description ?? "", values.currencyId, values.isEnabled));
+    const onFinish = async (values: {
+        name: string;
+        description?: string;
+        currencyId: number;
+        isEnabled: boolean;
+    }) => {
+        await createAccount({
+            key: toKey(values.name),
+            name: values.name,
+            description: values.description ?? "",
+            currencyId: values.currencyId,
+            isEnabled: values.isEnabled,
+        }).unwrap();
         form.resetFields();
         onCreated();
     };

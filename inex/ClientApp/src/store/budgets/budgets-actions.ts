@@ -1,3 +1,4 @@
+// SUPERSEDED by store/budgets/budgets-api.ts (Story 7.4c) — retained until RTK Query wiring is verified
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { budgetsActions } from "./budgets-slice";

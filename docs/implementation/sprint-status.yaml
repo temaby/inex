@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-01T20:00:00+02:00
+last_updated: 2026-06-02T00:00:00+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -60,7 +60,7 @@ development_status:
   epic-3-retrospective: optional
   epic-4: in-progress
   4-1-backend-move-tag-ref-filtering-to-database-side: review
-  4-2-backend-frontend-typed-transaction-filter-query-parameters: review
+  4-2-backend-frontend-typed-transaction-filter-query-parameters: done
   4-3-frontend-active-filter-indicator-on-transaction-list: review
   epic-4-retrospective: optional
   epic-5: in-progress
@@ -74,12 +74,12 @@ development_status:
   6-5-backend-fix-category-report-data-gaps-and-localization: done
   epic-6-retrospective: optional
   epic-7: backlog
-  7-1-frontend-typed-api-models-eliminate-any-in-core-flows: backlog
-  7-2-frontend-route-based-code-splitting-and-vendor-chunks: backlog
-  7-3-frontend-introduce-vitest-and-react-testing-library: backlog
-  7-4a-frontend-rtk-query-pattern-for-transactions: backlog
-  7-4b-frontend-rtk-query-migration-for-accounts-and-categories: backlog
-  7-4c-frontend-rtk-query-migration-for-budgets-and-reports: backlog
+  7-1-frontend-typed-api-models-eliminate-any-in-core-flows: review
+  7-2-frontend-route-based-code-splitting-and-vendor-chunks: in-progress
+  7-3-frontend-introduce-vitest-and-react-testing-library: review
+  7-4a-frontend-rtk-query-pattern-for-transactions: review
+  7-4b-frontend-rtk-query-migration-for-accounts-and-categories: review
+  7-4c-frontend-rtk-query-migration-for-budgets-and-reports: review
   epic-7-retrospective: optional
   epic-8: backlog
   8-1-backend-vsa-spike-copybudgets-as-mediatr-handler: backlog

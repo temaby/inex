@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Button, Table, Tag, Drawer, Grid, Space, Form, Input, InputNumber, Select, message, Typography } from "antd";
 
 const { useBreakpoint } = Grid;
@@ -12,14 +11,19 @@ import { useSearchParams } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
 import { BudgetDetails } from "../model/Budget/BudgetDetails";
 import { BudgetEditState } from "../model/Budget/BudgetEditState";
-import { fetchBudgets, createBudget, copyBudgets } from "../store/budgets/budgets-actions";
 import { parseAxiosError } from "../utils/parseAxiosError";
-import { fetchCategories } from "../store/categories/categories-actions";
 import { CategoryDetails, getCategoriesTree } from "../model/Category/CategoryDetails";
 import BudgetEditForm from "./Budgets/BudgetEditForm";
 import Dropdown from "../components/Dropdown";
 import ExpressionInputNumber from "../components/ExpressionInputNumber";
 import { CopyOutlined } from "@ant-design/icons";
+import { useGetAccountsQuery } from "../store/accounts/accounts-api";
+import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
+import {
+    useCopyBudgetsMutation,
+    useCreateBudgetMutation,
+    useGetBudgetsQuery,
+} from "../store/budgets/budgets-api";
 
 const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
     const { t } = useTranslation();
@@ -48,7 +52,6 @@ const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
 const Budgets = () => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
-    const dispatch = useAppDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const [modalVisible, setModalVisible] = useState(false);
     const [expandedRows, setExpandedRows] = useState<number[]>([]);
@@ -73,18 +76,19 @@ const Budgets = () => {
     const screens = useBreakpoint();
     const isMobile = screens.md === false;
 
-    const budgets = useAppSelector(state => state.budgets?.items || []);
-    const accounts = useAppSelector(state => state.accounts?.items || []);
+    const selectedYear = selectedMonth.year();
+    const selectedMonthNumber = selectedMonth.month() + 1;
+    const { data: budgets = [], isLoading } = useGetBudgetsQuery({
+        year: selectedYear,
+        month: selectedMonthNumber,
+    });
+    const [createBudget, { isLoading: isCreateLoading }] = useCreateBudgetMutation();
+    const [copyBudgets, { isLoading: isCopyLoading }] = useCopyBudgetsMutation();
+    const { data: accounts = [] } = useGetAccountsQuery("ALL");
     const currency = accounts.length > 0 ? accounts[0].currency : "USD";
-    const allCategories = useAppSelector(state => state.categories?.items || []);
-    const categories = React.useMemo(() => allCategories.filter((c: any) => c.isEnabled), [allCategories]);
-    const isCreating = useAppSelector(state => state.budgets?.isCreating || false);
-    const lastUpdate = useAppSelector(state => state.budgets?.lastUpdate);
-
-    useEffect(() => {
-        dispatch(fetchBudgets(selectedMonth.year(), selectedMonth.month() + 1));
-        dispatch(fetchCategories("ALL"));
-    }, [dispatch, lastUpdate, selectedMonth]);
+    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+    const categories = React.useMemo(() => allCategories.filter((c: CategoryResponse) => c.isEnabled), [allCategories]);
+    const isCreating = isCreateLoading || isCopyLoading;
 
     const closeModalHandler = () => {
         setModalVisible(false);
@@ -98,17 +102,15 @@ const Budgets = () => {
 
     const handleCreate = async (values: BudgetEditState) => {
         try {
-            await dispatch(
-                createBudget(
-                    values.key,
-                    values.name,
-                    values.description,
-                    values.value,
-                    values.categoryIds || [],
-                    values.year,
-                    values.month
-                )
-            );
+            await createBudget({
+                key: values.key,
+                name: values.name,
+                description: values.description,
+                value: values.value,
+                categoryIds: values.categoryIds || [],
+                year: values.year,
+                month: values.month,
+            }).unwrap();
             message.success(t("budgets.created"));
             closeModalHandler();
         } catch (error) {
@@ -119,14 +121,12 @@ const Budgets = () => {
     const handleCopyFromPrevious = async () => {
         const prevMonth = selectedMonth.subtract(1, 'month');
         try {
-            await dispatch(
-                copyBudgets(
-                    prevMonth.year(),
-                    prevMonth.month() + 1,
-                    selectedMonth.year(),
-                    selectedMonth.month() + 1
-                )
-            );
+            await copyBudgets({
+                sourceYear: prevMonth.year(),
+                sourceMonth: prevMonth.month() + 1,
+                targetYear: selectedYear,
+                targetMonth: selectedMonthNumber,
+            }).unwrap();
             message.success(t("budgets.created"));
         } catch (error) {
             message.error(parseAxiosError(error, t("budgets.createError"), t));
@@ -178,11 +178,11 @@ const Budgets = () => {
             width: 300,
             responsive: ["md"],
             render: (categoryIds: number[]) => {
-                const categoryMap = new Map(allCategories.map((c: CategoryDetails) => [c.id, c]));
+                const categoryMap = new Map(allCategories.map((c: CategoryResponse) => [c.id, c]));
                 return (
                     <>
                         {categoryIds && categoryIds.map((catId) => {
-                            const cat = categoryMap.get(catId) as CategoryDetails | undefined;
+                            const cat = categoryMap.get(catId);
                             return cat ? (
                                 <Tag key={catId} color="blue">
                                     {cat.name}
@@ -349,6 +349,7 @@ const Budgets = () => {
                         dataSource={budgets}
                         columns={columns}
                         rowKey="id"
+                        loading={isLoading}
                         pagination={false}
                         scroll={{ x: "max-content" }}
                         locale={{ emptyText: t("budgets.empty") }}

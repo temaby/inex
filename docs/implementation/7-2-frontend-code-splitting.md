@@ -371,6 +371,7 @@ GPT-5
 - 2026-06-02: `npm run lint` from `inex/ClientApp` passed.
 - 2026-06-02: `npm start` initially failed on Vite dependency-cache unlink; rerun with escalated filesystem access started the dev server. HTTP route probes returned 200 for `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, `/reports/category`, `/reports/budget`, `/reports/history`, `/profile`, `/login`, `/register`, `/does-not-exist`, plus concurrent routes `/dashboard` and `/reports/heatmap`.
 - 2026-06-02: In-app browser smoke test could not be completed because the browser bridge failed twice with `windows sandbox failed: spawn setup refresh`; console chunk-load verification remains blocked.
+- 2026-06-02: Final integration retry started Vite on `127.0.0.1:5173`, but the in-app browser bridge failed again with `windows sandbox failed: spawn setup refresh`; browser-console smoke verification remains a real environment blocker.
 
 ### Completion Notes List
 

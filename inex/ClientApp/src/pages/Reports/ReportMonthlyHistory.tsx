@@ -1,8 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useNavigate } from "react-router-dom";
-import { fetchHistory } from "../../store/report/report-actions";
 import {
   ComposedChart,
   Line,
@@ -22,21 +20,18 @@ import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/ic
 const { useBreakpoint } = Grid;
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
+import { useGetHistoryReportQuery } from "../../store/report/report-api";
 
 const { Title } = Typography;
 
 const ReportMonthlyHistory = () => {
   const { t } = useTranslation();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const history = useAppSelector(state => state.report.history);
   const [year, setYear] = useState(dayjs().year());
+  const { data: historyResponse } = useGetHistoryReportQuery({ year, currency: "USD" });
+  const history = historyResponse?.data ?? [];
   const screens = useBreakpoint();
   const isMobile = screens.md === false;
-
-  useEffect(() => {
-    dispatch(fetchHistory(year));
-  }, [dispatch, year]);
 
   const handleYearChange = (date: any, dateString: string | string[]) => {
     if (date) {

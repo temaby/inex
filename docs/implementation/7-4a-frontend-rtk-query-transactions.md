@@ -1,6 +1,6 @@
 # Story 7.4a: Frontend — RTK Query Pattern For Transactions
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -28,16 +28,16 @@ So that cache keys, loading states, and authenticated API behavior are proven be
 
 ### 1. Install / verify RTK Query availability (AC: 3)
 
-- [ ] Confirm `@reduxjs/toolkit` resolves to ≥1.9.x by running `npm list @reduxjs/toolkit` from `inex/ClientApp/`.
+- [x] Confirm `@reduxjs/toolkit` resolves to ≥1.9.x by running `npm list @reduxjs/toolkit` from `inex/ClientApp/`.
   - RTK Query ships inside `@reduxjs/toolkit` since v1.6. The `package.json` constraint `^1.7.1` will resolve to 1.9.7 (latest 1.x). Do **not** upgrade to v2.x — that requires `react-redux` v8 which is out of scope.
   - The current `package-lock.json` already resolves `@reduxjs/toolkit` to 1.9.7. If `npm list` confirms 1.9.7, do not change `package.json` or `package-lock.json`.
   - If the resolved version is below 1.9.0, bump the constraint to `^1.9.7` and run `npm install`.
-- [ ] No new runtime npm packages required — `@reduxjs/toolkit` already contains RTK Query.
+- [x] No new runtime npm packages required — `@reduxjs/toolkit` already contains RTK Query.
 
 ### 2. Create shared `axiosBaseQuery` adapter (AC: 3)
 
-- [ ] Create `inex/ClientApp/src/store/axiosBaseQuery.ts`.
-- [ ] Implement the base query wrapping `apiClient` from `../utils/apiClient`:
+- [x] Create `inex/ClientApp/src/store/axiosBaseQuery.ts`.
+- [x] Implement the base query wrapping `apiClient` from `../utils/apiClient`:
 
   ```typescript
   import type { BaseQueryFn } from "@reduxjs/toolkit/query";
@@ -78,16 +78,16 @@ So that cache keys, loading states, and authenticated API behavior are proven be
   export default axiosBaseQuery;
   ```
 
-- [ ] The base query must NOT duplicate bearer token injection or refresh logic — those are handled by `apiClient`'s interceptors.
+- [x] The base query must NOT duplicate bearer token injection or refresh logic — those are handled by `apiClient`'s interceptors.
 
-- [ ] Keep the error type explicit (`AxiosBaseQueryError`) rather than `unknown` so endpoint tests and hook consumers can safely assert `error.status` under TypeScript strict mode.
+- [x] Keep the error type explicit (`AxiosBaseQueryError`) rather than `unknown` so endpoint tests and hook consumers can safely assert `error.status` under TypeScript strict mode.
 
 ### 3. Create `TransactionFilterParams` type (AC: 1)
 
-- [ ] **Check whether Story 4.2 has been implemented first.** Story 4.2 defines `TransactionFilter` in `transactions-slice.ts` and rewrites `fetchTransactions` to use `URLSearchParams`.
+- [x] **Check whether Story 4.2 has been implemented first.** Story 4.2 defines `TransactionFilter` in `transactions-slice.ts` and rewrites `fetchTransactions` to use `URLSearchParams`.
   - If Story 4.2 is done: import and re-export the `TransactionFilter` type as `TransactionFilterParams` from `transactions-api.ts`, or simply import `TransactionFilter` directly.
   - If Story 4.2 is NOT done yet: stop 7.4a implementation and complete 4.2 first. 7.4a must not ship against the legacy `filter=Key:Value;` transaction API.
-- [ ] Shape (matches Story 4.2's `TransactionFilter` and backend `TransactionFilterQuery`):
+- [x] Shape (matches Story 4.2's `TransactionFilter` and backend `TransactionFilterQuery`):
   ```typescript
   export interface TransactionFilterParams {
     accountIds: number[];
@@ -97,15 +97,15 @@ So that cache keys, loading states, and authenticated API behavior are proven be
     range: number[]; // [unixStart, unixEnd] — kept for Ant Design RangePicker
   }
   ```
-- [ ] If Story 7.1 has created `TransactionFilterState` with a `tagsAndRefs` UI helper field, do **not** use that full shape as the RTK Query cache argument. The cache/query argument must use the Story 4.2 API shape only: `accountIds`, `categoryIds`, `tags`, `refs`, and `range`.
+- [x] If Story 7.1 has created `TransactionFilterState` with a `tagsAndRefs` UI helper field, do **not** use that full shape as the RTK Query cache argument. The cache/query argument must use the Story 4.2 API shape only: `accountIds`, `categoryIds`, `tags`, `refs`, and `range`.
 
 ### 4. Create transactions RTK Query API slice (AC: 1, 2, 3, 5)
 
-- [ ] Create `inex/ClientApp/src/store/transactions/transactions-api.ts`.
-- [ ] Reuse existing model types when available:
+- [x] Create `inex/ClientApp/src/store/transactions/transactions-api.ts`.
+- [x] Reuse existing model types when available:
   - If Story 7.1 has created `model/Transaction/TransactionResponse.ts`, import it and use it for list rows instead of creating a duplicate `TransactionItem` interface.
   - If those model files do not exist yet, define the temporary local `TransactionItem` interface below and reconcile it with Story 7.1 when both stories are merged.
-- [ ] Define the API slice using `createApi` and `axiosBaseQuery`:
+- [x] Define the API slice using `createApi` and `axiosBaseQuery`:
 
   ```typescript
   import { createApi } from "@reduxjs/toolkit/query/react";
@@ -234,7 +234,7 @@ So that cache keys, loading states, and authenticated API behavior are proven be
 
 ### 5. Register the API slice in the Redux store (AC: 3)
 
-- [ ] Edit `inex/ClientApp/src/store/index.ts`:
+- [x] Edit `inex/ClientApp/src/store/index.ts`:
   - Import `transactionsApi` from `./transactions/transactions-api`.
   - Add `[transactionsApi.reducerPath]: transactionsApi.reducer` to the `reducer` map.
   - Add `.concat(transactionsApi.middleware)` to the middleware chain:
@@ -246,7 +246,7 @@ So that cache keys, loading states, and authenticated API behavior are proven be
 
 ### 6. Migrate `TransactionList.tsx` to RTK Query hooks (AC: 2, 5)
 
-- [ ] Replace the `useAppSelector` calls for `items`, `total`, `isLoading`, and `error` with:
+- [x] Replace the `useAppSelector` calls for `items`, `total`, `isLoading`, and `error` with:
   ```typescript
   const { data, isLoading, isError } = useGetTransactionsQuery({
     pageSize,
@@ -254,15 +254,15 @@ So that cache keys, loading states, and authenticated API behavior are proven be
     filter,
   });
   ```
-- [ ] Replace `dispatch(fetchTransactions(...))` in `useEffect` with the `skip` option or simply by passing updated args to the query hook (RTK Query auto-fetches on arg change).
-- [ ] Remove the `transactionsLastUpdate` / `useAppSelector(state => state.transactions.lastUpdate)` selector and the `useEffect` dependency on it — mutations invalidate the cache automatically.
-- [ ] Derive `transactions = data?.data ?? []` and `total = data?.metadata.totalItems ?? 0` from the hook result.
-- [ ] Keep `const filter = useAppSelector(state => state.transactions.filter)` — the filter state remains in `transactions-slice.ts` (it is UI/form state, not server cache state).
+- [x] Replace `dispatch(fetchTransactions(...))` in `useEffect` with the `skip` option or simply by passing updated args to the query hook (RTK Query auto-fetches on arg change).
+- [x] Remove the `transactionsLastUpdate` / `useAppSelector(state => state.transactions.lastUpdate)` selector and the `useEffect` dependency on it — mutations invalidate the cache automatically.
+- [x] Derive `transactions = data?.data ?? []` and `total = data?.metadata.totalItems ?? 0` from the hook result.
+- [x] Keep `const filter = useAppSelector(state => state.transactions.filter)` — the filter state remains in `transactions-slice.ts` (it is UI/form state, not server cache state).
 
 ### 7. Migrate mutation call sites (AC: 5)
 
-- [ ] **CRITICAL SCOPE NOTE**: Dispatch calls live in exactly **two** files only — `TransactionCreate.tsx` (dispatches `createTransaction` and `createTransfer`) and `TransactionEditForm.tsx` (dispatches `updateTransaction` and `removeTransaction`). The three `TransactionCreate*Form.tsx` sub-components (`TransactionCreateExpenseForm.tsx`, `TransactionCreateIncomeForm.tsx`, `TransactionCreateTransferForm.tsx`) are pure form UI that receive callbacks via props — they contain no dispatch calls and must NOT be modified.
-- [ ] **`TransactionCreate.tsx`**: Replace `dispatch(createTransaction(...))` / `dispatch(createTransfer(...))` with RTK Query mutation hooks:
+- [x] **CRITICAL SCOPE NOTE**: Dispatch calls live in exactly **two** files only — `TransactionCreate.tsx` (dispatches `createTransaction` and `createTransfer`) and `TransactionEditForm.tsx` (dispatches `updateTransaction` and `removeTransaction`). The three `TransactionCreate*Form.tsx` sub-components (`TransactionCreateExpenseForm.tsx`, `TransactionCreateIncomeForm.tsx`, `TransactionCreateTransferForm.tsx`) are pure form UI that receive callbacks via props — they contain no dispatch calls and must NOT be modified.
+- [x] **`TransactionCreate.tsx`**: Replace `dispatch(createTransaction(...))` / `dispatch(createTransfer(...))` with RTK Query mutation hooks:
   ```typescript
   const [createTransactionMutation, { isLoading: isCreating }] =
     useCreateTransactionMutation();
@@ -271,7 +271,7 @@ So that cache keys, loading states, and authenticated API behavior are proven be
   // Remove: const isCreating = useAppSelector(state => state.transactions.isCreating);
   // call: await createTransactionMutation({ accountId, categoryId, amount, comment, created }).unwrap();
   ```
-- [ ] **`TransactionEditForm.tsx`**: Replace `dispatch(updateTransaction(...))` / `dispatch(removeTransaction(...))` with RTK Query mutation hooks:
+- [x] **`TransactionEditForm.tsx`**: Replace `dispatch(updateTransaction(...))` / `dispatch(removeTransaction(...))` with RTK Query mutation hooks:
   ```typescript
   const [updateTransactionMutation, { isLoading: isUpdating }] =
     useUpdateTransactionMutation();
@@ -280,49 +280,49 @@ So that cache keys, loading states, and authenticated API behavior are proven be
   // Remove: const isDeleting = useAppSelector(state => state.transactions.isDeleting);
   // Remove: const isUpdating = useAppSelector(state => state.transactions.isUpdating);
   ```
-- [ ] **`TransactionSummary.tsx` re-fetch trigger**: `TransactionSummary.tsx` uses `state.transactions.lastUpdate` as a `useEffect` dependency to trigger `fetchTransactionsSummaryForAccounts`. Since `lastUpdate` is being kept (see Task 8), mutations in `TransactionCreate.tsx` and `TransactionEditForm.tsx` must dispatch `transactionsActions.setLastUpdate()` after a successful `.unwrap()` call so the summary panel refreshes:
+- [x] **`TransactionSummary.tsx` re-fetch trigger**: `TransactionSummary.tsx` uses `state.transactions.lastUpdate` as a `useEffect` dependency to trigger `fetchTransactionsSummaryForAccounts`. Since `lastUpdate` is being kept (see Task 8), mutations in `TransactionCreate.tsx` and `TransactionEditForm.tsx` must dispatch `transactionsActions.setLastUpdate()` after a successful `.unwrap()` call so the summary panel refreshes:
   ```typescript
   await createTransactionMutation({ ... }).unwrap();
   dispatch(transactionsActions.setLastUpdate()); // triggers TransactionSummary re-fetch
   ```
-- [ ] Use `.unwrap()` on every mutation call so thrown errors can be caught in a surrounding `try/catch`. On success, RTK Query automatically invalidates `{ type: "Transaction", id: "LIST" }` for the list view; `setLastUpdate()` additionally triggers the summary panel.
-- [ ] Do not reset the create form, close the create drawer/modal via `props.onSubmit()`, or leave edit mode until the awaited `.unwrap()` call succeeds. On mutation failure, keep the current UI open and let the caught error path preserve or surface the failure instead of pretending the save/delete completed.
+- [x] Use `.unwrap()` on every mutation call so thrown errors can be caught in a surrounding `try/catch`. On success, RTK Query automatically invalidates `{ type: "Transaction", id: "LIST" }` for the list view; `setLastUpdate()` additionally triggers the summary panel.
+- [x] Do not reset the create form, close the create drawer/modal via `props.onSubmit()`, or leave edit mode until the awaited `.unwrap()` call succeeds. On mutation failure, keep the current UI open and let the caught error path preserve or surface the failure instead of pretending the save/delete completed.
 
 ### 8. Clean up `transactions-slice.ts` and `transactions-actions.ts` (AC: 2)
 
-- [ ] After verifying that TransactionList and all mutation components work via RTK Query hooks:
+- [x] After verifying that TransactionList and all mutation components work via RTK Query hooks:
   - Remove from `transactions-slice.ts` initialState: `items`, `total`, `isLoading`, `isCreating`, `isDeleting`, `isUpdating`.
   - Remove corresponding reducers: `setTransactions`, `setTotal`, `setIsLoading`, `setIsCreating`, `setIsDeleting`, `setIsUpdating`.
   - **KEEP `lastUpdate` and `setLastUpdate`** — `TransactionSummary.tsx` reads `state.transactions.lastUpdate` as a `useEffect` dependency to trigger `fetchTransactionsSummaryForAccounts` refetches after mutations. Until the accounts summary is migrated to RTK Query in Story 7.4b, `lastUpdate` must remain as a manual re-fetch trigger. The mutation hooks in `TransactionCreate.tsx` and `TransactionEditForm.tsx` dispatch `setLastUpdate()` on success (see Task 7).
   - Keep `filter`, `setFilter`, `resetFilter` — these are UI state, not server cache.
   - Keep `summaryItems` and `setTransactionsSummaryForAccounts` — `fetchTransactionsSummaryForAccounts` calls `/accounts/details` and belongs to the accounts domain migration in Story 7.4b; do **not** touch it here.
-- [ ] In `transactions-actions.ts`:
+- [x] In `transactions-actions.ts`:
   - Remove `fetchTransactions`, `createTransaction`, `createTransfer`, `updateTransaction`, `removeTransaction`.
   - Keep `fetchTransactionsSummaryForAccounts` — it is out of scope for 7.4a.
 
-- [ ] Keep `error` and `setError` in `transactions-slice.ts` while `fetchTransactionsSummaryForAccounts` remains in `transactions-actions.ts`; that legacy thunk currently dispatches `transactionsActions.setError(...)` in its `catch` path. `TransactionList.tsx` must not use this field for list errors after the RTK Query migration.
-- [ ] After cleanup, run a targeted search for stale references to removed thunks and slice fields:
+- [x] Keep `error` and `setError` in `transactions-slice.ts` while `fetchTransactionsSummaryForAccounts` remains in `transactions-actions.ts`; that legacy thunk currently dispatches `transactionsActions.setError(...)` in its `catch` path. `TransactionList.tsx` must not use this field for list errors after the RTK Query migration.
+- [x] After cleanup, run a targeted search for stale references to removed thunks and slice fields:
   `fetchTransactions`, `createTransaction`, `createTransfer`, `updateTransaction`, `removeTransaction`, `setTransactions`, `setTotal`, `setIsLoading`, `setIsCreating`, `setIsDeleting`, `setIsUpdating`.
 
 ### 9. Write RTK Query endpoint tests (AC: 4)
 
-- [ ] Create `inex/ClientApp/src/store/transactions/__tests__/transactions-api.test.ts` (uses Vitest infrastructure from Story 7.3).
-- [ ] Test 1 — `getTransactions: successful fetch caches result`:
+- [x] Create `inex/ClientApp/src/store/transactions/__tests__/transactions-api.test.ts` (uses Vitest infrastructure from Story 7.3).
+- [x] Test 1 — `getTransactions: successful fetch caches result`:
   - Mock `apiClient` to return a fixture `TransactionsPagedResult`.
   - Dispatch `getTransactions({ pageSize: 25, page: 1, filter: emptyFilter })`.
   - Assert `data.data` equals `fixture.data`; assert the RTK Query cache contains the result.
-- [ ] Test 2 — `cache invalidation on mutation triggers refetch`:
+- [x] Test 2 — `cache invalidation on mutation triggers refetch`:
   - After a successful `createTransaction` mutation, assert that the `getTransactions` query is invalidated (check that RTK Query re-triggers the query — use `waitFor` from `@testing-library/react`).
-- [ ] Test 3 — `API error propagates to isError state`:
+- [x] Test 3 — `API error propagates to isError state`:
   - Mock `apiClient` to throw a 500 Axios error.
   - Dispatch `getTransactions(...)`.
   - Assert `isError === true` and `error.status === 500`; this depends on `axiosBaseQuery` using the explicit `AxiosBaseQueryError` type from Task 2.
 
 ### 10. Build and lint gate (AC: 6)
 
-- [ ] Run `npm run build` from `inex/ClientApp/` — must pass.
-- [ ] Run `npm run lint` from `inex/ClientApp/` — must pass with no new warnings.
-- [ ] Run `npm test` from `inex/ClientApp/` — all tests must pass.
+- [x] Run `npm run build` from `inex/ClientApp/` — must pass.
+- [x] Run `npm run lint` from `inex/ClientApp/` — must pass with no new warnings.
+- [x] Run `npm test` from `inex/ClientApp/` — all tests must pass.
 
 ---
 
@@ -587,10 +587,41 @@ Vitest's `vi.mock` replaces the module for the test file scope. Return fixture d
 
 ### Agent Model Used
 
-Claude Sonnet 4.6
+GPT-5 Codex
 
 ### Debug Log References
 
+- 2026-06-02: `npm list @reduxjs/toolkit` confirmed `@reduxjs/toolkit@1.9.7`.
+- 2026-06-02: `npm test` passed: 3 test files, 10 tests.
+- 2026-06-02: `npm run lint` passed.
+- 2026-06-02: `npm run build` first failed with filesystem `EPERM` while cleaning `build/assets`; rerun with approved filesystem access passed.
+- 2026-06-02: Targeted stale-reference search found no removed transaction thunk/slice-field references in the transactions migration scope.
+- 2026-06-02: Final BMad code review found transaction mutation dependent-cache invalidation and list error-state gaps; fixed and reran `npm test`, `npm run lint`, `npm run build`, and stale-reference audit successfully.
+
 ### Completion Notes List
 
+- Added shared `axiosBaseQuery` around the existing authenticated `apiClient`; empty Axios response bodies are normalized to `null` so void mutations do not violate RTK Query base query result shape.
+- Added `transactionsApi` with typed `TransactionFilterParams`, list query, create transaction, create transfer, update transaction, and delete transaction endpoints.
+- Registered the transactions API reducer and middleware in the Redux store while retaining the existing `transactions` slice for filter and retained mutation error state.
+- Migrated `TransactionList.tsx` to source list data, total, loading state, and query error state from `useGetTransactionsQuery`; removed manual `fetchTransactions` and list `lastUpdate` dependency, and stripped the UI-only `tagsAndRefs` helper from RTK Query args.
+- Migrated `TransactionCreate.tsx` and `TransactionEditForm.tsx` to RTK Query mutation hooks with `.unwrap()`. Successful transaction mutations now invalidate transaction list, account summary, budget report, category report, and history report caches from the RTK API layer.
+- Removed migrated transaction thunks and server-list/loading mutation state from `transactions-slice.ts`/`transactions-actions.ts`; the later accounts/categories RTK migration removed the temporary summary thunk and `lastUpdate` bridge retained during the initial 7.4a worker pass.
+- Added RTK Query endpoint tests covering successful list cache population, mutation invalidation refetch, and API error propagation to query error state.
+
 ### File List
+
+- inex/ClientApp/src/store/axiosBaseQuery.ts
+- inex/ClientApp/src/store/transactions/transactions-api.ts
+- inex/ClientApp/src/store/transactions/__tests__/transactions-api.test.ts
+- inex/ClientApp/src/store/index.ts
+- inex/ClientApp/src/store/transactions/transactions-slice.ts
+- inex/ClientApp/src/store/transactions/transactions-actions.ts
+- inex/ClientApp/src/pages/Transactions/TransactionList.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreate.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionEditForm.tsx
+- docs/implementation/7-4a-frontend-rtk-query-transactions.md
+
+### Change Log
+
+- 2026-06-02: Implemented frontend transactions RTK Query migration pattern and endpoint tests; story moved to review.
+- 2026-06-02: Integrated final review fixes for transaction query error UI and dependent RTK cache invalidation.
