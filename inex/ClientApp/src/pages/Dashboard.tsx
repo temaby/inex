@@ -14,14 +14,11 @@ import {
     YAxis,
 } from "recharts";
 import BasicPage from "../layouts/BasicPage";
+import SpendingHeatmap from "../components/SpendingHeatmap";
 import type { BudgetReportResponse, ReportMetadataDTO } from "../model/Report/BudgetReport";
 import type { NetWorthHistoryPoint, NetWorthHistoryResponse } from "../model/Report/NetWorthHistory";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
-
-const placeholderKeys = [
-    "spendingHeatmap",
-] as const;
 
 interface Currency {
     id: number;
@@ -214,6 +211,13 @@ const Dashboard = () => {
         ...point,
         monthLabel: formatMonth(point.month),
     }));
+    const currentMonthRange = useMemo(() => {
+        const month = dayjs();
+        return {
+            start: month.startOf("month"),
+            end: month.endOf("month"),
+        };
+    }, []);
 
     const cards = [
         {
@@ -302,19 +306,22 @@ const Dashboard = () => {
                 </Spin>
 
                 <Row gutter={[16, 16]}>
-                    {placeholderKeys.map((key) => (
-                        <Col key={key} xs={24} lg={12}>
-                            <Card
-                                title={t(`dashboard.placeholders.${key}.title`)}
-                                style={{ height: "100%" }}
-                                styles={{ body: { minHeight: 140 } }}
-                            >
-                                <Typography.Text type="secondary">
-                                    {t(`dashboard.placeholders.${key}.description`)}
-                                </Typography.Text>
-                            </Card>
-                        </Col>
-                    ))}
+                    <Col xs={24} lg={12}>
+                        <Card
+                            title={t("reports.heatmapReport")}
+                            style={{ height: "100%" }}
+                            styles={{ body: { minHeight: 300, padding: 0 } }}
+                        >
+                            <SpendingHeatmap
+                                start={currentMonthRange.start}
+                                end={currentMonthRange.end}
+                                height={210}
+                                minWidth={360}
+                                padding={0}
+                                showRange={false}
+                            />
+                        </Card>
+                    </Col>
                     <Col xs={24} lg={12}>
                         <Card
                             title={t("dashboard.netWorth.title")}

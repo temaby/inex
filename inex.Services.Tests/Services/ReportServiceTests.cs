@@ -220,7 +220,7 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task GetNetWorthHistory_ConvertsEachMonthUsingThatMonthEndRate()
+    public async Task GetNetWorthHistory_ConvertsEachMonthUsingAvailableReportDate()
     {
         var service = CreateService(
             categories: [],
@@ -238,7 +238,7 @@ public class ReportServiceTests
             rates:
             [
                 Rate(currencyTo: "EUR", rate: 2m, date: new DateTime(2026, 4, 30)),
-                Rate(currencyTo: "EUR", rate: 3m, date: new DateTime(2026, 5, 31))
+                Rate(currencyTo: "EUR", rate: 3m, date: ClockNow.Date)
             ],
             clock: new FakeClock(ClockNow));
 
@@ -247,6 +247,27 @@ public class ReportServiceTests
 
         Assert.Equal(160m, rows[0].NetWorth);
         Assert.Equal(160m, rows[1].NetWorth);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_ConvertsCurrentMonthUsingTodayRate()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts: [Account(id: 20, currency: "EUR")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 120m, created: new DateTime(2026, 5, 10))],
+            rates:
+            [
+                Rate(currencyTo: "EUR", rate: 3m, date: ClockNow.Date)
+            ],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 1);
+        var row = Assert.Single(result.Data);
+
+        Assert.Equal("2026-05", row.Month);
+        Assert.Equal(new DateTime(2026, 5, 31), row.MonthEnd);
+        Assert.Equal(40m, row.NetWorth);
     }
 
     [Fact]
@@ -283,6 +304,95 @@ public class ReportServiceTests
                 "USD",
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_ReturnsZeroRowsForEmptyHistory()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts: [],
+            transactions: [],
+            rates: [],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 2);
+        var rows = result.Data.ToList();
+
+        Assert.Equal(["2026-04", "2026-05"], rows.Select(row => row.Month));
+        Assert.All(rows, row =>
+        {
+            Assert.Equal(0m, row.NetWorth);
+            Assert.Equal("USD", row.Currency);
+        });
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_UsesBaseCurrencyWhenAccountCurrencyIsMissing()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts: [Account(id: 20, currency: "")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 75m, created: new DateTime(2026, 5, 10))],
+            rates: [],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 1);
+        var row = Assert.Single(result.Data);
+
+        Assert.Equal(75m, row.NetWorth);
+        Assert.Equal("USD", row.Currency);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_SkipsBalancesWhenConversionRateIsMissing()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts:
+            [
+                Account(id: 20, currency: "USD"),
+                Account(id: 21, currency: "EUR")
+            ],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: 10, amount: 100m, created: new DateTime(2026, 5, 10)),
+                Transaction(id: 2, accountId: 21, categoryId: 10, amount: 60m, created: new DateTime(2026, 5, 10))
+            ],
+            rates: [],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 1);
+        var row = Assert.Single(result.Data);
+
+        Assert.Equal(100m, row.NetWorth);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_SkipsBalancesWhenConversionRateIsZero()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts:
+            [
+                Account(id: 20, currency: "USD"),
+                Account(id: 21, currency: "EUR")
+            ],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: 10, amount: 100m, created: new DateTime(2026, 5, 10)),
+                Transaction(id: 2, accountId: 21, categoryId: 10, amount: 60m, created: new DateTime(2026, 5, 10))
+            ],
+            rates:
+            [
+                Rate(currencyTo: "EUR", rate: 0m, date: ClockNow.Date)
+            ],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 1);
+        var row = Assert.Single(result.Data);
+
+        Assert.Equal(100m, row.NetWorth);
     }
 
     private static ReportService CreateService(
