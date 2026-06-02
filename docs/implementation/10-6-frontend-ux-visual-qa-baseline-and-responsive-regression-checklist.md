@@ -39,7 +39,7 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 
 **Check before starting:** every story above must be status `done` in `docs/implementation/sprint-status.yaml`. If any story is not `done`, do not start the final Epic 10 QA gate; send the incomplete story back to its owner first. Subset QA is allowed only as story-level evidence for an individual route story, not as completion evidence for Story 10.6.
 
-**Dev server must be running** with populated data. Use `./start-project.ps1` or run backend (`dotnet watch run --project inex`) and frontend (`npm start` from `inex/ClientApp/`) separately. Confirm `http://localhost:3000` loads and you can log in.
+**Dev server must be running** with populated data. Follow the local startup flow in `README.md`: start MySQL with Docker Compose, run the backend (`dotnet watch run --project inex`), and run the frontend (`npm start` from `inex/ClientApp/`). Confirm `http://localhost:3000` loads and you can log in.
 
 **Test account setup:** log in with a test user that has at least:
 

@@ -24,33 +24,35 @@ docs/                   Learning plan, architecture docs
 
 ## Dev Commands
 
-**Start everything:**
+For full local startup instructions, see `README.md`.
+
+**Start local dependencies** (from repo root):
 ```powershell
-./start-project.ps1   # starts both backend and frontend
+docker compose up -d mysql
 ```
 
 **Backend only** (from repo root):
-```bash
+```powershell
 dotnet watch run --project inex
 ```
 Swagger UI: `http://localhost:5000/help`
 
 **Frontend only** (from `inex/ClientApp/`):
-```bash
+```powershell
 npm start       # Vite dev server, proxies /api → localhost:5000
 npm run build   # tsc --noEmit && vite build
 npm run lint
 ```
 
 **Tests:**
-```bash
+```powershell
 dotnet test                         # all projects
 dotnet test inex.Services.Tests/    # unit only
 dotnet test inex.Tests/             # integration only
 ```
 
 **Migrations** (from repo root):
-```bash
+```powershell
 dotnet ef migrations add <Name> --project inex.Data --startup-project inex
 dotnet ef database update           --project inex.Data --startup-project inex
 ```
