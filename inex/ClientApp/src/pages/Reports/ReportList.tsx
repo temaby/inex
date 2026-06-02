@@ -12,6 +12,7 @@ const ReportList = (props: any) => {
         { id: "category", name: t("reports.categoryReport") },
         { id: "budget", name: t("reports.budgetReport") },
         { id: "history", name: t("reports.historyReport") },
+        { id: "heatmap", name: t("reports.heatmapReport") },
     ];
 
     const reportColumns = [

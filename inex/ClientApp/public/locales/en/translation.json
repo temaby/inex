@@ -1,5 +1,6 @@
 {
   "nav": {
+    "dashboard": "Dashboard",
     "transactions": "Transactions",
     "accounts": "Accounts",
     "categories": "Categories",
@@ -56,6 +57,43 @@
   "language": {
     "en": "English",
     "ru": "Russian"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "A home overview for upcoming financial insight widgets.",
+    "summary": {
+      "totalIncome": "Total Income",
+      "totalExpenses": "Total Expenses",
+      "netSavings": "Net Savings",
+      "currentMonth": "Current month",
+      "vsLastMonth": "{{value}} vs last month",
+      "noPreviousMonth": "No previous month baseline",
+      "noCurrentMonthData": "No current month activity",
+      "loading": "Loading month summary",
+      "error": "Failed to load month summary",
+      "currencyUnavailable": "Unable to resolve your base currency"
+    },
+    "netWorth": {
+      "title": "Historical net worth",
+      "valueLabel": "Net worth",
+      "loading": "Loading net worth history",
+      "empty": "No net worth history available",
+      "error": "Failed to load net worth history"
+    },
+    "placeholders": {
+      "monthSummary": {
+        "title": "Month summary cards",
+        "description": "Reserved for income, expenses, net savings, and month-over-month deltas."
+      },
+      "spendingHeatmap": {
+        "title": "Spending heatmap",
+        "description": "Reserved for daily spending intensity across the selected month."
+      },
+      "netWorthChart": {
+        "title": "Historical net worth chart",
+        "description": "Reserved for account value history across currencies and periods."
+      }
+    }
   },
   "transactions": {
     "title": "Transactions",
@@ -185,7 +223,16 @@
     "used": "Used",
     "budgetRemaining": "Budget Remaining",
     "income": "Income",
-    "expense": "Expense"
+    "expense": "Expense",
+    "heatmapReport": "Spending Heatmap",
+    "heatmapRange": "{{start}} - {{end}}",
+    "heatmapLoading": "Loading spending heatmap",
+    "heatmapError": "Failed to load spending heatmap",
+    "heatmapEmpty": "No heatmap data available",
+    "heatmapTooltipSpend": "Spend: {{amount}}",
+    "heatmapLegendLess": "Less",
+    "heatmapLegendMore": "More",
+    "heatmapLegendCell": "Spending intensity"
   },
   "notFound": {
     "title": "Page not found",

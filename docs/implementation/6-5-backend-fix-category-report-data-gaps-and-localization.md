@@ -1,6 +1,6 @@
 # Story 6.5: Backend - Fix Category Report Data Gaps and Localization
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run bmad-create-story validate before dev-story. -->
 
@@ -24,37 +24,37 @@ So that my historical spending data is complete and not silently excluded by cat
 
 ## Tasks / Subtasks
 
-- [ ] Fix category inclusion for category report history. (AC: 1, 2)
-  - [ ] In `ReportService.GetCategoriesReportData`, load user categories with `ActivityMode.ALL`, not `ActivityMode.ACTIVE`.
-  - [ ] Keep system categories excluded from category report output unless existing product behavior explicitly requires showing system transfer categories.
-  - [ ] Ensure inactive user-owned categories with historical transactions can appear in `Data` when their converted value is non-zero.
-  - [ ] Preserve the existing report date filter behavior from `ReportMetadata.Start` and `ReportMetadata.End`.
+- [x] Fix category inclusion for category report history. (AC: 1, 2)
+  - [x] In `ReportService.GetCategoriesReportData`, load user categories with `ActivityMode.ALL`, not `ActivityMode.ACTIVE`.
+  - [x] Keep system categories excluded from category report output unless existing product behavior explicitly requires showing system transfer categories.
+  - [x] Ensure inactive user-owned categories with historical transactions can appear in `Data` when their converted value is non-zero.
+  - [x] Preserve the existing report date filter behavior from `ReportMetadata.Start` and `ReportMetadata.End`.
 
-- [ ] Populate report totals in the category report response. (AC: 3)
-  - [ ] Compute `TotalIncome` from positive non-system transaction amounts converted into the requested report currency.
-  - [ ] Compute `TotalOutcome` from negative non-system transaction amounts converted into the requested report currency, using absolute values to match `BudgetReportService`.
-  - [ ] Return `ReportMetadata.TotalIncome` and `ReportMetadata.TotalOutcome` explicitly instead of relying on `BuildReportDataResponse` defaults.
-  - [ ] Keep category row `Value` behavior focused on per-category spending/income as the current report expects; if preserving negative spending signs is necessary for frontend compatibility, document it in completion notes.
+- [x] Populate report totals in the category report response. (AC: 3)
+  - [x] Compute `TotalIncome` from positive non-system transaction amounts converted into the requested report currency.
+  - [x] Compute `TotalOutcome` from negative non-system transaction amounts converted into the requested report currency, using absolute values to match `BudgetReportService`.
+  - [x] Return `ReportMetadata.TotalIncome` and `ReportMetadata.TotalOutcome` explicitly instead of relying on `BuildReportDataResponse` defaults.
+  - [x] Keep category row `Value` behavior focused on per-category spending/income as the current report expects; if preserving negative spending signs is necessary for frontend compatibility, document it in completion notes.
 
-- [ ] Remove hardcoded service-language output. (AC: 4)
-  - [ ] Replace the hardcoded `"Расходы по категориям"` service title with one of these scoped options:
+- [x] Remove hardcoded service-language output. (AC: 4)
+  - [x] Replace the hardcoded `"Расходы по категориям"` service title with one of these scoped options:
     - remove report title/name from the category report metadata only if API compatibility is intentionally updated and all consumers are adjusted in the same story, or
     - set `ReportMetadata.Name` to a stable translation key such as `reports.categoryReport`.
-  - [ ] Do not add frontend redesign work for displaying the title. Existing frontend i18n keys already include `reports.categoryReport` in EN/RU locale files.
-  - [ ] Search the backend for the old hardcoded Russian string and verify it is gone from service output.
+  - [x] Do not add frontend redesign work for displaying the title. Existing frontend i18n keys already include `reports.categoryReport` in EN/RU locale files.
+  - [x] Search the backend for the old hardcoded Russian string and verify it is gone from service output.
 
-- [ ] Add focused backend tests. (AC: 1, 3, 4, 5)
-  - [ ] Add service-level tests for `ReportService.GetCategoriesReportData` in `inex.Services.Tests` if a suitable fixture/pattern exists; otherwise add API integration coverage in `inex.Tests` through `GET /api/reports/category`.
-  - [ ] Test that a transaction tied to an inactive, user-owned category appears in the category report output.
-  - [ ] Test that transactions for another user's categories are not included.
-  - [ ] Test that `TotalIncome` and `TotalOutcome` are populated from converted transaction amounts and follow the `BudgetReportService` positive/absolute-negative pattern.
-  - [ ] Test that service/API output no longer contains the hardcoded Russian title string.
-  - [ ] Keep tests independent from dashboard UI, Reports hub redesign, and Epic 10 visual behavior.
+- [x] Add focused backend tests. (AC: 1, 3, 4, 5)
+  - [x] Add service-level tests for `ReportService.GetCategoriesReportData` in `inex.Services.Tests` if a suitable fixture/pattern exists; otherwise add API integration coverage in `inex.Tests` through `GET /api/reports/category`.
+  - [x] Test that a transaction tied to an inactive, user-owned category appears in the category report output.
+  - [x] Test that transactions for another user's categories are not included.
+  - [x] Test that `TotalIncome` and `TotalOutcome` are populated from converted transaction amounts and follow the `BudgetReportService` positive/absolute-negative pattern.
+  - [x] Test that service/API output no longer contains the hardcoded Russian title string.
+  - [x] Keep tests independent from dashboard UI, Reports hub redesign, and Epic 10 visual behavior.
 
-- [ ] Verify backend scope. (AC: 5)
-  - [ ] Run the focused report/category test scope while iterating.
-  - [ ] Run `dotnet build inex.sln`.
-  - [ ] Run relevant `dotnet test` scope; full `dotnet test inex.sln` is preferred if practical.
+- [x] Verify backend scope. (AC: 5)
+  - [x] Run the focused report/category test scope while iterating.
+  - [x] Run `dotnet build inex.sln`.
+  - [x] Run relevant `dotnet test` scope; full `dotnet test inex.sln` is preferred if practical.
 
 ## Dev Notes
 
@@ -178,13 +178,30 @@ GPT-5 Codex
 
 ### Debug Log References
 
+- `dotnet test inex.Services.Tests/inex.Services.Tests.csproj --filter ReportServiceTests` failed in red phase before implementation: current service requested active-only categories and left defects exposed.
+- `dotnet test inex.Services.Tests/inex.Services.Tests.csproj --filter ReportServiceTests` passed after implementation: 3/3 tests.
+- `rg "Расходы по категориям|Р Р°СЃС" inex.Services inex inex.Services.Tests inex.Tests` found no service output occurrence; only the regression assertion keeps the old title as a forbidden value.
+- `dotnet build inex.sln` passed with existing XML-doc warnings for missing `ct` param tags and npm audit/deprecation output during restore.
+- `dotnet test inex.sln` passed: 58 service tests and 90 API/integration tests.
+
 ### Completion Notes List
 
 - Story context created via bmad-create-story workflow for key `6-5-backend-fix-category-report-data-gaps-and-localization`.
 - Story status set to `ready-for-dev`.
 - Story intentionally remains independent from dashboard UI and Epic 10 visual/report hub work.
 - Sprint status was not updated because this orchestration run was constrained to create exactly one story file.
+- `ReportService.GetCategoriesReportData` now loads categories with `ActivityMode.ALL` and filters out only system categories for category rows.
+- Category report totals are explicitly populated from non-system transactions using positive income and absolute negative outcome after report-currency conversion.
+- Category row `Value` keeps the existing signed aggregation behavior for frontend compatibility.
+- Category report metadata now uses the stable translation key `reports.categoryReport` instead of a hardcoded service-language title.
+- Focused service tests cover inactive category inclusion, unknown/other-user category exclusion, converted totals, system category exclusion, and forbidden hardcoded title output.
+
+### Change Log
+
+- 2026-06-01: Fixed backend category report category inclusion, totals, and metadata localization; added focused service regression tests.
 
 ### File List
 
 - docs/implementation/6-5-backend-fix-category-report-data-gaps-and-localization.md
+- inex.Services/Services/ReportService.cs
+- inex.Services.Tests/Services/ReportServiceTests.cs

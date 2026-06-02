@@ -20,10 +20,12 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Accounts from './pages/Accounts';
 import Categories from './pages/Categories';
 import Budgets from './pages/Budgets';
+import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import ReportCategory from "./pages/Reports/ReportCategory";
 import ReportBudgetSpending from "./pages/Reports/ReportBudgetSpending";
 import ReportMonthlyHistory from "./pages/Reports/ReportMonthlyHistory";
+import ReportSpendingHeatmap from "./pages/Reports/ReportSpendingHeatmap";
 import ReportList from "./pages/Reports/ReportList";
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -88,7 +90,8 @@ const App = () => {
 
             {/* Private routes — ProtectedRoute renders <Outlet /> or redirects to /login */}
             <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Navigate replace to="/transactions" />} />
+                <Route path="/" element={<Navigate replace to="/dashboard" />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/accounts" element={<Accounts />} />
                 <Route path="/categories" element={<Categories />} />
@@ -99,6 +102,7 @@ const App = () => {
                     <Route path="category" element={<ReportCategory />} />
                     <Route path="budget" element={<ReportBudgetSpending />} />
                     <Route path="history" element={<ReportMonthlyHistory />} />
+                    <Route path="heatmap" element={<ReportSpendingHeatmap />} />
                 </Route>
             </Route>
 
