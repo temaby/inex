@@ -1,6 +1,6 @@
 # Story 7.2: Frontend — Route-Based Code Splitting and Vendor Chunks
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -39,34 +39,34 @@ So that the app starts quickly even on a slower connection.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Add `manualChunks` to Vite config** (AC3, AC5)
-  - [ ] Open `inex/ClientApp/vite.config.ts`
-  - [ ] Add `rollupOptions.output.manualChunks` inside `build:` config
-  - [ ] Import `normalizePath` from `vite` and normalize each module id before matching; this repo is developed on Windows and raw Rollup/Vite ids may contain backslashes
-  - [ ] Define chunk `vendor-antd` capturing `antd`, `@ant-design/*`, `@rc-component/*`, and `rc-*` modules
-  - [ ] Define chunk `vendor-recharts` capturing `recharts`, `recharts-scale`, `victory-vendor`, and `d3-*` modules
-  - [ ] Leave other third-party code (react, react-dom, redux, etc.) to be handled by Vite's default automatic chunking
-  - [ ] Do **not** raise `chunkSizeWarningLimit` to hide the warning; this story must reduce or explicitly justify oversized chunks, not silence Vite
+- [x] **Task 1: Add `manualChunks` to Vite config** (AC3, AC5)
+  - [x] Open `inex/ClientApp/vite.config.ts`
+  - [x] Add `rollupOptions.output.manualChunks` inside `build:` config
+  - [x] Import `normalizePath` from `vite` and normalize each module id before matching; this repo is developed on Windows and raw Rollup/Vite ids may contain backslashes
+  - [x] Define chunk `vendor-antd` capturing `antd`, `@ant-design/*`, `@rc-component/*`, and `rc-*` modules
+  - [x] Define chunk `vendor-recharts` capturing `recharts`, `recharts-scale`, `victory-vendor`, and `d3-*` modules
+  - [x] Leave other third-party code (react, react-dom, redux, etc.) to be handled by Vite's default automatic chunking
+  - [x] Do **not** raise `chunkSizeWarningLimit` to hide the warning; this story must reduce or explicitly justify oversized chunks, not silence Vite
 
-- [ ] **Task 2: Convert all page imports in `App.tsx` to `React.lazy`** (AC2, AC4)
-  - [ ] Replace all static `import PageName from './pages/...'` with `React.lazy(() => import('./pages/...'))`
-  - [ ] Pages to lazify: `Transactions`, `Accounts`, `Categories`, `Budgets`, `Reports`, `ReportCategory`, `ReportBudgetSpending`, `ReportMonthlyHistory`, `ReportList`, `NotFound`, `Login`, `Register`, `Profile`
-  - [ ] Declare all `React.lazy` constants at module scope, below static imports and above `App`; do not declare lazy components inside `App`, because React resets lazy component state when the lazy declaration is recreated during render
-  - [ ] `ProtectedRoute` is a layout component (not a page), keep it as a static import
-  - [ ] `ConfigProvider` (antd) stays static — it wraps the whole tree and must be available immediately
+- [x] **Task 2: Convert all page imports in `App.tsx` to `React.lazy`** (AC2, AC4)
+  - [x] Replace all static `import PageName from './pages/...'` with `React.lazy(() => import('./pages/...'))`
+  - [x] Pages to lazify: `Transactions`, `Accounts`, `Categories`, `Budgets`, `Reports`, `ReportCategory`, `ReportBudgetSpending`, `ReportMonthlyHistory`, `ReportList`, `NotFound`, `Login`, `Register`, `Profile`
+  - [x] Declare all `React.lazy` constants at module scope, below static imports and above `App`; do not declare lazy components inside `App`, because React resets lazy component state when the lazy declaration is recreated during render
+  - [x] `ProtectedRoute` is a layout component (not a page), keep it as a static import
+  - [x] `ConfigProvider` (antd) stays static — it wraps the whole tree and must be available immediately
 
-- [ ] **Task 3: Wrap routes with `<Suspense>` fallback** (AC4)
-  - [ ] Use `<React.Suspense>` (matches the existing `import * as React from 'react'` namespace style in App.tsx — no separate `Suspense` import needed)
-  - [ ] Create a `PageFallback` constant above the `App` component: a centered `<Spin size="large" />` using antd
-  - [ ] Wrap the entire `<Routes>` tree with `<React.Suspense fallback={<PageFallback />}>`
-  - [ ] Confirm `antd`'s `<Spin>` is available at all times (it will be, since `antd` is in a separate chunk loaded eagerly — see Task 1 note below)
+- [x] **Task 3: Wrap routes with `<Suspense>` fallback** (AC4)
+  - [x] Use `<React.Suspense>` (matches the existing `import * as React from 'react'` namespace style in App.tsx — no separate `Suspense` import needed)
+  - [x] Create a `PageFallback` constant above the `App` component: a centered `<Spin size="large" />` using antd
+  - [x] Wrap the entire `<Routes>` tree with `<React.Suspense fallback={<PageFallback />}>`
+  - [x] Confirm `antd`'s `<Spin>` is available at all times (it will be, since `antd` is in a separate chunk loaded eagerly — see Task 1 note below)
 
-- [ ] **Task 4: Verify build output** (AC1, AC5)
-  - [ ] Run `npm run build` from `inex/ClientApp/`
-  - [ ] Confirm the **main entry chunk** warning is gone (AC1)
-  - [ ] If Vite still warns only because `vendor-antd` exceeds 500 KB, document the justified exception in `vite.config.ts` and record it in Dev Agent Record (AC5)
-  - [ ] Record actual chunk sizes (index, vendor-antd, vendor-recharts) in the Dev Agent Record below
-  - [ ] If any single chunk still exceeds 500 KB, add a comment in `vite.config.ts` explaining why (justified exceptions only)
+- [x] **Task 4: Verify build output** (AC1, AC5)
+  - [x] Run `npm run build` from `inex/ClientApp/`
+  - [x] Confirm the **main entry chunk** warning is gone (AC1)
+  - [x] If Vite still warns only because `vendor-antd` exceeds 500 KB, document the justified exception in `vite.config.ts` and record it in Dev Agent Record (AC5)
+  - [x] Record actual chunk sizes (index, vendor-antd, vendor-recharts) in the Dev Agent Record below
+  - [x] If any single chunk still exceeds 500 KB, add a comment in `vite.config.ts` explaining why (justified exceptions only)
 
 - [ ] **Task 5: Manual smoke test** (AC4)
   - [ ] Run dev server (`npm start`) and navigate to each route: `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, `/reports/category`, `/reports/budget`, `/reports/history`, `/profile`, `/login`, `/register`, `/does-not-exist`
@@ -361,10 +361,31 @@ None. The app is a pure client-side SPA served as static files from ASP.NET Core
 
 ### Agent Model Used
 
-Claude Sonnet 4.6
+GPT-5
 
 ### Debug Log References
 
+- 2026-06-02: `npm run build` from `inex/ClientApp` failed before Vite due existing/concurrent TypeScript errors in `src/pages/Transactions/transaction-filter-url.ts` and `src/pages/Transactions/TransactionFilterForm.tsx`: `TransactionFilter` is not exported from `transactions-slice`.
+- 2026-06-02: `.\node_modules\.bin\vite.cmd build` succeeded after escalated filesystem access for Vite build output cleanup. Chunk sizes: `index-CPP7uSeH.js` 169.61 kB (gzip 58.06 kB), `vendor-recharts-BY2pGgBC.js` 416.32 kB (gzip 112.21 kB), `vendor-antd-CNrk1eVr.js` 1,214.97 kB (gzip 383.22 kB). Only `vendor-antd` exceeds 500 kB; exception documented in `vite.config.ts`.
+- 2026-06-02: Final `npm run build` from `inex/ClientApp` passed after escalated filesystem access for Vite output cleanup. Final chunk sizes unchanged: `index-CPP7uSeH.js` 169.61 kB, `vendor-recharts-BY2pGgBC.js` 416.32 kB, `vendor-antd-CNrk1eVr.js` 1,214.97 kB.
+- 2026-06-02: `npm run lint` from `inex/ClientApp` passed.
+- 2026-06-02: `npm start` initially failed on Vite dependency-cache unlink; rerun with escalated filesystem access started the dev server. HTTP route probes returned 200 for `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, `/reports/category`, `/reports/budget`, `/reports/history`, `/profile`, `/login`, `/register`, `/does-not-exist`, plus concurrent routes `/dashboard` and `/reports/heatmap`.
+- 2026-06-02: In-app browser smoke test could not be completed because the browser bridge failed twice with `windows sandbox failed: spawn setup refresh`; console chunk-load verification remains blocked.
+
 ### Completion Notes List
 
+- Added route-based lazy loading in `App.tsx` for the story pages and preserved/lazified concurrently added `Dashboard` and `ReportSpendingHeatmap` routes.
+- Added a centered Ant Design `Spin` page fallback and wrapped the route tree in a single `React.Suspense` boundary.
+- Added Vite `manualChunks` for `vendor-antd` and `vendor-recharts`, preserving the concurrent Story 7.3 `defineConfig` import from `vitest/config` and importing `normalizePath` from `vite` separately.
+- Did not raise `chunkSizeWarningLimit`; the remaining oversized `vendor-antd` chunk is documented as an accepted exception.
+- Story remains `in-progress` because browser-console smoke verification is blocked by the in-app browser bridge failure.
+
 ### File List
+
+- `inex/ClientApp/src/App.tsx`
+- `inex/ClientApp/vite.config.ts`
+- `docs/implementation/7-2-frontend-code-splitting.md`
+
+### Change Log
+
+- 2026-06-02: Implemented route-level lazy loading, Suspense fallback, and vendor manual chunking; recorded chunk sizes and verification blockers.

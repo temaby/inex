@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, Spin } from "antd";
 import enUS from "antd/locale/en_US";
 import ruRU from "antd/locale/ru_RU";
 import dayjs from "dayjs";
@@ -15,23 +15,30 @@ import { fetchBudgets } from './store/budgets/budgets-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
 
 import "antd/dist/reset.css";
-import Transactions from './pages/Transactions';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Accounts from './pages/Accounts';
-import Categories from './pages/Categories';
-import Budgets from './pages/Budgets';
-import Dashboard from './pages/Dashboard';
-import Reports from './pages/Reports';
-import ReportCategory from "./pages/Reports/ReportCategory";
-import ReportBudgetSpending from "./pages/Reports/ReportBudgetSpending";
-import ReportMonthlyHistory from "./pages/Reports/ReportMonthlyHistory";
-import ReportSpendingHeatmap from "./pages/Reports/ReportSpendingHeatmap";
-import ReportList from "./pages/Reports/ReportList";
-import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Profile from './pages/Profile';
+
+const Transactions = React.lazy(() => import('./pages/Transactions'));
+const Accounts = React.lazy(() => import('./pages/Accounts'));
+const Categories = React.lazy(() => import('./pages/Categories'));
+const Budgets = React.lazy(() => import('./pages/Budgets'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Reports = React.lazy(() => import('./pages/Reports'));
+const ReportCategory = React.lazy(() => import("./pages/Reports/ReportCategory"));
+const ReportBudgetSpending = React.lazy(() => import("./pages/Reports/ReportBudgetSpending"));
+const ReportMonthlyHistory = React.lazy(() => import("./pages/Reports/ReportMonthlyHistory"));
+const ReportSpendingHeatmap = React.lazy(() => import("./pages/Reports/ReportSpendingHeatmap"));
+const ReportList = React.lazy(() => import("./pages/Reports/ReportList"));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+const Login = React.lazy(() => import('./pages/Login'));
+const Register = React.lazy(() => import('./pages/Register'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+
+const PageFallback = () => (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <Spin size="large" />
+    </div>
+);
 
 const App = () => {
     const dispatch = useAppDispatch();
@@ -83,7 +90,8 @@ const App = () => {
 
     return (
         <ConfigProvider locale={antdLocale}>
-        <Routes>
+            <React.Suspense fallback={<PageFallback />}>
+                <Routes>
             {/* Public routes — accessible without authentication */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -107,7 +115,8 @@ const App = () => {
             </Route>
 
             <Route path="*" element={<NotFound />} />
-        </Routes>
+                </Routes>
+            </React.Suspense>
         </ConfigProvider>
     );
 }

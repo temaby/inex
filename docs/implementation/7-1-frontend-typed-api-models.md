@@ -1,6 +1,6 @@
 # Story 7.1: Frontend — Typed API Models, Eliminate `any` in Core Flows
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -26,27 +26,27 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
 
 ### Task 1 — Create new model files (AC: 1, 2)
 
-- [ ] Create `inex/ClientApp/src/model/Transaction/TransactionResponse.ts` mirroring the backend `TransactionResponse` record. (AC: 1, 2)
-  - [ ] Define and export `interface TransactionResponse` with fields: `id: number`, `accountId: number`, `categoryId: number`, `created: string`, `amount: number`, `comment: string | null`, `tags: string[]`, `refs: string[]`, `accountCurrency: string`.
-  - [ ] Use an `interface`, not a class — follow the pattern already used by `CategoryDetails`, `BudgetDetails`, etc.
+- [x] Create `inex/ClientApp/src/model/Transaction/TransactionResponse.ts` mirroring the backend `TransactionResponse` record. (AC: 1, 2)
+  - [x] Define and export `interface TransactionResponse` with fields: `id: number`, `accountId: number`, `categoryId: number`, `created: string`, `amount: number`, `comment: string | null`, `tags: string[]`, `refs: string[]`, `accountCurrency: string`.
+  - [x] Use an `interface`, not a class — follow the pattern already used by `CategoryDetails`, `BudgetDetails`, etc.
 
-- [ ] Create `inex/ClientApp/src/model/Transaction/TransactionFilterState.ts`. (AC: 1)
-  - [ ] Define and export `interface TransactionFilterState` with fields: `accountIds: number[]`, `categoryIds: number[]`, `tags: string[]`, `refs: string[]`, `tagsAndRefs: string`, `range: number[]`.
-  - [ ] This interface captures the shape already in `defaultFilter` in `transactions-slice.ts`; exporting it lets actions and other consumers reference it by name instead of using `any`.
+- [x] Create `inex/ClientApp/src/model/Transaction/TransactionFilterState.ts`. (AC: 1)
+  - [x] Define and export `interface TransactionFilterState` with fields: `accountIds: number[]`, `categoryIds: number[]`, `tags: string[]`, `refs: string[]`, `tagsAndRefs: string`, `range: number[]`.
+  - [x] This interface captures the shape already in `defaultFilter` in `transactions-slice.ts`; exporting it lets actions and other consumers reference it by name instead of using `any`.
 
-- [ ] Create `inex/ClientApp/src/model/Account/AccountSummary.ts` mirroring the backend `AccountSummary` record. (AC: 1, 2)
-  - [ ] Define and export `interface AccountSummary` with fields: `id: number`, `key: string`, `name: string`, `description: string | null`, `isEnabled: boolean`, `currencyId: number`, `currency: string`, `value: number`, `thisMonthNet: number`.
-  - [ ] This is the shape returned by `GET /api/accounts/details` and stored in `transactions.summaryItems`.
+- [x] Create `inex/ClientApp/src/model/Account/AccountSummary.ts` mirroring the backend `AccountSummary` record. (AC: 1, 2)
+  - [x] Define and export `interface AccountSummary` with fields: `id: number`, `key: string`, `name: string`, `description: string | null`, `isEnabled: boolean`, `currencyId: number`, `currency: string`, `value: number`, `thisMonthNet: number`.
+  - [x] This is the shape returned by `GET /api/accounts/details` and stored in `transactions.summaryItems`.
 
 ### Task 2 — Type `transactions-slice.ts` (AC: 1)
 
-- [ ] Import `PayloadAction` from `@reduxjs/toolkit`, `TransactionResponse` from `../../model/Transaction/TransactionResponse`, `TransactionFilterState` from `../../model/Transaction/TransactionFilterState`, and `AccountSummary` from `../../model/Account/AccountSummary`. (AC: 1)
+- [x] Import `PayloadAction` from `@reduxjs/toolkit`, `TransactionResponse` from `../../model/Transaction/TransactionResponse`, `TransactionFilterState` from `../../model/Transaction/TransactionFilterState`, and `AccountSummary` from `../../model/Account/AccountSummary`. (AC: 1)
 
-- [ ] Change `items: [] as any[]` to `items: [] as TransactionResponse[]` in `initialState`. (AC: 1)
+- [x] Change `items: [] as any[]` to `items: [] as TransactionResponse[]` in `initialState`. (AC: 1)
 
-- [ ] Change `summaryItems: [] as any[]` to `summaryItems: [] as AccountSummary[]` in `initialState`. (AC: 1)
+- [x] Change `summaryItems: [] as any[]` to `summaryItems: [] as AccountSummary[]` in `initialState`. (AC: 1)
 
-- [ ] Add explicit `PayloadAction<T>` types to reducer action parameters where `T` can be inferred, for every reducer that receives a payload. Examples: (AC: 1)
+- [x] Add explicit `PayloadAction<T>` types to reducer action parameters where `T` can be inferred, for every reducer that receives a payload. Examples: (AC: 1)
   - `setTransactions(state, action: PayloadAction<{ items: TransactionResponse[] }>)`
   - `setTotal(state, action: PayloadAction<{ total: number }>)`
   - `setIsLoading(state, action: PayloadAction<{ isLoading: boolean }>)`
@@ -58,31 +58,31 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
   - `setError(state, action: PayloadAction<{ error: string | null }>)`
   - Reducers with no payload (`setLastUpdate`, `resetFilter`) require no change.
 
-- [ ] Export `TransactionFilterState` re-export or simply rely on the model import — no re-export needed from the slice file, callers import from model directly. (AC: 1)
+- [x] Export `TransactionFilterState` re-export or simply rely on the model import — no re-export needed from the slice file, callers import from model directly. (AC: 1)
 
 ### Task 3 — Type `transactions-actions.ts` (AC: 1)
 
-- [ ] Import `TransactionFilterState` from `../../model/Transaction/TransactionFilterState`. (AC: 1)
+- [x] Import `TransactionFilterState` from `../../model/Transaction/TransactionFilterState`. (AC: 1)
 
-- [ ] Replace `filter: any` with `filter: TransactionFilterState` in the `fetchTransactions` function signature. (AC: 1)
+- [x] Replace `filter: any` with `filter: TransactionFilterState` in the `fetchTransactions` function signature. (AC: 1)
 
-- [ ] In `fetchTransactions`, type-assert the Axios response from the transactions list endpoint: `const { data } = await apiClient.get<{ data: TransactionResponse[]; metadata: { totalItems: number } }>(...)`. (AC: 1)
+- [x] In `fetchTransactions`, type-assert the Axios response from the transactions list endpoint: `const { data } = await apiClient.get<{ data: TransactionResponse[]; metadata: { totalItems: number } }>(...)`. (AC: 1)
   - Import `TransactionResponse` from `../../model/Transaction/TransactionResponse`.
   - Axios supports `apiClient.get<T>(url)` to type the response `data` field.
   - Keep the existing query contract unchanged in this story: `mode`, `pageSize`, `pageNumber`, and `filter` string DSL. Do **not** switch to typed query params or `URLSearchParams` here (that is covered by Story 4.2 / Story 7.4a).
 
-- [ ] In `fetchTransactionsSummaryForAccounts`, type the Axios response: `const { data } = await apiClient.get<{ data: AccountSummary[] }>(...)`. (AC: 1)
+- [x] In `fetchTransactionsSummaryForAccounts`, type the Axios response: `const { data } = await apiClient.get<{ data: AccountSummary[] }>(...)`. (AC: 1)
   - Import `AccountSummary` from `../../model/Account/AccountSummary`.
 
 ### Task 4 — Type `TransactionList.tsx` (AC: 1)
 
-- [ ] Define `TransactionListProps` interface at the top of the file (or co-located just above the component). (AC: 1)
+- [x] Define `TransactionListProps` interface at the top of the file (or co-located just above the component). (AC: 1)
   - Fields: `accounts: AccountDetails[]`, `categories: CategoryDetails[]`.
   - **Add import for `AccountDetails`** — it is NOT currently imported: `import { AccountDetails } from '../../model/Account/AccountDetails'`.
   - `CategoryDetails` is already imported from `../../model/Category/CategoryDetails` — no change needed for that one.
   - Replace `(props: any)` with `(props: TransactionListProps)`.
 
-- [ ] Define `TransactionDateHeader` interface locally at the top of the file. (AC: 1)
+- [x] Define `TransactionDateHeader` interface locally at the top of the file. (AC: 1)
 
   ```typescript
   interface TransactionDateHeader {
@@ -99,33 +99,33 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
 
   > **⚠️ Critical: discriminated union type guard.** With `strict: true`, TypeScript does NOT allow direct property access on `record._isDateHeader` when `_isDateHeader` is absent from `TransactionResponse`. **Every occurrence of `if (record._isDateHeader)` in the file must be replaced with `if (isDateHeader(record))` or the equivalent `'_isDateHeader' in record` guard** — including in `dataSource.map`, the desktop column `render` functions, `onRow`, `rowExpandable`, and `renderDateHeader`. Using the direct property form will produce a TypeScript error: _"Property '\_isDateHeader' does not exist on type 'TransactionResponse'"_.
 
-- [ ] Replace `const [mobileEditRecord, setMobileEditRecord] = useState<any>(null)` with `useState<TransactionResponse | null>(null)`. (AC: 1)
+- [x] Replace `const [mobileEditRecord, setMobileEditRecord] = useState<any>(null)` with `useState<TransactionResponse | null>(null)`. (AC: 1)
 
-- [ ] Replace `const result: any[] = []` in the `dataSource` useMemo with `const result: TransactionRow[] = []`. (AC: 1)
+- [x] Replace `const result: any[] = []` in the `dataSource` useMemo with `const result: TransactionRow[] = []`. (AC: 1)
 
-- [ ] Change the columns definition to `TableColumnsType<TransactionRow>`. (AC: 1)
+- [x] Change the columns definition to `TableColumnsType<TransactionRow>`. (AC: 1)
   - Replace `const columns: TableColumnsType<any>` with `const columns: TableColumnsType<TransactionRow>`.
 
-- [ ] Replace `record: any` in all `render` lambdas and helper functions with typed alternatives. (AC: 1)
+- [x] Replace `record: any` in all `render` lambdas and helper functions with typed alternatives. (AC: 1)
   - Column `render` functions: `render: (value, record: any)` → `render: (value, record: TransactionRow)`.
   - `renderDateHeader(record: any)` → `renderDateHeader(record: TransactionDateHeader)`. Called only after `'_isDateHeader' in record` narrowing, so the precise type can be used.
 
-- [ ] Correct helper signatures that read transaction-only fields. (AC: 1)
+- [x] Correct helper signatures that read transaction-only fields. (AC: 1)
   - `getAmountDisplay` must accept `TransactionResponse`, not `TransactionRow`; it reads `accountId` and `amount`, which date-header rows do not have.
   - `renderNotes` must accept `TransactionResponse`, not `TransactionRow`; it reads `tags`, `refs`, and `comment`, which date-header rows do not have.
   - Call these helpers only after `isDateHeader(record)` has narrowed the row to `TransactionResponse`.
   - Change `rowExpandHandler(expanded: boolean, record: any)` to `rowExpandHandler(expanded: boolean, record: TransactionRow)`. If the row is a date header, clear expanded rows and return; otherwise use `record.id.toString()`.
   - For render placeholder values, use `unknown` instead of `any` (for example, `render: (_value: unknown, record: TransactionRow) => ...`).
 
-- [ ] Replace `(a: any)` in `.find((a: any) => ...)` calls with `(a: AccountDetails)`. (AC: 1)
+- [x] Replace `(a: any)` in `.find((a: any) => ...)` calls with `(a: AccountDetails)`. (AC: 1)
   - Two occurrences: in `getAmountDisplay` (`props.accounts.find((a: any) => a.id === record.accountId)`) and in the mobile card render lambda (`props.accounts.find((a: any) => a.id === record.accountId)`).
   - `AccountDetails` import is already added above — no second import needed.
 
-- [ ] Replace inline `any` casts for tags/refs in `renderNotes`: `record.tags?.map((tag: any)` → `record.tags?.map((tag: string)` and `record.refs?.map((ref: any)` → `record.refs?.map((ref: string)`. (AC: 1)
+- [x] Replace inline `any` casts for tags/refs in `renderNotes`: `record.tags?.map((tag: any)` → `record.tags?.map((tag: string)` and `record.refs?.map((ref: any)` → `record.refs?.map((ref: string)`. (AC: 1)
 
-- [ ] Replace the `rowKey` prop cast: `rowKey={(record: any) => record.id.toString()}` → `rowKey={(record: TransactionRow) => record.id.toString()}`. (AC: 1)
+- [x] Replace the `rowKey` prop cast: `rowKey={(record: any) => record.id.toString()}` → `rowKey={(record: TransactionRow) => record.id.toString()}`. (AC: 1)
 
-- [ ] Replace `expandedRowRender` and fix the narrowing for `TransactionEditForm`. (AC: 1)
+- [x] Replace `expandedRowRender` and fix the narrowing for `TransactionEditForm`. (AC: 1)
 
   ```typescript
   const expandedRowRender = (record: TransactionRow) => {
@@ -136,14 +136,14 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
 
   `TransactionEditForm.record` expects a real transaction row, not a synthetic date header. The type guard narrows `record` to `TransactionResponse` inside the else branch, making the JSX prop assignment type-safe.
 
-- [ ] Fix `rowExpandable` and `onRow` callbacks. (AC: 1)
+- [x] Fix `rowExpandable` and `onRow` callbacks. (AC: 1)
   - Use the local `isDateHeader(record)` guard for both callbacks.
   - `rowExpandable: (record) => !record._isDateHeader` → `rowExpandable: (record) => !isDateHeader(record)`
   - `onRow={(record) => ({ style: record._isDateHeader ? ... })}` → `onRow={(record) => ({ style: isDateHeader(record) ? ... })}`
 
 ### Task 5 — Type `Dropdown.tsx` (AC: 3)
 
-- [ ] Define and use `DropdownItem` and `DropdownProps` interfaces above the component. (AC: 3)
+- [x] Define and use `DropdownItem` and `DropdownProps` interfaces above the component. (AC: 3)
 
   ```typescript
   import type { MenuProps } from 'antd';
@@ -172,7 +172,7 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
 
 ### Task 6 — Type `AutoComplete.tsx` (TagsComplete) (AC: 3)
 
-- [ ] Define and use `TagsCompleteProps` interface above the component. (AC: 3)
+- [x] Define and use `TagsCompleteProps` interface above the component. (AC: 3)
 
   ```typescript
   interface TagsCompleteProps {
@@ -183,19 +183,19 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
 
   - Replace `(props: any)` with `(props: TagsCompleteProps)`.
 
-- [ ] Fix the `useState` type: change `const [options, setOptions] = useState([])` to `useState<string[]>([])`. (AC: 3)
+- [x] Fix the `useState` type: change `const [options, setOptions] = useState([])` to `useState<string[]>([])`. (AC: 3)
   - The current `useState([])` infers `never[]`, causing `setOptions` to reject any values.
 
-- [ ] Replace `let searchOptions: any = []` with `let searchOptions: string[] = []`. (AC: 3)
+- [x] Replace `let searchOptions: any = []` with `let searchOptions: string[] = []`. (AC: 3)
 
 ### Task 7 — Install ESLint plugin and configure `no-explicit-any` rule (AC: 4, 5)
 
-- [ ] Install `@typescript-eslint/eslint-plugin` matching the existing parser major version (currently `^5.8.0`). (AC: 5)
+- [x] Install `@typescript-eslint/eslint-plugin` matching the existing parser major version (currently `^5.8.0`). (AC: 5)
   - From `inex/ClientApp/`: `npm install --save-dev @typescript-eslint/eslint-plugin@^5.8.0`
   - The parser `@typescript-eslint/parser@^5.8.0` is already installed; both packages must share the same major version.
   - Commit both `package.json` and `package-lock.json`; `npm install` updates the lockfile and `npm ci` will fail if the manifest and lockfile drift.
 
-- [ ] Add an `overrides` block in `inex/ClientApp/.eslintrc.json` targeting the two cleaned directories. (AC: 5)
+- [x] Add an `overrides` block in `inex/ClientApp/.eslintrc.json` targeting the two cleaned directories. (AC: 5)
 
   ```json
   "overrides": [
@@ -217,10 +217,10 @@ So that TypeScript catches contract drift and wiring mistakes before runtime.
 
 ### Task 8 — Build and lint verification (AC: 4)
 
-- [ ] From `inex/ClientApp/`: run `npm run build` — must complete with zero errors. (AC: 4)
+- [x] From `inex/ClientApp/`: run `npm run build` — must complete with zero errors. (AC: 4)
   - The build script is `tsc --noEmit && vite build`. TypeScript strict mode is enabled (`"strict": true` in tsconfig.json), so type errors produce build failures.
 
-- [ ] From `inex/ClientApp/`: run `npm run lint` — must complete with zero new errors or warnings beyond what existed before this story. (AC: 4, 5)
+- [x] From `inex/ClientApp/`: run `npm run lint` — must complete with zero new errors or warnings beyond what existed before this story. (AC: 4, 5)
   - The lint script is `eslint ./src/**/*.ts ./src/**/*.tsx`.
   - Because the cleaned files will now have `no-explicit-any` active, any remaining `any` in those files will surface as warnings. All instances introduced above must be resolved before closing this story.
 
@@ -472,10 +472,33 @@ npm run lint      # eslint ./src/**/*.ts ./src/**/*.tsx
 
 ### Agent Model Used
 
-claude-sonnet-4-5
+GPT-5 Codex
 
 ### Debug Log References
 
+- `python3 _bmad/scripts/resolve_customization.py --skill C:\Users\artio\.codex\worktrees\c2c1\inex\.agents\skills\bmad-dev-story --key workflow` failed because `python3` is not installed in this Windows shell; workflow customization was resolved by reading `customize.toml` directly.
+- `npm run build` first failed with `EPERM` deleting an existing `ClientApp/build/assets` file; reran with approved escalation and build passed.
+
 ### Completion Notes List
 
+- Added typed frontend API model interfaces for transaction responses, transaction filter state, and account summaries.
+- Typed transaction Redux state and payload actions, including Axios response generics in transaction actions.
+- Replaced explicit `any` usage in `TransactionList.tsx`, `Dropdown.tsx`, and `AutoComplete.tsx` with explicit interfaces, unions, type guards, and `unknown` placeholder values.
+- Added the scoped `@typescript-eslint/no-explicit-any` override for transaction store and component paths; the required ESLint plugin was already present in `package.json` and `package-lock.json`.
+- Preserved the legacy `TransactionFilter` slice export for out-of-scope filter helpers while normalizing reducer input into `TransactionFilterState`.
+
 ### File List
+
+- inex/ClientApp/.eslintrc.json
+- inex/ClientApp/src/components/AutoComplete.tsx
+- inex/ClientApp/src/components/Dropdown.tsx
+- inex/ClientApp/src/model/Account/AccountSummary.ts
+- inex/ClientApp/src/model/Transaction/TransactionFilterState.ts
+- inex/ClientApp/src/model/Transaction/TransactionResponse.ts
+- inex/ClientApp/src/pages/Transactions/TransactionList.tsx
+- inex/ClientApp/src/store/transactions/transactions-actions.ts
+- inex/ClientApp/src/store/transactions/transactions-slice.ts
+
+### Change Log
+
+- 2026-06-02: Implemented Story 7.1 typed frontend API models and eliminated explicit `any` in targeted transaction/component flows.

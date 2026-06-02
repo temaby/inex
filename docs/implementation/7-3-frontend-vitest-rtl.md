@@ -1,6 +1,6 @@
 # Story 7.3: Frontend — Introduce Vitest and React Testing Library
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -24,24 +24,24 @@ so that I can write and run tests for UI components and Redux logic without a fu
 
 ## Tasks / Subtasks
 
-- [ ] Install Vitest and React Testing Library packages. (AC: 1)
-  - [ ] From `inex/ClientApp/`, run:
+- [x] Install Vitest and React Testing Library packages. (AC: 1)
+  - [x] From `inex/ClientApp/`, run:
     ```
     npm install -D vitest@^3 @testing-library/react @testing-library/dom @testing-library/jest-dom @testing-library/user-event jsdom@^26
     ```
-  - [ ] Verify all packages appear under `devDependencies` in `package.json` after install.
-  - [ ] Do not install unversioned latest `vitest` or `jsdom` unless the repository's Node baseline is intentionally upgraded first. Current Docker builds install Node.js 18; Vitest 4 and jsdom 27 require Node 20+.
-  - [ ] Install `@vitest/ui@^3` only if you plan to use the optional `test:ui` script.
-  - [ ] Do NOT install `jest`, `babel-jest`, `ts-jest`, `@jest/globals`, or any CRA jest package — Vitest replaces the jest layer entirely.
+  - [x] Verify all packages appear under `devDependencies` in `package.json` after install.
+  - [x] Do not install unversioned latest `vitest` or `jsdom` unless the repository's Node baseline is intentionally upgraded first. Current Docker builds install Node.js 18; Vitest 4 and jsdom 27 require Node 20+.
+  - [x] Install `@vitest/ui@^3` only if you plan to use the optional `test:ui` script.
+  - [x] Do NOT install `jest`, `babel-jest`, `ts-jest`, `@jest/globals`, or any CRA jest package — Vitest replaces the jest layer entirely.
 
-- [ ] Add `test` script to `package.json`. (AC: 1, 2)
-  - [ ] Add `"test": "vitest run"` to the `scripts` block. `vitest run` executes once and exits (suitable for CI). Do not remove `start`, `build`, `preview`, or `lint`.
-  - [ ] Optionally add `"test:watch": "vitest"` for interactive watch mode during development.
-  - [ ] Optionally add `"test:ui": "vitest --ui"` for the `@vitest/ui` browser reporter only if `@vitest/ui@^3` is installed in the same change.
+- [x] Add `test` script to `package.json`. (AC: 1, 2)
+  - [x] Add `"test": "vitest run"` to the `scripts` block. `vitest run` executes once and exits (suitable for CI). Do not remove `start`, `build`, `preview`, or `lint`.
+  - [x] Optionally add `"test:watch": "vitest"` for interactive watch mode during development.
+  - [x] Optionally add `"test:ui": "vitest --ui"` for the `@vitest/ui` browser reporter only if `@vitest/ui@^3` is installed in the same change.
 
-- [ ] Update `vite.config.ts` to include the Vitest `test` block. (AC: 4, 5)
-  - [ ] Change the top-level import from `import { defineConfig } from 'vite'` to `import { defineConfig } from 'vitest/config'`. This makes the `test` property TypeScript-valid without a triple-slash directive.
-  - [ ] Add the `test` block inside `defineConfig({...})` alongside the existing `plugins`, `build`, and `server` blocks:
+- [x] Update `vite.config.ts` to include the Vitest `test` block. (AC: 4, 5)
+  - [x] Change the top-level import from `import { defineConfig } from 'vite'` to `import { defineConfig } from 'vitest/config'`. This makes the `test` property TypeScript-valid without a triple-slash directive.
+  - [x] Add the `test` block inside `defineConfig({...})` alongside the existing `plugins`, `build`, and `server` blocks:
     ```typescript
     test: {
       globals: true,
@@ -49,38 +49,38 @@ so that I can write and run tests for UI components and Redux logic without a fu
       setupFiles: ['./src/test/setup.ts'],
     },
     ```
-  - [ ] Leave `plugins`, `build.outDir`, `server.port`, and `server.proxy` unchanged.
+  - [x] Leave `plugins`, `build.outDir`, `server.port`, and `server.proxy` unchanged.
 
-- [ ] Update `tsconfig.json` to include Vitest globals and jest-dom types. (AC: 5)
-  - [ ] In `compilerOptions.types`, change `["vite/client"]` to:
+- [x] Update `tsconfig.json` to include Vitest globals and jest-dom types. (AC: 5)
+  - [x] In `compilerOptions.types`, change `["vite/client"]` to:
     ```json
     ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
     ```
-  - [ ] Do not add or remove anything else from `tsconfig.json`. The existing `"include": ["src", "vite.config.ts"]` already covers test files inside `src/` and the updated config file.
-  - [ ] Do not create a separate `tsconfig.test.json` — the single tsconfig is sufficient.
+  - [x] Do not add or remove anything else from `tsconfig.json`. The existing `"include": ["src", "vite.config.ts"]` already covers test files inside `src/` and the updated config file.
+  - [x] Do not create a separate `tsconfig.test.json` — the single tsconfig is sufficient.
 
-- [ ] Create `src/test/setup.ts` — the jest-dom setup file. (AC: 3, 5)
-  - [ ] Create `inex/ClientApp/src/test/setup.ts` with the single line:
+- [x] Create `src/test/setup.ts` — the jest-dom setup file. (AC: 3, 5)
+  - [x] Create `inex/ClientApp/src/test/setup.ts` with the single line:
     ```typescript
     import "@testing-library/jest-dom/vitest";
     ```
-  - [ ] This file is referenced by `setupFiles` in `vite.config.ts` and runs before every test. It extends Vitest's `expect` with DOM matchers such as `toBeInTheDocument`, `toHaveTextContent`, `toBeVisible`, and `toBeDisabled`.
+  - [x] This file is referenced by `setupFiles` in `vite.config.ts` and runs before every test. It extends Vitest's `expect` with DOM matchers such as `toBeInTheDocument`, `toHaveTextContent`, `toBeVisible`, and `toBeDisabled`.
 
-- [ ] Write the Redux reducer smoke test. (AC: 3)
-  - [ ] Create `inex/ClientApp/src/store/categories/categories-slice.test.ts`.
-  - [ ] Test the `setIsLoading` and `setCategories` reducers using `categoriesSlice.reducer(initialState, action)` — pure synchronous state transitions, no async, no API calls.
-  - [ ] See the **Reducer Smoke Test** code block in Dev Notes for the complete test.
+- [x] Write the Redux reducer smoke test. (AC: 3)
+  - [x] Create `inex/ClientApp/src/store/categories/categories-slice.test.ts`.
+  - [x] Test the `setIsLoading` and `setCategories` reducers using `categoriesSlice.reducer(initialState, action)` — pure synchronous state transitions, no async, no API calls.
+  - [x] See the **Reducer Smoke Test** code block in Dev Notes for the complete test.
 
-- [ ] Write the React component render smoke test. (AC: 3)
-  - [ ] Create `inex/ClientApp/src/components/ProtectedRoute.test.tsx`.
-  - [ ] Assert two behaviors: authenticated user sees child route content; unauthenticated user is redirected to `/login`.
-  - [ ] Build a minimal store using `configureStore` from `@reduxjs/toolkit` with only the `auth` reducer — do not import the full app store from `store/index.ts`.
-  - [ ] See the **Component Render Smoke Test** code block in Dev Notes for the complete test.
+- [x] Write the React component render smoke test. (AC: 3)
+  - [x] Create `inex/ClientApp/src/components/ProtectedRoute.test.tsx`.
+  - [x] Assert two behaviors: authenticated user sees child route content; unauthenticated user is redirected to `/login`.
+  - [x] Build a minimal store using `configureStore` from `@reduxjs/toolkit` with only the `auth` reducer — do not import the full app store from `store/index.ts`.
+  - [x] See the **Component Render Smoke Test** code block in Dev Notes for the complete test.
 
-- [ ] Verify `npm test` and `npm run build` both pass. (AC: 5)
-  - [ ] From `inex/ClientApp/`: run `npm test` — exit code must be 0, both smoke tests pass.
-  - [ ] From `inex/ClientApp/`: run `npm run build` — `tsc --noEmit && vite build` must succeed with no new errors.
-  - [ ] From `inex/ClientApp/`: run `npm run lint` — must not introduce new lint errors in the added files.
+- [x] Verify `npm test` and `npm run build` both pass. (AC: 5)
+  - [x] From `inex/ClientApp/`: run `npm test` — exit code must be 0, both smoke tests pass.
+  - [x] From `inex/ClientApp/`: run `npm run build` — `tsc --noEmit && vite build` must succeed with no new errors.
+  - [x] From `inex/ClientApp/`: run `npm run lint` — must not introduce new lint errors in the added files.
 
 ---
 
@@ -457,10 +457,43 @@ This story is Story 7.3 within Epic 7 (Faster, Safer Frontend Evolution). It is 
 
 ### Agent Model Used
 
-Claude Sonnet 4.6
+Codex GPT-5
 
 ### Debug Log References
 
+- 2026-06-02: `npm install -D vitest@^3 @testing-library/react @testing-library/dom @testing-library/jest-dom @testing-library/user-event jsdom@^26` completed; first sandboxed attempt timed out before writing manifests, escalated rerun succeeded.
+- 2026-06-02: `npm test` passed: 2 test files, 7 tests.
+- 2026-06-02: `npm run lint` passed.
+- 2026-06-02: `npm run build` first failed with `EPERM` while cleaning `build/assets`; escalated rerun passed.
+
+### Implementation Plan
+
+- Add Vitest 3.x, jsdom 26.x, React Testing Library, DOM, jest-dom, and user-event dev dependencies without adding Jest packages.
+- Use the existing Vite config as the single test/build config, preserving the concurrent manual chunk configuration while importing `defineConfig` from `vitest/config`.
+- Add Vitest/Jest DOM ambient types through the existing `tsconfig.json` `types` array only.
+- Add one pure Redux reducer smoke test and one ProtectedRoute render smoke test using a minimal auth-only Redux store.
+
 ### Completion Notes List
 
+- Added `test` and `test:watch` scripts; `test` runs `vitest run` for CI-style execution.
+- Added `src/test/setup.ts` with the jest-dom Vitest setup import.
+- Added `categories-slice.test.ts` covering `setIsLoading`, `setCategories`, and initial items state.
+- Added `ProtectedRoute.test.tsx` covering authenticated render, unauthenticated redirect, and initializing state behavior.
+- Verified `npm test`, `npm run lint`, and `npm run build` pass from `inex/ClientApp`.
+- Left `@vitest/ui` and `test:ui` out because the story made them optional and no UI runner was needed.
+- Did not update `docs/implementation/sprint-status.yaml`; it is outside the requested write scope and still lists Story 7.3 as backlog.
+
 ### File List
+
+- `inex/ClientApp/package.json`
+- `inex/ClientApp/package-lock.json`
+- `inex/ClientApp/vite.config.ts`
+- `inex/ClientApp/tsconfig.json`
+- `inex/ClientApp/src/test/setup.ts`
+- `inex/ClientApp/src/store/categories/categories-slice.test.ts`
+- `inex/ClientApp/src/components/ProtectedRoute.test.tsx`
+- `docs/implementation/7-3-frontend-vitest-rtl.md`
+
+### Change Log
+
+- 2026-06-02: Installed frontend test dependencies, configured Vitest/RTL, added smoke tests, and marked Story 7.3 ready for review.

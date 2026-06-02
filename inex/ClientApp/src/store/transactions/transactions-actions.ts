@@ -4,12 +4,14 @@ import type { Dayjs } from "dayjs";
 import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { transactionsActions } from "./transactions-slice";
-import type { TransactionFilter } from "./transactions-slice";
+import { AccountSummary } from "../../model/Account/AccountSummary";
+import { TransactionFilterState } from "../../model/Transaction/TransactionFilterState";
+import { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import type { AppDispatch } from "../index";
 
 const API_BASE = "/transactions";
 
-export const fetchTransactions = (pageSize: number, page: number, filter: TransactionFilter) => {
+export const fetchTransactions = (pageSize: number, page: number, filter: TransactionFilterState) => {
     return async (dispatch: AppDispatch) => {
         try {
             dispatch(transactionsActions.setIsLoading({ isLoading: true }));
@@ -31,7 +33,9 @@ export const fetchTransactions = (pageSize: number, page: number, filter: Transa
                 params.set("endDate", dayjs.unix(filter.range[1]).format("YYYY-MM-DD"));
             }
 
-            const { data } = await apiClient.get(`${API_BASE}?${params.toString()}`);
+            const { data } = await apiClient.get<{ data: TransactionResponse[]; metadata: { totalItems: number } }>(
+                `${API_BASE}?${params.toString()}`
+            );
 
             dispatch(transactionsActions.setTransactions({ items: data.data || [] }));
             dispatch(transactionsActions.setTotal({ total: data.metadata.totalItems }));
@@ -47,7 +51,7 @@ export const fetchTransactionsSummaryForAccounts = (ids: number[]) => {
     return async (dispatch: AppDispatch) => {
         try {
             const idsStr = ids.map((id, i) => `ids[${i}]=${id}`).join("&");
-            const { data } = await apiClient.get(`/accounts/details?mode=active&${idsStr}`);
+            const { data } = await apiClient.get<{ data: AccountSummary[] }>(`/accounts/details?mode=active&${idsStr}`);
             dispatch(transactionsActions.setTransactionsSummaryForAccounts({ items: data.data || [] }));
         } catch (error) {
             dispatch(transactionsActions.setError({ error: parseAxiosError(error, "Could not fetch transactions summary") }));

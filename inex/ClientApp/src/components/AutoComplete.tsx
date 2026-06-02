@@ -3,13 +3,18 @@ import { AutoComplete } from "antd";
 
 import { useState } from "react";
 
-const TagsComplete = (props: any) => {
-  const [options, setOptions] = useState([]);
+interface TagsCompleteProps {
+    tags: string[];
+    refs: string[];
+}
+
+const TagsComplete = (props: TagsCompleteProps) => {
+  const [options, setOptions] = useState<string[]>([]);
 
   const { tags, refs } = props;
 
   const handleSearch = (value: string) => {
-    let searchOptions: any = [];
+    let searchOptions: string[] = [];
 
     if (value.toLowerCase().startsWith("@")) {
         // search refs
