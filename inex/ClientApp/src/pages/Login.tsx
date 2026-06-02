@@ -28,7 +28,7 @@ const Login = () => {
   // Already logged in — redirect away from the login page
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   useEffect(() => {
-    if (accessToken) navigate("/transactions", { replace: true });
+    if (accessToken) navigate("/dashboard", { replace: true });
   }, [accessToken]);
 
   // Clear the server error whenever the user starts editing the form,
@@ -41,7 +41,7 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       await dispatch(loginUser(values));
-      navigate("/transactions");
+      navigate("/dashboard");
     } catch {
       // Error already stored in auth.error by the thunk — nothing to do here
     } finally {

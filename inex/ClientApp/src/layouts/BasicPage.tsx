@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Typography, Space, Flex, Drawer, Button, Grid } from "antd";
 import {
     LogoutOutlined, UserOutlined, MenuOutlined,
-    SwapOutlined, BankOutlined, TagsOutlined, FundOutlined, BarChartOutlined,
+    HomeOutlined, SwapOutlined, BankOutlined, TagsOutlined, FundOutlined, BarChartOutlined,
 } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/auth/auth-actions";
@@ -26,6 +26,7 @@ const BasicPage = (props: any) => {
     const isMobile = screens.md === false;
 
     const navItems = [
+        { key: "dashboard",    label: t("nav.dashboard"),    icon: <HomeOutlined /> },
         { key: "transactions", label: t("nav.transactions"), icon: <SwapOutlined /> },
         { key: "accounts",     label: t("nav.accounts"),     icon: <BankOutlined /> },
         { key: "categories",   label: t("nav.categories"),   icon: <TagsOutlined /> },

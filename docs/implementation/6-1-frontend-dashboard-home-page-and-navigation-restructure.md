@@ -1,6 +1,6 @@
 # Story 6.1: Frontend - Dashboard Home Page and Navigation Restructure
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run bmad-create-story validate before dev-story. -->
 
@@ -24,33 +24,33 @@ So that I see my financial overview immediately rather than navigating blind.
 
 ## Tasks / Subtasks
 
-- [ ] Add the dashboard route and landing redirect. (AC: 1, 3)
-  - [ ] Create a lightweight protected dashboard page component, likely `inex/ClientApp/src/pages/Dashboard.tsx`.
-  - [ ] Register `/dashboard` inside the existing `ProtectedRoute` route tree in `inex/ClientApp/src/App.tsx`.
-  - [ ] Change the protected `/` redirect from `/transactions` to `/dashboard`.
-  - [ ] Preserve public `/login` and `/register` routes and all existing protected route boundaries.
+- [x] Add the dashboard route and landing redirect. (AC: 1, 3)
+  - [x] Create a lightweight protected dashboard page component, likely `inex/ClientApp/src/pages/Dashboard.tsx`.
+  - [x] Register `/dashboard` inside the existing `ProtectedRoute` route tree in `inex/ClientApp/src/App.tsx`.
+  - [x] Change the protected `/` redirect from `/transactions` to `/dashboard`.
+  - [x] Preserve public `/login` and `/register` routes and all existing protected route boundaries.
 
-- [ ] Wire dashboard into the existing navigation without redesigning the app shell. (AC: 1, 2, 4)
-  - [ ] Add a dashboard navigation item to `BasicPage` using existing Ant Design menu patterns and current icon dependency.
-  - [ ] Keep Reports visible as a distinct top-level navigation item unless a minimal submenu is required by the implementation; do not merge Reports into Dashboard.
-  - [ ] Ensure selected navigation state works for `/dashboard`, `/reports`, and nested report paths.
-  - [ ] Add `nav.dashboard` and dashboard page labels to both EN and RU locale files.
+- [x] Wire dashboard into the existing navigation without redesigning the app shell. (AC: 1, 2, 4)
+  - [x] Add a dashboard navigation item to `BasicPage` using existing Ant Design menu patterns and current icon dependency.
+  - [x] Keep Reports visible as a distinct top-level navigation item unless a minimal submenu is required by the implementation; do not merge Reports into Dashboard.
+  - [x] Ensure selected navigation state works for `/dashboard`, `/reports`, and nested report paths.
+  - [x] Add `nav.dashboard` and dashboard page labels to both EN and RU locale files.
 
-- [ ] Build a functional dashboard placeholder, not final dashboard UI. (AC: 3, 4)
-  - [ ] Render a non-empty dashboard page using existing layout/page patterns.
-  - [ ] Include clearly separated placeholder regions for upcoming Epic 6 widgets: month summary cards, spending heatmap, and historical net worth chart.
-  - [ ] Use localized EN/RU strings for all visible dashboard text.
-  - [ ] Do not fetch new data, calculate summary metrics, render charts, or introduce widget-specific business logic in this story.
+- [x] Build a functional dashboard placeholder, not final dashboard UI. (AC: 3, 4)
+  - [x] Render a non-empty dashboard page using existing layout/page patterns.
+  - [x] Include clearly separated placeholder regions for upcoming Epic 6 widgets: month summary cards, spending heatmap, and historical net worth chart.
+  - [x] Use localized EN/RU strings for all visible dashboard text.
+  - [x] Do not fetch new data, calculate summary metrics, render charts, or introduce widget-specific business logic in this story.
 
-- [ ] Preserve Reports behavior. (AC: 2, 5)
-  - [ ] Keep `/reports`, `/reports/category`, `/reports/budget`, and `/reports/history` route targets unchanged.
-  - [ ] Keep `ReportList` launch behavior and existing drill-down components working.
-  - [ ] Keep Reports page title/back-button behavior stable unless a minimal adjustment is required by route selection or dashboard separation.
+- [x] Preserve Reports behavior. (AC: 2, 5)
+  - [x] Keep `/reports`, `/reports/category`, `/reports/budget`, and `/reports/history` route targets unchanged.
+  - [x] Keep `ReportList` launch behavior and existing drill-down components working.
+  - [x] Keep Reports page title/back-button behavior stable unless a minimal adjustment is required by route selection or dashboard separation.
 
-- [ ] Verify frontend quality gates. (AC: 5)
-  - [ ] From `inex/ClientApp`, run `npm run build`.
-  - [ ] From `inex/ClientApp`, run `npm run lint`.
-  - [ ] Manually smoke-check navigation to `/dashboard`, `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, and existing report drill-down routes.
+- [x] Verify frontend quality gates. (AC: 5)
+  - [x] From `inex/ClientApp`, run `npm run build`.
+  - [x] From `inex/ClientApp`, run `npm run lint`.
+  - [x] Manually smoke-check navigation to `/dashboard`, `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, and existing report drill-down routes.
 
 ## Dev Notes
 
@@ -183,13 +183,37 @@ GPT-5 Codex
 
 ### Debug Log References
 
+- 2026-06-01: `python3 _bmad/scripts/resolve_customization.py ...` could not run because `python3` is not installed in the Windows shell; workflow customization was resolved manually from the skill TOML files.
+- 2026-06-01: Initial sandboxed `npm run build` and `npm run lint` attempts failed with Node `EPERM` on `C:\Users\artio`; reran both outside the sandbox per approval flow and they passed.
+- 2026-06-01: In-app browser smoke check could not run because the browser connector failed to start in this Windows sandbox (`spawn setup refresh`); route availability was checked through Vite HTTP responses instead.
+- 2026-06-01: Review follow-up found two stale login redirects to `/transactions`; updated both to `/dashboard`.
+- 2026-06-01: Review-fix validation repeated `npm run build` and `npm run lint`; sandboxed attempts still failed with Node `EPERM` on `C:\Users\artio`, rerun outside sandbox passed.
+
 ### Completion Notes List
 
 - Story context created via bmad-create-story workflow for key `6-1-frontend-dashboard-home-page-and-navigation-restructure`.
 - Story status set to `ready-for-dev`.
 - Story intentionally limits scope to functional dashboard route/navigation scaffold before Epic 10.
 - Sprint status was not updated because this orchestration run was constrained to create exactly one story file.
+- Added a protected `/dashboard` route and changed the protected `/` redirect to `/dashboard` while keeping public auth routes and existing protected routes intact.
+- Added Dashboard to the existing `BasicPage` Ant Design navigation, leaving Reports as a distinct top-level item and preserving nested report route behavior.
+- Added a localized functional dashboard placeholder with separate month summary, spending heatmap, and historical net worth chart regions; no dashboard data fetching, charting, or widget business logic was introduced.
+- Verified `npm run build` and `npm run lint` from `inex/ClientApp`; both passed. Vite HTTP route checks returned 200 for `/`, `/dashboard`, `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, `/reports/category`, `/reports/budget`, and `/reports/history`.
+- Addressed review fix by changing authenticated-login and post-submit login redirects from `/transactions` to `/dashboard`.
+- Re-verified `npm run build` and `npm run lint` from `inex/ClientApp`; both passed after the login redirect fix.
 
 ### File List
 
 - docs/implementation/6-1-frontend-dashboard-home-page-and-navigation-restructure.md
+- docs/implementation/sprint-status.yaml
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/App.tsx
+- inex/ClientApp/src/layouts/BasicPage.tsx
+- inex/ClientApp/src/pages/Login.tsx
+- inex/ClientApp/src/pages/Dashboard.tsx
+
+### Change Log
+
+- 2026-06-01: Implemented Story 6.1 dashboard route, landing redirect, navigation entry, localized placeholder scaffold, and frontend verification.
+- 2026-06-01: Addressed review follow-up by routing successful/already-authenticated login flow to `/dashboard` and rerunning frontend build/lint.

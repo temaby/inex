@@ -149,6 +149,20 @@
             <param name="currency">Currency for report</param>
             <returns>Monthly history details</returns>
         </member>
+        <member name="M:inex.Controllers.ReportsController.GetSpendingHeatmap(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Threading.CancellationToken)">
+            <summary>Get daily spending heatmap report</summary>
+            <param name="start">Inclusive start date</param>
+            <param name="end">Inclusive end date</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Daily spending totals in the user's base currency</returns>
+        </member>
+        <member name="M:inex.Controllers.ReportsController.GetNetWorth(System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>Get monthly historical net-worth report</summary>
+            <param name="months">Number of months to include, from 1 to 60</param>
+            <param name="currency">Optional report currency. Defaults to user's base currency.</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Monthly net-worth points in the selected currency</returns>
+        </member>
         <member name="M:inex.Controllers.TransactionsController.Single(System.Int32,System.Threading.CancellationToken)">
             <summary>Get transaction details</summary>
             <param name="id">Transaction id</param>

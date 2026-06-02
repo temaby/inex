@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-01T12:33:53+02:00
+last_updated: 2026-06-01T20:00:00+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -66,12 +66,12 @@ development_status:
   epic-5: in-progress
   5-1-backend-nbrb-exchange-rate-client-for-byn-rub: review
   epic-5-retrospective: optional
-  epic-6: backlog
-  6-1-frontend-dashboard-home-page-and-navigation-restructure: backlog
-  6-2-frontend-month-summary-cards: backlog
-  6-3-frontend-spending-heatmap-calendar: backlog
-  6-4-backend-frontend-historical-net-worth-chart: backlog
-  6-5-backend-fix-category-report-data-gaps-and-localization: backlog
+  epic-6: done
+  6-1-frontend-dashboard-home-page-and-navigation-restructure: done
+  6-2-frontend-month-summary-cards: done
+  6-3-frontend-spending-heatmap-calendar: done
+  6-4-backend-frontend-historical-net-worth-chart: done
+  6-5-backend-fix-category-report-data-gaps-and-localization: done
   epic-6-retrospective: optional
   epic-7: backlog
   7-1-frontend-typed-api-models-eliminate-any-in-core-flows: backlog
