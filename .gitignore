@@ -27,3 +27,7 @@ docs/*
 **/logs/
 *.pem
 *.stackdump
+.codex/config.toml
+.mcp-local/
+.mcp-npm-cache/
+.tmp-npm-cache/
