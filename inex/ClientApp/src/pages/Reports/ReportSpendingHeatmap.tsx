@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
 import dayjs from "dayjs";
-import SpendingHeatmap from "../../components/SpendingHeatmap";
+import SpendingHeatmap, { getSpendingIntensityColor } from "../../components/SpendingHeatmap";
+
+export { getSpendingIntensityColor };
 
 const ReportSpendingHeatmap = () => {
   const dateRange = useMemo(() => {

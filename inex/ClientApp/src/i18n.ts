@@ -7,6 +7,8 @@ function syncDayjsLocale(lang: string) {
     dayjs.locale(lang === "ru" ? "ru" : "en");
 }
 
+const localeResourceVersion = "2026-06-02-dashboard-locales";
+
 i18n
     .use(HttpBackend)
     .use(initReactI18next)
@@ -15,7 +17,7 @@ i18n
         fallbackLng: "en",
         supportedLngs: ["en", "ru"],
         backend: {
-            loadPath: "/locales/{{lng}}/translation.json",
+            loadPath: `/locales/{{lng}}/translation.json?v=${localeResourceVersion}`,
         },
         interpolation: {
             escapeValue: false,

@@ -279,8 +279,13 @@ try
                 headers.Append("X-Frame-Options", "DENY");
                 headers.Append("X-Content-Type-Options", "nosniff");
 
-                // Cache static assets for 1 year, except HTML files which should not be cached to ensure users get the latest version.
-                if (!ctx.File.Name.EndsWith(".html"))
+                var requestPath = ctx.Context.Request.Path.Value ?? string.Empty;
+                var isHtml = ctx.File.Name.EndsWith(".html", StringComparison.OrdinalIgnoreCase);
+                var isLocaleJson = requestPath.StartsWith("/locales/", StringComparison.OrdinalIgnoreCase)
+                    && ctx.File.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
+
+                // Cache hashed static assets for 1 year. HTML and locale JSON are intentionally unversioned.
+                if (!isHtml && !isLocaleJson)
                 {
                     ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
                 }
