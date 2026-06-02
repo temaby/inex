@@ -272,7 +272,8 @@ public class ReportService : Service, IReportService
             ? GetUserBaseCurrency(userId)
             : currency;
 
-        DateTime currentMonth = new(_clock.UtcNow.Year, _clock.UtcNow.Month, 1);
+        DateTime today = _clock.UtcNow.Date;
+        DateTime currentMonth = new(today.Year, today.Month, 1);
         DateTime startMonth = currentMonth.AddMonths(-(monthCount - 1));
         DateTime startDate = startMonth.Date;
         DateTime endDate = GetMonthEnd(currentMonth);
@@ -323,8 +324,15 @@ public class ReportService : Service, IReportService
                 }
 
                 var account = accounts[accountId];
-                string accountCurrency = account.Currency ?? baseCurrency;
-                netWorth += ConvertToBaseCurrency(balance, accountCurrency, baseCurrency, monthEnd, rateMap);
+                string accountCurrency = string.IsNullOrWhiteSpace(account.Currency)
+                    ? baseCurrency
+                    : account.Currency;
+
+                DateTime conversionDate = monthEnd > today ? today : monthEnd;
+                if (TryConvertToBaseCurrency(balance, accountCurrency, baseCurrency, conversionDate, rateMap, out decimal convertedBalance))
+                {
+                    netWorth += convertedBalance;
+                }
             }
 
             points.Add(new NetWorthHistoryPointResponse
@@ -357,24 +365,29 @@ public class ReportService : Service, IReportService
         return new DateTime(month.Year, month.Month, 1).AddMonths(1).AddDays(-1);
     }
 
-    private static decimal ConvertToBaseCurrency(
+    private static bool TryConvertToBaseCurrency(
         decimal amount,
         string accountCurrency,
         string baseCurrency,
         DateTime date,
-        IReadOnlyDictionary<(string Currency, DateTime Date), ExchangeRateResponse> rateMap)
+        IReadOnlyDictionary<(string Currency, DateTime Date), ExchangeRateResponse> rateMap,
+        out decimal convertedAmount)
     {
+        convertedAmount = amount;
+
         if (string.Equals(accountCurrency, baseCurrency, StringComparison.InvariantCultureIgnoreCase))
         {
-            return amount;
+            return true;
         }
 
         if (!rateMap.TryGetValue((accountCurrency, date.Date), out ExchangeRateResponse? rate) || rate.Rate == 0)
         {
-            throw new InvalidOperationException($"Missing exchange rate for {accountCurrency} on {date:yyyy-MM-dd}.");
+            convertedAmount = 0;
+            return false;
         }
 
-        return amount / rate.Rate;
+        convertedAmount = amount / rate.Rate;
+        return true;
     }
 
     #endregion Private Methods
