@@ -50,14 +50,15 @@ interface HeatmapCellProps extends CellShapeProps {
 
 const cellSize = 14;
 const dayTicks = [0, 1, 2, 3, 4, 5, 6];
+const spendingHeatmapColors = ["#f8fafc", "#fee2e2", "#fca5a5", "#ef4444", "#991b1b"] as const;
 
-const getIntensityColor = (totalSpend: number, maxSpend: number) => {
-  if (totalSpend <= 0 || maxSpend <= 0) return "#ebedf0";
+export const getSpendingIntensityColor = (totalSpend: number, maxSpend: number) => {
+  if (totalSpend <= 0 || maxSpend <= 0) return spendingHeatmapColors[0];
   const ratio = totalSpend / maxSpend;
-  if (ratio >= 0.75) return "#196127";
-  if (ratio >= 0.5) return "#239a3b";
-  if (ratio >= 0.25) return "#7bc96f";
-  return "#c6e48b";
+  if (ratio >= 0.75) return spendingHeatmapColors[4];
+  if (ratio >= 0.5) return spendingHeatmapColors[3];
+  if (ratio >= 0.25) return spendingHeatmapColors[2];
+  return spendingHeatmapColors[1];
 };
 
 const HeatmapCell = ({ cx = 0, cy = 0, payload, maxSpend }: HeatmapCellProps) => (
@@ -68,7 +69,7 @@ const HeatmapCell = ({ cx = 0, cy = 0, payload, maxSpend }: HeatmapCellProps) =>
     height={cellSize}
     rx={2}
     ry={2}
-    fill={getIntensityColor(payload?.totalSpend ?? 0, maxSpend)}
+    fill={getSpendingIntensityColor(payload?.totalSpend ?? 0, maxSpend)}
   />
 );
 
@@ -248,7 +249,7 @@ const ReportSpendingHeatmap = () => {
                 width: 12,
                 height: 12,
                 borderRadius: 2,
-                background: getIntensityColor(step * maxSpend, maxSpend),
+                background: getSpendingIntensityColor(step * maxSpend, maxSpend),
               }}
             />
           ))}
