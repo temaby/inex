@@ -6,7 +6,9 @@
     "categories": "Категории",
     "budgets": "Бюджеты",
     "reports": "Отчёты",
-    "signOut": "Выйти"
+    "signOut": "Выйти",
+    "mainNav": "Основная навигация",
+    "profile": "Профиль"
   },
   "common": {
     "add": "Добавить",

@@ -102,7 +102,7 @@ development_status:
   epic-10: in-progress
   10-1a-frontend-ux-design-tokens-and-theme-bridge: done
   10-1b-frontend-ux-shared-primitives: done
-  10-1c-frontend-ux-app-shell-and-navigation: ready-for-dev
+  10-1c-frontend-ux-app-shell-and-navigation: review
   10-2-frontend-ux-transactions-ledger-redesign: ready-for-dev
   10-3a-frontend-ux-accounts-management-redesign: ready-for-dev
   10-3b-frontend-ux-categories-management-redesign: ready-for-dev
