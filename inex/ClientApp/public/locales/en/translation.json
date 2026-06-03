@@ -6,7 +6,9 @@
     "categories": "Categories",
     "budgets": "Budgets",
     "reports": "Reports",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "mainNav": "Main navigation",
+    "profile": "Profile"
   },
   "common": {
     "add": "Add",

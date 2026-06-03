@@ -1,6 +1,6 @@
 # Story 10.1c: Frontend UX — App Shell And Navigation
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -24,22 +24,22 @@ so that desktop and mobile navigation are predictable across authenticated workf
 
 ## Tasks / Subtasks
 
-- [ ] Replace authenticated shell implementation while preserving route/auth behavior (AC: 1, 2, 4)
-  - [ ] Implement `inex/ClientApp/src/layouts/AppShell.tsx` using React Router navigation and existing auth hooks
-  - [ ] Keep `currentPage` derivation logic compatible with nested `/reports/*` routes
-  - [ ] Ensure logout continues to call `dispatch(logoutUser())`
-- [ ] Implement shell styling and responsive contracts (AC: 1, 3)
-  - [ ] Create `inex/ClientApp/src/layouts/AppShell.css` with token-driven styles and shell-only responsive rules
-  - [ ] Remove authenticated footer and drawer-based mobile nav pattern
-  - [ ] Verify fixed mobile bottom nav and content safe-area padding behavior
-- [ ] Wire pages to the new shell with minimal blast radius (AC: 1, 4)
-  - [ ] Choose either direct import migration or `BasicPage` re-export shim
-  - [ ] Update only files that currently import `BasicPage`
-  - [ ] Do not modify route definitions; `SignageProvider` is owned by Story 10.1b and must already be present before this story starts
-- [ ] Validate localization and quality gates (AC: 5, 6)
-  - [ ] Add missing nav keys in EN/RU locale files if needed
-  - [ ] Run `npm run build` and `npm run lint` from `inex/ClientApp`
-  - [ ] Capture mobile visual QA screenshots across authenticated routes
+- [x] Replace authenticated shell implementation while preserving route/auth behavior (AC: 1, 2, 4)
+  - [x] Implement `inex/ClientApp/src/layouts/AppShell.tsx` using React Router navigation and existing auth hooks
+  - [x] Keep `currentPage` derivation logic compatible with nested `/reports/*` routes
+  - [x] Ensure logout continues to call `dispatch(logoutUser())`
+- [x] Implement shell styling and responsive contracts (AC: 1, 3)
+  - [x] Create `inex/ClientApp/src/layouts/AppShell.css` with token-driven styles and shell-only responsive rules
+  - [x] Remove authenticated footer and drawer-based mobile nav pattern
+  - [x] Verify fixed mobile bottom nav and content safe-area padding behavior
+- [x] Wire pages to the new shell with minimal blast radius (AC: 1, 4)
+  - [x] Choose either direct import migration or `BasicPage` re-export shim
+  - [x] Update only files that currently import `BasicPage`
+  - [x] Do not modify route definitions; `SignageProvider` is owned by Story 10.1b and must already be present before this story starts
+- [x] Validate localization and quality gates (AC: 5, 6)
+  - [x] Add missing nav keys in EN/RU locale files if needed
+  - [x] Run `npm run build` and `npm run lint` from `inex/ClientApp`
+  - [x] Capture mobile visual QA screenshots across authenticated routes
 
 ## Prerequisites
 
@@ -585,10 +585,49 @@ GPT-5.3-Codex
 
 ### Completion Notes List
 
-- Story context validated against current repository paths and implementation baselines.
-- Checklist gaps fixed: task breakdown, file-path corrections, locale-path corrections, and latest-tech guardrails.
-- Story remains in `ready-for-dev` state and is now aligned with sprint status.
+- Confirmed Story 10.1a and Story 10.1b are `done` in sprint status before implementation after fast-forwarding the branch to the latest `master`.
+- Added typed `AppShell` with five-item desktop route tabs, mobile fixed bottom navigation, user pill profile navigation, and logout via `dispatch(logoutUser())`.
+- Kept `BasicPage` as a re-export shim so existing page imports continue to render the new shell without changing page interiors or `App.tsx` routes.
+- Removed authenticated footer and drawer-based mobile shell navigation from the active shell path.
+- Added EN/RU `nav.mainNav` and `nav.profile` keys; existing nav labels continue to use i18next keys.
+- `npm run build` and `npm run lint` pass from `inex/ClientApp`; no `any` usage was introduced in touched shell TypeScript files.
+- Mobile visual QA at 390px captured `/transactions`, `/accounts`, `/categories`, `/budgets`, and `/reports`; all verified no horizontal overflow, hidden top tabs, visible bottom nav, 96px content bottom padding, icon-only user pill, and no authenticated footer.
+
+### Debug Log References
+
+- 2026-06-03: `npm run build` from `inex/ClientApp` passed.
+- 2026-06-03: `npm run lint` from `inex/ClientApp` passed.
+- 2026-06-03: `rg -n "\bany\b" inex/ClientApp/src/layouts/AppShell.tsx inex/ClientApp/src/layouts/BasicPage.tsx` returned no matches.
+- 2026-06-03: Headless Edge CDP mobile QA at 390x844 captured screenshots under `%TEMP%/inex-10-1c-visual-qa`.
+- 2026-06-03: BMad code review found one scoped CSS leakage issue; removed the mobile global `body` padding rule and reran `npm run build` and `npm run lint`.
 
 ### File List
 
 - `docs/implementation/10-1c-frontend-ux-app-shell-and-navigation.md`
+- `docs/implementation/sprint-status.yaml`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/layouts/AppShell.css`
+- `inex/ClientApp/src/layouts/AppShell.tsx`
+- `inex/ClientApp/src/layouts/BasicPage.tsx`
+
+### Change Log
+
+- 2026-06-03: Implemented app shell and navigation replacement; story marked ready for review.
+- 2026-06-03: Addressed code review finding by scoping mobile bottom-nav clearance to the shell page body.
+
+## Senior Developer Review (AI)
+
+### Review Outcome
+
+Approve after fix.
+
+### Findings
+
+- [x] Medium: `AppShell.css` set mobile padding on global `body`, which could leak into public/auth screens after the authenticated shell chunk loads. Fixed by removing the global rule and relying on `.inex-page-body` mobile `padding-bottom: 96px`.
+
+### Verification
+
+- `npm run build` from `inex/ClientApp` passed after the fix.
+- `npm run lint` from `inex/ClientApp` passed after the fix.
+- Pre-fix five-route mobile QA at 390px verified shell behavior on `/transactions`, `/accounts`, `/categories`, `/budgets`, and `/reports`; the fix did not change `.inex-page-body` bottom padding or bottom-nav styles.
