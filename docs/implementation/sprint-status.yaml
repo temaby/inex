@@ -58,10 +58,10 @@ development_status:
   3-2-backend-confirm-email-and-resend-endpoints: backlog
   3-3-frontend-email-confirmation-ui-flow: backlog
   epic-3-retrospective: optional
-  epic-4: in-progress
-  4-1-backend-move-tag-ref-filtering-to-database-side: review
+  epic-4: done
+  4-1-backend-move-tag-ref-filtering-to-database-side: done
   4-2-backend-frontend-typed-transaction-filter-query-parameters: done
-  4-3-frontend-active-filter-indicator-on-transaction-list: review
+  4-3-frontend-active-filter-indicator-on-transaction-list: done
   epic-4-retrospective: optional
   epic-5: in-progress
   5-1-backend-nbrb-exchange-rate-client-for-byn-rub: review
@@ -101,7 +101,7 @@ development_status:
   epic-9-retrospective: optional
   epic-10: in-progress
   10-1a-frontend-ux-design-tokens-and-theme-bridge: done
-  10-1b-frontend-ux-shared-primitives: review
+  10-1b-frontend-ux-shared-primitives: done
   10-1c-frontend-ux-app-shell-and-navigation: ready-for-dev
   10-2-frontend-ux-transactions-ledger-redesign: ready-for-dev
   10-3a-frontend-ux-accounts-management-redesign: ready-for-dev

@@ -2,7 +2,7 @@
 
 **Epic:** 10 — Frontend Design System Rebuild  
 **Story:** 1a  
-**Status:** review  
+**Status:** done  
 **Created:** 2026-05-29
 
 ---
@@ -314,6 +314,7 @@ GPT-5.3-Codex
 
 ### Change Log
 
+- 2026-06-03: Marked story done after resolved review findings and passing `npm run build` / `npm run lint` verification.
 - 2026-06-03: Implemented design token baseline and AntD theme bridge; story marked ready for review.
 
 ## Senior Developer Review (AI)

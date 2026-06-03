@@ -1,6 +1,6 @@
 # Story 4.3: Frontend — Active Filter Indicator on Transaction List
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -250,3 +250,4 @@ GPT-5 Codex
 
 - 2026-05-31: Implemented active filter indicator hardening, accessible/i18n title text, and completed frontend build/lint validation.
 - 2026-05-31: Addressed code review finding - 1 item resolved: Unix epoch start date range now counts active when the end boundary is active.
+- 2026-06-03: Marked story done after merged Epic 4 PR #132.
