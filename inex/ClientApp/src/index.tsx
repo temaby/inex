@@ -7,6 +7,7 @@ import "./dayjsSetup"; // must be first — registers dayjs plugins before any c
 import App from './App';
 import store from "./store";
 import "./i18n";
+import "./styles/tokens.css";
 
 const container = document.getElementById("root");
 if (container) {

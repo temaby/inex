@@ -35,19 +35,19 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-02T00:00:00+02:00
+last_updated: 2026-06-03T00:00:00+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
 story_location: D:\work\inex/docs/implementation
 
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-enforce-object-level-authorization-in-service-methods: done
   1-2-fix-refresh-token-rotation-race-condition: done
-  1-3-fix-account-update-returns-422: ready-for-dev
-  1-4-rotate-and-externalize-local-secrets: ready-for-dev
-  1-5-remove-tracked-frontend-build-artifacts: ready-for-dev
+  1-3-fix-account-update-returns-422: done
+  1-4-rotate-and-externalize-local-secrets: done
+  1-5-remove-tracked-frontend-build-artifacts: done
   epic-1-retrospective: optional
   epic-2: done
   2-1-backend-fix-repository-disposal-and-dbcontext-lifetime: done
@@ -100,7 +100,7 @@ development_status:
   9-8-infra-ci-cd-github-actions-ecr-ecs-rolling-deploy: backlog
   epic-9-retrospective: optional
   epic-10: in-progress
-  10-1a-frontend-ux-design-tokens-and-theme-bridge: ready-for-dev
+  10-1a-frontend-ux-design-tokens-and-theme-bridge: review
   10-1b-frontend-ux-shared-primitives: ready-for-dev
   10-1c-frontend-ux-app-shell-and-navigation: ready-for-dev
   10-2-frontend-ux-transactions-ledger-redesign: ready-for-dev
