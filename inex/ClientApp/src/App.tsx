@@ -15,6 +15,7 @@ import { fetchRatesForDate } from './store/rates/rates-action';
 import "antd/dist/reset.css";
 import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import { SignageProvider } from "./components/primitives";
 
 const Transactions = React.lazy(() => import('./pages/Transactions'));
 const Accounts = React.lazy(() => import('./pages/Accounts'));
@@ -72,9 +73,10 @@ const App = () => {
     }, [accessToken]);
 
     return (
-        <ConfigProvider locale={antdLocale} theme={inexTheme}>
-            <React.Suspense fallback={<PageFallback />}>
-                <Routes>
+        <SignageProvider>
+            <ConfigProvider locale={antdLocale} theme={inexTheme}>
+                <React.Suspense fallback={<PageFallback />}>
+                    <Routes>
             {/* Public routes — accessible without authentication */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -98,9 +100,10 @@ const App = () => {
             </Route>
 
             <Route path="*" element={<NotFound />} />
-                </Routes>
-            </React.Suspense>
-        </ConfigProvider>
+                    </Routes>
+                </React.Suspense>
+            </ConfigProvider>
+        </SignageProvider>
     );
 }
 

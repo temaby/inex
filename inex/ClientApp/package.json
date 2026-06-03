@@ -11,6 +11,7 @@
     "expr-eval": "^2.0.2",
     "i18next": "^26.0.5",
     "i18next-http-backend": "^3.0.4",
+    "lucide-react": "^1.17.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^15.7.4",

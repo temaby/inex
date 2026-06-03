@@ -238,6 +238,28 @@
     "title": "Page not found",
     "goHome": "Go to main page"
   },
+  "primitives": {
+    "signage": {
+      "colorOnly": "Color only",
+      "signed": "Signed (+/-)",
+      "arrows": "Arrows"
+    },
+    "filterEmpty": {
+      "title": "No results match these filters",
+      "description": "Try widening the date range, clearing tags, or resetting the search.",
+      "clearFilters": "Clear filters"
+    },
+    "kindLabel": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer",
+      "neutral": "Amount",
+      "warn": "Warning amount"
+    },
+    "progress": {
+      "overBudget": "Over budget"
+    }
+  },
   "errors": {
     "amount.not_zero": "Amount cannot be zero",
     "amount_from.must_be_positive": "Source amount must be greater than zero",

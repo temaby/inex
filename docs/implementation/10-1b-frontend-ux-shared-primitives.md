@@ -1,6 +1,6 @@
 # Story 10.1b: Frontend UX - Shared Primitives
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -657,95 +657,95 @@ This is the **only** change to `App.tsx`. Do not touch routing, session restore,
 
 ## Tasks / Subtasks
 
-- [ ] **Install lucide-react** (AC: 1)
-  - [ ] Run `npm install lucide-react` from `inex/ClientApp/`
-  - [ ] Verify `lucide-react` appears in `package.json` dependencies
-  - [ ] Verify `inex/ClientApp/package-lock.json` includes the resolved `lucide-react` package entry
-  - [ ] Commit both `package.json` and `package-lock.json`; do not leave manifest/lockfile drift
-  - [ ] Confirm TypeScript recognizes Lucide icon imports (no `@types` needed — lucide-react ships types)
+- [x] **Install lucide-react** (AC: 1)
+  - [x] Run `npm install lucide-react` from `inex/ClientApp/`
+  - [x] Verify `lucide-react` appears in `package.json` dependencies
+  - [x] Verify `inex/ClientApp/package-lock.json` includes the resolved `lucide-react` package entry
+  - [x] Commit both `package.json` and `package-lock.json`; do not leave manifest/lockfile drift
+  - [x] Confirm TypeScript recognizes Lucide icon imports (no `@types` needed — lucide-react ships types)
 
-- [ ] **Create `SignageContext.tsx`** (AC: 2)
-  - [ ] Implement `Signage` type, `SignageProvider`, and `useSignage` hook
-  - [ ] Reads initial value from `localStorage.getItem('inex_signage')`, defaults to `'color-only'`
-  - [ ] `setSignage` writes to `localStorage` and updates state
+- [x] **Create `SignageContext.tsx`** (AC: 2)
+  - [x] Implement `Signage` type, `SignageProvider`, and `useSignage` hook
+  - [x] Reads initial value from `localStorage.getItem('inex_signage')`, defaults to `'color-only'`
+  - [x] `setSignage` writes to `localStorage` and updates state
 
-- [ ] **Wire `SignageProvider` into `App.tsx`** (AC: 2, 3)
-  - [ ] Import `SignageProvider` from `./components/primitives`
-  - [ ] Wrap outer JSX with `<SignageProvider>` — only this one line change; do not touch anything else in App.tsx
+- [x] **Wire `SignageProvider` into `App.tsx`** (AC: 2, 3)
+  - [x] Import `SignageProvider` from `./components/primitives`
+  - [x] Wrap outer JSX with `<SignageProvider>` — only this one line change; do not touch anything else in App.tsx
 
-- [ ] **Create `Num.tsx`** (AC: 1, 2)
-  - [ ] Implement `NumProps` interface — zero `any`
-  - [ ] `autoKind` fallback: `value > 0 → 'income'`, `value < 0 → 'expense'`, else `'neutral'`
-  - [ ] Consume `useSignage()` to determine prefix character
-  - [ ] Apply tabular-nums styles from spec (non-negotiable for AC-2)
-  - [ ] Render accessible `aria-label` using `t('primitives.kindLabel.*')` — not color-only
-  - [ ] Compact format: `>=1_000_000 → xM`, `>=100_000 → integer`, else 2 decimals
+- [x] **Create `Num.tsx`** (AC: 1, 2)
+  - [x] Implement `NumProps` interface — zero `any`
+  - [x] `autoKind` fallback: `value > 0 → 'income'`, `value < 0 → 'expense'`, else `'neutral'`
+  - [x] Consume `useSignage()` to determine prefix character
+  - [x] Apply tabular-nums styles from spec (non-negotiable for AC-2)
+  - [x] Render accessible `aria-label` using `t('primitives.kindLabel.*')` — not color-only
+  - [x] Compact format: `>=1_000_000 → xM`, `>=100_000 → integer`, else 2 decimals
 
-- [ ] **Create `Button.tsx`** (AC: 1)
-  - [ ] Named export `InExButton` (not `Button` to avoid Ant Design naming clash)
-  - [ ] Implement all 6 kind variants using CSS token variables
-  - [ ] `type` prop defaults to `'button'` (not 'submit')
-  - [ ] `icon` prop accepts `React.ReactNode` (pass `<Plus size={15} />` from lucide-react)
-  - [ ] Disabled state: `opacity: 0.5`, `cursor: not-allowed`, no pointer events
+- [x] **Create `Button.tsx`** (AC: 1)
+  - [x] Named export `InExButton` (not `Button` to avoid Ant Design naming clash)
+  - [x] Implement all 6 kind variants using CSS token variables
+  - [x] `type` prop defaults to `'button'` (not 'submit')
+  - [x] `icon` prop accepts `React.ReactNode` (pass `<Plus size={15} />` from lucide-react)
+  - [x] Disabled state: `opacity: 0.5`, `cursor: not-allowed`, no pointer events
 
-- [ ] **Create `IconBtn.tsx`** (AC: 1)
-  - [ ] `title` prop is required — renders as both `title` attr and `aria-label`
-  - [ ] `icon` accepts `React.ReactNode`
-  - [ ] `type="button"` always
+- [x] **Create `IconBtn.tsx`** (AC: 1)
+  - [x] `title` prop is required — renders as both `title` attr and `aria-label`
+  - [x] `icon` accepts `React.ReactNode`
+  - [x] `type="button"` always
 
-- [ ] **Create `Tag.tsx`** (exports `Tag` and `KindChip`) (AC: 1, 2)
-  - [ ] `Tag`: all 6 kind variants from spec, uses CSS token variables
-  - [ ] `KindChip`: 6×6px colored dot with `aria-label` for screen readers
+- [x] **Create `Tag.tsx`** (exports `Tag` and `KindChip`) (AC: 1, 2)
+  - [x] `Tag`: all 6 kind variants from spec, uses CSS token variables
+  - [x] `KindChip`: 6×6px colored dot with `aria-label` for screen readers
 
-- [ ] **Create `Field.tsx`** (AC: 1)
-  - [ ] Implement required label row with optional hint and required marker
-  - [ ] Keep spacing/typography aligned to `docs/design/Primitives.jsx`
+- [x] **Create `Field.tsx`** (AC: 1)
+  - [x] Implement required label row with optional hint and required marker
+  - [x] Keep spacing/typography aligned to `docs/design/Primitives.jsx`
 
-- [ ] **Create `Input.tsx`** (AC: 1)
-  - [ ] Implement tokenized input with optional prefix/suffix addons
-  - [ ] Keep native `<input>` semantics and typed event handlers (no `any`)
-  - [ ] Include disabled and focus states using CSS token variables
+- [x] **Create `Input.tsx`** (AC: 1)
+  - [x] Implement tokenized input with optional prefix/suffix addons
+  - [x] Keep native `<input>` semantics and typed event handlers (no `any`)
+  - [x] Include disabled and focus states using CSS token variables
 
-- [ ] **Create `Select.tsx`** (AC: 1)
-  - [ ] Implement tokenized native `<select>` wrapper with custom chevron style
-  - [ ] Keep keyboard and screen-reader behavior intact
+- [x] **Create `Select.tsx`** (AC: 1)
+  - [x] Implement tokenized native `<select>` wrapper with custom chevron style
+  - [x] Keep keyboard and screen-reader behavior intact
 
-- [ ] **Create `SegmentedControl.tsx`** (AC: 1)
-  - [ ] `options` array with `key`, `label`, optional `icon: React.ReactNode`
-  - [ ] Each option renders as `<button type="button" role="tab" aria-selected={active}>` for a11y
-  - [ ] Container uses `role="tablist"` wrapper for semantic correctness
+- [x] **Create `SegmentedControl.tsx`** (AC: 1)
+  - [x] `options` array with `key`, `label`, optional `icon: React.ReactNode`
+  - [x] Each option renders as `<button type="button" role="tab" aria-selected={active}>` for a11y
+  - [x] Container uses `role="tablist"` wrapper for semantic correctness
 
-- [ ] **Create `InExDrawer.tsx`** (AC: 1, 3)
-  - [ ] Wrap `antd.Drawer` — do NOT reinvent focus trap or Escape handling
-  - [ ] Mobile: detect `screens.md === false` via `antd.Grid.useBreakpoint()`, set `width="100%"`
-  - [ ] Custom header with `title` + optional `subtitle` layout
-  - [ ] Close icon: Lucide `<X size={20} color="var(--fg-3)" />`
-  - [ ] `styles` prop: `{ body: { padding: 24 }, header: { padding: '20px 24px', borderBottom: '1px solid var(--border-1)' } }`
+- [x] **Create `InExDrawer.tsx`** (AC: 1, 3)
+  - [x] Wrap `antd.Drawer` — do NOT reinvent focus trap or Escape handling
+  - [x] Mobile: detect `screens.md === false` via `antd.Grid.useBreakpoint()`, set `width="100%"`
+  - [x] Custom header with `title` + optional `subtitle` layout
+  - [x] Close icon: Lucide `<X size={20} color="var(--fg-3)" />`
+  - [x] `styles` prop: `{ body: { padding: 24 }, header: { padding: '20px 24px', borderBottom: '1px solid var(--border-1)' } }`
 
-- [ ] **Create `Progress.tsx`** (AC: 1)
-  - [ ] Three color thresholds: green/amber/red based on `value / max` ratio
-  - [ ] Bar width clamped at 100% for over-budget state
-  - [ ] `aria-label` uses localized EN/RU over-budget text when `value >= max`; do not hardcode English screen-reader text
-  - [ ] Track + fill use pill radius (`var(--radius-pill)`)
+- [x] **Create `Progress.tsx`** (AC: 1)
+  - [x] Three color thresholds: green/amber/red based on `value / max` ratio
+  - [x] Bar width clamped at 100% for over-budget state
+  - [x] `aria-label` uses localized EN/RU over-budget text when `value >= max`; do not hardcode English screen-reader text
+  - [x] Track + fill use pill radius (`var(--radius-pill)`)
 
-- [ ] **Create `EmptyState.tsx`** (AC: 1)
-  - [ ] `EmptyState`: full spec from design (dot-grid backdrop, icon container, title, description, actions, secondary)
-  - [ ] `FilterEmpty`: compact variant with SearchX icon and `onClear` button using `InExButton`
-  - [ ] `iconNode: React.ReactNode` for the icon (not string-based dynamic import)
-  - [ ] All user-visible strings via `children` props or `useTranslation()` — no hardcoded English
+- [x] **Create `EmptyState.tsx`** (AC: 1)
+  - [x] `EmptyState`: full spec from design (dot-grid backdrop, icon container, title, description, actions, secondary)
+  - [x] `FilterEmpty`: compact variant with SearchX icon and `onClear` button using `InExButton`
+  - [x] `iconNode: React.ReactNode` for the icon (not string-based dynamic import)
+  - [x] All user-visible strings via `children` props or `useTranslation()` — no hardcoded English
 
-- [ ] **Create `index.ts` barrel export** (AC: 1)
-  - [ ] Export all public component types and components listed in the barrel spec above
-  - [ ] No default exports — named only for consistent import patterns
+- [x] **Create `index.ts` barrel export** (AC: 1)
+  - [x] Export all public component types and components listed in the barrel spec above
+  - [x] No default exports — named only for consistent import patterns
 
-- [ ] **Add i18n keys** (AC: 2, 3)
-  - [ ] Add `primitives.*` keys to `en/translation.json` per spec
-  - [ ] Add Russian equivalents to `ru/translation.json`
+- [x] **Add i18n keys** (AC: 2, 3)
+  - [x] Add `primitives.*` keys to `en/translation.json` per spec
+  - [x] Add Russian equivalents to `ru/translation.json`
 
-- [ ] **Verify build and lint** (AC: 4)
-  - [ ] Run `npm run build` from `inex/ClientApp/` — must pass with no new TypeScript errors
-  - [ ] Run `npm run lint` from `inex/ClientApp/` — must pass with no new `any` violations
-  - [ ] Confirm no bundle size regressions and no new `any` in touched TypeScript files; TypeScript/lint should catch typing regressions, while Vite should only be treated as a bundle/build signal
+- [x] **Verify build and lint** (AC: 4)
+  - [x] Run `npm run build` from `inex/ClientApp/` — must pass with no new TypeScript errors
+  - [x] Run `npm run lint` from `inex/ClientApp/` — must pass with no new `any` violations
+  - [x] Confirm no bundle size regressions and no new `any` in touched TypeScript files; TypeScript/lint should catch typing regressions, while Vite should only be treated as a bundle/build signal
   - [ ] Verify Ant Design drawer in Transactions page still opens correctly
 
 - [ ] **Manual smoke tests** (AC: 3)
@@ -758,13 +758,13 @@ This is the **only** change to `App.tsx`. Do not touch routing, session restore,
 ## Definition of Done
 
 - [ ] All tasks above checked off
-- [ ] `npm run build` passes from `inex/ClientApp/`
-- [ ] `npm run lint` passes from `inex/ClientApp/` with no new `any`
-- [ ] All listed primitive files exist under `inex/ClientApp/src/components/primitives/`
-- [ ] Barrel export `index.ts` exports all public APIs
-- [ ] `SignageProvider` is wired into `App.tsx`
-- [ ] `lucide-react` is in `package.json` and the resolved dependency is locked in `package-lock.json`
-- [ ] i18n keys added to both `en` and `ru` translation files
+- [x] `npm run build` passes from `inex/ClientApp/`
+- [x] `npm run lint` passes from `inex/ClientApp/` with no new `any`
+- [x] All listed primitive files exist under `inex/ClientApp/src/components/primitives/`
+- [x] Barrel export `index.ts` exports all public APIs
+- [x] `SignageProvider` is wired into `App.tsx`
+- [x] `lucide-react` is in `package.json` and the resolved dependency is locked in `package-lock.json`
+- [x] i18n keys added to both `en` and `ru` translation files
 - [ ] No existing page, route, auth flow, or Redux slice is broken
 - [ ] Story status updated to `done` in `docs/implementation/sprint-status.yaml`
 
@@ -825,14 +825,69 @@ GPT-5.3-Codex
 ### Debug Log References
 
 - `git log --oneline -5`
+- `npm install lucide-react`
+- `npm run build` from `inex/ClientApp` - passed on 2026-06-03
+- `npm run lint` from `inex/ClientApp` - passed on 2026-06-03
+- `rg -n "\bany\b" inex\ClientApp\src\components\primitives inex\ClientApp\src\App.tsx` - no matches
+- Browser plugin setup failed twice with a local runtime setup error, so authenticated smoke checks were not executed in this pass.
 
 ### Completion Notes List
 
 - Added explicit architecture-scope guardrails so Epic 10 work is anchored to the UX/design planning stack rather than Epic 1-only architecture readiness text.
 - Added direct traceability to PRD requirement `FR-UX-002` and story marker `UX-001b`.
 - Added source reference section so implementation details are citable.
-- Story status remains `ready-for-dev`.
+- Installed `lucide-react` and added the shared primitive surface under `src/components/primitives`.
+- Added `SignageProvider` and wrapped `App.tsx` without changing routes, auth guards, data loading, Redux, or API behavior.
+- Added typed primitives for money values, buttons, icon buttons, chips, fields, inputs, selects, segmented controls, drawer wrapper, progress, empty/filter-empty states, and responsive layout helpers.
+- Added EN/RU `primitives.*` locale keys for signage, filter-empty copy, money kind labels, and progress over-budget text.
+- Build and lint pass; no `any` usage was introduced in touched TypeScript files.
+- Authenticated browser smoke tests remain unexecuted because the in-app browser runtime failed during setup; story is marked `review`, not `done`.
+
+### Change Log
+
+- 2026-06-03: Implemented shared primitives, lucide-react dependency, signage provider wiring, locale keys, and static verification; story marked ready for review with browser smoke limitation recorded.
 
 ### File List
 
 - `docs/implementation/10-1b-frontend-ux-shared-primitives.md`
+- `docs/implementation/sprint-status.yaml`
+- `inex/ClientApp/package.json`
+- `inex/ClientApp/package-lock.json`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/App.tsx`
+- `inex/ClientApp/src/components/primitives/Button.tsx`
+- `inex/ClientApp/src/components/primitives/EmptyState.tsx`
+- `inex/ClientApp/src/components/primitives/Field.tsx`
+- `inex/ClientApp/src/components/primitives/IconBtn.tsx`
+- `inex/ClientApp/src/components/primitives/InExDrawer.tsx`
+- `inex/ClientApp/src/components/primitives/Input.tsx`
+- `inex/ClientApp/src/components/primitives/Layout.tsx`
+- `inex/ClientApp/src/components/primitives/Num.tsx`
+- `inex/ClientApp/src/components/primitives/Progress.tsx`
+- `inex/ClientApp/src/components/primitives/SegmentedControl.tsx`
+- `inex/ClientApp/src/components/primitives/Select.tsx`
+- `inex/ClientApp/src/components/primitives/SignageContext.tsx`
+- `inex/ClientApp/src/components/primitives/Tag.tsx`
+- `inex/ClientApp/src/components/primitives/index.ts`
+
+## Senior Developer Review (AI)
+
+### Review Outcome
+
+Approve with verification limitation.
+
+### Review Summary
+
+- Confirmed story scope stayed in shared primitives, `App.tsx` provider wiring, dependency metadata, and locale files.
+- Confirmed no page rebuilds, shell/navigation replacement, Redux/API/client/auth guard changes, or backend changes were introduced.
+- Found and fixed two review findings before completion: duplicate empty-state heading IDs and unstable responsive media-query object creation.
+- Confirmed `npm run build`, `npm run lint`, and no-`any` search pass after review fixes.
+
+### Action Items
+
+- [x] Replace fixed EmptyState heading id with `React.useId()` to avoid duplicate IDs when multiple empty states render.
+- [x] Stabilize `ResponsiveStack` media query setup so it does not create a fresh `MediaQueryList` object during every render.
+- [ ] Execute authenticated manual smoke tests once a working browser/runtime and local login path are available.
+
+
