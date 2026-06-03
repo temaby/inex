@@ -1,6 +1,6 @@
 # Story 4.1: Backend — Move Tag/Ref Filtering to Database-Side
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -252,3 +252,4 @@ GPT-5 Codex
 
 - 2026-05-31: Moved transaction tag/ref filtering to database-composable predicates and added integration coverage for required filter scenarios.
 - 2026-05-31: Addressed code review finding by reverting unrelated sprint-status changes outside story 4-1.
+- 2026-06-03: Marked story done after merged Epic 4 PR #132.

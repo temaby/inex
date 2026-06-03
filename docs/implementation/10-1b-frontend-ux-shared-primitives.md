@@ -1,6 +1,6 @@
 # Story 10.1b: Frontend UX - Shared Primitives
 
-Status: review
+Status: done
 
 ## Story
 
@@ -841,11 +841,12 @@ GPT-5.3-Codex
 - Added typed primitives for money values, buttons, icon buttons, chips, fields, inputs, selects, segmented controls, drawer wrapper, progress, empty/filter-empty states, and responsive layout helpers.
 - Added EN/RU `primitives.*` locale keys for signage, filter-empty copy, money kind labels, and progress over-budget text.
 - Build and lint pass; no `any` usage was introduced in touched TypeScript files.
-- Authenticated browser smoke tests remain unexecuted because the in-app browser runtime failed during setup; story is marked `review`, not `done`.
+- Authenticated browser smoke tests remain unexecuted because the in-app browser runtime failed during setup; story is marked `done` after merged PR #148.
 
 ### Change Log
 
 - 2026-06-03: Implemented shared primitives, lucide-react dependency, signage provider wiring, locale keys, and static verification; story marked ready for review with browser smoke limitation recorded.
+- 2026-06-03: Marked story done after merged PR #148.
 
 ### File List
 
