@@ -133,7 +133,7 @@ const TransactionFilterForm = (props: any) => {
     };
 
     const resetFilterHandler = () => {
-        navigate(`${location.pathname}?filter=`, { replace: true });
+        navigate(location.pathname, { replace: true });
     }
 
     const applyFilterHandler = () => {

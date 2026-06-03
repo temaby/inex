@@ -127,7 +127,57 @@
     "thisMonth": "This month",
     "lastMonth": "Last month",
     "applyFilter": "Apply",
-    "resetFilter": "Reset"
+    "resetFilter": "Reset",
+    "subtitle": "Overview",
+    "ledger": "Ledger",
+    "description": "Description",
+    "all": "All",
+    "search": "Search",
+    "searchPlaceholder": "Search transactions",
+    "activeFilters": "Active filters",
+    "clearAll": "Clear all",
+    "advancedFilters": "Advanced filters",
+    "addDrawerSubtitle": "Record income, expense, or transfer movement.",
+    "filterDrawerSubtitle": "Narrow the ledger without leaving Transactions.",
+    "editDrawerTitle": "Edit transaction",
+    "editDrawerSubtitle": "Update or remove the selected ledger row.",
+    "tags": "Tags",
+    "refs": "Refs",
+    "anyAmount": "Any",
+    "minAmount": "Minimum amount",
+    "maxAmount": "Maximum amount",
+    "uncategorized": "Uncategorised",
+    "unknownAccount": "Unknown account",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "paginationSummary": "Showing {{visible}} of {{total}} transactions",
+    "emptyDescription": "Add the first transaction to start building the ledger.",
+    "filterEmptyTitle": "No matching transactions",
+    "filterEmptyDescription": "The active filters do not match the current ledger page.",
+    "kpi": {
+      "title": "Transaction KPIs",
+      "income": "Income",
+      "expenses": "Expenses",
+      "netFlow": "Net Flow",
+      "filteredPage": "Current ledger page",
+      "updatesWithLedger": "Updates with the visible ledger"
+    },
+    "loading": {
+      "initial": "Loading transactions",
+      "refreshing": "Refreshing ledger"
+    },
+    "error": {
+      "loadFailure": "Failed to load transactions",
+      "partialFailure": "Could not refresh the ledger. Showing the last loaded rows.",
+      "retry": "Retry"
+    },
+    "formErrors": {
+      "saveFailure": "Could not save the transaction",
+      "createFailure": "Could not create the transaction",
+      "transferFailure": "Could not create the transfer",
+      "updateFailure": "Could not update the transaction",
+      "filterApplyFailure": "Could not apply filters"
+    }
   },
   "accounts": {
     "title": "Accounts",

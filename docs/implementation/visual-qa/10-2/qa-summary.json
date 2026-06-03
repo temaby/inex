@@ -1,0 +1,11 @@
+{
+  "mobileOverflow390": false,
+  "mobileOverflow360": false,
+  "screenshots": [
+    "desktop-populated.png",
+    "mobile-populated.png",
+    "filter-active.png",
+    "filter-empty.png",
+    "drawer-open.png"
+  ]
+}
