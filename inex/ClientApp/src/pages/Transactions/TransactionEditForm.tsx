@@ -116,16 +116,18 @@ const TransactionEditForm = (props: any) => {
           comment: state.comment,
           created: state.date.format("YYYY-MM-DD"),
         }).unwrap();
+        dispatch(transactionsActions.setError({ error: null }));
       } catch {
-        dispatch(transactionsActions.setError({ error: "Could not update a transaction" }));
+        dispatch(transactionsActions.setError({ error: t("transactions.formErrors.updateFailure") }));
       }
     };
 
     const removeTransactionHandler = async () => {
       try {
         await deleteTransactionMutation(+props.record.id).unwrap();
+        dispatch(transactionsActions.setError({ error: null }));
       } catch {
-        dispatch(transactionsActions.setError({ error: "Could not delete a transaction" }));
+        dispatch(transactionsActions.setError({ error: t("transactions.formErrors.saveFailure") }));
       }
     };
 

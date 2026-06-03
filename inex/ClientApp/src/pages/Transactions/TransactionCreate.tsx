@@ -126,11 +126,16 @@ const TransactionCreate = (props: any) => {
           }).unwrap();
         }
       } catch {
-        dispatch(transactionsActions.setError({ error: "Could not create a transaction" }));
+        dispatch(transactionsActions.setError({
+          error: state.mode === TransactionType.TRANSFER
+            ? t("transactions.formErrors.transferFailure")
+            : t("transactions.formErrors.createFailure"),
+        }));
         return;
       }
 
         setModeHandler(TransactionType.EXPENSE);
+        dispatch(transactionsActions.setError({ error: null }));
         props.onSubmit();
     };
 

@@ -1,55 +1,125 @@
-import * as React from 'react';
-import dayjs from 'dayjs';
-import { useEffect, useMemo, useState } from 'react';
+import * as React from "react";
+import dayjs from "dayjs";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Drawer, Grid, Pagination, Spin, Table, Tag, Typography } from 'antd';
-import { CalendarOutlined } from "@ant-design/icons";
-import { useAppSelector } from '../../store/hooks';
+import { Alert, Pagination } from "antd";
+import { CalendarDays, ChevronRight, Inbox, Plus, RotateCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { TableColumnsType } from "antd";
 
-import { TransactionResponse } from '../../model/Transaction/TransactionResponse';
-import { useGetTransactionsQuery, type TransactionFilterParams } from '../../store/transactions/transactions-api';
-import TransactionEditForm from './TransactionEditForm';
-import { buildSingleTagOrRefFilterSearch } from './transaction-filter-url';
-import { AccountResponse } from '../../store/accounts/accounts-api';
-import { CategoryResponse } from '../../store/categories/categories-api';
-
-const { Text } = Typography;
-const { useBreakpoint } = Grid;
-
-const headerSpan = { colSpan: 0 };
-const HEADER_COLSPAN = 100;
+import { AccountResponse } from "../../store/accounts/accounts-api";
+import { CategoryResponse } from "../../store/categories/categories-api";
+import { useAppSelector } from "../../store/hooks";
+import { TransactionResponse } from "../../model/Transaction/TransactionResponse";
+import { useGetTransactionsQuery, type TransactionFilterParams } from "../../store/transactions/transactions-api";
+import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, type MoneyKind } from "../../components/primitives";
+import type { LedgerSummary, LedgerUiFilter, LedgerTypeFilter } from "../Transactions";
+import TransactionEditForm from "./TransactionEditForm";
+import { buildSingleTagOrRefFilterSearch } from "./transaction-filter-url";
 
 interface TransactionListProps {
     accounts: AccountResponse[];
     categories: CategoryResponse[];
+    ledgerFilter: LedgerUiFilter;
+    onAddTransaction: () => void;
+    onClearFilters: () => void;
+    onInitialLoadingChange: (loading: boolean) => void;
+    onSummaryChange: (summary: LedgerSummary) => void;
 }
 
-interface TransactionDateHeader {
-    _isDateHeader: true;
-    _date: string;
-    id: string;
+interface TransactionDateGroup {
+    dateKey: string;
+    label: string;
+    income: number;
+    expense: number;
+    items: TransactionResponse[];
 }
 
-type TransactionRow = TransactionResponse | TransactionDateHeader;
+const isTransferCategory = (category?: CategoryResponse): boolean => category?.isSystem ?? false;
 
-const isDateHeader = (record: TransactionRow): record is TransactionDateHeader =>
-    "_isDateHeader" in record;
+const getTransactionKind = (transaction: TransactionResponse, category?: CategoryResponse): Exclude<LedgerTypeFilter, "all"> => {
+    if (isTransferCategory(category)) return "transfer";
+    return transaction.amount >= 0 ? "income" : "expense";
+};
 
-const TransactionList = (props: TransactionListProps) => {
+const matchesAmount = (amount: number, min: string, max: string): boolean => {
+    const absoluteAmount = Math.abs(amount);
+    const minValue = min.trim() === "" ? null : Number(min);
+    const maxValue = max.trim() === "" ? null : Number(max);
+
+    if (minValue !== null && Number.isFinite(minValue) && absoluteAmount < minValue) return false;
+    if (maxValue !== null && Number.isFinite(maxValue) && absoluteAmount > maxValue) return false;
+    return true;
+};
+
+const buildSearchHaystack = (
+    transaction: TransactionResponse,
+    account?: AccountResponse,
+    category?: CategoryResponse,
+): string =>
+    [
+        transaction.comment,
+        account?.name,
+        category?.name,
+        transaction.accountCurrency,
+        ...transaction.tags,
+        ...transaction.refs,
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+const getDateLabel = (date: string): string => {
+    const parsed = dayjs(date);
+    return parsed.year() === dayjs().year()
+        ? parsed.format("dddd, D MMM")
+        : parsed.format("dddd, D MMM YYYY");
+};
+
+const groupTransactions = (
+    transactions: TransactionResponse[],
+    categoriesById: Map<number, CategoryResponse>,
+): TransactionDateGroup[] => {
+    const groups = new Map<string, TransactionDateGroup>();
+
+    for (const transaction of transactions) {
+        const dateKey = dayjs(transaction.created).format("YYYY-MM-DD");
+        const existing = groups.get(dateKey) ?? {
+            dateKey,
+            label: getDateLabel(transaction.created),
+            income: 0,
+            expense: 0,
+            items: [],
+        };
+        const category = categoriesById.get(transaction.categoryId);
+        const kind = getTransactionKind(transaction, category);
+
+        if (kind === "income") existing.income += transaction.amount;
+        if (kind === "expense") existing.expense += transaction.amount;
+        existing.items.push(transaction);
+        groups.set(dateKey, existing);
+    }
+
+    return Array.from(groups.values()).sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+};
+
+const TransactionList = ({
+    accounts,
+    categories,
+    ledgerFilter,
+    onAddTransaction,
+    onClearFilters,
+    onInitialLoadingChange,
+    onSummaryChange,
+}: TransactionListProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const screens = useBreakpoint();
     const filter = useAppSelector(state => state.transactions.filter);
+    const formError = useAppSelector(state => state.transactions.error);
 
     const [pagination, setPagination] = useState({ current: 1, total: 0, size: 25 });
-    const [expandedRows, setExpandedRows] = useState<string[]>([]);
-    const [mobileEditRecord, setMobileEditRecord] = useState<TransactionResponse | null>(null);
-
-    const isMobile = screens.md === false;
-    const { categories, accounts } = props;
+    const [editRecord, setEditRecord] = useState<TransactionResponse | null>(null);
     const { size: pageSize, current: currentPage } = pagination;
+
     const queryFilter = useMemo<TransactionFilterParams>(() => ({
         accountIds: filter.accountIds,
         categoryIds: filter.categoryIds,
@@ -57,50 +127,78 @@ const TransactionList = (props: TransactionListProps) => {
         refs: filter.refs,
         range: filter.range,
     }), [filter]);
-    const { data, isError, isLoading } = useGetTransactionsQuery(
+
+    const {
+        data,
+        error,
+        isError,
+        isFetching,
+        isLoading,
+        refetch,
+    } = useGetTransactionsQuery(
         { pageSize, page: currentPage, filter: queryFilter },
         { skip: accounts.length === 0 || categories.length === 0 },
     );
+
     const transactions = data?.data ?? [];
     const total = data?.metadata.totalItems ?? 0;
+    const hasRows = transactions.length > 0;
 
-    const dataSource = useMemo(() => {
-        const result: TransactionRow[] = [];
-        let lastDate: string | null = null;
-        for (const tx of transactions) {
-            const txDate = dayjs(tx.created).format("YYYY-MM-DD");
-            if (txDate !== lastDate) {
-                result.push({ _isDateHeader: true, _date: tx.created, id: `_h_${txDate}` });
-                lastDate = txDate;
-            }
-            result.push(tx);
+    const accountsById = useMemo(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
+    const categoriesById = useMemo(() => new Map(categories.map(category => [category.id, category])), [categories]);
+
+    const visibleTransactions = useMemo(() => {
+        const search = ledgerFilter.search.trim().toLowerCase();
+
+        return transactions.filter(transaction => {
+            const account = accountsById.get(transaction.accountId);
+            const category = categoriesById.get(transaction.categoryId);
+            const kind = getTransactionKind(transaction, category);
+
+            if (ledgerFilter.type !== "all" && kind !== ledgerFilter.type) return false;
+            if (search && !buildSearchHaystack(transaction, account, category).includes(search)) return false;
+            return matchesAmount(transaction.amount, ledgerFilter.minAmount, ledgerFilter.maxAmount);
+        });
+    }, [accountsById, categoriesById, ledgerFilter, transactions]);
+
+    const groups = useMemo(() => groupTransactions(visibleTransactions, categoriesById), [categoriesById, visibleTransactions]);
+    const ledgerSummary = useMemo<LedgerSummary>(() => {
+        let income = 0;
+        let expense = 0;
+
+        for (const transaction of visibleTransactions) {
+            const category = categoriesById.get(transaction.categoryId);
+            const kind = getTransactionKind(transaction, category);
+            if (kind === "income") income += transaction.amount;
+            if (kind === "expense") expense += transaction.amount;
         }
-        return result;
-    }, [transactions]);
+
+        return {
+            income,
+            expense,
+            net: income + expense,
+        };
+    }, [categoriesById, visibleTransactions]);
 
     useEffect(() => {
         setPagination(prev => ({ ...prev, total }));
     }, [total]);
 
     useEffect(() => {
-        setExpandedRows([]);
-    }, [pageSize, currentPage, queryFilter]);
+        setPagination(prev => ({ ...prev, current: 1 }));
+    }, [queryFilter]);
 
-    const paginationChangedHandler = (page: number, pageSize: number) => {
-        setPagination(prev => {
-            if (prev.size !== pageSize) page = 1;
-            return { ...prev, current: page, size: pageSize };
-        });
+    useEffect(() => {
+        onSummaryChange(ledgerSummary);
+    }, [ledgerSummary, onSummaryChange]);
+
+    useEffect(() => {
+        onInitialLoadingChange(isLoading && !hasRows);
+    }, [hasRows, isLoading, onInitialLoadingChange]);
+
+    const paginationChangedHandler = (page: number, size: number) => {
+        setPagination(prev => ({ ...prev, current: prev.size === size ? page : 1, size }));
         window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    const rowExpandHandler = (expanded: boolean, record: TransactionRow) => {
-        if (isDateHeader(record)) {
-            setExpandedRows([]);
-            return;
-        }
-
-        setExpandedRows(expanded && record ? [record.id.toString()] : []);
     };
 
     const handleTagClick = (tag: string) => {
@@ -111,242 +209,247 @@ const TransactionList = (props: TransactionListProps) => {
         navigate(`../../transactions${buildSingleTagOrRefFilterSearch("refs", ref)}`, { replace: false });
     };
 
-    // Shared helpers used by both desktop columns and mobile cards
-
-    const dateHeaderLabel = (date: string) => {
-        const d = dayjs(date);
-        return d.year() === dayjs().year()
-            ? d.format("dddd, D MMM")
-            : d.format("dddd, D MMM YYYY");
-    };
-
-    const getAmountDisplay = (record: TransactionResponse) => {
-        const account = props.accounts.find((a) => a.id === record.accountId);
-        const category = props.categories.find((c) => c.id === record.categoryId);
-        const isTransfer = category?.isSystem ?? false;
-        const abs = (Math.round(Math.abs(record.amount) * 100) / 100).toFixed(2);
-        const sign = record.amount >= 0 ? "+" : "-";
-        const color = isTransfer ? "#8c8c8c" : record.amount >= 0 ? "#52c41a" : "#ff4d4f";
-        return { label: `${sign}${abs} ${account?.currency ?? ''}`, color };
-    };
-
-    const renderNotes = (record: TransactionResponse, stopProp = false) => {
-        const hasTags = record.tags?.length > 0 || record.refs?.length > 0;
-        const clean = record.comment?.replace(/#\S+/g, '').replace(/@\S+/g, '').trim();
-        const wrap = (fn: (v: string) => void, val: string) =>
-            (e: React.MouseEvent) => { if (stopProp) e.stopPropagation(); fn(val); };
+    if (isLoading && !hasRows) {
         return (
-            <>
-                {record.tags?.map((tag: string) => (
-                    <Tag color="green" key={tag} style={{ cursor: "pointer" }} onClick={wrap(handleTagClick, tag)}>
-                        {tag.toUpperCase()}
-                    </Tag>
-                ))}
-                {record.refs?.map((ref: string) => (
-                    <Tag color="geekblue" key={ref} style={{ cursor: "pointer" }} onClick={wrap(handleRefClick, ref)}>
-                        {ref.toUpperCase()}
-                    </Tag>
-                ))}
-                {clean && (
-                    <span style={{ color: hasTags ? "#8c8c8c" : "inherit" }}>{clean}</span>
-                )}
-            </>
-        );
-    };
-
-    const paginationBar = (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-            <Pagination
-                current={pagination.current}
-                pageSize={pagination.size}
-                total={pagination.total}
-                onChange={paginationChangedHandler}
-                showSizeChanger
-                pageSizeOptions={[25, 50, 100]}
-            />
-        </div>
-    );
-
-    // Mobile card layout
-    if (isMobile) {
-        return (
-            <>
-                <Drawer
-                    open={mobileEditRecord !== null}
-                    onClose={() => setMobileEditRecord(null)}
-                    placement="bottom"
-                    height="85%"
-                    title={null}
-                    styles={{ body: { padding: 16, overflowY: "auto" } }}
-                >
-                    {mobileEditRecord && (
-                        <TransactionEditForm
-                            record={mobileEditRecord}
-                            accounts={props.accounts}
-                            categories={props.categories}
-                        />
-                    )}
-                </Drawer>
-
-                <Spin spinning={isLoading}>
-                    <div style={{ background: "white" }}>
-                        {isError && (
-                            <Alert
-                                type="error"
-                                message={t("transactions.error")}
-                                style={{ margin: 16 }}
-                            />
-                        )}
-                        {dataSource.map(record => {
-                            if (isDateHeader(record)) {
-                                return (
-                                    <div
-                                        key={record.id}
-                                        style={{
-                                            backgroundColor: "#f0f5ff",
-                                            borderTop: "2px solid #e8e8e8",
-                                            padding: "8px 16px",
-                                            fontSize: 12,
-                                            color: "#595959",
-                                            fontWeight: 600,
-                                        }}
-                                    >
-                                        <CalendarOutlined style={{ marginRight: 6, color: "#1677ff" }} />
-                                        {dateHeaderLabel(record._date)}
-                                    </div>
-                                );
-                            }
-
-                            const category = props.categories.find((c) => c.id === record.categoryId);
-                            const account = props.accounts.find((a) => a.id === record.accountId);
-                            const { label: amountLabel, color: amountColor } = getAmountDisplay(record);
-                            const hasNotes = record.tags?.length > 0 || record.refs?.length > 0 || record.comment;
-
-                            return (
-                                <div
-                                    key={record.id}
-                                    onClick={() => setMobileEditRecord(record)}
-                                    style={{
-                                        padding: "12px 16px",
-                                        borderBottom: "1px solid #f0f0f0",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                                        <Text strong style={{ fontSize: 15, flex: 1 }} ellipsis>{category?.name}</Text>
-                                        <Text style={{ color: amountColor, fontSize: 15, fontWeight: 600, flexShrink: 0 }}>
-                                            {amountLabel}
-                                        </Text>
-                                    </div>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>{account?.name}</Text>
-                                    {hasNotes && (
-                                        <div style={{ marginTop: 4, fontSize: 12 }}>
-                                            {renderNotes(record, true)}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+            <div className="transactions-loading" aria-label={t("transactions.loading.initial")}>
+                {Array.from({ length: 6 }).map((_, index) => (
+                    <div className="transactions-skeleton-row" key={index}>
+                        <span />
+                        <span />
+                        <span />
                     </div>
-                </Spin>
-
-                {paginationBar}
-            </>
+                ))}
+            </div>
         );
     }
 
-    // Desktop table layout
-    const renderDateHeader = (record: TransactionDateHeader) => ({
-        children: (
-            <span style={{ fontSize: 12, color: "#595959", fontWeight: 600 }}>
-                <CalendarOutlined style={{ marginRight: 6, color: "#1677ff" }} />
-                {dateHeaderLabel(record._date)}
-            </span>
-        ),
-        props: { colSpan: HEADER_COLSPAN },
-    });
+    if (isError && !hasRows) {
+        return (
+            <div className="transactions-load-failure">
+                <Alert
+                    action={(
+                        <InExButton icon={<RotateCw size={14} />} kind="ghost" onClick={() => refetch()} size="sm">
+                            {t("transactions.error.retry")}
+                        </InExButton>
+                    )}
+                    message={t("transactions.error.loadFailure")}
+                    showIcon
+                    type="error"
+                />
+                <div className="transactions-error-detail">{String(error ?? "")}</div>
+            </div>
+        );
+    }
 
-    const columns: TableColumnsType<TransactionRow> = [
-        {
-            title: t("transactions.category"),
-            width: "28%",
-            dataIndex: "categoryId",
-            key: "categoryId",
-            render: (_value: unknown, record: TransactionRow) => {
-                if (isDateHeader(record)) return renderDateHeader(record);
-                const category = props.categories.find((c) => c.id === record.categoryId);
-                return category?.name;
-            },
-        },
-        {
-            title: t("transactions.account"),
-            width: "22%",
-            dataIndex: "accountId",
-            key: "accountId",
-            render: (_value: unknown, record: TransactionRow) => {
-                if (isDateHeader(record)) return { children: null, props: headerSpan };
-                const account = props.accounts.find((a) => a.id === record.accountId);
-                return account?.name;
-            },
-        },
-        {
-            title: t("transactions.amount"),
-            key: "amount",
-            width: "16%",
-            align: "right",
-            render: (_value: unknown, record: TransactionRow) => {
-                if (isDateHeader(record)) return { children: null, props: headerSpan };
-                const { label, color } = getAmountDisplay(record);
-                return <span style={{ color }}>{label}</span>;
-            },
-        },
-        {
-            title: t("transactions.comment"),
-            key: "notes",
-            width: "34%",
-            render: (_value: unknown, record: TransactionRow) => {
-                if (isDateHeader(record)) return { children: null, props: headerSpan };
-                return <span>{renderNotes(record)}</span>;
-            },
-        },
-    ];
+    const serverFilterActive =
+        queryFilter.accountIds.length > 0 ||
+        queryFilter.categoryIds.length > 0 ||
+        queryFilter.tags.length > 0 ||
+        queryFilter.refs.length > 0 ||
+        (queryFilter.range.length === 2 && (queryFilter.range[0] > 0 || queryFilter.range[1] > 0));
 
-    const expandedRowRender = (record: TransactionRow) => {
-        if (isDateHeader(record)) return null;
-        return <TransactionEditForm record={record} accounts={props.accounts} categories={props.categories} />;
-    };
+    if (!isLoading && transactions.length === 0 && serverFilterActive) {
+        return (
+            <div className="transactions-empty-wrap">
+                <FilterEmpty
+                    description={t("transactions.emptyDescription")}
+                    onClear={onClearFilters}
+                    title={t("transactions.empty")}
+                />
+            </div>
+        );
+    }
+
+    if (!isLoading && transactions.length === 0) {
+        return (
+            <div className="transactions-empty-wrap">
+                <EmptyState
+                    actions={(
+                        <InExButton icon={<Plus size={15} />} kind="primary" onClick={onAddTransaction} size="md">
+                            {t("transactions.add")}
+                        </InExButton>
+                    )}
+                    iconNode={<Inbox size={28} />}
+                    description={t("transactions.emptyDescription")}
+                    title={t("transactions.empty")}
+                />
+            </div>
+        );
+    }
 
     return (
         <>
-            {isError && (
+            {isFetching && hasRows && (
+                <div className="transactions-refreshing" role="status">
+                    <RotateCw aria-hidden="true" size={14} />
+                    {t("transactions.loading.refreshing")}
+                </div>
+            )}
+
+            {isError && hasRows && (
                 <Alert
+                    action={(
+                        <InExButton icon={<RotateCw size={14} />} kind="ghost" onClick={() => refetch()} size="sm">
+                            {t("transactions.error.retry")}
+                        </InExButton>
+                    )}
+                    className="transactions-inline-error"
+                    message={t("transactions.error.partialFailure")}
+                    showIcon
                     type="error"
-                    message={t("transactions.error")}
-                    style={{ marginBottom: 16 }}
                 />
             )}
-            <Table
-                rowKey={(record: TransactionRow) => record.id.toString()}
-                loading={isLoading}
-                columns={columns}
-                dataSource={dataSource}
-                onRow={(record) => ({
-                    style: isDateHeader(record)
-                        ? { backgroundColor: "#f0f5ff", cursor: "default", borderTop: "2px solid #e8e8e8" }
-                        : undefined,
-                })}
-                expandable={{
-                    expandedRowRender,
-                    rowExpandable: (record) => !isDateHeader(record),
-                    showExpandColumn: false,
-                    expandRowByClick: true,
-                    onExpand: rowExpandHandler,
-                    expandedRowKeys: expandedRows,
-                }}
-                pagination={false}
-                tableLayout="fixed"
-            />
-            {paginationBar}
+
+            <div className="transactions-ledger-head">
+                <div>{t("transactions.description")}</div>
+                <div>{t("transactions.account")}</div>
+                <div>{t("transactions.date")}</div>
+                <div>{t("transactions.amount")}</div>
+            </div>
+
+            {visibleTransactions.length === 0 ? (
+                <div className="transactions-empty-wrap">
+                    <FilterEmpty
+                        description={t("transactions.filterEmptyDescription")}
+                        onClear={onClearFilters}
+                        title={t("transactions.filterEmptyTitle")}
+                    />
+                </div>
+            ) : (
+                groups.map(group => (
+                    <section className="transactions-day-group" key={group.dateKey}>
+                        <header className="transactions-day-header">
+                            <div className="transactions-day-header__date">
+                                <CalendarDays aria-hidden="true" size={14} />
+                                {group.label}
+                                <span>{t("transactions.itemCount", { count: group.items.length })}</span>
+                            </div>
+                            <div className="transactions-day-header__totals">
+                                {group.income > 0 && <Num value={group.income} kind="income" currency="" size={12} />}
+                                {group.expense < 0 && <Num value={group.expense} kind="expense" currency="" size={12} />}
+                            </div>
+                        </header>
+                        {group.items.map(transaction => {
+                            const account = accountsById.get(transaction.accountId);
+                            const category = categoriesById.get(transaction.categoryId);
+                            const kind = getTransactionKind(transaction, category);
+                            const amountKind: MoneyKind = kind === "transfer" ? "transfer" : kind;
+                            const cleanComment = transaction.comment?.replace(/#\S+/g, "").replace(/@\S+/g, "").trim();
+                            const title = cleanComment || category?.name || t("transactions.uncategorized");
+
+                            const openEdit = () => setEditRecord(transaction);
+
+                            return (
+                                <div
+                                    className={`transactions-ledger-row transactions-ledger-row--${kind}`}
+                                    key={transaction.id}
+                                    onClick={openEdit}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            openEdit();
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <div className="transactions-row-main">
+                                        <div className="transactions-row-title">{title}</div>
+                                        <div className="transactions-row-meta">
+                                            {category?.name && kind !== "transfer" && <span>{category.name}</span>}
+                                            {kind === "transfer" && <span>{t("transactions.transfer")}</span>}
+                                            {transaction.tags.map(tag => (
+                                                <button
+                                                    className="transactions-row-token"
+                                                    key={`tag-${tag}`}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleTagClick(tag);
+                                                    }}
+                                                    type="button"
+                                                >
+                                                    #{tag}
+                                                </button>
+                                            ))}
+                                            {transaction.refs.map(ref => (
+                                                <button
+                                                    className="transactions-row-token"
+                                                    key={`ref-${ref}`}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleRefClick(ref);
+                                                    }}
+                                                    type="button"
+                                                >
+                                                    @{ref}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div>
+                                    <div className="transactions-row-date">{dayjs(transaction.created).format("YYYY-MM-DD")}</div>
+                                    <div className="transactions-row-amount">
+                                        <Num
+                                            currency={account?.currency ?? transaction.accountCurrency}
+                                            kind={amountKind}
+                                            value={transaction.amount}
+                                            size={15}
+                                        />
+                                    </div>
+                                    <ChevronRight aria-hidden="true" className="transactions-row-chevron" size={16} />
+                                </div>
+                            );
+                        })}
+                    </section>
+                ))
+            )}
+
+            <div className="transactions-pagination">
+                <div>
+                    {t("transactions.paginationSummary", {
+                        visible: visibleTransactions.length,
+                        total,
+                    })}
+                </div>
+                <Pagination
+                    current={pagination.current}
+                    onChange={paginationChangedHandler}
+                    pageSize={pagination.size}
+                    pageSizeOptions={[25, 50, 100]}
+                    showSizeChanger
+                    total={pagination.total}
+                />
+            </div>
+
+            <InExDrawer
+                onClose={() => setEditRecord(null)}
+                open={editRecord !== null}
+                subtitle={t("transactions.editDrawerSubtitle")}
+                title={t("transactions.editDrawerTitle")}
+                width={460}
+            >
+                {editRecord ? (
+                    <>
+                        <TransactionEditForm
+                            accounts={accounts}
+                            categories={categories}
+                            record={editRecord}
+                        />
+                        {formError && (
+                            <Alert
+                                className="transactions-form-error"
+                                message={formError}
+                                showIcon
+                                type="error"
+                            />
+                        )}
+                    </>
+                ) : (
+                    <div className="transactions-empty-drawer">
+                        <Inbox size={20} />
+                    </div>
+                )}
+            </InExDrawer>
         </>
     );
 };

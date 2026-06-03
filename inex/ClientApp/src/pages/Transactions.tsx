@@ -1,135 +1,375 @@
 import * as React from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Drawer, Grid, Layout, Tabs } from "antd";
-import { FilterOutlined } from "@ant-design/icons";
-
-const { Sider, Content } = Layout;
-const { useBreakpoint } = Grid;
-
-import { useState } from "react";
+import { Alert, Badge } from "antd";
+import { Filter, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAppSelector } from "../store/hooks";
 
 import BasicPage from "../layouts/BasicPage";
-import TransactionCreate from "./Transactions/TransactionCreate";
-import TransactionList from "./Transactions/TransactionList";
-import TransactionSummary from "./Transactions/TransactionSummary";
-import TransactionFilterForm from "./Transactions/TransactionFilterForm";
+import { useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
+import type { TransactionFilter } from "../store/transactions/transactions-slice";
+import {
+    Field,
+    InExButton,
+    InExDrawer,
+    Input,
+    Num,
+    SegmentedControl,
+    type MoneyKind,
+} from "../components/primitives";
+import TransactionCreate from "./Transactions/TransactionCreate";
+import TransactionFilterForm from "./Transactions/TransactionFilterForm";
+import TransactionList from "./Transactions/TransactionList";
+import { buildTransactionFilterSearch } from "./Transactions/transaction-filter-url";
+import "./Transactions/transactions-ledger.css";
 
-const Transactions = (props: any) => {
+export type LedgerTypeFilter = "all" | "income" | "expense" | "transfer";
+
+export interface LedgerUiFilter {
+    type: LedgerTypeFilter;
+    search: string;
+    minAmount: string;
+    maxAmount: string;
+}
+
+export interface LedgerSummary {
+    income: number;
+    expense: number;
+    net: number;
+}
+
+interface FilterChip {
+    key: string;
+    label: string;
+    onClear: () => void;
+}
+
+const emptyLedgerFilter: LedgerUiFilter = {
+    type: "all",
+    search: "",
+    minAmount: "",
+    maxAmount: "",
+};
+
+const isTransactionFilterActive = (filter: TransactionFilter): boolean =>
+    filter.accountIds.length > 0 ||
+    filter.categoryIds.length > 0 ||
+    filter.tags.length > 0 ||
+    filter.refs.length > 0 ||
+    (filter.range.length === 2 && (filter.range[0] > 0 || filter.range[1] > 0));
+
+const isLedgerUiFilterActive = (filter: LedgerUiFilter): boolean =>
+    filter.type !== "all" ||
+    filter.search.trim() !== "" ||
+    filter.minAmount.trim() !== "" ||
+    filter.maxAmount.trim() !== "";
+
+const formatDateRange = (range: number[]): string => {
+    if (range.length !== 2) return "";
+
+    const format = (value: number, fallback: string) =>
+        value > 0 ? new Date(value * 1000).toISOString().slice(0, 10) : fallback;
+
+    return `${format(range[0], "start")} - ${format(range[1], "end")}`;
+};
+
+const Transactions = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
 
-    const queryParams: URLSearchParams = new URLSearchParams(location.search);
-    const filter: string | null = queryParams.get("filter");
-    const sideMode: string = filter === null ? "status" : "filter";
+    const queryParams = new URLSearchParams(location.search);
+    const filterParam = queryParams.get("filter");
 
     const { data: allAccounts = [] } = useGetAccountsQuery("ALL");
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
     const filterState = useAppSelector(state => state.transactions.filter);
+    const formError = useAppSelector(state => state.transactions.error);
 
-    const activeAccounts = allAccounts.filter((a: AccountResponse) => a.isEnabled);
-    const activeCategories = allCategories.filter((c: CategoryResponse) => c.isEnabled);
+    const [addDrawerOpen, setAddDrawerOpen] = useState(false);
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
+    const [ledgerFilter, setLedgerFilter] = useState<LedgerUiFilter>(emptyLedgerFilter);
+    const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary>({ income: 0, expense: 0, net: 0 });
+    const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
 
-    const isFilterActive =
-        filterState.accountIds.length > 0 ||
-        filterState.categoryIds.length > 0 ||
-        filterState.tags.length > 0 ||
-        filterState.refs.length > 0 ||
-        (filterState.range.length === 2 && (filterState.range[0] > 0 || filterState.range[1] > 0));
-    const filterIndicatorTitle = isFilterActive ? t("transactions.filtersActive") : undefined;
+    const activeAccounts = useMemo(
+        () => allAccounts.filter((account: AccountResponse) => account.isEnabled),
+        [allAccounts],
+    );
+    const activeCategories = useMemo(
+        () => allCategories.filter((category: CategoryResponse) => category.isEnabled),
+        [allCategories],
+    );
 
-    const screens = useBreakpoint();
-    const isMobile = screens.md === false;
+    const filterActive = isTransactionFilterActive(filterState) || isLedgerUiFilterActive(ledgerFilter);
+    const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
 
-    const [addModalVisible, setAddModalVisible] = useState(false);
-    const [filterDrawerVisible, setFilterDrawerVisible] = useState(false);
-
-    const sideModeChangeHandler = (mode: any) => {
-        navigate(`${location.pathname}?${mode === "filter" ? "filter=" : ""}`, { replace: true });
+    const clearServerFilter = (nextFilter: TransactionFilter) => {
+        navigate(`${location.pathname}${buildTransactionFilterSearch(nextFilter)}`, { replace: true });
     };
 
-    const extraButtons = [
-        isMobile && (
-            <Badge key="filterBadge" dot={isFilterActive} title={filterIndicatorTitle}>
-                <Button
-                    key="filterButton"
-                    icon={<FilterOutlined />}
-                    size="large"
-                    onClick={() => setFilterDrawerVisible(true)}
-                    style={{ margin: "4px 4px 4px 0" }}
-                />
-            </Badge>
-        ),
-        <Button key="addTransaction" onClick={() => setAddModalVisible(true)} size="large" type="primary" style={{ margin: "4px 0px" }}>
-            {t("transactions.add")}
-        </Button>,
+    const clearAllFilters = () => {
+        setLedgerFilter(emptyLedgerFilter);
+        navigate(location.pathname, { replace: true });
+    };
+
+    const chips = useMemo<FilterChip[]>(() => {
+        const accountById = new Map(allAccounts.map(account => [account.id, account.name]));
+        const categoryById = new Map(allCategories.map(category => [category.id, category.name]));
+        const next: FilterChip[] = [];
+
+        if (ledgerFilter.type !== "all") {
+            next.push({
+                key: "type",
+                label: `${t("transactions.type")}: ${t(`transactions.${ledgerFilter.type}`)}`,
+                onClear: () => setLedgerFilter(prev => ({ ...prev, type: "all" })),
+            });
+        }
+
+        if (ledgerFilter.search.trim() !== "") {
+            next.push({
+                key: "search",
+                label: `${t("transactions.search")}: ${ledgerFilter.search.trim()}`,
+                onClear: () => setLedgerFilter(prev => ({ ...prev, search: "" })),
+            });
+        }
+
+        if (filterState.accountIds.length > 0) {
+            next.push({
+                key: "accounts",
+                label: `${t("transactions.account")}: ${filterState.accountIds.map(id => accountById.get(id) ?? id).join(", ")}`,
+                onClear: () => clearServerFilter({ ...filterState, accountIds: [] }),
+            });
+        }
+
+        if (filterState.categoryIds.length > 0) {
+            next.push({
+                key: "categories",
+                label: `${t("transactions.category")}: ${filterState.categoryIds.map(id => categoryById.get(id) ?? id).join(", ")}`,
+                onClear: () => clearServerFilter({ ...filterState, categoryIds: [] }),
+            });
+        }
+
+        if (filterState.tags.length > 0) {
+            next.push({
+                key: "tags",
+                label: `${t("transactions.tags")}: ${filterState.tags.map(tag => `#${tag}`).join(" ")}`,
+                onClear: () => clearServerFilter({ ...filterState, tags: [] }),
+            });
+        }
+
+        if (filterState.refs.length > 0) {
+            next.push({
+                key: "refs",
+                label: `${t("transactions.refs")}: ${filterState.refs.map(ref => `@${ref}`).join(" ")}`,
+                onClear: () => clearServerFilter({ ...filterState, refs: [] }),
+            });
+        }
+
+        if (filterState.range.length === 2 && (filterState.range[0] > 0 || filterState.range[1] > 0)) {
+            next.push({
+                key: "date",
+                label: `${t("transactions.date")}: ${formatDateRange(filterState.range)}`,
+                onClear: () => clearServerFilter({ ...filterState, range: [] }),
+            });
+        }
+
+        if (ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "") {
+            next.push({
+                key: "amount",
+                label: `${t("transactions.amount")}: ${ledgerFilter.minAmount || "0"} - ${ledgerFilter.maxAmount || t("transactions.anyAmount")}`,
+                onClear: () => setLedgerFilter(prev => ({ ...prev, minAmount: "", maxAmount: "" })),
+            });
+        }
+
+        return next;
+    }, [allAccounts, allCategories, filterState, ledgerFilter, location.pathname, navigate, t]);
+
+    const kpiItems = [
+        {
+            label: t("transactions.kpi.income"),
+            value: ledgerSummary.income,
+            kind: "income" as MoneyKind,
+            sub: t("transactions.kpi.filteredPage"),
+        },
+        {
+            label: t("transactions.kpi.expenses"),
+            value: ledgerSummary.expense,
+            kind: "expense" as MoneyKind,
+            sub: t("transactions.kpi.filteredPage"),
+        },
+        {
+            label: t("transactions.kpi.netFlow"),
+            value: ledgerSummary.net,
+            kind: ledgerSummary.net > 0 ? "income" as MoneyKind : ledgerSummary.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
+            sub: t("transactions.kpi.updatesWithLedger"),
+        },
     ];
 
-    return (
-        <React.Fragment>
-            {/* Add transaction drawer — bottom sheet on mobile, right panel on desktop */}
-            <Drawer
-                title={t("transactions.addDrawerTitle")}
-                width={isMobile ? "100%" : 420}
-                height={isMobile ? "90%" : undefined}
-                placement={isMobile ? "bottom" : "right"}
-                onClose={() => setAddModalVisible(false)}
-                open={addModalVisible}
-                styles={{ body: { paddingBottom: 80 } }}
-            >
-                <TransactionCreate accounts={activeAccounts} categories={activeCategories} onSubmit={() => setAddModalVisible(false)} />
-            </Drawer>
-
-            {/* Mobile filter drawer */}
-            {isMobile && (
-                <Drawer
-                    title={t("transactions.filter")}
-                    placement="bottom"
-                    height="85%"
-                    onClose={() => setFilterDrawerVisible(false)}
-                    open={filterDrawerVisible}
-                    styles={{ body: { padding: "20px" } }}
+    const headerActions = (
+        <>
+            <Badge dot={filterActive} title={filterIndicatorTitle}>
+                <InExButton
+                    icon={<SlidersHorizontal size={16} />}
+                    kind="ghost"
+                    onClick={() => setFilterDrawerOpen(true)}
+                    size="md"
                 >
-                    <TransactionFilterForm
-                        accounts={activeAccounts}
-                        categories={activeCategories}
-                        filter={filter}
-                    />
-                </Drawer>
-            )}
+                    {t("transactions.filter")}
+                </InExButton>
+            </Badge>
+            <InExButton icon={<Plus size={16} />} kind="primary" onClick={() => setAddDrawerOpen(true)} size="md">
+                {t("transactions.add")}
+            </InExButton>
+        </>
+    );
 
-            <BasicPage title={t("transactions.title")} extra={extraButtons}>
-                {!isMobile && (
-                    <Sider theme="light" style={{ margin: "0 0 65px 0", minHeight: 280 }} width={350}>
-                        <Tabs
-                            onChange={sideModeChangeHandler}
-                            activeKey={sideMode}
-                            type="card"
-                            items={[
-                                {
-                                    key: "status",
-                                    label: t("transactions.status"),
-                                    children: <TransactionSummary accounts={activeAccounts} />,
-                                },
-                                {
-                                    key: "filter",
-                                    label: <Badge dot={isFilterActive} offset={[6, 0]} title={filterIndicatorTitle}>{t("transactions.filter")}</Badge>,
-                                    children: <TransactionFilterForm accounts={activeAccounts} categories={activeCategories} filter={filter} />,
-                                    style: { padding: "20px" },
-                                },
-                            ]}
+    return (
+        <>
+            <BasicPage title={t("transactions.title")} subtitle={t("transactions.subtitle")} extra={headerActions}>
+                <section className="transactions-ledger">
+                    <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")}>
+                        {kpiItems.map(item => (
+                            <div className={`transactions-kpi${ledgerInitialLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
+                                <div className="transactions-kpi__label">{item.label}</div>
+                                <div className="transactions-kpi__value">
+                                    {ledgerInitialLoading ? (
+                                        <span className="transactions-kpi__skeleton" />
+                                    ) : (
+                                        <Num value={item.value} kind={item.kind} currency="" size={30} />
+                                    )}
+                                </div>
+                                <div className="transactions-kpi__sub">{item.sub}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
+                        <div className="transactions-ledger-toolbar">
+                            <div className="transactions-ledger-toolbar__title">
+                                <h2>{t("transactions.ledger")}</h2>
+                                {filterActive && (
+                                    <span className="transactions-filter-indicator">
+                                        <Filter size={13} />
+                                        {t("transactions.filtersActive")}
+                                    </span>
+                                )}
+                            </div>
+                            <InExButton
+                                icon={<SlidersHorizontal size={15} />}
+                                kind="ghost"
+                                onClick={() => setFilterDrawerOpen(true)}
+                                size="sm"
+                            >
+                                {t("transactions.advancedFilters")}
+                            </InExButton>
+                        </div>
+
+                        <div className="transactions-ledger-controls">
+                            <SegmentedControl
+                                onChange={(value) => setLedgerFilter(prev => ({ ...prev, type: value as LedgerTypeFilter }))}
+                                options={[
+                                    { key: "all", label: t("transactions.all") },
+                                    { key: "income", label: t("transactions.income") },
+                                    { key: "expense", label: t("transactions.expense") },
+                                    { key: "transfer", label: t("transactions.transfer") },
+                                ]}
+                                value={ledgerFilter.type}
+                            />
+                            <label className="transactions-search">
+                                <Search aria-hidden="true" size={15} />
+                                <span className="sr-only">{t("transactions.search")}</span>
+                                <input
+                                    onChange={(event) => setLedgerFilter(prev => ({ ...prev, search: event.target.value }))}
+                                    placeholder={t("transactions.searchPlaceholder")}
+                                    value={ledgerFilter.search}
+                                />
+                            </label>
+                        </div>
+
+                        {chips.length > 0 && (
+                            <div className="transactions-filter-chips" aria-label={t("transactions.activeFilters")}>
+                                {chips.map(chip => (
+                                    <button className="transactions-filter-chip" key={chip.key} onClick={chip.onClear} type="button">
+                                        {chip.label}
+                                        <X aria-hidden="true" size={12} />
+                                    </button>
+                                ))}
+                                <button className="transactions-clear-filters" onClick={clearAllFilters} type="button">
+                                    {t("transactions.clearAll")}
+                                </button>
+                            </div>
+                        )}
+
+                        <TransactionList
+                            accounts={allAccounts}
+                            categories={allCategories}
+                            ledgerFilter={ledgerFilter}
+                            onAddTransaction={() => setAddDrawerOpen(true)}
+                            onClearFilters={clearAllFilters}
+                            onInitialLoadingChange={setLedgerInitialLoading}
+                            onSummaryChange={setLedgerSummary}
                         />
-                    </Sider>
-                )}
-                <Content style={{ margin: isMobile ? 0 : "0 0 0 24px", minHeight: 280 }}>
-                    <TransactionList accounts={allAccounts} categories={allCategories} />
-                </Content>
+                    </section>
+                </section>
             </BasicPage>
-        </React.Fragment>
+
+            <InExDrawer
+                onClose={() => setAddDrawerOpen(false)}
+                open={addDrawerOpen}
+                subtitle={t("transactions.addDrawerSubtitle")}
+                title={t("transactions.addDrawerTitle")}
+                width={460}
+            >
+                <TransactionCreate
+                    accounts={activeAccounts}
+                    categories={activeCategories}
+                    onSubmit={() => setAddDrawerOpen(false)}
+                />
+            </InExDrawer>
+
+            <InExDrawer
+                onClose={() => setFilterDrawerOpen(false)}
+                open={filterDrawerOpen}
+                subtitle={t("transactions.filterDrawerSubtitle")}
+                title={t("transactions.advancedFilters")}
+                width={480}
+            >
+                <TransactionFilterForm
+                    accounts={activeAccounts}
+                    categories={activeCategories}
+                    filter={filterParam}
+                />
+                <div className="transactions-local-filter-fields">
+                    <Field label={t("transactions.minAmount")}>
+                        <Input
+                            id="transactions-min-amount"
+                            onChange={(event) => setLedgerFilter(prev => ({ ...prev, minAmount: event.target.value }))}
+                            placeholder="0.00"
+                            value={ledgerFilter.minAmount}
+                        />
+                    </Field>
+                    <Field label={t("transactions.maxAmount")}>
+                        <Input
+                            id="transactions-max-amount"
+                            onChange={(event) => setLedgerFilter(prev => ({ ...prev, maxAmount: event.target.value }))}
+                            placeholder={t("transactions.anyAmount")}
+                            value={ledgerFilter.maxAmount}
+                        />
+                    </Field>
+                </div>
+                {formError && (
+                    <Alert
+                        className="transactions-form-error"
+                        message={formError}
+                        showIcon
+                        type="error"
+                    />
+                )}
+            </InExDrawer>
+        </>
     );
 };
 

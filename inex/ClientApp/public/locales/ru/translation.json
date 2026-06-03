@@ -127,7 +127,59 @@
     "thisMonth": "Этот месяц",
     "lastMonth": "Прошлый месяц",
     "applyFilter": "Применить",
-    "resetFilter": "Сбросить"
+    "resetFilter": "Сбросить",
+    "subtitle": "Обзор",
+    "ledger": "Журнал",
+    "description": "Описание",
+    "all": "Все",
+    "search": "Поиск",
+    "searchPlaceholder": "Поиск транзакций",
+    "activeFilters": "Активные фильтры",
+    "clearAll": "Сбросить все",
+    "advancedFilters": "Расширенные фильтры",
+    "addDrawerSubtitle": "Запишите доход, расход или перевод.",
+    "filterDrawerSubtitle": "Сузьте журнал, не покидая страницу транзакций.",
+    "editDrawerTitle": "Редактировать транзакцию",
+    "editDrawerSubtitle": "Измените или удалите выбранную строку журнала.",
+    "tags": "Теги",
+    "refs": "Ссылки",
+    "anyAmount": "Любая",
+    "minAmount": "Минимальная сумма",
+    "maxAmount": "Максимальная сумма",
+    "uncategorized": "Без категории",
+    "unknownAccount": "Неизвестный счёт",
+    "itemCount_one": "{{count}} запись",
+    "itemCount_few": "{{count}} записи",
+    "itemCount_many": "{{count}} записей",
+    "itemCount_other": "{{count}} записи",
+    "paginationSummary": "Показано {{visible}} из {{total}} транзакций",
+    "emptyDescription": "Добавьте первую транзакцию, чтобы начать журнал.",
+    "filterEmptyTitle": "Нет подходящих транзакций",
+    "filterEmptyDescription": "Активные фильтры не совпали с текущей страницей журнала.",
+    "kpi": {
+      "title": "Показатели транзакций",
+      "income": "Доход",
+      "expenses": "Расходы",
+      "netFlow": "Чистый поток",
+      "filteredPage": "Текущая страница журнала",
+      "updatesWithLedger": "Обновляется по видимому журналу"
+    },
+    "loading": {
+      "initial": "Загружаем транзакции",
+      "refreshing": "Обновляем журнал"
+    },
+    "error": {
+      "loadFailure": "Не удалось загрузить транзакции",
+      "partialFailure": "Не удалось обновить журнал. Показываем последние загруженные строки.",
+      "retry": "Повторить"
+    },
+    "formErrors": {
+      "saveFailure": "Не удалось сохранить транзакцию",
+      "createFailure": "Не удалось создать транзакцию",
+      "transferFailure": "Не удалось создать перевод",
+      "updateFailure": "Не удалось обновить транзакцию",
+      "filterApplyFailure": "Не удалось применить фильтры"
+    }
   },
   "accounts": {
     "title": "Счета",
