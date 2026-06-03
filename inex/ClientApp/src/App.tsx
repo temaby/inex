@@ -7,6 +7,7 @@ import ruRU from "antd/locale/ru_RU";
 import dayjs from "dayjs";
 
 import { useAppDispatch, useAppSelector } from './store/hooks';
+import { inexTheme } from "./styles/antd-theme";
 
 import { restoreSession } from './store/auth/auth-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
@@ -71,7 +72,7 @@ const App = () => {
     }, [accessToken]);
 
     return (
-        <ConfigProvider locale={antdLocale}>
+        <ConfigProvider locale={antdLocale} theme={inexTheme}>
             <React.Suspense fallback={<PageFallback />}>
                 <Routes>
             {/* Public routes — accessible without authentication */}
