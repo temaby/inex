@@ -238,6 +238,28 @@
     "title": "Страница не найдена",
     "goHome": "На главную"
   },
+  "primitives": {
+    "signage": {
+      "colorOnly": "Только цвет",
+      "signed": "Со знаками (+/-)",
+      "arrows": "Стрелки"
+    },
+    "filterEmpty": {
+      "title": "Нет результатов для этих фильтров",
+      "description": "Расширьте диапазон дат, очистите теги или сбросьте поиск.",
+      "clearFilters": "Сбросить фильтры"
+    },
+    "kindLabel": {
+      "income": "Доход",
+      "expense": "Расход",
+      "transfer": "Перевод",
+      "neutral": "Сумма",
+      "warn": "Предупреждающая сумма"
+    },
+    "progress": {
+      "overBudget": "Превышен бюджет"
+    }
+  },
   "errors": {
     "amount.not_zero": "Сумма не может быть равна нулю",
     "amount_from.must_be_positive": "Сумма источника должна быть больше нуля",

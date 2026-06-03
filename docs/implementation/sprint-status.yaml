@@ -100,8 +100,8 @@ development_status:
   9-8-infra-ci-cd-github-actions-ecr-ecs-rolling-deploy: backlog
   epic-9-retrospective: optional
   epic-10: in-progress
-  10-1a-frontend-ux-design-tokens-and-theme-bridge: review
-  10-1b-frontend-ux-shared-primitives: ready-for-dev
+  10-1a-frontend-ux-design-tokens-and-theme-bridge: done
+  10-1b-frontend-ux-shared-primitives: review
   10-1c-frontend-ux-app-shell-and-navigation: ready-for-dev
   10-2-frontend-ux-transactions-ledger-redesign: ready-for-dev
   10-3a-frontend-ux-accounts-management-redesign: ready-for-dev
