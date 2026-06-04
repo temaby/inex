@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-06-03T21:52:30.690Z",
+  "results": [
+    {
+      "name": "desktop-populated-1440",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "drawerOpen": false
+    },
+    {
+      "name": "tablet-populated-1024",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "clientWidth": 1024,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "drawerOpen": false
+    },
+    {
+      "name": "mobile-populated-390",
+      "width": 390,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "drawerOpen": false
+    },
+    {
+      "name": "mobile-populated-360",
+      "width": 360,
+      "scrollWidth": 360,
+      "clientWidth": 360,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "drawerOpen": false
+    },
+    {
+      "name": "empty-1440",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "drawerOpen": false
+    },
+    {
+      "name": "filter-empty-390",
+      "width": 390,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "drawerOpen": false
+    },
+    {
+      "name": "drawer-open-390",
+      "width": 390,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "drawerOpen": true
+    }
+  ]
+}

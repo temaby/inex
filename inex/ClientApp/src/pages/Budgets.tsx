@@ -1,40 +1,54 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Table, Tag, Drawer, Grid, Space, Form, Input, InputNumber, Select, message, Typography } from "antd";
-
-const { useBreakpoint } = Grid;
-import type { TableColumnsType } from "antd";
-import dayjs from "dayjs";
-import { DatePicker } from "antd";
+import { Alert, DatePicker, Form, Input, InputNumber, message } from "antd";
+import type { MenuProps } from "antd";
+import dayjs, { Dayjs } from "dayjs";
+import { Copy, FilterX, FolderOpen, Plus, RefreshCw, Search, Target, WalletCards } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+
 import BasicPage from "../layouts/BasicPage";
 import { BudgetDetails } from "../model/Budget/BudgetDetails";
 import { BudgetEditState } from "../model/Budget/BudgetEditState";
-import { parseAxiosError } from "../utils/parseAxiosError";
 import { CategoryDetails, getCategoriesTree } from "../model/Category/CategoryDetails";
-import BudgetEditForm from "./Budgets/BudgetEditForm";
+import { BudgetComparisonDTO } from "../model/Report/BudgetReport";
 import Dropdown from "../components/Dropdown";
 import ExpressionInputNumber from "../components/ExpressionInputNumber";
-import { CopyOutlined } from "@ant-design/icons";
-import { useGetAccountsQuery } from "../store/accounts/accounts-api";
+import { EmptyState, FilterEmpty, InExButton, InExDrawer, BudgetProgress, Num, SegmentedControl } from "../components/primitives";
+import { parseAxiosError } from "../utils/parseAxiosError";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
+import { useGetAccountsQuery } from "../store/accounts/accounts-api";
 import {
     useCopyBudgetsMutation,
     useCreateBudgetMutation,
     useGetBudgetsQuery,
 } from "../store/budgets/budgets-api";
+import { useGetBudgetReportQuery } from "../store/budgetReport/budgetReport-api";
+import BudgetEditForm from "./Budgets/BudgetEditForm";
+import "./Budgets/budgets.css";
 
-const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
+interface CategoryDropdownProps {
+    value?: number[];
+    onChange?: (value: number[]) => void;
+    categories: CategoryResponse[];
+    tree: CategoryDetails[];
+}
+
+const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
+    value = [],
+    onChange,
+    categories,
+    tree,
+}) => {
     const { t } = useTranslation();
-    const selection = categories.filter((c: any) => value.includes(c.id));
+    const selection = categories.filter((category) => value.includes(category.id));
 
-    const handleChange = (item: any) => {
-        const id = +item.key;
+    const handleChange: NonNullable<MenuProps["onSelect"]> = (item) => {
+        const id = Number(item.key);
         const newValue = value.includes(id)
-            ? value.filter((v: number) => v !== id)
+            ? value.filter((selectedId) => selectedId !== id)
             : [...value, id];
-        onChange(newValue);
+        onChange?.(newValue);
     };
 
     return (
@@ -49,18 +63,66 @@ const CategoryDropdown = ({ value = [], onChange, categories, tree }: any) => {
     );
 };
 
+const formatMonthLabel = (month: Dayjs) => month.format("MMM YYYY");
+
+const getMonthOptions = (selectedMonth: Dayjs) =>
+    [-2, -1, 0, 1, 2].map((offset) => {
+        const value = selectedMonth.add(offset, "month");
+        return {
+            key: value.format("YYYY-MM"),
+            label: formatMonthLabel(value),
+        };
+    });
+
+const getBudgetReportForBudget = (
+    budget: BudgetDetails,
+    reportItems: BudgetComparisonDTO[],
+) => {
+    if (budget.categoryIds.length === 0) return undefined;
+    const matchingItems = reportItems.filter((reportItem) =>
+        reportItem.categoryIds.some((categoryId) => budget.categoryIds.includes(categoryId)),
+    );
+    if (matchingItems.length === 0) return undefined;
+
+    const spentAmount = matchingItems.reduce((sum, item) => sum + item.spentAmount, 0);
+    const remainingAmount = budget.value - spentAmount;
+
+    return {
+        ...matchingItems[0],
+        budgetedAmount: budget.value,
+        spentAmount,
+        remainingAmount,
+        percentageUsed: budget.value > 0 ? (spentAmount / budget.value) * 100 : 0,
+    };
+};
+
+const getReportMetric = (
+    reportItem: BudgetComparisonDTO | undefined,
+    field: keyof Pick<BudgetComparisonDTO, "spentAmount" | "remainingAmount" | "percentageUsed">,
+) => reportItem?.[field];
+
+const isOverBudget = (reportItem: BudgetComparisonDTO | undefined) =>
+    (reportItem?.percentageUsed ?? 0) >= 100 || (reportItem?.remainingAmount ?? 0) < 0;
+
 const Budgets = () => {
     const { t } = useTranslation();
-    const [form] = Form.useForm();
+    const [form] = Form.useForm<BudgetEditState>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [modalVisible, setModalVisible] = useState(false);
-    const [expandedRows, setExpandedRows] = useState<number[]>([]);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [expandedBudgetId, setExpandedBudgetId] = useState<number | null>(null);
+    const [searchText, setSearchText] = useState("");
+    const [drawerError, setDrawerError] = useState<string | null>(null);
+    const [copyError, setCopyError] = useState<string | null>(null);
 
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const year = searchParams.get("year");
         const month = searchParams.get("month");
         if (year && month) {
-            return dayjs(`${year}-${month}-01`, "YYYY-MM-DD");
+            return dayjs()
+                .year(Number(year))
+                .month(Number(month) - 1)
+                .date(1)
+                .startOf("day");
         }
         return dayjs();
     });
@@ -73,150 +135,145 @@ const Budgets = () => {
         }
     }, [selectedMonth, setSearchParams, searchParams]);
 
-    const screens = useBreakpoint();
-    const isMobile = screens.md === false;
-
     const selectedYear = selectedMonth.year();
     const selectedMonthNumber = selectedMonth.month() + 1;
-    const { data: budgets = [], isLoading } = useGetBudgetsQuery({
-        year: selectedYear,
-        month: selectedMonthNumber,
-    });
-    const [createBudget, { isLoading: isCreateLoading }] = useCreateBudgetMutation();
-    const [copyBudgets, { isLoading: isCopyLoading }] = useCopyBudgetsMutation();
+
+    const {
+        data: budgets = [],
+        isLoading: isBudgetInitialLoading,
+        isFetching: isBudgetFetching,
+        error: budgetError,
+        refetch: refetchBudgets,
+    } = useGetBudgetsQuery({ year: selectedYear, month: selectedMonthNumber });
+
     const { data: accounts = [] } = useGetAccountsQuery("ALL");
     const currency = accounts.length > 0 ? accounts[0].currency : "USD";
-    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
-    const categories = React.useMemo(() => allCategories.filter((c: CategoryResponse) => c.isEnabled), [allCategories]);
-    const isCreating = isCreateLoading || isCopyLoading;
 
-    const closeModalHandler = () => {
-        setModalVisible(false);
+    const {
+        data: budgetReport,
+        isLoading: isReportInitialLoading,
+        isFetching: isReportFetching,
+        error: reportError,
+        refetch: refetchBudgetReport,
+    } = useGetBudgetReportQuery({
+        year: selectedYear,
+        month: selectedMonthNumber,
+        currency,
+    });
+
+    const [createBudget, { isLoading: isCreateLoading }] = useCreateBudgetMutation();
+    const [copyBudgets, { isLoading: isCopyLoading }] = useCopyBudgetsMutation();
+    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+    const categories = useMemo(
+        () => allCategories.filter((category: CategoryResponse) => category.isEnabled),
+        [allCategories],
+    );
+    const categoryTree = useMemo(
+        () => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[],
+        [categories, t],
+    );
+    const categoryMap = useMemo(
+        () => new Map(allCategories.map((category: CategoryResponse) => [category.id, category])),
+        [allCategories],
+    );
+
+    const reportItems = budgetReport?.data ?? [];
+    const monthOptions = getMonthOptions(selectedMonth);
+    const selectedMonthKey = selectedMonth.format("YYYY-MM");
+    const normalizedSearch = searchText.trim().toLocaleLowerCase();
+    const filteredBudgets = useMemo(() => {
+        if (!normalizedSearch) return budgets;
+        return budgets.filter((budget) => {
+            const categoryNames = budget.categoryIds
+                .map((categoryId) => categoryMap.get(categoryId)?.name ?? "")
+                .join(" ");
+            return `${budget.name} ${budget.description} ${categoryNames}`
+                .toLocaleLowerCase()
+                .includes(normalizedSearch);
+        });
+    }, [budgets, categoryMap, normalizedSearch]);
+
+    const hasBudgets = budgets.length > 0;
+    const isFilteredEmpty = hasBudgets && filteredBudgets.length === 0;
+    const totalBudgeted = budgets.reduce((sum, budget) => sum + budget.value, 0);
+    const totalSpent = reportItems.reduce((sum, item) => sum + item.spentAmount, 0);
+    const totalRemaining = totalBudgeted - totalSpent;
+    const percentUsed = totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
+    const overBudgetCount = budgets.filter((budget) => isOverBudget(getBudgetReportForBudget(budget, reportItems))).length;
+    const isRefreshing = (isBudgetFetching || isReportFetching) && hasBudgets;
+    const hasInitialBudgetError = Boolean(budgetError) && !hasBudgets;
+    const hasPartialBudgetError = Boolean(budgetError) && hasBudgets;
+    const previousMonth = selectedMonth.subtract(1, "month");
+
+    const closeDrawer = () => {
+        setDrawerOpen(false);
+        setDrawerError(null);
         form.resetFields();
     };
 
-    const showAddModalHandler = () => {
-        form.resetFields();
-        setModalVisible(true);
+    const openDrawer = () => {
+        setDrawerError(null);
+        form.setFieldsValue({
+            key: "",
+            name: "",
+            description: "",
+            value: 0,
+            categoryIds: [],
+            year: selectedYear,
+            month: selectedMonthNumber,
+        });
+        setDrawerOpen(true);
     };
 
     const handleCreate = async (values: BudgetEditState) => {
+        setDrawerError(null);
         try {
             await createBudget({
                 key: values.key,
                 name: values.name,
-                description: values.description,
+                description: values.description ?? "",
                 value: values.value,
                 categoryIds: values.categoryIds || [],
                 year: values.year,
                 month: values.month,
             }).unwrap();
             message.success(t("budgets.created"));
-            closeModalHandler();
+            closeDrawer();
         } catch (error) {
-            message.error(parseAxiosError(error, t("budgets.createError"), t));
+            setDrawerError(parseAxiosError(error, t("budgets.formErrors.create"), t));
         }
     };
 
     const handleCopyFromPrevious = async () => {
-        const prevMonth = selectedMonth.subtract(1, 'month');
+        setCopyError(null);
         try {
             await copyBudgets({
-                sourceYear: prevMonth.year(),
-                sourceMonth: prevMonth.month() + 1,
+                sourceYear: previousMonth.year(),
+                sourceMonth: previousMonth.month() + 1,
                 targetYear: selectedYear,
                 targetMonth: selectedMonthNumber,
             }).unwrap();
-            message.success(t("budgets.created"));
+            message.success(t("budgets.copySuccess"));
         } catch (error) {
-            message.error(parseAxiosError(error, t("budgets.createError"), t));
+            setCopyError(parseAxiosError(error, t("budgets.formErrors.copy"), t));
         }
     };
 
-    const categoryTree = React.useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
-
-    const columns: TableColumnsType<BudgetDetails> = [
-        {
-            title: t("budgets.name"),
-            dataIndex: "name",
-            key: "name",
-            width: 250,
-        },
-        {
-            title: t("budgets.description"),
-            dataIndex: "description",
-            key: "description",
-            width: 300,
-            responsive: ["md"],
-        },
-        {
-            title: t("budgets.year"),
-            dataIndex: "year",
-            key: "year",
-            width: 100,
-            responsive: ["md"],
-        },
-        {
-            title: t("budgets.month"),
-            dataIndex: "month",
-            key: "month",
-            width: 100,
-            render: (month: number) => dayjs().month(month - 1).format("MMMM"),
-        },
-        {
-            title: t("budgets.amount"),
-            dataIndex: "value",
-            key: "value",
-            width: 150,
-            align: "right",
-            render: (value: number) => value.toFixed(2),
-        },
-        {
-            title: t("budgets.categories"),
-            dataIndex: "categoryIds",
-            key: "categoryIds",
-            width: 300,
-            responsive: ["md"],
-            render: (categoryIds: number[]) => {
-                const categoryMap = new Map(allCategories.map((c: CategoryResponse) => [c.id, c]));
-                return (
-                    <>
-                        {categoryIds && categoryIds.map((catId) => {
-                            const cat = categoryMap.get(catId);
-                            return cat ? (
-                                <Tag key={catId} color="blue">
-                                    {cat.name}
-                                </Tag>
-                            ) : null;
-                        })}
-                    </>
-                );
-            },
-        },
-    ];
-
-    const expandedRowRender = (record: BudgetDetails) => {
-        return <BudgetEditForm record={record} currency={currency} onCollapse={() => setExpandedRows([])} />;
-    };
-
-    const onExpand = (expanded: boolean, record: BudgetDetails) => {
-        if (expanded) {
-            setExpandedRows([record.id]);
-        } else {
-            setExpandedRows([]);
-        }
+    const retryAll = () => {
+        refetchBudgets();
+        refetchBudgetReport();
     };
 
     return (
-        <React.Fragment>
-            <Drawer
+        <>
+            <InExDrawer
+                open={drawerOpen}
+                onClose={closeDrawer}
                 title={t("budgets.addDrawerTitle")}
-                width={isMobile ? "100%" : 520}
-                height={isMobile ? "90%" : undefined}
-                placement={isMobile ? "bottom" : "right"}
-                onClose={closeModalHandler}
-                open={modalVisible}
-                styles={{ body: { paddingBottom: 80 } }}
+                subtitle={t("budgets.drawerSubtitle", {
+                    month: formatMonthLabel(selectedMonth),
+                })}
+                width={520}
             >
                 <Form
                     form={form}
@@ -228,38 +285,42 @@ const Budgets = () => {
                         description: "",
                         value: 0,
                         categoryIds: [],
-                        year: new Date().getFullYear(),
-                        month: new Date().getMonth() + 1,
+                        year: selectedYear,
+                        month: selectedMonthNumber,
                     }}
                 >
+                    {drawerError && (
+                        <Alert
+                            className="budgets-drawer__alert"
+                            message={drawerError}
+                            type="error"
+                            showIcon
+                        />
+                    )}
                     <Form.Item
                         name="key"
                         label={t("budgets.key")}
-                        rules={[{ required: true, message: "Please enter a key" }]}
+                        rules={[{ required: true, message: t("errors.key.required") }]}
                     >
                         <Input size="large" placeholder={t("budgets.keyPlaceholder")} />
                     </Form.Item>
-
                     <Form.Item
                         name="name"
                         label={t("budgets.name")}
-                        rules={[{ required: true, message: "Please enter a name" }]}
+                        rules={[{ required: true, message: t("errors.name.required") }]}
                     >
                         <Input size="large" placeholder={t("budgets.namePlaceholder")} />
                     </Form.Item>
-
                     <Form.Item name="description" label={t("budgets.description")}>
                         <Input.TextArea size="large" rows={3} placeholder={t("budgets.descriptionPlaceholder")} />
                     </Form.Item>
-
                     <Form.Item name="categoryIds" label={t("budgets.categories")}>
                         <CategoryDropdown categories={categories} tree={categoryTree} />
                     </Form.Item>
-
                     <Form.Item
                         name="value"
                         label={t("budgets.amount")}
-                        rules={[{ required: true, message: "Please enter an amount" }]}
+                        rules={[{ required: true, message: t("errors.value.must_be_positive") }]}
                     >
                         <ExpressionInputNumber
                             size="large"
@@ -269,120 +330,333 @@ const Budgets = () => {
                             addonAfter={currency}
                         />
                     </Form.Item>
-
-                    <Form.Item
-                        name="year"
-                        label={t("budgets.year")}
-                        rules={[{ required: true, message: "Please enter a year" }]}
-                    >
-                        <InputNumber
-                            size="large"
-                            style={{ width: "100%" }}
-                            min={2020}
-                            max={2030}
-                            placeholder="2025"
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="month"
-                        label={t("budgets.month")}
-                        rules={[{ required: true, message: "Please enter a month" }]}
-                    >
-                        <InputNumber
-                            size="large"
-                            style={{ width: "100%" }}
-                            min={1}
-                            max={12}
-                            placeholder="12"
-                        />
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Space>
-                            <Button type="primary" htmlType="submit" loading={isCreating}>
-                                {t("budgets.create")}
-                            </Button>
-                            <Button onClick={closeModalHandler}>{t("budgets.cancel")}</Button>
-                        </Space>
-                    </Form.Item>
+                    <div className="budgets-drawer__period">
+                        <Form.Item
+                            name="year"
+                            label={t("budgets.year")}
+                            rules={[{ required: true, message: t("errors.year.out_of_range") }]}
+                        >
+                            <InputNumber size="large" min={2020} max={2030} />
+                        </Form.Item>
+                        <Form.Item
+                            name="month"
+                            label={t("budgets.month")}
+                            rules={[{ required: true, message: t("errors.month.out_of_range") }]}
+                        >
+                            <InputNumber size="large" min={1} max={12} />
+                        </Form.Item>
+                    </div>
+                    <div className="budgets-drawer__actions">
+                        <InExButton kind="ghost" onClick={closeDrawer}>
+                            {t("budgets.cancel")}
+                        </InExButton>
+                        <InExButton kind="primary" type="submit" disabled={isCreateLoading}>
+                            {isCreateLoading ? t("budgets.loading.creating") : t("budgets.create")}
+                        </InExButton>
+                    </div>
                 </Form>
-            </Drawer>
+            </InExDrawer>
 
-            <BasicPage
-                title={t("budgets.title")}
-                extra={[
-                    <DatePicker
-                        key="monthPicker"
-                        picker="month"
-                        value={selectedMonth}
-                        onChange={(val) => val && setSelectedMonth(val)}
-                        allowClear={false}
-                        size="large"
-                        style={{ marginRight: 8 }}
-                    />,
-                    <Button
-                        key="addBudget"
-                        onClick={showAddModalHandler}
-                        size="large"
-                        type="primary"
-                        style={{ margin: "4px 0px" }}
-                    >
-                        {t("common.add")}
-                    </Button>,
-                ]}
-            >
-                <div style={{ minHeight: "76vh", background: "white" }}>
-                    {budgets.length === 0 && (
-                        <div style={{ padding: 20, textAlign: "center" }}>
-                            <p>{t("budgets.noData")}</p>
-                            <Button
-                                icon={<CopyOutlined />}
+            <BasicPage title={t("budgets.title")} subtitle={t("budgets.subtitle")}>
+                <div className="budgets-workspace">
+                    <section className="budgets-hero">
+                        <div className="budgets-hero__summary">
+                            <div className="budgets-eyebrow">{t("budgets.heroLabel")}</div>
+                            <h2>{formatMonthLabel(selectedMonth)}</h2>
+                            <p>{t("budgets.heroDescription")}</p>
+                            <div className="budgets-hero__progress">
+                                <BudgetProgress
+                                    value={Math.max(0, totalSpent)}
+                                    max={Math.max(totalBudgeted, 1)}
+                                    height={8}
+                                    showLabel
+                                    overBudgetLabel={t("primitives.progress.overBudget")}
+                                />
+                            </div>
+                        </div>
+                        <div className="budgets-hero__metrics" aria-label={t("budgets.summaryLabel")}>
+                            <MetricCard label={t("budgets.metrics.budgeted")} value={totalBudgeted} currency={currency} />
+                            <MetricCard label={t("budgets.metrics.spent")} value={totalSpent} currency={currency} kind="expense" />
+                            <MetricCard
+                                label={t("budgets.metrics.remaining")}
+                                value={totalRemaining}
+                                currency={currency}
+                                kind={totalRemaining < 0 ? "warn" : "neutral"}
+                            />
+                            <MetricCard label={t("budgets.metrics.used")} text={`${percentUsed}%`} />
+                            <MetricCard label={t("budgets.metrics.overBudget")} text={String(overBudgetCount)} warning={overBudgetCount > 0} />
+                        </div>
+                    </section>
+
+                    <section className="budgets-toolbar" aria-label={t("budgets.toolbarLabel")}>
+                        <div className="budgets-month-switcher">
+                            <SegmentedControl
+                                options={monthOptions}
+                                value={selectedMonthKey}
+                                onChange={(key) => setSelectedMonth(dayjs(`${key}-01`, "YYYY-MM-DD"))}
+                            />
+                        </div>
+                        <DatePicker
+                            picker="month"
+                            value={selectedMonth}
+                            onChange={(value) => value && setSelectedMonth(value)}
+                            allowClear={false}
+                            className="budgets-toolbar__picker"
+                        />
+                        <label className="budgets-search">
+                            <Search aria-hidden="true" size={16} />
+                            <span className="budgets-sr-only">{t("budgets.searchLabel")}</span>
+                            <input
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.target.value)}
+                                placeholder={t("budgets.searchPlaceholder")}
+                            />
+                        </label>
+                        <div className="budgets-toolbar__actions">
+                            <InExButton
+                                icon={<Copy size={16} />}
+                                kind="ghost"
                                 onClick={handleCopyFromPrevious}
-                                loading={isCreating}
+                                disabled={isCopyLoading}
                             >
-                                {t("budgets.copyFromPrevious")}
-                            </Button>
+                                {isCopyLoading
+                                    ? t("budgets.loading.copying")
+                                    : t("budgets.copyFromMonth", { month: formatMonthLabel(previousMonth) })}
+                            </InExButton>
+                            <InExButton icon={<Plus size={16} />} kind="primary" onClick={openDrawer}>
+                                {t("budgets.addBudget")}
+                            </InExButton>
+                        </div>
+                    </section>
+
+                    {copyError && (
+                        <Alert
+                            message={copyError}
+                            type="error"
+                            showIcon
+                            action={
+                                <InExButton kind="ghost" size="sm" onClick={handleCopyFromPrevious}>
+                                    {t("budgets.error.retry")}
+                                </InExButton>
+                            }
+                        />
+                    )}
+
+                    {isRefreshing && (
+                        <div className="budgets-refreshing" role="status">
+                            <RefreshCw size={14} />
+                            {t("budgets.loading.refreshing")}
                         </div>
                     )}
-                    <Table
-                        dataSource={budgets}
-                        columns={columns}
-                        rowKey="id"
-                        loading={isLoading}
-                        pagination={false}
-                        scroll={{ x: "max-content" }}
-                        locale={{ emptyText: t("budgets.empty") }}
-                        expandable={{
-                            expandedRowRender,
-                            expandedRowKeys: expandedRows,
-                            onExpand: onExpand,
-                            showExpandColumn: false,
-                            expandRowByClick: true
-                        }}
-                        summary={(pageData) => {
-                            let total = 0;
-                            pageData.forEach(({ value }) => {
-                                total += value;
-                            });
-                            return (
-                                <Table.Summary fixed>
-                                    <Table.Summary.Row>
-                                        <Table.Summary.Cell index={0}>{t("budgets.total")}</Table.Summary.Cell>
-                                        <Table.Summary.Cell index={1} colSpan={3}></Table.Summary.Cell>
-                                        <Table.Summary.Cell index={4} align="right">
-                                            <Typography.Text strong>{total.toFixed(2)}</Typography.Text>
-                                        </Table.Summary.Cell>
-                                        <Table.Summary.Cell index={5}></Table.Summary.Cell>
-                                    </Table.Summary.Row>
-                                </Table.Summary>
-                            );
-                        }}
-                    />
+
+                    {hasInitialBudgetError ? (
+                        <EmptyState
+                            iconNode={<RefreshCw size={28} />}
+                            title={t("budgets.error.loadTitle")}
+                            description={parseAxiosError(budgetError, t("budgets.error.loadDescription"), t)}
+                            actions={
+                                <InExButton icon={<RefreshCw size={16} />} kind="primary" onClick={retryAll}>
+                                    {t("budgets.error.retry")}
+                                </InExButton>
+                            }
+                        />
+                    ) : (
+                        <>
+                            {hasPartialBudgetError && (
+                                <Alert
+                                    message={t("budgets.error.partialRefresh")}
+                                    type="warning"
+                                    showIcon
+                                    action={
+                                        <InExButton kind="ghost" size="sm" onClick={retryAll}>
+                                            {t("budgets.error.retry")}
+                                        </InExButton>
+                                    }
+                                />
+                            )}
+                            {reportError && (
+                                <Alert
+                                    message={t("budgets.error.reportMetrics")}
+                                    type="warning"
+                                    showIcon
+                                    action={
+                                        <InExButton kind="ghost" size="sm" onClick={() => refetchBudgetReport()}>
+                                            {t("budgets.error.retry")}
+                                        </InExButton>
+                                    }
+                                />
+                            )}
+                            {isBudgetInitialLoading && !hasBudgets ? (
+                                <BudgetSkeleton />
+                            ) : !hasBudgets ? (
+                                <EmptyState
+                                    iconNode={<WalletCards size={30} />}
+                                    title={t("budgets.emptyState.title")}
+                                    description={t("budgets.emptyState.description")}
+                                    actions={
+                                        <>
+                                            <InExButton icon={<Plus size={16} />} kind="primary" onClick={openDrawer}>
+                                                {t("budgets.addBudget")}
+                                            </InExButton>
+                                            <InExButton
+                                                icon={<Copy size={16} />}
+                                                kind="ghost"
+                                                onClick={handleCopyFromPrevious}
+                                                disabled={isCopyLoading}
+                                            >
+                                                {t("budgets.copyFromMonth", { month: formatMonthLabel(previousMonth) })}
+                                            </InExButton>
+                                        </>
+                                    }
+                                />
+                            ) : isFilteredEmpty ? (
+                                <FilterEmpty
+                                    title={t("budgets.filterEmpty.title")}
+                                    description={t("budgets.filterEmpty.description")}
+                                    onClear={() => setSearchText("")}
+                                />
+                            ) : (
+                                <section className="budgets-list" aria-label={t("budgets.listLabel")}>
+                                    <div className="budgets-list__head" aria-hidden="true">
+                                        <span>{t("budgets.name")}</span>
+                                        <span>{t("budgets.categories")}</span>
+                                        <span>{t("budgets.progress")}</span>
+                                        <span>{t("budgets.spent")}</span>
+                                        <span>{t("budgets.remaining")}</span>
+                                        <span />
+                                    </div>
+                                    {filteredBudgets.map((budget) => {
+                                        const reportItem = getBudgetReportForBudget(budget, reportItems);
+                                        const spentAmount = getReportMetric(reportItem, "spentAmount");
+                                        const remainingAmount = getReportMetric(reportItem, "remainingAmount");
+                                        const percentageUsed = getReportMetric(reportItem, "percentageUsed");
+                                        const overBudget = isOverBudget(reportItem);
+                                        const expanded = expandedBudgetId === budget.id;
+                                        const categoryNames = budget.categoryIds
+                                            .map((categoryId) => categoryMap.get(categoryId)?.name)
+                                            .filter((name): name is string => Boolean(name));
+
+                                        return (
+                                            <article className={`budget-row${overBudget ? " is-over-budget" : ""}`} key={budget.id}>
+                                                <button
+                                                    className="budget-row__main"
+                                                    type="button"
+                                                    onClick={() => setExpandedBudgetId(expanded ? null : budget.id)}
+                                                    aria-expanded={expanded}
+                                                >
+                                                    <span className="budget-row__title">{budget.name}</span>
+                                                    <span className="budget-row__description">
+                                                        {budget.description || t("budgets.noDescription")}
+                                                    </span>
+                                                </button>
+                                                <div className="budget-row__categories">
+                                                    {categoryNames.length > 0
+                                                        ? categoryNames.map((name) => <span key={name}>{name}</span>)
+                                                        : <span>{t("budgets.uncategorized")}</span>}
+                                                </div>
+                                                <div className="budget-row__progress">
+                                                    <BudgetProgress
+                                                        value={spentAmount ?? 0}
+                                                        max={Math.max(budget.value, 1)}
+                                                        height={7}
+                                                        showLabel
+                                                        overBudgetLabel={t("primitives.progress.overBudget")}
+                                                    />
+                                                    <span className="budget-row__status">
+                                                        {reportError
+                                                            ? t("budgets.metricsUnavailable")
+                                                            : overBudget
+                                                                ? t("budgets.overBudgetBy", {
+                                                                    amount: Math.abs(remainingAmount ?? 0).toLocaleString(undefined, {
+                                                                        minimumFractionDigits: 2,
+                                                                        maximumFractionDigits: 2,
+                                                                    }),
+                                                                    currency,
+                                                                })
+                                                                : t("budgets.percentUsed", { percent: Math.round(percentageUsed ?? 0) })}
+                                                    </span>
+                                                </div>
+                                                <div className="budget-row__amount" data-label={t("budgets.spent")}>
+                                                    {spentAmount === undefined ? (
+                                                        <span>{isReportInitialLoading ? t("budgets.loading.metrics") : t("budgets.metricsUnavailable")}</span>
+                                                    ) : (
+                                                        <Num value={spentAmount} currency={currency} kind="expense" />
+                                                    )}
+                                                </div>
+                                                <div className="budget-row__amount" data-label={t("budgets.remaining")}>
+                                                    {remainingAmount === undefined ? (
+                                                        <span>{isReportInitialLoading ? t("budgets.loading.metrics") : t("budgets.metricsUnavailable")}</span>
+                                                    ) : (
+                                                        <Num
+                                                            value={remainingAmount}
+                                                            currency={currency}
+                                                            kind={remainingAmount < 0 ? "warn" : "neutral"}
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="budget-row__budgeted" data-label={t("budgets.metrics.budgeted")}>
+                                                    <Num value={budget.value} currency={currency} kind="neutral" />
+                                                </div>
+                                                {overBudget && (
+                                                    <div className="budget-row__notice">
+                                                        <Target size={14} />
+                                                        {t("budgets.overBudget")}
+                                                    </div>
+                                                )}
+                                                {expanded && (
+                                                    <div className="budget-row__edit">
+                                                        <BudgetEditForm
+                                                            record={budget}
+                                                            currency={currency}
+                                                            onCollapse={() => setExpandedBudgetId(null)}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </article>
+                                        );
+                                    })}
+                                </section>
+                            )}
+                            {searchText && !isFilteredEmpty && (
+                                <button className="budgets-clear-filter" type="button" onClick={() => setSearchText("")}>
+                                    <FilterX size={14} />
+                                    {t("budgets.clearSearch")}
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
             </BasicPage>
-        </React.Fragment>
+        </>
     );
 };
+
+interface MetricCardProps {
+    label: string;
+    value?: number;
+    text?: string;
+    currency?: string;
+    kind?: "income" | "expense" | "transfer" | "neutral" | "warn";
+    warning?: boolean;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ label, value, text, currency, kind = "neutral", warning }) => (
+    <div className={`budgets-metric${warning ? " is-warning" : ""}`}>
+        <span>{label}</span>
+        <strong>{value === undefined ? text : <Num value={value} currency={currency} kind={kind} compact />}</strong>
+    </div>
+);
+
+const BudgetSkeleton = () => (
+    <div className="budgets-skeleton" aria-hidden="true">
+        {[0, 1, 2].map((index) => (
+            <div className="budgets-skeleton__row" key={index}>
+                <span />
+                <span />
+                <span />
+            </div>
+        ))}
+    </div>
+);
 
 export default Budgets;

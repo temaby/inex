@@ -392,7 +392,65 @@
     "deleted": "Budget deleted successfully",
     "createError": "Error creating budget",
     "updateError": "Error updating budget",
-    "deleteError": "Error deleting budget"
+    "deleteError": "Error deleting budget",
+    "subtitle": "Plan",
+    "heroLabel": "Month planning",
+    "heroDescription": "Compare budgeted amounts, current spend, and remaining room for the selected month.",
+    "summaryLabel": "Budget summary",
+    "toolbarLabel": "Budget planning controls",
+    "listLabel": "Budget rows",
+    "drawerSubtitle": "Planning for {{month}}",
+    "addBudget": "Add budget",
+    "copyFromMonth": "Copy from {{month}}",
+    "copySuccess": "Budgets copied successfully",
+    "searchLabel": "Search budgets",
+    "searchPlaceholder": "Search budget or category",
+    "clearSearch": "Clear search",
+    "progress": "Progress",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "overBudget": "Over budget",
+    "overBudgetBy": "Over by {{amount}} {{currency}}",
+    "percentUsed": "{{percent}}% used",
+    "metricsUnavailable": "Metrics unavailable",
+    "noDescription": "No description",
+    "uncategorized": "Uncategorized",
+    "metrics": {
+      "budgeted": "Budgeted",
+      "spent": "Spent",
+      "remaining": "Remaining",
+      "used": "Used",
+      "overBudget": "Over budget"
+    },
+    "emptyState": {
+      "title": "No budgets planned for this month",
+      "description": "Create a monthly budget or copy last month to start planning burn rate."
+    },
+    "filterEmpty": {
+      "title": "No budgets match this search",
+      "description": "Clear the search or try a category name from this month."
+    },
+    "loading": {
+      "creating": "Creating...",
+      "saving": "Saving...",
+      "deleting": "Deleting...",
+      "copying": "Copying...",
+      "refreshing": "Refreshing budgets",
+      "metrics": "Loading metrics"
+    },
+    "error": {
+      "loadTitle": "Budgets could not load",
+      "loadDescription": "Retry loading budgets for this month.",
+      "partialRefresh": "Some refreshed budget data could not load. Existing rows remain visible.",
+      "reportMetrics": "Budget metrics could not load. Editing remains available.",
+      "retry": "Retry"
+    },
+    "formErrors": {
+      "create": "Could not create budget",
+      "update": "Could not update budget",
+      "delete": "Could not delete budget",
+      "copy": "Could not copy budgets"
+    }
   },
   "reports": {
     "title": "Reports",
