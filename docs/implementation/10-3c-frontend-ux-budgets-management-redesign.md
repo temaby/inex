@@ -1,6 +1,6 @@
 # Story 10.3c: Frontend UX - Budgets Management Redesign
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -17,33 +17,38 @@ so that monthly budget health is easy to compare.
 
 ## Tasks / Subtasks
 
-- [ ] Confirm prerequisite story outputs are available before implementation starts. (AC: 1-4)
-  - [ ] Story 10.1a token/theme bridge is complete and page styles consume those tokens instead of hardcoded palette constants.
-  - [ ] Story 10.1b shared primitives are complete for drawer, segmented controls, empty/filter-empty states, money/signage rendering, progress bars, and form fields.
-  - [ ] Story 10.1c app shell/bottom navigation is complete so Budgets spacing and mobile safe-area behavior are implemented against the final shell.
-- [ ] Rebuild /budgets as a month-planning workspace while preserving existing API and Redux contracts. (AC: 1)
-- [ ] Replace table-first layout in inex/ClientApp/src/pages/Budgets.tsx with design-system composition: hero, toolbar, month switcher, list rows, inline edit, and add drawer flow. (AC: 1)
-- [ ] Preserve route path, ProtectedRoute behavior, shared app shell behavior, and current data loading boundaries (budgets/categories/accounts slices). (AC: 1)
-- [ ] Use existing budget report data for burn-rate/spent/remaining scan targets without changing API contracts. (AC: 1)
-  - [ ] `GET /api/reports/budget/comparison?year={year}&month={month}&currency=USD` and the existing `budgetReport` Redux slice/action are in scope for this redesigned page.
-  - [ ] Dispatch `fetchBudgetReport(selectedYear, selectedMonth, "USD")` alongside existing budget/category data loads and consume `state.budgetReport.items`, `metadata`, `isLoading`, and `error` for spent, remaining, percentage-used, and burn-rate summary values.
-  - [ ] Do not add or alter report endpoints, DTOs, store registration, or backend behavior in this story; if the slice is not registered in the store at implementation time, block or add a separate prerequisite rather than silently duplicating report state locally.
-  - [ ] If report data fails while budgets load successfully, keep the editable budget list visible and render localized unavailable/error treatment only for report-derived metrics.
-- [ ] Implement burn-rate summary and budget-row scan targets (spent, remaining, percent-used, over-budget state) with tabular numerics and non-color-only cues. (AC: 1)
-- [ ] Keep copy-from-previous-month action present and visually secondary to add-budget. (AC: 1)
-- [ ] Implement first-use empty and filter-empty states using shared EmptyState and FilterEmpty primitives with localized copy and real actions. (AC: 2)
-- [ ] Add or update translation keys in both locale files for all new user-visible Budgets copy. (AC: 2)
-- [ ] Implement explicit loading and error UX for budget, report, and form submission flows. (AC: 1, 2, 4)
-  - [ ] Initial load: while `budgets.isLoading` is true and no budget rows are loaded, show localized budget hero/list skeletons rather than empty-state copy.
-  - [ ] Refresh load: when month changes or copy/create/update/delete triggers a refresh while existing rows remain, keep stale rows visible, show a compact localized refreshing indicator, and avoid changing the selected month unless the user explicitly selected it.
-  - [ ] Failed budget load: when `budgets.error` is set and no rows are available, show a localized page error state with Retry that re-dispatches `fetchBudgets` for the active month/year.
-  - [ ] Failed report load: when `budgetReport.error` is set, show a localized inline report-metrics error with Retry for `fetchBudgetReport` and keep budget editing flows usable.
-  - [ ] Partial refresh failure: when stale rows remain after a budget/report refresh error, show localized inline alert/banner with Retry and keep stale data visible.
-  - [ ] Drawer/form errors: add, edit, delete, and copy-from-previous-month failures must appear near the initiating controls or inside the drawer/inline edit panel, preserve entered values, and reset disabled/loading button states after failure.
-  - [ ] Localization keys: add EN/RU keys under a `budgets.loading`, `budgets.error`, and `budgets.formErrors` structure (or equivalent existing namespace) for initial loading, refreshing, budget load failure, report load failure, retry, create failure, update failure, delete failure, and copy failure.
-- [ ] Verify responsive behavior at 390 and 360 widths: month switcher internal horizontal scroll, wrapping controls, row stacking, no page overflow, and no bottom-nav occlusion. (AC: 3)
-- [ ] Preserve existing create/update/delete/copy workflows through existing thunk actions and parseAxiosError paths. (AC: 1, 4)
-- [ ] Run npm run build and npm run lint in inex/ClientApp and capture visual QA screenshots for required states. (AC: 4)
+- [x] Confirm prerequisite story outputs are available before implementation starts. (AC: 1-4)
+  - [x] Story 10.1a token/theme bridge is complete and page styles consume those tokens instead of hardcoded palette constants.
+  - [x] Story 10.1b shared primitives are complete for drawer, segmented controls, empty/filter-empty states, money/signage rendering, progress bars, and form fields.
+  - [x] Story 10.1c app shell/bottom navigation is complete so Budgets spacing and mobile safe-area behavior are implemented against the final shell.
+- [x] Rebuild /budgets as a month-planning workspace while preserving existing API and Redux contracts. (AC: 1)
+- [x] Replace table-first layout in inex/ClientApp/src/pages/Budgets.tsx with design-system composition: hero, toolbar, month switcher, list rows, inline edit, and add drawer flow. (AC: 1)
+- [x] Preserve route path, ProtectedRoute behavior, shared app shell behavior, and current data loading boundaries (budgets/categories/accounts slices). (AC: 1)
+- [x] Use existing budget report data for burn-rate/spent/remaining scan targets without changing API contracts. (AC: 1)
+  - [x] `GET /api/reports/budget/comparison?year={year}&month={month}&currency=USD` and the existing `budgetReport` Redux slice/action are in scope for this redesigned page.
+  - [x] Dispatch `fetchBudgetReport(selectedYear, selectedMonth, "USD")` alongside existing budget/category data loads and consume `state.budgetReport.items`, `metadata`, `isLoading`, and `error` for spent, remaining, percentage-used, and burn-rate summary values.
+  - [x] Do not add or alter report endpoints, DTOs, store registration, or backend behavior in this story; if the slice is not registered in the store at implementation time, block or add a separate prerequisite rather than silently duplicating report state locally.
+  - [x] If report data fails while budgets load successfully, keep the editable budget list visible and render localized unavailable/error treatment only for report-derived metrics.
+- [x] Implement burn-rate summary and budget-row scan targets (spent, remaining, percent-used, over-budget state) with tabular numerics and non-color-only cues. (AC: 1)
+- [x] Keep copy-from-previous-month action present and visually secondary to add-budget. (AC: 1)
+- [x] Implement first-use empty and filter-empty states using shared EmptyState and FilterEmpty primitives with localized copy and real actions. (AC: 2)
+- [x] Add or update translation keys in both locale files for all new user-visible Budgets copy. (AC: 2)
+- [x] Implement explicit loading and error UX for budget, report, and form submission flows. (AC: 1, 2, 4)
+  - [x] Initial load: while `budgets.isLoading` is true and no budget rows are loaded, show localized budget hero/list skeletons rather than empty-state copy.
+  - [x] Refresh load: when month changes or copy/create/update/delete triggers a refresh while existing rows remain, keep stale rows visible, show a compact localized refreshing indicator, and avoid changing the selected month unless the user explicitly selected it.
+  - [x] Failed budget load: when `budgets.error` is set and no rows are available, show a localized page error state with Retry that re-dispatches `fetchBudgets` for the active month/year.
+  - [x] Failed report load: when `budgetReport.error` is set, show a localized inline report-metrics error with Retry for `fetchBudgetReport` and keep budget editing flows usable.
+  - [x] Partial refresh failure: when stale rows remain after a budget/report refresh error, show localized inline alert/banner with Retry and keep stale data visible.
+  - [x] Drawer/form errors: add, edit, delete, and copy-from-previous-month failures must appear near the initiating controls or inside the drawer/inline edit panel, preserve entered values, and reset disabled/loading button states after failure.
+  - [x] Localization keys: add EN/RU keys under a `budgets.loading`, `budgets.error`, and `budgets.formErrors` structure (or equivalent existing namespace) for initial loading, refreshing, budget load failure, report load failure, retry, create failure, update failure, delete failure, and copy failure.
+- [x] Verify responsive behavior at 390 and 360 widths: month switcher internal horizontal scroll, wrapping controls, row stacking, no page overflow, and no bottom-nav occlusion. (AC: 3)
+- [x] Preserve existing create/update/delete/copy workflows through existing thunk actions and parseAxiosError paths. (AC: 1, 4)
+- [x] Run npm run build and npm run lint in inex/ClientApp and capture visual QA screenshots for required states. (AC: 4)
+
+### Review Findings
+
+- [x] [Review][Patch] Aggregate budget report metrics across all categories assigned to a budget [inex/ClientApp/src/pages/Budgets.tsx:77]
+- [x] [Review][Patch] Add mobile scan-target data labels for spent, remaining, and budgeted values [inex/ClientApp/src/pages/Budgets.tsx:579]
 
 ## Dev Notes
 
@@ -255,13 +260,48 @@ GPT-5.3-Codex
 
 ### Debug Log References
 
+- 2026-06-03: Confirmed Story 10.1a and Story 10.1b are `done`; Story 10.1c and Story 10.2 are `review`, not `done`, and user explicitly waived the prerequisite gate with "consider them done and proceed".
+- 2026-06-03: Confirmed Story 10.3a and Story 10.3b remain `ready-for-dev`; Budgets locale changes are kept under the `budgets.*` namespace to minimize sibling-story conflicts.
+- 2026-06-03: `npm run build` from `inex/ClientApp` passed.
+- 2026-06-03: `npm run lint` from `inex/ClientApp` passed.
+- 2026-06-03: `git diff -U0 -- inex/ClientApp/src/pages/Budgets.tsx inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx | Select-String -Pattern "^\\+.*\\bany\\b"` found no added `any` usage.
+- 2026-06-03: In-app browser setup failed with local runtime setup error, so visual QA used cached Chromium plus `playwright-core` with mocked authenticated API responses.
+- 2026-06-03: Visual QA capture required a temporary local ProtectedRoute bypass because startup auth mocked at the API layer still redirected direct `/budgets` navigation to login; ProtectedRoute was restored before final build/lint and is not part of the final diff.
+- 2026-06-03: Visual QA screenshots captured under `docs/implementation/visual-qa/10-3c/`; `qa-summary.json` reports no horizontal overflow at 1440, 1024, 390, or 360 widths.
+- 2026-06-03: BMad code review fixed multi-category budget report aggregation and missing mobile scan-target data labels before final verification.
+- 2026-06-03: Final `npm run lint` from `inex/ClientApp` passed after BMad review fixes.
+- 2026-06-03: Final `npm run build` from `inex/ClientApp` passed after BMad review fixes.
+
 ### Completion Notes List
 
 - Story context created via bmad-create-story workflow for key 10-3c-frontend-ux-budgets-management-redesign.
 - Story includes implementation guardrails for preserving budgets Redux/API contracts while redesigning UX.
 - Story includes explicit responsive and screenshot QA gates per Epic 10 requirements.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
+- Rebuilt Budgets as a month-planning workspace with burn-rate hero, month switcher, search/filter-empty handling, responsive budget rows, over-budget state, spent/remaining scan targets, and copy/add actions.
+- Preserved route, ProtectedRoute, AppShell, RTK Query budget/category/account flows, budget mutations, and the existing budget comparison report endpoint; no backend behavior or API contracts were changed.
+- Added localized loading, refresh, report-error, budget-error, copy-error, and form-error copy under `budgets.*` in EN/RU.
+- Added visual QA artifacts and summary for populated, empty, filter-empty, and drawer-open states.
 
 ### File List
 
 - docs/implementation/10-3c-frontend-ux-budgets-management-redesign.md
+- docs/implementation/sprint-status.yaml
+- docs/implementation/visual-qa/10-3c/desktop-populated-1440.png
+- docs/implementation/visual-qa/10-3c/tablet-populated-1024.png
+- docs/implementation/visual-qa/10-3c/mobile-populated-390.png
+- docs/implementation/visual-qa/10-3c/mobile-populated-360.png
+- docs/implementation/visual-qa/10-3c/empty-1440.png
+- docs/implementation/visual-qa/10-3c/filter-empty-390.png
+- docs/implementation/visual-qa/10-3c/drawer-open-390.png
+- docs/implementation/visual-qa/10-3c/qa-summary.json
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/pages/Budgets.tsx
+- inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx
+- inex/ClientApp/src/pages/Budgets/budgets.css
+
+### Change Log
+
+- 2026-06-03: Implemented Budgets management redesign, completed build/lint/visual QA, and marked story ready for review.
+- 2026-06-03: Completed BMad code review, fixed findings, reran build/lint, and marked story done.
