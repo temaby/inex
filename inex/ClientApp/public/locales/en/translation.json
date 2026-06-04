@@ -180,6 +180,69 @@
     }
   },
   "accounts": {
+    "subtitle": "Manage",
+    "drawerSubtitle": "Create an account and assign its currency",
+    "addAccount": "Add account",
+    "noDescription": "No description",
+    "workspaceTitle": "Account inventory",
+    "searchLabel": "Search accounts",
+    "searchPlaceholder": "Search name or currency",
+    "clearSearch": "Clear search",
+    "filteringBy": "Filtering by \"{{query}}\"",
+    "shareOfNetWorth": "{{value}}% of net worth",
+    "scope": {
+      "active": "Active",
+      "all": "All"
+    },
+    "view": {
+      "byCurrency": "By currency",
+      "flat": "Flat list"
+    },
+    "group": {
+      "accountCountOne": "{{count}} account",
+      "accountCountOther": "{{count}} accounts",
+      "accountCount": "{{count}} account",
+      "accountCount_plural": "{{count}} accounts"
+    },
+    "hero": {
+      "netWorth": "Net worth",
+      "balanceUnavailable": "Balance unavailable",
+      "momUnavailable": "MoM delta unavailable",
+      "momDelta": "{{value}} MoM",
+      "activeAccounts": "{{count}} active",
+      "currencyCount": "{{count}} currencies",
+      "currencyDistribution": "Currency distribution",
+      "byValue": "By current balance",
+      "byCount": "By account count",
+      "noDistribution": "No currencies to display"
+    },
+    "loading": {
+      "initial": "Loading accounts",
+      "refreshing": "Refreshing"
+    },
+    "error": {
+      "loadTitle": "Accounts could not be loaded",
+      "loadDescription": "Retry the request. Existing account data and API contracts were not changed.",
+      "partialFailure": "Could not refresh accounts",
+      "partialDescription": "Showing the last loaded accounts while the refresh is retried.",
+      "retry": "Retry"
+    },
+    "formErrors": {
+      "nameRequired": "Name is required",
+      "currencyRequired": "Currency is required",
+      "createFailure": "Could not create the account",
+      "updateFailure": "Could not update the account",
+      "deleteFailure": "Could not delete the account"
+    },
+    "emptyState": {
+      "title": "No accounts yet",
+      "description": "Add your first cash, bank, or card account so balances and currencies can be tracked here.",
+      "primaryAction": "Add account"
+    },
+    "filterEmpty": {
+      "title": "No accounts match",
+      "description": "Try clearing search or showing all accounts."
+    },
     "title": "Accounts",
     "addDrawerTitle": "Add Account",
     "account": "Account",
@@ -202,7 +265,9 @@
   },
   "categories": {
     "title": "Categories",
+    "subtitle": "Manage",
     "addDrawerTitle": "Add Category",
+    "addDrawerSubtitle": "Create a parent group or child category for future transactions.",
     "category": "Category",
     "status": "Status",
     "active": "Active",
@@ -220,7 +285,84 @@
     "deleteConfirm": "Delete category? This cannot be undone.",
     "delete": "Delete",
     "cancel": "Cancel",
-    "update": "Update"
+    "update": "Update",
+    "listTitle": "Category structure",
+    "countSummary": "{{visible}} of {{total}} categories · {{scope}}",
+    "parent": "Parent",
+    "systemLocked": "System category",
+    "hero": {
+      "monthLabel": "This month",
+      "noSpend": "No spend recorded",
+      "noSpendDescription": "Spend signals appear here after matching transaction data is available.",
+      "noCategories": "No active category groups yet",
+      "mostSpentIn": "Most spent in",
+      "byCategory": "By category",
+      "usdEquiv": "USD equivalent"
+    },
+    "metrics": {
+      "active": "Active",
+      "parents": "Parents",
+      "children": "Children"
+    },
+    "view": {
+      "tree": "Tree",
+      "bySpend": "By spend"
+    },
+    "scope": {
+      "active": "Active",
+      "all": "All"
+    },
+    "activity": {
+      "title": "Activity",
+      "txn": "txn",
+      "txns": "txns",
+      "last": "last",
+      "noTransactions": "No activity"
+    },
+    "search": {
+      "placeholder": "Search categories...",
+      "noResults": "No categories match these filters"
+    },
+    "inlineEdit": {
+      "editSection": "Edit category",
+      "snapshotSection": "Snapshot · This month",
+      "systemNotice": "This is a system category. It can't be renamed, disabled, or deleted.",
+      "viewTransactions": "View transactions",
+      "setBudget": "Set budget",
+      "reparentNotSupported": "Reparenting is not supported yet"
+    },
+    "snapshot": {
+      "spend": "Spend",
+      "transactions": "Transactions",
+      "budget": "Budget",
+      "categoryId": "Category ID"
+    },
+    "emptyState": {
+      "title": "Start with categories",
+      "description": "Categories help you classify spending and keep reports meaningful. Create parent groups and child categories as your structure grows.",
+      "loadDefaults": "Load defaults",
+      "addManually": "Add manually"
+    },
+    "filterEmpty": {
+      "title": "No categories match these filters",
+      "description": "Try clearing the search or showing inactive categories."
+    },
+    "loading": {
+      "initial": "Loading categories",
+      "refreshing": "Refreshing"
+    },
+    "error": {
+      "loadFailed": "Failed to load categories",
+      "loadFailedDescription": "The category workspace could not be loaded. Retry the request.",
+      "partialFailure": "Could not refresh categories. Showing the last loaded structure.",
+      "retry": "Retry"
+    },
+    "formErrors": {
+      "createFailed": "Could not create the category",
+      "updateFailed": "Could not update the category",
+      "deleteFailed": "Could not delete the category",
+      "deleteHasChildren": "Move or delete child categories before deleting this parent category"
+    }
   },
   "budgets": {
     "title": "Budgets",

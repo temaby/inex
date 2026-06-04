@@ -182,6 +182,69 @@
     }
   },
   "accounts": {
+    "subtitle": "Управление",
+    "drawerSubtitle": "Создайте счёт и назначьте его валюту",
+    "addAccount": "Добавить счёт",
+    "noDescription": "Без описания",
+    "workspaceTitle": "Список счетов",
+    "searchLabel": "Поиск счетов",
+    "searchPlaceholder": "Поиск по названию или валюте",
+    "clearSearch": "Очистить поиск",
+    "filteringBy": "Фильтр: \"{{query}}\"",
+    "shareOfNetWorth": "{{value}}% от чистой стоимости",
+    "scope": {
+      "active": "Активные",
+      "all": "Все"
+    },
+    "view": {
+      "byCurrency": "По валюте",
+      "flat": "Список"
+    },
+    "group": {
+      "accountCountOne": "{{count}} счёт",
+      "accountCountOther": "{{count}} счетов",
+      "accountCount": "{{count}} счёт",
+      "accountCount_plural": "{{count}} счетов"
+    },
+    "hero": {
+      "netWorth": "Чистая стоимость",
+      "balanceUnavailable": "Баланс недоступен",
+      "momUnavailable": "Динамика за месяц недоступна",
+      "momDelta": "{{value}} м/м",
+      "activeAccounts": "{{count}} активных",
+      "currencyCount": "{{count}} валют",
+      "currencyDistribution": "Распределение по валютам",
+      "byValue": "По текущему балансу",
+      "byCount": "По количеству счетов",
+      "noDistribution": "Нет валют для отображения"
+    },
+    "loading": {
+      "initial": "Загрузка счетов",
+      "refreshing": "Обновление"
+    },
+    "error": {
+      "loadTitle": "Не удалось загрузить счета",
+      "loadDescription": "Повторите запрос. Данные счетов и API-контракты не изменялись.",
+      "partialFailure": "Не удалось обновить счета",
+      "partialDescription": "Показаны последние загруженные счета.",
+      "retry": "Повторить"
+    },
+    "formErrors": {
+      "nameRequired": "Укажите название",
+      "currencyRequired": "Выберите валюту",
+      "createFailure": "Не удалось создать счёт",
+      "updateFailure": "Не удалось обновить счёт",
+      "deleteFailure": "Не удалось удалить счёт"
+    },
+    "emptyState": {
+      "title": "Счетов пока нет",
+      "description": "Добавьте первый наличный, банковский или карточный счёт, чтобы отслеживать балансы и валюты.",
+      "primaryAction": "Добавить счёт"
+    },
+    "filterEmpty": {
+      "title": "Ничего не найдено",
+      "description": "Попробуйте очистить поиск или показать все счета."
+    },
     "title": "Счета",
     "addDrawerTitle": "Добавить счёт",
     "account": "Счёт",
@@ -204,7 +267,9 @@
   },
   "categories": {
     "title": "Категории",
+    "subtitle": "Управление",
     "addDrawerTitle": "Добавить категорию",
+    "addDrawerSubtitle": "Создайте родительскую группу или дочернюю категорию для будущих транзакций.",
     "category": "Категория",
     "status": "Статус",
     "active": "Активна",
@@ -222,7 +287,84 @@
     "deleteConfirm": "Удалить категорию? Это действие нельзя отменить.",
     "delete": "Удалить",
     "cancel": "Отмена",
-    "update": "Обновить"
+    "update": "Обновить",
+    "listTitle": "Структура категорий",
+    "countSummary": "{{visible}} из {{total}} категорий · {{scope}}",
+    "parent": "Родитель",
+    "systemLocked": "Системная категория",
+    "hero": {
+      "monthLabel": "Этот месяц",
+      "noSpend": "Расходы не записаны",
+      "noSpendDescription": "Сигналы расходов появятся здесь, когда будут доступны данные транзакций.",
+      "noCategories": "Пока нет активных групп",
+      "mostSpentIn": "Больше всего в",
+      "byCategory": "По категориям",
+      "usdEquiv": "Эквивалент USD"
+    },
+    "metrics": {
+      "active": "Активные",
+      "parents": "Родители",
+      "children": "Дочерние"
+    },
+    "view": {
+      "tree": "Дерево",
+      "bySpend": "По расходам"
+    },
+    "scope": {
+      "active": "Активные",
+      "all": "Все"
+    },
+    "activity": {
+      "title": "Активность",
+      "txn": "транз.",
+      "txns": "транз.",
+      "last": "посл.",
+      "noTransactions": "Нет активности"
+    },
+    "search": {
+      "placeholder": "Поиск категорий...",
+      "noResults": "Нет категорий для этих фильтров"
+    },
+    "inlineEdit": {
+      "editSection": "Редактировать категорию",
+      "snapshotSection": "Снимок · этот месяц",
+      "systemNotice": "Это системная категория. Ее нельзя переименовать, отключить или удалить.",
+      "viewTransactions": "Показать транзакции",
+      "setBudget": "Задать бюджет",
+      "reparentNotSupported": "Перенос к другому родителю пока не поддержан"
+    },
+    "snapshot": {
+      "spend": "Расход",
+      "transactions": "Транзакции",
+      "budget": "Бюджет",
+      "categoryId": "ID категории"
+    },
+    "emptyState": {
+      "title": "Начните с категорий",
+      "description": "Категории помогают классифицировать расходы и делать отчеты полезными. Создайте родительские группы и дочерние категории.",
+      "loadDefaults": "Загрузить типовые",
+      "addManually": "Добавить вручную"
+    },
+    "filterEmpty": {
+      "title": "Нет категорий для этих фильтров",
+      "description": "Очистите поиск или покажите неактивные категории."
+    },
+    "loading": {
+      "initial": "Загружаем категории",
+      "refreshing": "Обновляем"
+    },
+    "error": {
+      "loadFailed": "Не удалось загрузить категории",
+      "loadFailedDescription": "Не удалось открыть рабочую область категорий. Повторите запрос.",
+      "partialFailure": "Не удалось обновить категории. Показываем последнюю загруженную структуру.",
+      "retry": "Повторить"
+    },
+    "formErrors": {
+      "createFailed": "Не удалось создать категорию",
+      "updateFailed": "Не удалось обновить категорию",
+      "deleteFailed": "Не удалось удалить категорию",
+      "deleteHasChildren": "Переместите или удалите дочерние категории перед удалением родительской категории"
+    }
   },
   "budgets": {
     "title": "Бюджеты",

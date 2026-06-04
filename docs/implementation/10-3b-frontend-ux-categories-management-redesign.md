@@ -1,6 +1,6 @@
 ﻿# Story 10.3b: Frontend UX - Categories Management Redesign
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -659,25 +659,25 @@ Required RU key groups mirror the EN structure above:
 
 ## Tasks / Subtasks
 
-- [ ] **Prerequisite gate** - confirm Story 10.1a tokens, Story 10.1b shared primitives, and Story 10.1c app shell/bottom navigation are complete before implementation starts.
-- [ ] **Loading and error UX** - implement explicit page and form states for data loading, refresh, failures, retry, and submission errors. (AC: 1, 3, 5, 8)
-  - [ ] Initial load: while `categories.isLoading` is true and `categories.items` is empty, show localized hierarchy/list skeletons plus a hero skeleton, not empty-state copy.
-  - [ ] Refresh load: when `categories.isLoading` is true and existing categories remain, keep stale rows visible, show a compact localized refreshing indicator in the toolbar, and avoid collapsing expanded layout unless the updated category is removed.
-  - [ ] Failed load: when `categories.error` is set and no categories are available, show a localized page error state with Retry that re-dispatches `fetchCategories("ALL")`.
-  - [ ] Partial refresh failure: when `categories.error` is set while stale categories remain, show a localized inline alert/banner with Retry and keep the stale hierarchy visible.
-  - [ ] Drawer/form errors: create, update, and delete failures must appear in the add drawer or inline edit panel near the submit actions, preserve entered values, and reset disabled/loading button states after failure.
-  - [ ] Localization keys: add EN/RU keys under a `categories.loading`, `categories.error`, and `categories.formErrors` structure (or equivalent existing namespace) for initial loading, refreshing, load failure, retry, create failure, update failure, delete failure, and immutable-system notice reuse.
-- [ ] **Setup utilities** вЂ” create `categories.utils.ts` with `buildCategoriesTree`, `includeAncestorCategories`, `categoryPaletteColor`. (AC: 1, 4)
-- [ ] **CSS module** вЂ” create `categories.css` with mobile grid overrides and workspace padding. (AC: 7)
-- [ ] **Hero component** вЂ” create `CategoriesHero.tsx` with two-column desktop layout, spend total, distribution bar, graceful no-data treatment. (AC: 2)
-- [ ] **CategoryRow component** вЂ” create `CategoryRow.tsx` with depth-indent, color swatch, activity + spend cells, chevron, inactive/system treatment. (AC: 1, 6)
-- [ ] **CategoryInlineEdit component** вЂ” create `CategoryInlineEdit.tsx` with two-column edit+snapshot layout, system lock, save/delete actions, reparent guard. (AC: 5, 6)
-- [ ] **Toolbar component** вЂ” create `CategoriesToolbar.tsx` with scope segmented control, view segmented control, search input. (AC: 1)
-- [ ] **Main page rebuild** вЂ” replace `Categories.tsx` with new page wiring tree/flat rendering, filter pipeline, empty/loading states, Add category drawer. (AC: 1, 3, 4, 7)
-- [ ] **i18n keys** вЂ” add all new keys to `en/translation.json` and `ru/translation.json`. (AC: 1, 3)
-- [ ] **Mobile QA** вЂ” verify 390px and 360px at no horizontal overflow; fix any indent or column issues. (AC: 7)
-- [ ] **Build + lint** вЂ” run `npm run build` and `npm run lint` from `inex/ClientApp`; resolve all errors/warnings; zero new `any`. (AC: 8)
-- [ ] **Visual screenshots** вЂ” capture all 8 states from the screenshot matrix above. (AC: 8)
+- [x] **Prerequisite gate** - confirm Story 10.1a tokens, Story 10.1b shared primitives, and Story 10.1c app shell/bottom navigation are complete before implementation starts.
+- [x] **Loading and error UX** - implement explicit page and form states for data loading, refresh, failures, retry, and submission errors. (AC: 1, 3, 5, 8)
+  - [x] Initial load: while `categories.isLoading` is true and `categories.items` is empty, show localized hierarchy/list skeletons plus a hero skeleton, not empty-state copy.
+  - [x] Refresh load: when `categories.isLoading` is true and existing categories remain, keep stale rows visible, show a compact localized refreshing indicator in the toolbar, and avoid collapsing expanded layout unless the updated category is removed.
+  - [x] Failed load: when `categories.error` is set and no categories are available, show a localized page error state with Retry that re-dispatches `fetchCategories("ALL")`.
+  - [x] Partial refresh failure: when `categories.error` is set while stale categories remain, show a localized inline alert/banner with Retry and keep the stale hierarchy visible.
+  - [x] Drawer/form errors: create, update, and delete failures must appear in the add drawer or inline edit panel near the submit actions, preserve entered values, and reset disabled/loading button states after failure.
+  - [x] Localization keys: add EN/RU keys under a `categories.loading`, `categories.error`, and `categories.formErrors` structure (or equivalent existing namespace) for initial loading, refreshing, load failure, retry, create failure, update failure, delete failure, and immutable-system notice reuse.
+- [x] **Setup utilities** вЂ” create `categories.utils.ts` with `buildCategoriesTree`, `includeAncestorCategories`, `categoryPaletteColor`. (AC: 1, 4)
+- [x] **CSS module** вЂ” create `categories.css` with mobile grid overrides and workspace padding. (AC: 7)
+- [x] **Hero component** вЂ” create `CategoriesHero.tsx` with two-column desktop layout, spend total, distribution bar, graceful no-data treatment. (AC: 2)
+- [x] **CategoryRow component** вЂ” create `CategoryRow.tsx` with depth-indent, color swatch, activity + spend cells, chevron, inactive/system treatment. (AC: 1, 6)
+- [x] **CategoryInlineEdit component** вЂ” create `CategoryInlineEdit.tsx` with two-column edit+snapshot layout, system lock, save/delete actions, reparent guard. (AC: 5, 6)
+- [x] **Toolbar component** вЂ” create `CategoriesToolbar.tsx` with scope segmented control, view segmented control, search input. (AC: 1)
+- [x] **Main page rebuild** вЂ” replace `Categories.tsx` with new page wiring tree/flat rendering, filter pipeline, empty/loading states, Add category drawer. (AC: 1, 3, 4, 7)
+- [x] **i18n keys** вЂ” add all new keys to `en/translation.json` and `ru/translation.json`. (AC: 1, 3)
+- [x] **Mobile QA** вЂ” verify 390px and 360px at no horizontal overflow; fix any indent or column issues. (AC: 7)
+- [x] **Build + lint** вЂ” run `npm run build` and `npm run lint` from `inex/ClientApp`; resolve all errors/warnings; zero new `any`. (AC: 8)
+- [x] **Visual screenshots** вЂ” capture all 8 states from the screenshot matrix above. (AC: 8)
 
 ---
 
@@ -731,3 +731,92 @@ const tree = useMemo(() => buildCategoriesTree(visible), [visible]);
 ### TypeScript Strictness
 
 All new files must have zero `any`. The `CategoryDetails` interface does not have `kind` or `system` (boolean) fields вЂ” it uses `isSystem: boolean` and `systemCode: string`. The design reference uses `category.system` (from seed data) which maps to `category.isSystem` in production. Do not add `system: boolean` to the interface.
+
+## Dev Agent Record
+
+### Agent Model Used
+
+GPT-5 Codex
+
+### Debug Log References
+
+- 2026-06-03: Started on `feature/10-3b-categories-management-redesign`.
+- 2026-06-03: Confirmed `10.1a` and `10.1b` are `done`; user explicitly waived `10.1c` and `10.2` being `review` rather than `done` and instructed to proceed.
+- 2026-06-03: Current Categories code uses RTK Query (`categories-api`) instead of the older thunk/slice names in story notes; implementation preserved current RTK Query/Axios behavior.
+- 2026-06-03: `npm run build` from `inex/ClientApp` passed after implementation.
+- 2026-06-03: `npm run lint` from `inex/ClientApp` passed after implementation.
+- 2026-06-03: In-app Browser runtime failed with `windows sandbox failed: spawn setup refresh`; visual QA completed with local Playwright Chromium against Vite and mocked authenticated API responses.
+- 2026-06-03: Visual QA screenshots captured under `docs/implementation/visual-qa/10-3b/`.
+- 2026-06-03: `docs/implementation/visual-qa/10-3b/qa-summary.json` reports no horizontal overflow at desktop 1440px, mobile 390px, or mobile 360px; drawer bounds resolved to `x=1000`, `width=440`, `right=1440`.
+- 2026-06-03: BMad code review ran three layers: Blind Hunter, Edge Case Hunter, and Acceptance Auditor.
+- 2026-06-03: Addressed review findings for delete confirmation, disabled placeholder actions, segmented-control ARIA semantics, search/by-spend empty handling, malformed tree payloads, system parent filtering, key fallback, parent delete guard, no-spend hero treatment, refresh expansion preservation, hero loading skeleton, and visual QA coverage gaps.
+- 2026-06-03: Re-ran `npm run build`, `npm run lint`, `git diff --check`, and added-`any` scan after review fixes; all passed.
+- 2026-06-03: Re-captured visual QA with added `search-ancestor-visible.png` and `all-disabled-visible.png`; `qa-summary.json` confirms `searchAncestorVisible: true`.
+
+### Completion Notes List
+
+- Rebuilt `/categories` as a hierarchy-first management workspace with hero summary, active/all scope, tree/by-spend modes, search, ancestor-preserving filtering, category color cues, and mobile-safe rows.
+- Added page-local Categories components for hero, toolbar, row rendering, inline edit, utilities, and scoped CSS while consuming shared primitives instead of forking them.
+- Preserved current RTK Query category API contracts, `BasicPage`/`AppShell` integration, Axios behavior, auth boundaries, and existing create/update/delete mutation wiring.
+- Added system-category lock treatment and immutable inline-edit notice; existing categories do not expose unsupported reparenting as an editable action.
+- Added localized EN/RU copy for Categories loading, error, filter-empty, hero, scope, view, inline-edit, and form-error states.
+- Addressed BMad review findings and kept the story in `review` status with all patch items resolved.
+- Build, lint, and visual QA passed.
+
+### File List
+
+- `docs/implementation/10-3b-frontend-ux-categories-management-redesign.md`
+- `docs/implementation/sprint-status.yaml`
+- `docs/implementation/visual-qa/10-3b/add-drawer-open.png`
+- `docs/implementation/visual-qa/10-3b/all-disabled-visible.png`
+- `docs/implementation/visual-qa/10-3b/desktop-by-spend-populated.png`
+- `docs/implementation/visual-qa/10-3b/desktop-tree-populated.png`
+- `docs/implementation/visual-qa/10-3b/empty-first-use.png`
+- `docs/implementation/visual-qa/10-3b/expanded-row-open.png`
+- `docs/implementation/visual-qa/10-3b/filter-empty.png`
+- `docs/implementation/visual-qa/10-3b/mobile-populated-390.png`
+- `docs/implementation/visual-qa/10-3b/qa-summary.json`
+- `docs/implementation/visual-qa/10-3b/search-ancestor-visible.png`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/components/primitives/SegmentedControl.tsx`
+- `inex/ClientApp/src/pages/Categories.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesHero.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryCreateForm.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryRow.tsx`
+- `inex/ClientApp/src/pages/Categories/categories.css`
+- `inex/ClientApp/src/pages/Categories/categories.utils.ts`
+
+### Change Log
+
+- 2026-06-03: Implemented Categories management redesign and marked story ready for review after build, lint, and visual QA passed.
+- 2026-06-03: Addressed BMad code review findings and reran build, lint, diff hygiene, no-`any` scan, and visual QA.
+
+## Senior Developer Review (AI)
+
+### Review Outcome
+
+Approve after fixes. Review findings were addressed and required static plus visual verification passed.
+
+### Findings
+
+- [x] Medium: Delete action had no confirmation and parent deletes were not guarded before API call. Fixed with `Popconfirm` plus child-category guard and localized error.
+- [x] Medium: Snapshot action buttons were focusable but inert. Fixed by rendering them disabled until their target workflows exist.
+- [x] Medium: Shared segmented controls used incomplete tab semantics. Fixed shared `SegmentedControl` to use native buttons with `aria-pressed`.
+- [x] Medium: Search and by-spend edge cases could hide ancestors or render a blank list without guidance. Fixed ancestor preservation against the full category set and added row-empty `FilterEmpty` handling.
+- [x] Medium: Hero showed fake equal-width distribution without spend data. Fixed to render a no-spend treatment unless real spend data is available.
+- [x] Low: Refresh could collapse an expanded row even when the category still existed. Fixed to clear expansion only when the expanded category is removed.
+- [x] Low: Initial loading missed a hero skeleton. Fixed by adding a loading path to `CategoriesHero`.
+- [x] Low: Visual QA missed ancestor-search and disabled-visible states. Fixed by recapturing both screenshots and updating `qa-summary.json`.
+- [x] Low: Category tree utility was not robust to malformed parent cycles. Fixed cycle-safe tree building so categories do not disappear or recurse indefinitely.
+- [x] Low: Create form could allow systemCode-only system parents and generate an empty key for non-Latin names. Fixed parent filtering and key fallback.
+
+### Verification
+
+- `npm run build` from `inex/ClientApp` passed after review fixes.
+- `npm run lint` from `inex/ClientApp` passed after review fixes.
+- `git diff --check` passed after review fixes.
+- Added-`any` scan over touched TypeScript files returned no matches.
+- Visual QA screenshots captured under `docs/implementation/visual-qa/10-3b/`; mobile overflow checks passed at 390px and 360px, and ancestor-search state was confirmed.

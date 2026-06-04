@@ -23,7 +23,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ options, val
     };
 
     return (
-        <div role="tablist" style={containerStyle}>
+        <div style={containerStyle}>
             {options.map((option) => {
                 const active = option.key === value;
                 const buttonStyle: React.CSSProperties = {
@@ -46,10 +46,9 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ options, val
 
                 return (
                     <button
-                        aria-selected={active}
+                        aria-pressed={active}
                         key={option.key}
                         onClick={() => onChange(option.key)}
-                        role="tab"
                         style={buttonStyle}
                         type="button"
                     >

@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Form, Input, Button, Grid, Radio, Select, Space, Divider, Popconfirm } from "antd";
+import { Alert, Form, Input, Button, Grid, Radio, Select, Space, Divider, Popconfirm } from "antd";
 
 const { useBreakpoint } = Grid;
 import { AccountResponse, useDeleteAccountMutation, useUpdateAccountMutation } from "../../store/accounts/accounts-api";
 import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 
 interface Currency {
     id: number;
@@ -21,7 +22,14 @@ interface AccountEditState {
     hasActiveChanges: boolean;
 }
 
-const reducer = (state: AccountEditState, action: any): AccountEditState => {
+type AccountEditAction =
+    | { type: "INIT"; value: Omit<AccountEditState, "hasActiveChanges"> }
+    | { type: "SET_NAME"; value: string }
+    | { type: "SET_DESCRIPTION"; value: string }
+    | { type: "SET_CURRENCY"; value: number }
+    | { type: "SET_ENABLED"; value: boolean };
+
+const reducer = (state: AccountEditState, action: AccountEditAction): AccountEditState => {
     switch (action.type) {
         case "INIT":
             return { ...action.value, hasActiveChanges: false };
@@ -45,8 +53,9 @@ interface AccountEditFormProps {
 const AccountEditForm = (props: AccountEditFormProps) => {
     const { t } = useTranslation();
     const [updateAccount, { isLoading: isUpdating }] = useUpdateAccountMutation();
-    const [deleteAccount] = useDeleteAccountMutation();
+    const [deleteAccount, { isLoading: isDeleting }] = useDeleteAccountMutation();
     const [currencies, setCurrencies] = useState<Currency[]>([]);
+    const [formError, setFormError] = useState<string | null>(null);
 
     const screens = useBreakpoint();
     const isMobile = screens.md === false;
@@ -74,22 +83,40 @@ const AccountEditForm = (props: AccountEditFormProps) => {
     }, [props.record]);
 
     const updateHandler = async () => {
-        await updateAccount({
-            id: +props.record.id,
-            key: props.record.key,
-            name: state.name,
-            description: state.description,
-            currencyId: state.currencyId,
-            isEnabled: state.isEnabled,
-        }).unwrap();
+        setFormError(null);
+        try {
+            await updateAccount({
+                id: +props.record.id,
+                key: props.record.key,
+                name: state.name,
+                description: state.description,
+                currencyId: state.currencyId,
+                isEnabled: state.isEnabled,
+            }).unwrap();
+        } catch (error) {
+            setFormError(parseAxiosError(error, t("accounts.formErrors.updateFailure"), t));
+        }
     };
 
     const deleteHandler = async () => {
-        await deleteAccount(+props.record.id).unwrap();
+        setFormError(null);
+        try {
+            await deleteAccount(+props.record.id).unwrap();
+        } catch (error) {
+            setFormError(parseAxiosError(error, t("accounts.formErrors.deleteFailure"), t));
+        }
     };
 
     return (
         <Form layout="vertical">
+            {formError && (
+                <Alert
+                    className="accounts-form-error"
+                    message={formError}
+                    showIcon
+                    type="error"
+                />
+            )}
             <Form.Item label={t("accounts.name")}>
                 <Input
                     size="large"
@@ -133,7 +160,7 @@ const AccountEditForm = (props: AccountEditFormProps) => {
                             onConfirm={deleteHandler}
                             okText={t("accounts.delete")}
                             cancelText={t("accounts.cancel")}>
-                            <Button danger>{t("accounts.delete")}</Button>
+                            <Button danger loading={isDeleting}>{t("accounts.delete")}</Button>
                         </Popconfirm>
                         <Button
                             type="primary"

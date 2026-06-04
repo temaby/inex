@@ -3,12 +3,14 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Form, Input, Button, Radio, Select } from "antd";
 import { CategoryResponse, useCreateCategoryMutation, useGetCategoriesQuery } from "../../store/categories/categories-api";
+import { isSystemCategory } from "./categories.utils";
 
 interface CategoryCreateFormProps {
     onCreated: () => void;
+    onError?: () => void;
 }
 
-const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
+const CategoryCreateForm = ({ onCreated, onError }: CategoryCreateFormProps) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
     const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
@@ -17,13 +19,13 @@ const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
     // Only active, non-system, root-level categories can be parents (1 level of nesting)
     const parentOptions = useMemo(() =>
         allCategories.filter(
-            c => c.isEnabled && !c.isSystem && (c.parentId === null || c.parentId === undefined)
+            c => c.isEnabled && !isSystemCategory(c) && (c.parentId === null || c.parentId === undefined)
         ),
         [allCategories]
     );
 
     const toKey = (name: string) =>
-        name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `category-${Date.now()}`;
 
     const onFinish = async (values: {
         name: string;
@@ -31,15 +33,19 @@ const CategoryCreateForm = ({ onCreated }: CategoryCreateFormProps) => {
         isEnabled: boolean;
         parentId?: number;
     }) => {
-        await createCategory({
-            key: toKey(values.name),
-            name: values.name,
-            description: values.description ?? "",
-            isEnabled: values.isEnabled,
-            parentId: values.parentId ?? null,
-        }).unwrap();
-        form.resetFields();
-        onCreated();
+        try {
+            await createCategory({
+                key: toKey(values.name),
+                name: values.name,
+                description: values.description ?? "",
+                isEnabled: values.isEnabled,
+                parentId: values.parentId ?? null,
+            }).unwrap();
+            form.resetFields();
+            onCreated();
+        } catch {
+            onError?.();
+        }
     };
 
     return (

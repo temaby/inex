@@ -1,0 +1,44 @@
+{
+  "desktop": {
+    "width": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "hasOverflow": false
+  },
+  "drawer": {
+    "width": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "hasOverflow": false
+  },
+  "drawerBounds": {
+    "x": 1000,
+    "width": 440,
+    "right": 1440,
+    "viewport": 1440
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "hasOverflow": false
+  },
+  "mobile360": {
+    "width": 360,
+    "scrollWidth": 360,
+    "bodyScrollWidth": 360,
+    "hasOverflow": false
+  },
+  "screenshots": [
+    "add-drawer-open.png",
+    "all-disabled-visible.png",
+    "desktop-by-spend-populated.png",
+    "desktop-tree-populated.png",
+    "empty-first-use.png",
+    "expanded-row-open.png",
+    "filter-empty.png",
+    "mobile-populated-390.png",
+    "search-ancestor-visible.png"
+  ],
+  "searchAncestorVisible": true
+}
