@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Form, Input, Button, Radio, Select } from "antd";
+import { Alert, Form, Input, Button, Radio, Select } from "antd";
 import { useCreateAccountMutation } from "../../store/accounts/accounts-api";
 import apiClient from "../../utils/apiClient";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 
 interface Currency {
     id: number;
@@ -20,6 +21,7 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
     const [form] = Form.useForm();
     const [createAccount, { isLoading: isCreating }] = useCreateAccountMutation();
     const [currencies, setCurrencies] = useState<Currency[]>([]);
+    const [formError, setFormError] = useState<string | null>(null);
 
     useEffect(() => {
         apiClient.get<Currency[]>("/currencies").then(({ data }) => setCurrencies(data));
@@ -34,15 +36,20 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
         currencyId: number;
         isEnabled: boolean;
     }) => {
-        await createAccount({
-            key: toKey(values.name),
-            name: values.name,
-            description: values.description ?? "",
-            currencyId: values.currencyId,
-            isEnabled: values.isEnabled,
-        }).unwrap();
-        form.resetFields();
-        onCreated();
+        setFormError(null);
+        try {
+            await createAccount({
+                key: toKey(values.name),
+                name: values.name,
+                description: values.description ?? "",
+                currencyId: values.currencyId,
+                isEnabled: values.isEnabled,
+            }).unwrap();
+            form.resetFields();
+            onCreated();
+        } catch (error) {
+            setFormError(parseAxiosError(error, t("accounts.formErrors.createFailure"), t));
+        }
     };
 
     return (
@@ -51,10 +58,18 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
             layout="vertical"
             onFinish={onFinish}
             initialValues={{ isEnabled: true }}>
+            {formError && (
+                <Alert
+                    className="accounts-form-error"
+                    message={formError}
+                    showIcon
+                    type="error"
+                />
+            )}
             <Form.Item
                 name="name"
                 label={t("accounts.name")}
-                rules={[{ required: true, message: "Name is required" }]}>
+                rules={[{ required: true, message: t("accounts.formErrors.nameRequired") }]}>
                 <Input size="large" placeholder={t("accounts.namePlaceholder")} />
             </Form.Item>
             <Form.Item name="description" label={t("accounts.description")}>
@@ -63,7 +78,7 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
             <Form.Item
                 name="currencyId"
                 label={t("accounts.currency")}
-                rules={[{ required: true, message: "Currency is required" }]}>
+                rules={[{ required: true, message: t("accounts.formErrors.currencyRequired") }]}>
                 <Select
                     size="large"
                     placeholder={t("accounts.currencyPlaceholder")}

@@ -182,6 +182,69 @@
     }
   },
   "accounts": {
+    "subtitle": "Управление",
+    "drawerSubtitle": "Создайте счёт и назначьте его валюту",
+    "addAccount": "Добавить счёт",
+    "noDescription": "Без описания",
+    "workspaceTitle": "Список счетов",
+    "searchLabel": "Поиск счетов",
+    "searchPlaceholder": "Поиск по названию или валюте",
+    "clearSearch": "Очистить поиск",
+    "filteringBy": "Фильтр: \"{{query}}\"",
+    "shareOfNetWorth": "{{value}}% от чистой стоимости",
+    "scope": {
+      "active": "Активные",
+      "all": "Все"
+    },
+    "view": {
+      "byCurrency": "По валюте",
+      "flat": "Список"
+    },
+    "group": {
+      "accountCountOne": "{{count}} счёт",
+      "accountCountOther": "{{count}} счетов",
+      "accountCount": "{{count}} счёт",
+      "accountCount_plural": "{{count}} счетов"
+    },
+    "hero": {
+      "netWorth": "Чистая стоимость",
+      "balanceUnavailable": "Баланс недоступен",
+      "momUnavailable": "Динамика за месяц недоступна",
+      "momDelta": "{{value}} м/м",
+      "activeAccounts": "{{count}} активных",
+      "currencyCount": "{{count}} валют",
+      "currencyDistribution": "Распределение по валютам",
+      "byValue": "По текущему балансу",
+      "byCount": "По количеству счетов",
+      "noDistribution": "Нет валют для отображения"
+    },
+    "loading": {
+      "initial": "Загрузка счетов",
+      "refreshing": "Обновление"
+    },
+    "error": {
+      "loadTitle": "Не удалось загрузить счета",
+      "loadDescription": "Повторите запрос. Данные счетов и API-контракты не изменялись.",
+      "partialFailure": "Не удалось обновить счета",
+      "partialDescription": "Показаны последние загруженные счета.",
+      "retry": "Повторить"
+    },
+    "formErrors": {
+      "nameRequired": "Укажите название",
+      "currencyRequired": "Выберите валюту",
+      "createFailure": "Не удалось создать счёт",
+      "updateFailure": "Не удалось обновить счёт",
+      "deleteFailure": "Не удалось удалить счёт"
+    },
+    "emptyState": {
+      "title": "Счетов пока нет",
+      "description": "Добавьте первый наличный, банковский или карточный счёт, чтобы отслеживать балансы и валюты.",
+      "primaryAction": "Добавить счёт"
+    },
+    "filterEmpty": {
+      "title": "Ничего не найдено",
+      "description": "Попробуйте очистить поиск или показать все счета."
+    },
     "title": "Счета",
     "addDrawerTitle": "Добавить счёт",
     "account": "Счёт",
