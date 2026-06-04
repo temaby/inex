@@ -1,6 +1,6 @@
-# Story 10.3a: Frontend UX - Accounts Management Redesign
+﻿# Story 10.3a: Frontend UX - Accounts Management Redesign
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -17,41 +17,41 @@ so that account balances are easy to compare on desktop and mobile.
 
 ## Tasks / Subtasks
 
-- [ ] Confirm prerequisite story outputs are available before implementation starts. (AC: 1-4)
-  - [ ] Story 10.1a token/theme bridge is complete and page styles consume those tokens instead of hardcoded palette constants.
-  - [ ] Story 10.1b shared primitives are complete for drawer, segmented controls, empty/filter-empty states, money/signage rendering, and form fields.
-  - [ ] Story 10.1c app shell/bottom navigation is complete so Accounts spacing and mobile safe-area behavior are implemented against the final shell.
-  - [ ] Story 10.2 Transactions redesign is complete or explicitly waived for this management-page wave, preserving the fixed Epic 10 order.
-  - [ ] If 10.3a, 10.3b, and 10.3c run in parallel, coordinate shared EN/RU locale files and shared primitive assumptions before editing.
-- [ ] Rebuild `/accounts` as a management workspace while preserving existing data contracts and route ownership. (AC: 1)
-  - [ ] Replace the current table-first composition in `inex/ClientApp/src/pages/Accounts.tsx` with the design-system workspace flow: hero, toolbar/filter bar, grouped/flat list, and inline-edit or drawer interactions.
-  - [ ] Keep route path, auth guarding (`ProtectedRoute`), and shell integration from Story 10.1c unchanged.
-  - [ ] Keep account data sourced from existing Redux state/actions (`accounts-slice` + `accounts-actions`) with no backend/API contract changes in this story.
-- [ ] Implement explicit loading and error UX for account data and form submissions. (AC: 1, 2, 4)
-  - [ ] Initial load: while `accounts.isLoading` is true and `accounts.items` is empty, show localized account hero/list skeletons rather than empty-state copy.
-  - [ ] Refresh load: when `accounts.isLoading` is true and existing accounts remain, keep stale rows visible, show a compact localized refreshing indicator in the toolbar/hero, and avoid layout shift.
-  - [ ] Failed load: when `accounts.error` is set and no accounts are available, show a localized page error state with Retry that re-dispatches `fetchAccounts("ALL")`.
-  - [ ] Partial refresh failure: when `accounts.error` is set while stale accounts remain, show a localized inline alert/banner with Retry and keep the stale account list visible.
-  - [ ] Drawer/form errors: create/edit/delete failures must appear in the drawer or expanded edit panel near the submit actions, preserve entered values, and reset disabled/loading button states after failure.
-  - [ ] Localization keys: add EN/RU keys under an `accounts.loading`, `accounts.error`, and `accounts.formErrors` structure (or equivalent existing namespace) for initial loading, refreshing, load failure, retry, create failure, update failure, and delete failure.
-- [ ] Implement scanning-centric account presentation contracts from design references. (AC: 1)
-  - [ ] Add net-worth hero with total USD value, MoM delta, and by-currency distribution treatment.
-  - [ ] Add active/all scope control, grouping mode (`by currency` / `flat list`), and search across account name/currency.
-  - [ ] Implement compact account rows with deterministic currency badge, share-of-net-worth signal, and right-aligned/tabular balance cells.
-  - [ ] Preserve existing create/edit workflows (`AccountCreateForm`, `AccountEditForm`) and keep one expanded row at a time.
-- [ ] Implement empty and filter-empty experiences via shared primitives with localized copy. (AC: 2)
-  - [ ] Use shared `EmptyState` / `FilterEmpty` pattern from the design system (Story 10.1b) rather than page-local ad hoc empty panels.
-  - [ ] Add/adjust EN and RU translation keys for accounts empty/filter-empty labels and CTA text.
-  - [ ] Ensure empty-state primary actions map to real workflows (`Add account`, optional secondary CTA) and do not expose dead links.
-- [ ] Enforce responsive behavior and overflow resilience at mobile breakpoints. (AC: 3)
-  - [ ] Verify toolbar/filter controls wrap or scroll internally without creating page-level overflow.
-  - [ ] Ensure row layout stacks cleanly on 390px and 360px widths, with bottom navigation safe area preserved.
-  - [ ] Ensure drawer behavior remains usable on mobile (`bottom` placement/full width) with accessible close behavior and non-occluded actions.
-- [ ] Deliver verification artifacts and quality gates. (AC: 4)
-  - [ ] Run `npm run build` from `inex/ClientApp`.
-  - [ ] Run `npm run lint` from `inex/ClientApp`.
-  - [ ] Capture screenshot set: desktop populated, mobile populated, empty/zero-data, filter-empty, drawer-open.
-  - [ ] Confirm no new `any` usage in touched TypeScript files.
+- [x] Confirm prerequisite story outputs are available before implementation starts. (AC: 1-4)
+  - [x] Story 10.1a token/theme bridge is complete and page styles consume those tokens instead of hardcoded palette constants.
+  - [x] Story 10.1b shared primitives are complete for drawer, segmented controls, empty/filter-empty states, money/signage rendering, and form fields.
+  - [x] Story 10.1c app shell/bottom navigation is complete so Accounts spacing and mobile safe-area behavior are implemented against the final shell.
+  - [x] Story 10.2 Transactions redesign is complete or explicitly waived for this management-page wave, preserving the fixed Epic 10 order.
+  - [x] If 10.3a, 10.3b, and 10.3c run in parallel, coordinate shared EN/RU locale files and shared primitive assumptions before editing.
+- [x] Rebuild `/accounts` as a management workspace while preserving existing data contracts and route ownership. (AC: 1)
+  - [x] Replace the current table-first composition in `inex/ClientApp/src/pages/Accounts.tsx` with the design-system workspace flow: hero, toolbar/filter bar, grouped/flat list, and inline-edit or drawer interactions.
+  - [x] Keep route path, auth guarding (`ProtectedRoute`), and shell integration from Story 10.1c unchanged.
+  - [x] Keep account data sourced from existing Redux state/actions (`accounts-slice` + `accounts-actions`) with no backend/API contract changes in this story.
+- [x] Implement explicit loading and error UX for account data and form submissions. (AC: 1, 2, 4)
+  - [x] Initial load: while `accounts.isLoading` is true and `accounts.items` is empty, show localized account hero/list skeletons rather than empty-state copy.
+  - [x] Refresh load: when `accounts.isLoading` is true and existing accounts remain, keep stale rows visible, show a compact localized refreshing indicator in the toolbar/hero, and avoid layout shift.
+  - [x] Failed load: when `accounts.error` is set and no accounts are available, show a localized page error state with Retry that re-dispatches `fetchAccounts("ALL")`.
+  - [x] Partial refresh failure: when `accounts.error` is set while stale accounts remain, show a localized inline alert/banner with Retry and keep the stale account list visible.
+  - [x] Drawer/form errors: create/edit/delete failures must appear in the drawer or expanded edit panel near the submit actions, preserve entered values, and reset disabled/loading button states after failure.
+  - [x] Localization keys: add EN/RU keys under an `accounts.loading`, `accounts.error`, and `accounts.formErrors` structure (or equivalent existing namespace) for initial loading, refreshing, load failure, retry, create failure, update failure, and delete failure.
+- [x] Implement scanning-centric account presentation contracts from design references. (AC: 1)
+  - [x] Add net-worth hero with total USD value, MoM delta, and by-currency distribution treatment.
+  - [x] Add active/all scope control, grouping mode (`by currency` / `flat list`), and search across account name/currency.
+  - [x] Implement compact account rows with deterministic currency badge, share-of-net-worth signal, and right-aligned/tabular balance cells.
+  - [x] Preserve existing create/edit workflows (`AccountCreateForm`, `AccountEditForm`) and keep one expanded row at a time.
+- [x] Implement empty and filter-empty experiences via shared primitives with localized copy. (AC: 2)
+  - [x] Use shared `EmptyState` / `FilterEmpty` pattern from the design system (Story 10.1b) rather than page-local ad hoc empty panels.
+  - [x] Add/adjust EN and RU translation keys for accounts empty/filter-empty labels and CTA text.
+  - [x] Ensure empty-state primary actions map to real workflows (`Add account`, optional secondary CTA) and do not expose dead links.
+- [x] Enforce responsive behavior and overflow resilience at mobile breakpoints. (AC: 3)
+  - [x] Verify toolbar/filter controls wrap or scroll internally without creating page-level overflow.
+  - [x] Ensure row layout stacks cleanly on 390px and 360px widths, with bottom navigation safe area preserved.
+  - [x] Ensure drawer behavior remains usable on mobile (`bottom` placement/full width) with accessible close behavior and non-occluded actions.
+- [x] Deliver verification artifacts and quality gates. (AC: 4)
+  - [x] Run `npm run build` from `inex/ClientApp`.
+  - [x] Run `npm run lint` from `inex/ClientApp`.
+  - [x] Capture screenshot set: desktop populated, mobile populated, empty/zero-data, filter-empty, drawer-open.
+  - [x] Confirm no new `any` usage in touched TypeScript files.
 
 ## Dev Notes
 
@@ -247,13 +247,68 @@ GPT-5.3-Codex
 
 ### Debug Log References
 
+- 2026-06-03: Confirmed Story 10.1a and Story 10.1b are `done` in `docs/implementation/sprint-status.yaml`.
+- 2026-06-03: Story 10.1c and Story 10.2 are `review`, not `done`; user explicitly waived this gate by instructing to consider them done and proceed.
+- 2026-06-03: `docs/project-context.md` was requested but is absent from this worktree; equivalent architecture/project guardrails were loaded from planning and story context.
+- 2026-06-03: Current Accounts implementation uses RTK Query (`accounts-api.ts`), so the redesign preserved the live RTK Query contract rather than reverting to older Redux thunk notes.
+- 2026-06-03: `npm run build` from `inex/ClientApp` passed.
+- 2026-06-03: `npm run lint` from `inex/ClientApp` passed.
+- 2026-06-03: `git diff -U0 -- ... | Select-String -Pattern "^\\+.*\\bany\\b"` found no added `any` usage in touched TypeScript files.
+- 2026-06-03: Visual QA captured screenshots under `docs/implementation/visual-qa/10-3a/` with mocked authenticated API responses.
+- 2026-06-03: Visual QA metrics reported no page-level horizontal overflow at 390px and 360px populated states, and covered empty, filter-empty, and drawer-open states.
+- 2026-06-03: BMad code review found and fixed filter-empty hero distribution drift and account-count plural copy.
+- 2026-06-03: `npm run build` and `npm run lint` from `inex/ClientApp` passed after review fixes.
+
 ### Completion Notes List
 
 - Story context created via bmad-create-story workflow for key `10-3a-frontend-ux-accounts-management-redesign`.
 - Story includes implementation guardrails for preserving Redux/apiClient contracts while rebuilding Accounts UX.
 - Story includes explicit responsive and screenshot QA gates per Epic 10 requirements.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
+- Rebuilt `/accounts` as a tokenized management workspace with net-worth hero, currency distribution, active/all scope, by-currency/flat view modes, search, compact account rows, share-of-net-worth indicators, and inline edit panels.
+- Preserved route/auth shell ownership and existing RTK Query account API contracts; no backend endpoints or store contracts were changed.
+- Kept create/edit/delete workflows in the existing form components while adding localized error display near submit actions and preserving entered values after failures.
+- Added localized EN/RU accounts copy for loading, refresh, load failure, form failures, empty state, filter-empty state, hero metrics, scope/view controls, and search.
+- Added page-scoped responsive CSS for Accounts; mobile visual QA passed at 390px and 360px with no horizontal overflow.
+- Static verification passed with `npm run build`, `npm run lint`, and no added `any` usage in touched TypeScript files.
+- Resolved review findings by keeping hero currency distribution sourced from scoped accounts instead of searched rows and by replacing unstable plural lookup with explicit singular/plural locale keys.
 
 ### File List
 
 - docs/implementation/10-3a-frontend-ux-accounts-management-redesign.md
+- docs/implementation/sprint-status.yaml
+- docs/implementation/visual-qa/10-3a/desktop-populated.png
+- docs/implementation/visual-qa/10-3a/mobile-390-populated.png
+- docs/implementation/visual-qa/10-3a/mobile-360-populated.png
+- docs/implementation/visual-qa/10-3a/empty.png
+- docs/implementation/visual-qa/10-3a/filter-empty.png
+- docs/implementation/visual-qa/10-3a/drawer-open.png
+- docs/implementation/visual-qa/10-3a/qa-summary-mobile-states.json
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/pages/Accounts.tsx
+- inex/ClientApp/src/pages/Accounts/AccountCreateForm.tsx
+- inex/ClientApp/src/pages/Accounts/AccountEditForm.tsx
+- inex/ClientApp/src/pages/Accounts/accounts.css
+
+### Change Log
+
+- 2026-06-03: Implemented Accounts management redesign, completed build/lint/no-any checks, captured visual QA screenshots, and marked story ready for review.
+- 2026-06-03: Addressed BMad code review findings and reran build/lint.
+
+## Senior Developer Review (AI)
+
+### Review Outcome
+
+Approve after fixes.
+
+### Findings
+
+- [x] Medium: Filter-empty search drove the hero currency distribution from the searched row set, so a no-match search made the hero report no currencies despite loaded account balances. Fixed by deriving hero distribution from the scoped account set and list groups from the searched set.
+- [x] Low: Currency group count used a plural key form that rendered `2 account` with the installed i18next behavior. Fixed by using explicit singular/plural account-count keys.
+
+### Verification
+
+- `npm run build` from `inex/ClientApp` passed after review fixes.
+- `npm run lint` from `inex/ClientApp` passed after review fixes.
+- Pre-review visual QA screenshots cover desktop populated, mobile 390 populated, mobile 360 populated, empty, filter-empty, and drawer-open states; 390px/360px overflow metrics passed.

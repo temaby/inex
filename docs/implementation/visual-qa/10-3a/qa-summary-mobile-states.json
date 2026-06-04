@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-06-03T21:40:48.207Z",
+  "results": [
+    {
+      "name": "mobile-390-populated",
+      "filePath": "C:\\Users\\artio\\.codex\\worktrees\\852e\\inex\\docs\\implementation\\visual-qa\\10-3a\\mobile-390-populated.png",
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "rowCount": 3,
+        "hasDrawer": false,
+        "hasEmpty": false,
+        "hasFilterEmpty": false,
+        "hasWorkspace": true,
+        "text": "I\nInEx\nAR\nMANAGE\nAccounts\nAdd account\nNET WORTH\n9,121.65 USD\n-0.2% MoM\n3 active\n3 currencies\nCURRENCY DISTRIBUTION\nBy current balance\nEUR\n29%\nUSD\n68%\nAccount inventory\nActive\nAll\nB"
+      },
+      "overflow": false
+    },
+    {
+      "name": "mobile-360-populated",
+      "filePath": "C:\\Users\\artio\\.codex\\worktrees\\852e\\inex\\docs\\implementation\\visual-qa\\10-3a\\mobile-360-populated.png",
+      "metrics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "bodyScrollWidth": 360,
+        "bodyClientWidth": 360,
+        "rowCount": 3,
+        "hasDrawer": false,
+        "hasEmpty": false,
+        "hasFilterEmpty": false,
+        "hasWorkspace": true,
+        "text": "I\nInEx\nAR\nMANAGE\nAccounts\nAdd account\nNET WORTH\n9,121.65 USD\n-0.2% MoM\n3 active\n3 currencies\nCURRENCY DISTRIBUTION\nBy current balance\nEUR\n29%\nUSD\n68%\nAccount inventory\nActive\nAll\nB"
+      },
+      "overflow": false
+    },
+    {
+      "name": "empty",
+      "filePath": "C:\\Users\\artio\\.codex\\worktrees\\852e\\inex\\docs\\implementation\\visual-qa\\10-3a\\empty.png",
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "rowCount": 0,
+        "hasDrawer": false,
+        "hasEmpty": true,
+        "hasFilterEmpty": false,
+        "hasWorkspace": true,
+        "text": "I\nInEx\nAR\nMANAGE\nAccounts\nAdd account\nNET WORTH\nBalance unavailable\nMoM delta unavailable\n0 active\n0 currencies\nCURRENCY DISTRIBUTION\nBy account count\nNo currencies to display\nAcco"
+      },
+      "overflow": false
+    },
+    {
+      "name": "filter-empty",
+      "filePath": "C:\\Users\\artio\\.codex\\worktrees\\852e\\inex\\docs\\implementation\\visual-qa\\10-3a\\filter-empty.png",
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "rowCount": 0,
+        "hasDrawer": false,
+        "hasEmpty": true,
+        "hasFilterEmpty": true,
+        "hasWorkspace": true,
+        "text": "I\nInEx\nAR\nMANAGE\nAccounts\nAdd account\nNET WORTH\n9,121.65 USD\n-0.2% MoM\n3 active\n3 currencies\nCURRENCY DISTRIBUTION\nBy current balance\nNo currencies to display\nAccount inventory\nAct"
+      },
+      "overflow": false
+    },
+    {
+      "name": "drawer-open",
+      "filePath": "C:\\Users\\artio\\.codex\\worktrees\\852e\\inex\\docs\\implementation\\visual-qa\\10-3a\\drawer-open.png",
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "rowCount": 3,
+        "hasDrawer": true,
+        "hasEmpty": false,
+        "hasFilterEmpty": false,
+        "hasWorkspace": true,
+        "text": "I\nInEx\nAR\nMANAGE\nAccounts\nAdd account\nNET WORTH\n9,121.65 USD\n-0.2% MoM\n3 active\n3 currencies\nCURRENCY DISTRIBUTION\nBy current balance\nEUR\n29%\nUSD\n68%\nAccount inventory\nActive\nAll\nB"
+      },
+      "overflow": false
+    }
+  ]
+}
