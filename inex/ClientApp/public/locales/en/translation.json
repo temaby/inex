@@ -180,6 +180,69 @@
     }
   },
   "accounts": {
+    "subtitle": "Manage",
+    "drawerSubtitle": "Create an account and assign its currency",
+    "addAccount": "Add account",
+    "noDescription": "No description",
+    "workspaceTitle": "Account inventory",
+    "searchLabel": "Search accounts",
+    "searchPlaceholder": "Search name or currency",
+    "clearSearch": "Clear search",
+    "filteringBy": "Filtering by \"{{query}}\"",
+    "shareOfNetWorth": "{{value}}% of net worth",
+    "scope": {
+      "active": "Active",
+      "all": "All"
+    },
+    "view": {
+      "byCurrency": "By currency",
+      "flat": "Flat list"
+    },
+    "group": {
+      "accountCountOne": "{{count}} account",
+      "accountCountOther": "{{count}} accounts",
+      "accountCount": "{{count}} account",
+      "accountCount_plural": "{{count}} accounts"
+    },
+    "hero": {
+      "netWorth": "Net worth",
+      "balanceUnavailable": "Balance unavailable",
+      "momUnavailable": "MoM delta unavailable",
+      "momDelta": "{{value}} MoM",
+      "activeAccounts": "{{count}} active",
+      "currencyCount": "{{count}} currencies",
+      "currencyDistribution": "Currency distribution",
+      "byValue": "By current balance",
+      "byCount": "By account count",
+      "noDistribution": "No currencies to display"
+    },
+    "loading": {
+      "initial": "Loading accounts",
+      "refreshing": "Refreshing"
+    },
+    "error": {
+      "loadTitle": "Accounts could not be loaded",
+      "loadDescription": "Retry the request. Existing account data and API contracts were not changed.",
+      "partialFailure": "Could not refresh accounts",
+      "partialDescription": "Showing the last loaded accounts while the refresh is retried.",
+      "retry": "Retry"
+    },
+    "formErrors": {
+      "nameRequired": "Name is required",
+      "currencyRequired": "Currency is required",
+      "createFailure": "Could not create the account",
+      "updateFailure": "Could not update the account",
+      "deleteFailure": "Could not delete the account"
+    },
+    "emptyState": {
+      "title": "No accounts yet",
+      "description": "Add your first cash, bank, or card account so balances and currencies can be tracked here.",
+      "primaryAction": "Add account"
+    },
+    "filterEmpty": {
+      "title": "No accounts match",
+      "description": "Try clearing search or showing all accounts."
+    },
     "title": "Accounts",
     "addDrawerTitle": "Add Account",
     "account": "Account",
