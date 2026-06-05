@@ -1,0 +1,119 @@
+[
+  {
+    "name": "populated-1440",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Foo"
+  },
+  {
+    "name": "expanded-edit-1440",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Foo"
+  },
+  {
+    "name": "tablet-1024",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    },
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Foo"
+  },
+  {
+    "name": "mobile-390",
+    "title": "Budgets",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Food budget 62% used Savings budget 0% used Apr 2026 May 2026 Jun"
+  },
+  {
+    "name": "drawer-open-390",
+    "title": "Budgets",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Food budget 62% used Savings budget 0% used Apr 2026 May 2026 Jun"
+  },
+  {
+    "name": "mobile-360",
+    "title": "Budgets",
+    "viewport": {
+      "width": 360,
+      "height": 800
+    },
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Food budget 62% used Savings budget 0% used Apr 2026 May 2026 Jun"
+  },
+  {
+    "name": "filter-empty-390",
+    "title": "Budgets",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 1,535.00 USD / 1,850.00 USD 315.00 USD left / 1,226.67 USD ahead of pace Budgeted 1,850.00 USD Spent 1,535.00 USD Remaining 315.00 USD Used 83% used Over budget 1 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Travel budget 113% used Rent budget 100% used Food budget 62% used Savings budget 0% used Apr 2026 May 2026 Jun"
+  },
+  {
+    "name": "report-error-1440",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. Metrics failed / 1,850.00 USD Metrics failed Metrics failed Budgeted 1,850.00 USD Spent Metrics failed Remaining Metrics failed Used Metrics failed Over budget Metrics failed Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Metrics failed Apr 2026 May 2026 Jun "
+  },
+  {
+    "name": "empty-1440",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets No budgets planned for this month Create a monthly budget or copy last month to start planning burn rate. Add budget Copy from May 2026"
+  }
+]

@@ -225,7 +225,26 @@
       "accountCountOne": "{{count}} счёт",
       "accountCountOther": "{{count}} счетов",
       "accountCount": "{{count}} счёт",
-      "accountCount_plural": "{{count}} счетов"
+      "accountCount_plural": "{{count}} счетов",
+      "expand": "Развернуть счета {{currency}}",
+      "collapse": "Свернуть счета {{currency}}"
+    },
+    "inventory": {
+      "summary": "Видимые счета: {{visible}} / {{total}}",
+      "activeOnly": "только активные: {{count}}",
+      "allScope": "все счета"
+    },
+    "equivalent": {
+      "approx": "примерно",
+      "unavailable": "Эквивалент недоступен"
+    },
+    "snapshot": {
+      "title": "Сводка",
+      "currentBalance": "Текущий баланс",
+      "baseEquivalent": "Эквивалент в {{currency}}",
+      "rateToBase": "Курс к базовой",
+      "rateValue": "{{value}} {{baseCurrency}} / {{currency}}",
+      "accountId": "ID счёта"
     },
     "hero": {
       "netWorth": "Чистая стоимость",
@@ -235,6 +254,7 @@
       "activeAccounts": "{{count}} активных",
       "currencyCount": "{{count}} валют",
       "currencyDistribution": "Распределение по валютам",
+      "baseEquivalentLabel": "Эквивалент в {{currency}}",
       "byValue": "По текущему балансу",
       "byCount": "По количеству счетов",
       "noDistribution": "Нет валют для отображения"
@@ -312,15 +332,19 @@
     "listTitle": "Структура категорий",
     "countSummary": "{{visible}} из {{total}} категорий · {{scope}}",
     "parent": "Родитель",
+    "budgeted": "С бюджетом",
     "systemLocked": "Системная категория",
     "hero": {
-      "monthLabel": "Этот месяц",
+      "monthLabel": "Расходы: {{period}}",
       "noSpend": "Расходы не записаны",
       "noSpendDescription": "Сигналы расходов появятся здесь, когда будут доступны данные транзакций.",
+      "unavailableDescription": "Сигналы расходов появятся здесь, когда данные транзакций уже есть в кеше.",
       "noCategories": "Пока нет активных групп",
       "mostSpentIn": "Больше всего в",
       "byCategory": "По категориям",
-      "usdEquiv": "Эквивалент USD"
+      "baseEquivalent": "Эквивалент {{currency}}",
+      "unavailable": "Расходы недоступны",
+      "other": "Другое"
     },
     "metrics": {
       "active": "Активные",
@@ -340,7 +364,11 @@
       "txn": "транз.",
       "txns": "транз.",
       "last": "посл.",
-      "noTransactions": "Нет активности"
+      "lastActive": "посл. {{date}}",
+      "periodCurrency": "{{currency}} · {{period}}",
+      "noTransactions": "Нет активности",
+      "unavailable": "Активность недоступна",
+      "spendUnavailable": "Расходы недоступны"
     },
     "search": {
       "placeholder": "Поиск категорий...",
@@ -348,7 +376,7 @@
     },
     "inlineEdit": {
       "editSection": "Редактировать категорию",
-      "snapshotSection": "Снимок · этот месяц",
+      "snapshotSection": "Снимок · {{period}}",
       "systemNotice": "Это системная категория. Ее нельзя переименовать, отключить или удалить.",
       "viewTransactions": "Показать транзакции",
       "setBudget": "Задать бюджет",
@@ -358,11 +386,12 @@
       "spend": "Расход",
       "transactions": "Транзакции",
       "budget": "Бюджет",
-      "categoryId": "ID категории"
+      "categoryId": "ID категории",
+      "notSet": "Не задан"
     },
     "emptyState": {
-      "title": "Начните с категорий",
-      "description": "Категории помогают классифицировать расходы и делать отчеты полезными. Создайте родительские группы и дочерние категории.",
+      "title": "Создайте первую категорию",
+      "description": "Категории помогают классифицировать расходы и делать отчеты полезными. Добавьте родительскую группу или дочернюю категорию, чтобы начать структуру.",
       "loadDefaults": "Загрузить типовые",
       "addManually": "Добавить вручную"
     },
@@ -400,6 +429,9 @@
     "categories": "Категории",
     "key": "Ключ",
     "keyPlaceholder": "Введите уникальный ключ",
+    "keyContractHint": "Требуется текущим API-контрактом бюджета.",
+    "period": "Период",
+    "periodRequired": "Выберите период бюджета",
     "create": "Создать",
     "cancel": "Отмена",
     "save": "Сохранить",
@@ -418,8 +450,10 @@
     "deleteError": "Ошибка при удалении бюджета",
     "subtitle": "План",
     "heroLabel": "Планирование месяца",
+    "heroTitle": "Бюджет на {{month}}",
     "heroDescription": "Сравнивайте бюджет, текущие траты и остаток на выбранный месяц.",
     "summaryLabel": "Сводка бюджетов",
+    "currentDayMarker": "Сегодня: день {{day}} из {{days}}",
     "toolbarLabel": "Управление планированием бюджетов",
     "listLabel": "Строки бюджетов",
     "drawerSubtitle": "План на {{month}}",
@@ -434,8 +468,13 @@
     "remaining": "Остаток",
     "overBudget": "Превышен бюджет",
     "overBudgetBy": "Превышение на {{amount}} {{currency}}",
+    "atLimit": "На лимите",
+    "remainingLeft": "{{amount}} {{currency}} осталось",
+    "remainingOver": "{{amount}} {{currency}} сверх лимита",
     "percentUsed": "Использовано {{percent}}%",
+    "dailyPace": "Дневной темп",
     "metricsUnavailable": "Метрики недоступны",
+    "metricsError": "Ошибка метрик",
     "noDescription": "Без описания",
     "uncategorized": "Без категории",
     "metrics": {
@@ -444,6 +483,38 @@
       "remaining": "Остаток",
       "used": "Использовано",
       "overBudget": "Превышено"
+    },
+    "burnRate": {
+      "title": "Темп расхода",
+      "subtitle": "% бюджета использовано",
+      "legendLabel": "Легенда статусов расхода"
+    },
+    "usageStatus": {
+      "ok": "В норме",
+      "near": "Близко к лимиту",
+      "atLimit": "На лимите",
+      "over": "Сверх бюджета",
+      "idle": "Не использован",
+      "unavailable": "Недоступно"
+    },
+    "pace": {
+      "overBudget": "сверх бюджета",
+      "aheadBy": "{{amount}} {{currency}} выше темпа",
+      "underBy": "{{amount}} {{currency}} ниже темпа",
+      "onPace": "по плану",
+      "idle": "недостаточно расходов",
+      "dailyAverage": "{{amount}} {{currency}}/день",
+      "deltaAhead": "+{{amount}} {{currency}} к темпу",
+      "deltaUnder": "-{{amount}} {{currency}} к темпу",
+      "deltaOnPace": "по плану",
+      "deltaOverBudget": "сверх бюджета"
+    },
+    "snapshot": {
+      "title": "Снимок - {{month}}",
+      "budget": "Бюджет",
+      "spent": "Потрачено",
+      "remaining": "Остаток",
+      "dailyAverageLeft": "Средн. в день"
     },
     "emptyState": {
       "title": "На этот месяц нет бюджетов",

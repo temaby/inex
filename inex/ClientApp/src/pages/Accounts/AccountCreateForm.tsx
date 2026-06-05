@@ -13,10 +13,11 @@ interface Currency {
 }
 
 interface AccountCreateFormProps {
+    onCancel: () => void;
     onCreated: () => void;
 }
 
-const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
+const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
     const [createAccount, { isLoading: isCreating }] = useCreateAccountMutation();
@@ -86,7 +87,7 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
                     optionFilterProp="label"
                     options={currencies.map((c) => ({
                         value: c.id,
-                        label: `${c.key} — ${c.name}`,
+                        label: `${c.key} - ${c.name}`,
                     }))}
                 />
             </Form.Item>
@@ -97,14 +98,22 @@ const AccountCreateForm = ({ onCreated }: AccountCreateFormProps) => {
                 </Radio.Group>
             </Form.Item>
             <Form.Item>
-                <Button
-                    type="primary"
-                    htmlType="submit"
-                    size="large"
-                    loading={isCreating}
-                    block>
-                    {t("accounts.createAccount")}
-                </Button>
+                <div className="accounts-drawer-actions">
+                    <Button
+                        disabled={isCreating}
+                        onClick={onCancel}
+                        size="large"
+                        type="default">
+                        {t("accounts.cancel")}
+                    </Button>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        size="large"
+                        loading={isCreating}>
+                        {t("accounts.createAccount")}
+                    </Button>
+                </div>
             </Form.Item>
         </Form>
     );

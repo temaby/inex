@@ -3,14 +3,25 @@ import { useTranslation } from "react-i18next";
 
 import { Num } from "../../components/primitives";
 import type { CategoryResponse } from "../../store/categories/categories-api";
-import { isSystemCategory } from "./categories.utils";
+import {
+    categoryPaletteColor,
+    type CategorySpendStats,
+    isSystemCategory,
+} from "./categories.utils";
 
 interface CategoriesHeroProps {
     categories: CategoryResponse[];
     loading?: boolean;
+    periodLabel: string;
+    stats: CategorySpendStats;
 }
 
-export const CategoriesHero: React.FC<CategoriesHeroProps> = ({ categories, loading = false }) => {
+export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
+    categories,
+    loading = false,
+    periodLabel,
+    stats,
+}) => {
     const { t } = useTranslation();
     const activeUserCategories = categories.filter(
         (category) => category.isEnabled && !isSystemCategory(category),
@@ -38,15 +49,43 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({ categories, load
         );
     }
 
+    const hasSpend = stats.available && stats.totalSpend > 0;
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const noSpendNote = stats.available
+        ? t("categories.hero.noSpend")
+        : t("categories.hero.unavailable");
+    const noSpendDescription = stats.available
+        ? t("categories.hero.noSpendDescription")
+        : t("categories.hero.unavailableDescription");
+
     return (
         <section className="categories-hero r-categories-hero">
             <div className="categories-hero__summary">
-                <div className="categories-eyebrow">{t("categories.hero.monthLabel")}</div>
+                <div className="categories-eyebrow">
+                    {t("categories.hero.monthLabel", { period: periodLabel })}
+                </div>
                 <div className="categories-hero__amount">
-                    <Num value={0} currency="USD" kind="neutral" />
+                    {hasSpend ? (
+                        <Num value={stats.totalSpend} currency={stats.currency} kind="expense" />
+                    ) : (
+                        <span className="categories-hero__dash">-</span>
+                    )}
                 </div>
                 <div className="categories-hero__note">
-                    {t("categories.hero.noSpend")}
+                    {stats.topParent && hasSpend ? (
+                        <React.Fragment>
+                            {t("categories.hero.mostSpentIn")}{" "}
+                            <strong>{stats.topParent.name}</strong>{" "}
+                            <Num
+                                value={stats.topParentSpend}
+                                currency={stats.currency}
+                                kind="expense"
+                                size={13}
+                            />
+                        </React.Fragment>
+                    ) : (
+                        noSpendNote
+                    )}
                 </div>
             </div>
             <div className="categories-hero__details">
@@ -64,10 +103,60 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({ categories, load
                         <strong>{Math.max(0, childCount)}</strong>
                     </div>
                 </div>
-                <div className="categories-hero__empty" aria-label={t("categories.hero.byCategory")}>
-                    <strong>{t("categories.hero.noSpend")}</strong>
-                    <span>{t("categories.hero.noSpendDescription")}</span>
-                </div>
+                {hasSpend ? (
+                    <div className="categories-hero__distribution" aria-label={t("categories.hero.byCategory")}>
+                        <div className="categories-hero__distribution-head">
+                            <strong>{t("categories.hero.byCategory")}</strong>
+                            <span>{t("categories.hero.baseEquivalent", { currency: stats.currency })}</span>
+                        </div>
+                        <div className="categories-hero__distribution-bar">
+                            {stats.distribution.map((item) => {
+                                const category = categoryById.get(Number(item.key));
+                                const color = category
+                                    ? categoryPaletteColor(category, categories)
+                                    : "var(--border-2)";
+                                const label = item.key === "other"
+                                    ? t("categories.hero.other")
+                                    : item.label;
+                                return (
+                                    <span
+                                        aria-label={`${label} ${Math.round(item.share * 100)}%`}
+                                        className="categories-hero__distribution-segment"
+                                        key={item.key}
+                                        style={{
+                                            background: color,
+                                            width: `${Math.max(item.share * 100, 2)}%`,
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                        <div className="categories-hero__legend">
+                            {stats.distribution.map((item) => {
+                                const category = categoryById.get(Number(item.key));
+                                const color = category
+                                    ? categoryPaletteColor(category, categories)
+                                    : "var(--border-2)";
+                                const label = item.key === "other"
+                                    ? t("categories.hero.other")
+                                    : item.label;
+
+                                return (
+                                    <div className="categories-hero__legend-item" key={item.key}>
+                                        <span style={{ background: color }} />
+                                        <strong>{label}</strong>
+                                        <small>{Math.round(item.share * 100)}%</small>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="categories-hero__empty" aria-label={t("categories.hero.byCategory")}>
+                        <strong>{noSpendNote}</strong>
+                        <span>{noSpendDescription}</span>
+                    </div>
+                )}
             </div>
         </section>
     );

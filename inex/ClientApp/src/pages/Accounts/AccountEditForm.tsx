@@ -140,7 +140,7 @@ const AccountEditForm = (props: AccountEditFormProps) => {
                     onChange={(v) => dispatchAction({ type: "SET_CURRENCY", value: v })}
                     options={currencies.map((c) => ({
                         value: c.id,
-                        label: `${c.key} — ${c.name}`,
+                        label: `${c.key} - ${c.name}`,
                     }))}
                 />
             </Form.Item>

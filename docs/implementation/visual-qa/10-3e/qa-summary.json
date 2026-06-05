@@ -1,0 +1,80 @@
+[
+  {
+    "name": "populated-spend-1440",
+    "title": "Categories",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 6 Parents 3 Children 3 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 7 categories · active Active All Add Tree By spend CATEGORY ACTIVITY SPEND Home Housing and utilities 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Rent Monthly rent Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Food Food and dini"
+  },
+  {
+    "name": "by-spend-1440",
+    "title": "Categories",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 6 Parents 3 Children 3 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 7 categories · active Active All Add Tree By spend CATEGORY ACTIVITY SPEND Rent Monthly rent Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Groceries Market trips Budgeted 1 txn last 3 Jun 250.00 USD USD · June 2026 Travel Tickets "
+  },
+  {
+    "name": "expanded-snapshot-1440",
+    "title": "Categories",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": false,
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 6 Parents 3 Children 3 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 7 categories · active Active All Add Tree By spend CATEGORY ACTIVITY SPEND Rent Monthly rent Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Edit category Name * Description Parent Category None (top-level) Home Food Travel Reparent"
+  },
+  {
+    "name": "filter-empty-390",
+    "title": "Categories",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA MANAGE Categories JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 6 Parents 3 Children 3 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 0 of 7 categories · active Active All Add Tree By spend No categories match these filters Try clearing the search or showing inactive categories. Clear filters Dashboard Transactions Accounts Categories Budgets Reports"
+  },
+  {
+    "name": "mobile-360",
+    "title": "Categories",
+    "viewport": {
+      "width": 360,
+      "height": 800
+    },
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA MANAGE Categories JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 6 Parents 3 Children 3 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 7 categories · active Active All Add Tree By spend Home Housing and utilities 1,000.00 USD USD · June 2026 Rent Monthly rent Budgeted 1,000.00 USD USD · June 2026 Food Food and dining 310.00 USD USD · June 2026 Groceries Market trips Budgeted 250.00 USD USD · June 2026 Dining Restaurants Budgeted 60."
+  },
+  {
+    "name": "empty-first-use-390",
+    "title": "Categories",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "textSample": "I InEx QA MANAGE Categories Create your first category Categories help you classify spending and keep reports meaningful. Add a parent group or child category to start building your structure. Add manually Dashboard Transactions Accounts Categories Budgets Reports"
+  }
+]

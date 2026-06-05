@@ -41,6 +41,18 @@
     font-size: 13px;
 }
 
+.categories-hero__note strong {
+    color: var(--fg-1);
+    font-weight: 600;
+}
+
+.categories-hero__dash {
+    color: var(--fg-4);
+    font-family: var(--font-num);
+    font-size: 34px;
+    font-variant-numeric: tabular-nums;
+}
+
 .categories-hero__details {
     display: flex;
     flex-direction: column;
@@ -79,6 +91,20 @@
     font-variant-numeric: tabular-nums;
 }
 
+.category-snapshot-grid .category-snapshot-grid__text {
+    font-family: var(--font-sans);
+}
+
+.category-snapshot-grid small {
+    color: var(--fg-4);
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .categories-hero__empty {
     align-items: center;
     background: var(--bg-muted);
@@ -101,6 +127,84 @@
 
 .categories-hero__empty span {
     font-size: 12px;
+}
+
+.categories-hero__distribution {
+    background: var(--bg-muted);
+    border-radius: var(--radius-2);
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+}
+
+.categories-hero__distribution-head {
+    align-items: baseline;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.categories-hero__distribution-head strong {
+    color: var(--fg-1);
+    font-size: 13px;
+}
+
+.categories-hero__distribution-head span {
+    color: var(--fg-4);
+    font-size: 11px;
+}
+
+.categories-hero__distribution-bar {
+    background: var(--bg-surface);
+    border-radius: var(--radius-pill);
+    display: flex;
+    height: 10px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.categories-hero__distribution-segment {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+}
+
+.categories-hero__legend {
+    display: grid;
+    gap: 8px 18px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.categories-hero__legend-item {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    min-width: 0;
+}
+
+.categories-hero__legend-item span {
+    border-radius: 2px;
+    height: 8px;
+    width: 8px;
+}
+
+.categories-hero__legend-item strong {
+    color: var(--fg-2);
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.categories-hero__legend-item small {
+    color: var(--fg-4);
+    font-family: var(--font-num);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
 }
 
 .categories-hero__skeleton {
