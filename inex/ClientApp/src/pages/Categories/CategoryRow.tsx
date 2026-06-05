@@ -1,4 +1,5 @@
 import * as React from "react";
+import dayjs from "dayjs";
 import {
     ChevronDown,
     ChevronUp,
@@ -8,8 +9,10 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Num } from "../../components/primitives";
+import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { CategoryResponse } from "../../store/categories/categories-api";
-import { isSystemCategory } from "./categories.utils";
+import { type CategorySpendStat, isSystemCategory } from "./categories.utils";
 
 interface CategoryRowProps {
     category: CategoryResponse;
@@ -17,6 +20,11 @@ interface CategoryRowProps {
     hasChildren: boolean;
     expanded: boolean;
     paletteColor: string;
+    periodLabel: string;
+    stats?: CategorySpendStat;
+    statsAvailable: boolean;
+    budget?: BudgetDetails;
+    currency: string;
     onToggle: () => void;
 }
 
@@ -26,10 +34,20 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     hasChildren,
     expanded,
     paletteColor,
+    periodLabel,
+    stats,
+    statsAvailable,
+    budget,
+    currency,
     onToggle,
 }) => {
     const { t } = useTranslation();
     const locked = isSystemCategory(category);
+    const hasActivity = statsAvailable && (stats?.transactionCount ?? 0) > 0;
+    const spend = stats?.totalSpend ?? 0;
+    const noActivityLabel = statsAvailable
+        ? t("categories.activity.noTransactions")
+        : t("categories.activity.unavailable");
     const rowClassName = [
         "category-row",
         "r-category-row",
@@ -73,20 +91,62 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 {!category.isEnabled ? (
                     <span className="category-row__chip">{t("categories.disabled")}</span>
                 ) : null}
-                {depth === 0 && hasChildren ? (
+                {budget ? (
                     <span className="category-row__chip category-row__chip--budget">
                         <Target size={11} aria-hidden="true" />
-                        {t("categories.parent")}
+                        {t("categories.budgeted")}
                     </span>
                 ) : null}
             </span>
             <span className="category-row__activity r-category-activity">
-                <strong>-</strong>
-                <small>{t("categories.activity.noTransactions")}</small>
+                {hasActivity ? (
+                    <React.Fragment>
+                        <strong>
+                            {stats?.transactionCount}{" "}
+                            {t(
+                                (stats?.transactionCount ?? 0) === 1
+                                    ? "categories.activity.txn"
+                                    : "categories.activity.txns",
+                            )}
+                        </strong>
+                        <small>
+                            {t("categories.activity.lastActive", {
+                                date: stats?.lastActiveDate
+                                    ? dayjs(stats.lastActiveDate).format("D MMM")
+                                    : "",
+                            })}
+                        </small>
+                    </React.Fragment>
+                ) : (
+                    <React.Fragment>
+                        <strong>-</strong>
+                        <small>{noActivityLabel}</small>
+                    </React.Fragment>
+                )}
             </span>
             <span className="category-row__spent">
-                <strong>-</strong>
-                <small>{t("categories.hero.usdEquiv")}</small>
+                {hasActivity && spend > 0 ? (
+                    <React.Fragment>
+                        <strong>
+                            <Num value={spend} currency={currency} kind="expense" />
+                        </strong>
+                        <small>
+                            {t("categories.activity.periodCurrency", {
+                                currency,
+                                period: periodLabel,
+                            })}
+                        </small>
+                    </React.Fragment>
+                ) : (
+                    <React.Fragment>
+                        <strong>-</strong>
+                        <small>
+                            {statsAvailable
+                                ? t("categories.hero.baseEquivalent", { currency })
+                                : t("categories.activity.spendUnavailable")}
+                        </small>
+                    </React.Fragment>
+                )}
             </span>
             <span className="category-row__icon" aria-hidden="true">
                 {expanded ? (

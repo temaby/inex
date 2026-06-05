@@ -1,0 +1,133 @@
+# Story 10.3e: Frontend UX - Categories Spend And Budget Signals
+
+Status: review
+
+## Story
+
+As an invited account holder,
+I want Categories to show real spend, activity, and budget signals instead of placeholders,
+so that category structure can be managed with current financial context.
+
+## Acceptance Criteria
+
+1. Given categories and cached transaction data are available, when `/categories` renders, then the page computes current-month category stats with parent roll-up, transaction counts, last-active dates, total spend, top parent, top-five distribution, and Other without dispatching a Categories-page transaction fetch.
+2. Given current-month spend exists, when the Categories hero and rows render, then the hero shows total expense spend, most-spent parent, and distribution, while rows show transaction count, last-active date, spend amount, and localized month sublabel.
+3. Given transaction data is unavailable or a category has no current-month activity, when Categories renders, then the UI shows the graceful no-spend or dash treatment without fake values, crashes, or new API requests.
+4. Given By-spend mode is selected, when leaf categories render, then non-system leaves are sorted by current-month spend descending with stable secondary ordering, and zero-spend leaves trail populated rows.
+5. Given a category is linked to a budget or the row is expanded, when the row and inline snapshot render, then linked categories show the `Budgeted` chip, parent/group labeling does not impersonate budget state, and the snapshot shows real month spend, transaction count, budget status, and category ID where data exists.
+6. Given the user has no categories, when `/categories` opens, then the page renders the accepted shared empty-state composition without misleading spend panels or list chrome, and any default-categories action is implemented through a real contract or removed with owner-visible rationale.
+7. Given the story is complete, when `npm run build`, `npm run lint`, and visual QA run from `inex/ClientApp`, then all pass and screenshots cover populated spend, by-spend sorted order, expanded snapshot metrics, empty first-use, filter-empty, 390px, and 360px states.
+
+## Tasks / Subtasks
+
+- [x] Add current-month category stats from existing frontend state. (AC: 1, 2, 3)
+  - [x] Read cached transaction data only; do not dispatch a Categories-page transaction fetch.
+  - [x] Roll child spend up to parents.
+  - [x] Compute transaction count, last active date, total spend, most-spent parent, top-five distribution, and Other.
+  - [x] Preserve graceful no-data behavior when transaction data is unavailable.
+- [x] Wire real stats into category surfaces. (AC: 2, 4, 5)
+  - [x] Update `CategoriesHero` to show spend and distribution when data exists.
+  - [x] Update `CategoryRow` activity and spend cells.
+  - [x] Sort By-spend mode by computed spend with stable tie-breakers.
+  - [x] Update inline snapshot metrics.
+- [x] Add budget linkage without impersonating parent state. (AC: 5)
+  - [x] Source budget linkage from available budget state/cache.
+  - [x] Render `Budgeted` only for linked categories.
+  - [x] Remove or restyle the current parent chip if it conflicts with budget state.
+- [x] Correct first-use empty behavior. (AC: 6)
+  - [x] Avoid hero, toolbar, and list chrome for true first-use empty state.
+  - [x] Implement `Load default categories` only if a real seeding contract exists.
+  - [x] If no real contract exists, update copy or documentation so no dead action is shown.
+- [x] Validate build, lint, i18n, and visual QA. (AC: 7)
+  - [x] Add EN/RU keys for new labels and fallback states.
+  - [x] Run `npm run build`.
+  - [x] Run `npm run lint`.
+  - [x] Capture required visual QA screenshots.
+
+### Review Findings
+
+- [x] [Review][Patch] Use only complete, unfiltered, period-covering cached transaction pages for category spend stats; otherwise show unavailable state. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Review][Patch] Do not fall back to stale legacy budgets after an explicitly loaded empty current-month budget query. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Review][Patch] Mark spend stats unavailable instead of undercounting when exchange-rate conversion is missing or invalid. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
+- [x] [Review][Patch] Refresh the current-month period for long-lived tabs crossing month boundaries. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Review][Patch] Bump the locale resource version so newly added category locale keys are not hidden by cached translation JSON. [`inex/ClientApp/src/i18n.ts`]
+
+## Dev Notes
+
+### Source Gap Review
+
+- Primary source: `docs/implementation/10-3b-categories-design-implementation-gap-review.md`.
+- Story 10.3b remains the base redesign story; this follow-up remediates accepted residuals from that review.
+- Reparenting remains unsupported unless a separate backend/API story is created.
+- `View transactions` and `Set budget` should stay disabled, removed, or explicitly deferred unless their target workflows are wired.
+
+### Expected Files
+
+- `inex/ClientApp/src/pages/Categories.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesHero.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryRow.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx`
+- `inex/ClientApp/src/pages/Categories/categories.utils.ts`
+- `inex/ClientApp/src/pages/Categories/categories.css`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+
+### Guardrails
+
+- Do not add backend endpoints or change category API contracts.
+- Do not fetch transactions from the Categories page. Use already available transaction state/cache and degrade gracefully if absent.
+- Keep budget linkage read-only in this story; do not add budget mutation behavior from Categories.
+- Preserve search ancestor visibility, active/all scope, system category protection, and mobile indentation from Story 10.3b.
+
+## References
+
+- `docs/planning/epics.md`
+- `docs/implementation/10-3b-frontend-ux-categories-management-redesign.md`
+- `docs/implementation/10-3b-categories-design-implementation-gap-review.md`
+- `docs/design/Categories.jsx`
+- `docs/design/EmptyState.jsx`
+- `docs/design/docs/design-implementation-guide.md`
+- `docs/implementation/visual-qa/10-3b/`
+
+## Dev Agent Record
+
+### Agent Model Used
+
+GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-review layers.
+
+### Debug Log References
+
+- 2026-06-05: Story created from BMad design-gap review and dedicated subagent synthesis.
+- 2026-06-05: `npm run build` passed from `inex/ClientApp` after Windows sandbox `spawn EPERM` rerun with escalation.
+- 2026-06-05: `npm run lint` passed from `inex/ClientApp`.
+- 2026-06-05: `npm run test` passed from `inex/ClientApp` with 12 files and 50 tests.
+- 2026-06-05: Targeted visual QA refreshed in `docs/implementation/visual-qa/10-3e/qa-summary.json`; no horizontal overflow in populated spend, by-spend, expanded snapshot, first-use empty, filter-empty, 390px, and 360px states.
+- 2026-06-05: BMad integrated code review completed; actionable Categories findings fixed.
+
+### Completion Notes List
+
+- Added complete-cache category spend stats with parent roll-up, transaction counts, last-active dates, total spend, most-spent parent, distribution, and unavailable fallback.
+- Wired real spend/activity/budget signals into hero, rows, by-spend mode, and inline snapshot without dispatching a Categories-page transaction fetch.
+- Removed dead inline actions and kept budget linkage read-only through cached/current budget data.
+- Corrected first-use empty to skip spend/list chrome and remove default-seeding UI without a backend contract.
+- Added EN/RU locale copy and visual QA evidence for required desktop/mobile states.
+
+### File List
+
+- `inex/ClientApp/src/pages/Categories.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesHero.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryRow.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx`
+- `inex/ClientApp/src/pages/Categories/categories.css`
+- `inex/ClientApp/src/pages/Categories/categories.utils.ts`
+- `inex/ClientApp/src/pages/Categories/categories.utils.test.ts`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/i18n.ts`
+- `docs/implementation/visual-qa/10-3e/`
+
+### Change Log
+
+- 2026-06-05: Created ready-for-dev follow-up story.
+- 2026-06-05: Implemented Categories spend and budget signals, review fixes, tests, locale updates, and refreshed visual QA evidence.

@@ -223,7 +223,26 @@
       "accountCountOne": "{{count}} account",
       "accountCountOther": "{{count}} accounts",
       "accountCount": "{{count}} account",
-      "accountCount_plural": "{{count}} accounts"
+      "accountCount_plural": "{{count}} accounts",
+      "expand": "Expand {{currency}} accounts",
+      "collapse": "Collapse {{currency}} accounts"
+    },
+    "inventory": {
+      "summary": "Visible accounts: {{visible}} / {{total}}",
+      "activeOnly": "active only: {{count}} active",
+      "allScope": "all accounts"
+    },
+    "equivalent": {
+      "approx": "approx",
+      "unavailable": "Equivalent unavailable"
+    },
+    "snapshot": {
+      "title": "Snapshot",
+      "currentBalance": "Current balance",
+      "baseEquivalent": "{{currency}} equivalent",
+      "rateToBase": "Rate to base",
+      "rateValue": "{{value}} {{baseCurrency}} / {{currency}}",
+      "accountId": "Account ID"
     },
     "hero": {
       "netWorth": "Net worth",
@@ -233,6 +252,7 @@
       "activeAccounts": "{{count}} active",
       "currencyCount": "{{count}} currencies",
       "currencyDistribution": "Currency distribution",
+      "baseEquivalentLabel": "{{currency}} equivalent",
       "byValue": "By current balance",
       "byCount": "By account count",
       "noDistribution": "No currencies to display"
@@ -265,7 +285,7 @@
       "description": "Try clearing search or showing all accounts."
     },
     "title": "Accounts",
-    "addDrawerTitle": "Add Account",
+    "addDrawerTitle": "Add account",
     "account": "Account",
     "currency": "Currency",
     "status": "Status",
@@ -278,7 +298,7 @@
     "description": "Description",
     "descriptionPlaceholder": "Optional description",
     "currencyPlaceholder": "Select currency",
-    "createAccount": "Create Account",
+    "createAccount": "Create account",
     "deleteConfirm": "Delete account? This cannot be undone.",
     "delete": "Delete",
     "cancel": "Cancel",
@@ -310,15 +330,19 @@
     "listTitle": "Category structure",
     "countSummary": "{{visible}} of {{total}} categories · {{scope}}",
     "parent": "Parent",
+    "budgeted": "Budgeted",
     "systemLocked": "System category",
     "hero": {
-      "monthLabel": "This month",
+      "monthLabel": "{{period}} spend",
       "noSpend": "No spend recorded",
       "noSpendDescription": "Spend signals appear here after matching transaction data is available.",
+      "unavailableDescription": "Spend signals appear here when transaction data is already cached.",
       "noCategories": "No active category groups yet",
       "mostSpentIn": "Most spent in",
       "byCategory": "By category",
-      "usdEquiv": "USD equivalent"
+      "baseEquivalent": "{{currency}} equivalent",
+      "unavailable": "Spend unavailable",
+      "other": "Other"
     },
     "metrics": {
       "active": "Active",
@@ -338,7 +362,11 @@
       "txn": "txn",
       "txns": "txns",
       "last": "last",
-      "noTransactions": "No activity"
+      "lastActive": "last {{date}}",
+      "periodCurrency": "{{currency}} · {{period}}",
+      "noTransactions": "No activity",
+      "unavailable": "Activity unavailable",
+      "spendUnavailable": "Spend unavailable"
     },
     "search": {
       "placeholder": "Search categories...",
@@ -346,7 +374,7 @@
     },
     "inlineEdit": {
       "editSection": "Edit category",
-      "snapshotSection": "Snapshot · This month",
+      "snapshotSection": "Snapshot · {{period}}",
       "systemNotice": "This is a system category. It can't be renamed, disabled, or deleted.",
       "viewTransactions": "View transactions",
       "setBudget": "Set budget",
@@ -356,11 +384,12 @@
       "spend": "Spend",
       "transactions": "Transactions",
       "budget": "Budget",
-      "categoryId": "Category ID"
+      "categoryId": "Category ID",
+      "notSet": "Not set"
     },
     "emptyState": {
-      "title": "Start with categories",
-      "description": "Categories help you classify spending and keep reports meaningful. Create parent groups and child categories as your structure grows.",
+      "title": "Create your first category",
+      "description": "Categories help you classify spending and keep reports meaningful. Add a parent group or child category to start building your structure.",
       "loadDefaults": "Load defaults",
       "addManually": "Add manually"
     },
@@ -398,6 +427,9 @@
     "categories": "Categories",
     "key": "Key",
     "keyPlaceholder": "Enter unique key",
+    "keyContractHint": "Required by the current budget API contract.",
+    "period": "Period",
+    "periodRequired": "Choose a budget period",
     "create": "Create",
     "cancel": "Cancel",
     "save": "Save",
@@ -416,8 +448,10 @@
     "deleteError": "Error deleting budget",
     "subtitle": "Plan",
     "heroLabel": "Month planning",
+    "heroTitle": "{{month}} budget",
     "heroDescription": "Compare budgeted amounts, current spend, and remaining room for the selected month.",
     "summaryLabel": "Budget summary",
+    "currentDayMarker": "Today: day {{day}} of {{days}}",
     "toolbarLabel": "Budget planning controls",
     "listLabel": "Budget rows",
     "drawerSubtitle": "Planning for {{month}}",
@@ -432,8 +466,13 @@
     "remaining": "Remaining",
     "overBudget": "Over budget",
     "overBudgetBy": "Over by {{amount}} {{currency}}",
+    "atLimit": "At limit",
+    "remainingLeft": "{{amount}} {{currency}} left",
+    "remainingOver": "{{amount}} {{currency}} over",
     "percentUsed": "{{percent}}% used",
+    "dailyPace": "Daily pace",
     "metricsUnavailable": "Metrics unavailable",
+    "metricsError": "Metrics failed",
     "noDescription": "No description",
     "uncategorized": "Uncategorized",
     "metrics": {
@@ -442,6 +481,38 @@
       "remaining": "Remaining",
       "used": "Used",
       "overBudget": "Over budget"
+    },
+    "burnRate": {
+      "title": "Burn rate",
+      "subtitle": "% of budget consumed",
+      "legendLabel": "Burn-rate status legend"
+    },
+    "usageStatus": {
+      "ok": "On track",
+      "near": "Close to limit",
+      "atLimit": "At limit",
+      "over": "Over budget",
+      "idle": "Not touched",
+      "unavailable": "Unavailable"
+    },
+    "pace": {
+      "overBudget": "over budget",
+      "aheadBy": "{{amount}} {{currency}} ahead of pace",
+      "underBy": "{{amount}} {{currency}} under pace",
+      "onPace": "on pace",
+      "idle": "not enough spend yet",
+      "dailyAverage": "{{amount}} {{currency}}/day",
+      "deltaAhead": "+{{amount}} {{currency}} vs pace",
+      "deltaUnder": "-{{amount}} {{currency}} vs pace",
+      "deltaOnPace": "on pace",
+      "deltaOverBudget": "over budget"
+    },
+    "snapshot": {
+      "title": "Snapshot - {{month}}",
+      "budget": "Budget",
+      "spent": "Spent",
+      "remaining": "Remaining",
+      "dailyAverageLeft": "Daily avg left"
     },
     "emptyState": {
       "title": "No budgets planned for this month",

@@ -1,8 +1,10 @@
 import * as React from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Form, Input, InputNumber, Popconfirm, message } from "antd";
+import { Alert, DatePicker, Form, Input, Popconfirm, message } from "antd";
 import type { MenuProps } from "antd";
+import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { Trash2 } from "lucide-react";
 
 import { BudgetDetails } from "../../model/Budget/BudgetDetails";
@@ -10,17 +12,23 @@ import { BudgetEditState } from "../../model/Budget/BudgetEditState";
 import { getCategoriesTree, CategoryDetails } from "../../model/Category/CategoryDetails";
 import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
-import { InExButton } from "../../components/primitives";
+import { InExButton, Num } from "../../components/primitives";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { CategoryResponse, useGetCategoriesQuery } from "../../store/categories/categories-api";
 import {
+    budgetsApi,
     useDeleteBudgetMutation,
     useUpdateBudgetMutation,
 } from "../../store/budgets/budgets-api";
+import { useAppDispatch } from "../../store/hooks";
+import { getPeriodPayload } from "./budget-planning-utils";
+import type { BudgetEditSnapshot } from "./budget-planning-utils";
 
 interface BudgetEditFormProps {
     record: BudgetDetails;
     currency: string;
+    selectedMonth: Dayjs;
+    snapshot?: BudgetEditSnapshot;
     onCollapse?: () => void;
 }
 
@@ -53,8 +61,15 @@ const reducer = (state: BudgetEditFormState, action: BudgetEditAction): BudgetEd
     }
 };
 
-const BudgetEditForm: React.FC<BudgetEditFormProps> = ({ record, currency, onCollapse }) => {
+const BudgetEditForm: React.FC<BudgetEditFormProps> = ({
+    record,
+    currency,
+    selectedMonth,
+    snapshot,
+    onCollapse,
+}) => {
     const { t } = useTranslation();
+    const dispatch = useAppDispatch();
     const [formError, setFormError] = useState<string | null>(null);
     const [updateBudget, { isLoading: isUpdateLoading }] = useUpdateBudgetMutation();
     const [deleteBudget, { isLoading: isDeleteLoading }] = useDeleteBudgetMutation();
@@ -102,6 +117,13 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({ record, currency, onCol
         fieldChangeHandler("categoryIds", categoryIds);
     };
 
+    const handlePeriodChange = (period: Dayjs | null) => {
+        if (!period) return;
+        const { year, month } = getPeriodPayload(period);
+        fieldChangeHandler("year", year);
+        fieldChangeHandler("month", month);
+    };
+
     const updateHandler = async () => {
         setFormError(null);
         try {
@@ -115,6 +137,11 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({ record, currency, onCol
                 year: state.year,
                 month: state.month,
             }).unwrap();
+            if (state.year !== record.year || state.month !== record.month) {
+                dispatch(budgetsApi.util.invalidateTags([
+                    { type: "BudgetsList", id: `${record.year}-${record.month}` },
+                ]));
+            }
             message.success(t("budgets.updated"));
             onCollapse?.();
         } catch (error) {
@@ -127,8 +154,8 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({ record, currency, onCol
         try {
             await deleteBudget({
                 id: state.id,
-                year: state.year,
-                month: state.month,
+                year: record.year,
+                month: record.month,
             }).unwrap();
             message.success(t("budgets.deleted"));
             onCollapse?.();
@@ -183,27 +210,46 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({ record, currency, onCol
                         addonAfter={currency}
                     />
                 </Form.Item>
-                <Form.Item label={t("budgets.year")}>
-                    <InputNumber
+                <Form.Item label={t("budgets.period")}>
+                    <DatePicker
+                        picker="month"
                         size="large"
+                        allowClear={false}
+                        className="budgets-period-picker"
                         style={{ width: "100%" }}
-                        value={state.year}
-                        onChange={(value) => fieldChangeHandler("year", value)}
-                        min={2020}
-                        max={2030}
-                    />
-                </Form.Item>
-                <Form.Item label={t("budgets.month")}>
-                    <InputNumber
-                        size="large"
-                        style={{ width: "100%" }}
-                        value={state.month}
-                        onChange={(value) => fieldChangeHandler("month", value)}
-                        min={1}
-                        max={12}
+                        value={dayjs()
+                            .year(state.year || selectedMonth.year())
+                            .month((state.month || selectedMonth.month() + 1) - 1)
+                            .date(1)}
+                        onChange={handlePeriodChange}
+                        placeholder={t("budgets.period")}
                     />
                 </Form.Item>
             </div>
+            {snapshot && (
+                <section className="budget-edit-form__snapshot" aria-label={t("budgets.snapshot.title", {
+                    month: selectedMonth.format("MMM YYYY"),
+                })}>
+                    <div className="budget-edit-form__snapshot-title">
+                        {t("budgets.snapshot.title", { month: selectedMonth.format("MMM YYYY") })}
+                    </div>
+                    <div className="budget-edit-form__snapshot-grid">
+                        <SnapshotMetric label={t("budgets.snapshot.budget")} value={snapshot.budgetedAmount} currency={currency} />
+                        <SnapshotMetric label={t("budgets.snapshot.spent")} value={snapshot.spentAmount} currency={currency} kind="expense" />
+                        <SnapshotMetric
+                            label={t("budgets.snapshot.remaining")}
+                            value={snapshot.remainingAmount}
+                            currency={currency}
+                            kind={snapshot.remainingAmount < 0 ? "warn" : "neutral"}
+                        />
+                        <SnapshotMetric
+                            label={t("budgets.snapshot.dailyAverageLeft")}
+                            value={snapshot.dailyAverageLeft}
+                            currency={currency}
+                        />
+                    </div>
+                </section>
+            )}
             <div className="budget-edit-form__actions">
                 <Popconfirm
                     title={t("budgets.deleteConfirm")}
@@ -231,5 +277,26 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({ record, currency, onCol
         </Form>
     );
 };
+
+interface SnapshotMetricProps {
+    label: string;
+    value: number;
+    currency: string;
+    kind?: "expense" | "neutral" | "warn";
+}
+
+const SnapshotMetric: React.FC<SnapshotMetricProps> = ({
+    label,
+    value,
+    currency,
+    kind = "neutral",
+}) => (
+    <div className="budget-edit-form__snapshot-metric">
+        <span>{label}</span>
+        <strong>
+            <Num value={value} currency={currency} kind={kind} compact />
+        </strong>
+    </div>
+);
 
 export default BudgetEditForm;

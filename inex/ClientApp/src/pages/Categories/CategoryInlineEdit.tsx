@@ -6,24 +6,36 @@ import {
     Field,
     InExButton,
     Input,
+    Num,
     Select,
 } from "../../components/primitives";
+import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import {
     useDeleteCategoryMutation,
     useUpdateCategoryMutation,
 } from "../../store/categories/categories-api";
-import { isSystemCategory } from "./categories.utils";
+import { type CategorySpendStat, isSystemCategory } from "./categories.utils";
 
 interface CategoryInlineEditProps {
     category: CategoryResponse;
     allCategories: CategoryResponse[];
+    stats?: CategorySpendStat;
+    statsAvailable: boolean;
+    budget?: BudgetDetails;
+    currency: string;
+    periodLabel: string;
     onClose: () => void;
 }
 
 export const CategoryInlineEdit: React.FC<CategoryInlineEditProps> = ({
     category,
     allCategories,
+    stats,
+    statsAvailable,
+    budget,
+    currency,
+    periodLabel,
     onClose,
 }) => {
     const { t } = useTranslation();
@@ -45,6 +57,8 @@ export const CategoryInlineEdit: React.FC<CategoryInlineEditProps> = ({
     const parent = category.parentId == null
         ? null
         : allCategories.find((item) => item.id === category.parentId);
+    const hasActivity = statsAvailable && (stats?.transactionCount ?? 0) > 0;
+    const spend = stats?.totalSpend ?? 0;
 
     const handleSave = async () => {
         setFormError(null);
@@ -161,32 +175,40 @@ export const CategoryInlineEdit: React.FC<CategoryInlineEditProps> = ({
                 </div>
             </div>
             <aside className="category-inline-edit__snapshot">
-                <h3>{t("categories.inlineEdit.snapshotSection")}</h3>
+                <h3>{t("categories.inlineEdit.snapshotSection", { period: periodLabel })}</h3>
                 <div className="category-snapshot-grid">
                     <div>
                         <span>{t("categories.snapshot.spend")}</span>
-                        <strong>-</strong>
+                        <strong>
+                            {hasActivity && spend > 0 ? (
+                                <Num value={spend} currency={currency} kind="expense" />
+                            ) : (
+                                "-"
+                            )}
+                        </strong>
                     </div>
                     <div>
                         <span>{t("categories.snapshot.transactions")}</span>
-                        <strong>-</strong>
+                        <strong>
+                            {hasActivity ? stats?.transactionCount : "-"}
+                        </strong>
                     </div>
                     <div>
                         <span>{t("categories.snapshot.budget")}</span>
-                        <strong>-</strong>
+                        <strong className="category-snapshot-grid__text">
+                            {budget ? t("categories.budgeted") : t("categories.snapshot.notSet")}
+                        </strong>
+                        {budget ? (
+                            <small>
+                                {budget.name}{" "}
+                                <Num value={budget.value} currency={currency} kind="neutral" size={12} />
+                            </small>
+                        ) : null}
                     </div>
                     <div>
                         <span>{t("categories.snapshot.categoryId")}</span>
-                        <strong>{category.id}</strong>
+                        <strong>#{category.id}</strong>
                     </div>
-                </div>
-                <div className="category-inline-edit__snapshot-actions">
-                    <InExButton kind="ghost" size="sm" disabled>
-                        {t("categories.inlineEdit.viewTransactions")}
-                    </InExButton>
-                    <InExButton kind="ghost" size="sm" disabled>
-                        {t("categories.inlineEdit.setBudget")}
-                    </InExButton>
                 </div>
             </aside>
         </div>
