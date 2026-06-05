@@ -13,6 +13,7 @@ import {
     getBudgetPaceMetrics,
     getBudgetReportForBudget,
     getBudgetUsageStatus,
+    getSupportedBudgetMonthFromParams,
     isBudgetPeriodDisabled,
     getPeriodPayload,
     getReportMetricsState,
@@ -167,5 +168,14 @@ describe("budget planning helpers", () => {
         expect(isBudgetPeriodDisabled(dayjs("2020-01-01"))).toBe(false);
         expect(isBudgetPeriodDisabled(dayjs("2030-12-01"))).toBe(false);
         expect(isBudgetPeriodDisabled(dayjs("2031-01-01"))).toBe(true);
+    });
+
+    it("falls back from invalid URL period params before queries are built", () => {
+        const fallback = dayjs("2026-06-15T12:00:00");
+
+        expect(getSupportedBudgetMonthFromParams("2026", "7", fallback).format("YYYY-MM-DD")).toBe("2026-07-01");
+        expect(getSupportedBudgetMonthFromParams("2026", "13", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
+        expect(getSupportedBudgetMonthFromParams("2031", "1", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
+        expect(getSupportedBudgetMonthFromParams("abc", "6", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
     });
 });

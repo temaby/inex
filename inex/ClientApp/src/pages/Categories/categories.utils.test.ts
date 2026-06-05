@@ -64,6 +64,7 @@ describe("category spend utilities", () => {
                 transaction(106, 2, -80, "2026-05-20T08:00:00Z"),
             ],
             exchangeRates: [{ currencyFrom: "USD", currencyTo: "EUR", rate: 2 }],
+            baseCurrency: "USD",
             now: "2026-06-05T12:00:00Z",
         });
 
@@ -101,6 +102,7 @@ describe("category spend utilities", () => {
             categories,
             transactions,
             exchangeRates: [],
+            baseCurrency: "USD",
             now: "2026-06-05T12:00:00Z",
         });
 
@@ -130,6 +132,7 @@ describe("category spend utilities", () => {
                 transaction(2, 3, -30, "2026-06-01T08:00:00Z"),
             ],
             exchangeRates: [],
+            baseCurrency: "USD",
             now: "2026-06-05T12:00:00Z",
         });
 
@@ -148,6 +151,7 @@ describe("category spend utilities", () => {
             categories,
             transactions: [transaction(1, 1, -50, "2026-06-01T08:00:00Z", "EUR")],
             exchangeRates: [],
+            baseCurrency: "USD",
             now: "2026-06-05T12:00:00Z",
         });
 
@@ -169,11 +173,27 @@ describe("category spend utilities", () => {
                 { currencyFrom: "GBP", currencyTo: "EUR", rate: 2 },
                 { currencyFrom: "USD", currencyTo: "EUR", rate: 5 },
             ],
+            baseCurrency: "USD",
             now: "2026-06-05T12:00:00Z",
         });
 
         expect(stats.available).toBe(true);
         expect(stats.totalSpend).toBe(40);
+    });
+
+    it("marks spend unavailable instead of inventing a base currency", () => {
+        const categories = [category(1, "Cash")];
+
+        const stats = computeCategorySpendStats({
+            categories,
+            transactions: [transaction(1, 1, -50, "2026-06-01T08:00:00Z", "USD")],
+            exchangeRates: [],
+            now: "2026-06-05T12:00:00Z",
+        });
+
+        expect(stats.available).toBe(false);
+        expect(stats.currency).toBe("");
+        expect(stats.byCategoryId.get(1)?.totalSpend).toBe(0);
     });
 
     it("indexes only current-month budget links by category", () => {

@@ -52,6 +52,7 @@ interface ComputeCategorySpendStatsArgs {
     categories: CategoryResponse[];
     transactions: TransactionResponse[] | null;
     exchangeRates: CategoryExchangeRate[];
+    baseCurrency?: string | null;
     now?: string | Date;
 }
 
@@ -171,8 +172,10 @@ export const hasChildCategories = (
     allItems: CategoryResponse[],
 ): boolean => allItems.some((item) => item.parentId === category.id);
 
-const getBaseCurrency = (exchangeRates: CategoryExchangeRate[]): string =>
-    exchangeRates[0]?.currencyFrom || "USD";
+export const getCategoryBaseCurrency = (
+    exchangeRates: CategoryExchangeRate[],
+    profileCurrency?: string | null,
+): string | null => profileCurrency?.trim() || exchangeRates[0]?.currencyFrom || null;
 
 const sameCurrency = (left: string, right: string): boolean =>
     left.localeCompare(right, undefined, { sensitivity: "accent" }) === 0;
@@ -180,9 +183,12 @@ const sameCurrency = (left: string, right: string): boolean =>
 const toBaseCurrencyAmount = (
     amount: number,
     accountCurrency: string,
+    baseCurrency: string | null,
     exchangeRates: CategoryExchangeRate[],
 ): number | null => {
-    const baseCurrency = getBaseCurrency(exchangeRates);
+    if (!baseCurrency) {
+        return null;
+    }
 
     if (sameCurrency(accountCurrency, baseCurrency)) {
         return amount;
@@ -250,24 +256,30 @@ export const computeCategorySpendStats = ({
     categories,
     transactions,
     exchangeRates,
+    baseCurrency: resolvedBaseCurrency,
     now,
 }: ComputeCategorySpendStatsArgs): CategorySpendStats => {
     const period = getCurrentPeriod(now);
     const byCategoryId = createEmptySpendStatsMap(categories);
     const categoriesById = new Map(categories.map((category) => [category.id, category]));
-    const currency = getBaseCurrency(exchangeRates);
+    const currency = resolvedBaseCurrency ?? getCategoryBaseCurrency(exchangeRates);
+    const unavailableStats = () => ({
+        available: false,
+        byCategoryId: createEmptySpendStatsMap(categories),
+        currency: currency ?? "",
+        distribution: [],
+        period,
+        totalSpend: 0,
+        topParent: null,
+        topParentSpend: 0,
+    });
 
     if (transactions == null) {
-        return {
-            available: false,
-            byCategoryId: createEmptySpendStatsMap(categories),
-            currency,
-            distribution: [],
-            period,
-            totalSpend: 0,
-            topParent: null,
-            topParentSpend: 0,
-        };
+        return unavailableStats();
+    }
+
+    if (!currency) {
+        return unavailableStats();
     }
 
     let hasConversionMiss = false;
@@ -282,6 +294,7 @@ export const computeCategorySpendStats = ({
         const baseAmount = toBaseCurrencyAmount(
             transaction.amount,
             transaction.accountCurrency,
+            currency,
             exchangeRates,
         );
 
@@ -303,16 +316,7 @@ export const computeCategorySpendStats = ({
     });
 
     if (hasConversionMiss) {
-        return {
-            available: false,
-            byCategoryId: createEmptySpendStatsMap(categories),
-            currency,
-            distribution: [],
-            period,
-            totalSpend: 0,
-            topParent: null,
-            topParentSpend: 0,
-        };
+        return unavailableStats();
     }
 
     const parentCategories = categories.filter(

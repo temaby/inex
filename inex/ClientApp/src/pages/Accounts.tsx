@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "antd";
 import {
@@ -23,6 +23,7 @@ import {
 } from "../components/primitives";
 import BasicPage from "../layouts/BasicPage";
 import { useAppSelector } from "../store/hooks";
+import apiClient from "../utils/apiClient";
 import {
     useGetAccountsQuery,
     useGetAccountsSummaryQuery,
@@ -45,6 +46,11 @@ import "./Accounts/accounts.css";
 
 type AccountScope = "active" | "all";
 type AccountViewMode = "currency" | "flat";
+
+interface CurrencyOption {
+    id: number;
+    key: string;
+}
 
 const currencyToneClass = (currency: string): string => {
     const tones = ["teal", "slate", "amber", "terracotta", "ink"];
@@ -73,10 +79,36 @@ const Accounts = () => {
     const [search, setSearch] = useState("");
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [collapsedCurrencies, setCollapsedCurrencies] = useState<Set<string>>(new Set());
+    const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
 
     const exchangeRates = useAppSelector((state) => state.rates.items);
-    const baseCurrency = getBaseCurrency(exchangeRates);
+    const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
+    const profileCurrency = useMemo(
+        () => currencies.find((currency) => currency.id === userCurrencyId)?.key.trim() || null,
+        [currencies, userCurrencyId],
+    );
+    const baseCurrency = getBaseCurrency(exchangeRates, profileCurrency);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        apiClient.get<CurrencyOption[]>("/currencies")
+            .then(({ data }) => {
+                if (!cancelled) {
+                    setCurrencies(data);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setCurrencies([]);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const accountsQuery = useGetAccountsQuery("ALL");
     const accounts = accountsQuery.data ?? [];
@@ -213,7 +245,7 @@ const Accounts = () => {
         value: number | null,
         options: { approx?: boolean; className?: string } = {},
     ) => {
-        if (value === null) {
+        if (value === null || !baseCurrency) {
             return (
                 <span className={options.className ?? "accounts-muted-metric"}>
                     {t("accounts.equivalent.unavailable")}
@@ -238,6 +270,7 @@ const Accounts = () => {
     };
 
     const getRateToBaseLabel = (account: AccountDisplay): string | null => {
+        if (!baseCurrency) return null;
         if (account.currency === baseCurrency) {
             return t("accounts.snapshot.rateValue", {
                 value: "1.0000",
@@ -270,6 +303,9 @@ const Accounts = () => {
 
     const renderAccountSnapshot = (account: AccountDisplay) => {
         const rateToBase = getRateToBaseLabel(account);
+        const baseEquivalentLabel = baseCurrency
+            ? t("accounts.snapshot.baseEquivalent", { currency: baseCurrency })
+            : t("accounts.equivalent.unavailable");
 
         return (
             <aside className="accounts-snapshot" aria-label={t("accounts.snapshot.title")}>
@@ -288,7 +324,7 @@ const Accounts = () => {
                             ),
                     )}
                     {renderSnapshotMetric(
-                        t("accounts.snapshot.baseEquivalent", { currency: baseCurrency }),
+                        baseEquivalentLabel,
                         renderBaseEquivalent(account.baseValue, { className: "accounts-snapshot__amount" }),
                     )}
                     {rateToBase && renderSnapshotMetric(t("accounts.snapshot.rateToBase"), rateToBase)}
@@ -468,7 +504,7 @@ const Accounts = () => {
                             </button>
                             {group.share !== null && (
                                 <div className="accounts-group__bar" aria-hidden="true">
-                                    <span style={{ width: `${Math.min(100, Math.max(4, group.share))}%` }} />
+                                    <span style={{ width: `${group.share === 0 ? 0 : Math.min(100, Math.max(4, group.share))}%` }} />
                                 </div>
                             )}
                             {!collapsed && <div className="accounts-list">{group.accounts.map(renderRow)}</div>}
@@ -532,7 +568,7 @@ const Accounts = () => {
                                 {hasCompleteScopedBaseValues
                                     ? (
                                         <Num
-                                            currency={baseCurrency}
+                                            currency={baseCurrency ?? undefined}
                                             kind={totalBaseValue < 0 ? "expense" : "neutral"}
                                             value={toFixedMoney(totalBaseValue)}
                                         />
@@ -565,7 +601,9 @@ const Accounts = () => {
                                 )}
                             </div>
                             <div
-                                aria-label={t("accounts.hero.baseEquivalentLabel", { currency: baseCurrency })}
+                                aria-label={baseCurrency
+                                    ? t("accounts.hero.baseEquivalentLabel", { currency: baseCurrency })
+                                    : t("accounts.equivalent.unavailable")}
                                 className="accounts-distribution"
                             >
                                 {distributionGroups.length > 0 ? distributionGroups.map((group) => (
@@ -582,7 +620,7 @@ const Accounts = () => {
                                         })}
                                         {group.share !== null && (
                                             <div className="accounts-distribution__bar" aria-hidden="true">
-                                                <span style={{ width: `${Math.min(100, Math.max(4, group.share))}%` }} />
+                                                <span style={{ width: `${group.share === 0 ? 0 : Math.min(100, Math.max(4, group.share))}%` }} />
                                             </div>
                                         )}
                                     </div>

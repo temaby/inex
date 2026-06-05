@@ -62,6 +62,8 @@ so that monthly budget health is accurate, actionable, and not shaped by backend
 - [x] [Post-Merge Review][Patch] Display the resolved profile/request currency rather than report metadata when rendering budget amounts. [`inex/ClientApp/src/pages/Budgets.tsx`]
 - [x] [Post-Merge Review][Patch] Keep categorized budgets scannable with zero-spend metrics when the report has no matching category item. [`inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
 - [x] [Post-Merge Review][Patch] Collapse budget rows before tablet widths can clip the seven-column grid. [`inex/ClientApp/src/pages/Budgets/budgets.css`]
+- [x] [Post-Merge Review][Patch] Normalize invalid, nonnumeric, or unsupported URL year/month params to the current supported budget period before querying. [`inex/ClientApp/src/pages/Budgets.tsx`, `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
+- [x] [Post-Merge Review][Patch] Collapse budget rows at 1024px tablet width so the seven-column row cannot clip before the mobile layout applies. [`inex/ClientApp/src/pages/Budgets/budgets.css`]
 
 ## Dev Notes
 
@@ -116,6 +118,7 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: Browser route smoke with the existing API contracts confirmed `/budgets` requested `currency=PLN` with no USD report request, had no 390px/360px overflow, and returned focus to `Add budget` after Escape and Cancel; evidence recorded in `docs/implementation/visual-qa/10-3f/qa-summary.json`.
 - 2026-06-05: Third post-merge BMad review found currency lookup failure could still trigger USD fallback, display currency could prefer mismatched metadata, categorized budgets with no report item showed unavailable metrics, and 769-969px budget rows could clip; fixes were applied with focused Vitest and CSS updates.
 - 2026-06-05: Round-3 route smoke confirmed `/budgets` requests `currency=PLN`, ignores mismatched USD report metadata for display, skips report requests when `/currencies` fails, collapses rows at 969px/900px, and restores Add budget focus after Escape/Cancel; evidence recorded in `docs/implementation/visual-qa/10-3f/qa-summary.json`.
+- 2026-06-05: Fourth post-merge BMad review found invalid URL period params could produce unsupported queries and 1024px tablet rows could still clip; fixes were applied with focused Vitest and route smoke.
 
 ### Completion Notes List
 
@@ -130,6 +133,8 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - Browser screenshot refresh was attempted after the second follow-up, but the in-app browser process could not write PNG files to the workspace (`EPERM`); interaction evidence is recorded in the QA summary JSON.
 - Third follow-up removes the final USD fallback path, aligns display currency to the profile/request currency, keeps categorized no-spend budgets scannable, and collapses rows at tablet widths.
 - Budgets QA summary now includes round-3 PLN display, currency-failure, tablet-collapse, and drawer focus-return smoke evidence.
+- Fourth follow-up normalizes invalid URL year/month params before Budgets queries and moves the row-collapse breakpoint to cover 1024px tablet widths.
+- Budgets QA summary now includes round-4 smoke evidence for invalid-param normalization and 1024px row collapse.
 
 ### File List
 
@@ -152,3 +157,4 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: Applied second post-merge report query gating, pace boundary, period picker, edit snapshot, and drawer focus-return fixes with focused utility tests and route smoke.
 - 2026-06-05: Applied third post-merge currency fallback, display currency, zero-spend categorized budget, and tablet row layout fixes with focused utility tests.
 - 2026-06-05: Added round-3 Budgets route-smoke evidence for PLN display, currency failure, tablet row collapse, and drawer focus return.
+- 2026-06-05: Applied fourth post-merge Budgets URL period normalization and 1024px row-collapse fixes with focused utility tests and route smoke.

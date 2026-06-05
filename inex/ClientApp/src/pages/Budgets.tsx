@@ -35,6 +35,7 @@ import {
     getBudgetUsageStatus,
     getPeriodPayload,
     getReportMetricsState,
+    getSupportedBudgetMonthFromParams,
     isBudgetPeriodDisabled,
 } from "./Budgets/budget-planning-utils";
 import type {
@@ -96,6 +97,8 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
 
 const formatMonthLabel = (month: Dayjs) => month.format("MMM YYYY");
 
+const getDefaultBudgetMonth = () => dayjs().date(1).startOf("day");
+
 const getMonthOptions = (selectedMonth: Dayjs) =>
     [-2, -1, 0, 1, 2].map((offset) => {
         const value = selectedMonth.add(offset, "month");
@@ -132,27 +135,27 @@ const Budgets = () => {
     const [currenciesResolved, setCurrenciesResolved] = useState(false);
     const [currencyLoadError, setCurrencyLoadError] = useState(false);
     const [currencyReloadToken, setCurrencyReloadToken] = useState(0);
+    const initialSearchParamsInvalidRef = React.useRef(false);
     const drawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
 
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const year = searchParams.get("year");
         const month = searchParams.get("month");
-        if (year && month) {
-            return dayjs()
-                .year(Number(year))
-                .month(Number(month) - 1)
-                .date(1)
-                .startOf("day");
-        }
-        return dayjs();
+        const fallbackMonth = getDefaultBudgetMonth();
+        const supportedMonth = getSupportedBudgetMonthFromParams(year, month, fallbackMonth);
+        initialSearchParamsInvalidRef.current = Boolean(year || month) &&
+            (supportedMonth.year().toString() !== year ||
+                (supportedMonth.month() + 1).toString() !== month);
+        return supportedMonth;
     });
 
     useEffect(() => {
         const year = selectedMonth.year().toString();
         const month = (selectedMonth.month() + 1).toString();
         if (searchParams.get("year") !== year || searchParams.get("month") !== month) {
-            setSearchParams({ year, month });
+            setSearchParams({ year, month }, { replace: initialSearchParamsInvalidRef.current });
+            initialSearchParamsInvalidRef.current = false;
         }
     }, [selectedMonth, setSearchParams, searchParams]);
 

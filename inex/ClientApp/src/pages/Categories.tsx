@@ -32,6 +32,7 @@ import {
     categoryPaletteColor,
     computeCategorySpendStats,
     flattenCategoryTree,
+    getCategoryBaseCurrency,
     hasChildCategories,
     includeAncestorCategories,
     sortLeafCategoriesBySpend,
@@ -73,6 +74,11 @@ interface TransactionQueryArgs {
     };
 }
 
+interface CurrencyOption {
+    id: number;
+    key: string;
+}
+
 const CATEGORY_TRANSACTIONS_PAGE_SIZE = 250;
 const CATEGORY_TRANSACTIONS_MAX_PAGES = 40;
 
@@ -101,9 +107,16 @@ const getPeriodBounds = ({ year, month }: CategoryPeriod) => ({
 const formatPeriodDate = (year: number, month: number, day: number) =>
     `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
+const formatPeriodDateTime = (
+    year: number,
+    month: number,
+    day: number,
+    time: "start" | "end",
+) => `${formatPeriodDate(year, month, day)}T${time === "start" ? "00:00:00" : "23:59:59"}`;
+
 const getPeriodQueryDates = ({ year, month }: CategoryPeriod) => ({
-    startDate: formatPeriodDate(year, month, 1),
-    endDate: formatPeriodDate(year, month, new Date(year, month, 0).getDate()),
+    startDate: formatPeriodDateTime(year, month, 1, "start"),
+    endDate: formatPeriodDateTime(year, month, new Date(year, month, 0).getDate(), "end"),
 });
 
 const isUnfilteredPeriodCoveringQuery = (
@@ -257,6 +270,8 @@ const Categories = () => {
     const [view, setView] = React.useState<CategoriesViewMode>("tree");
     const [expandedId, setExpandedId] = React.useState<number | null>(null);
     const [createError, setCreateError] = React.useState<string | null>(null);
+    const [currencies, setCurrencies] = React.useState<CurrencyOption[]>([]);
+    const addDrawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const period = useCurrentPeriod();
     const [periodTransactions, setPeriodTransactions] = React.useState<TransactionResponse[] | null>(null);
 
@@ -272,6 +287,15 @@ const Categories = () => {
         selectCachedTransactions(state.transactionsApi.queries, period),
     );
     const exchangeRates = useAppSelector((state) => state.rates.items);
+    const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
+    const profileCurrency = React.useMemo(
+        () => currencies.find((currency) => currency.id === userCurrencyId)?.key.trim() || null,
+        [currencies, userCurrencyId],
+    );
+    const baseCurrency = React.useMemo(
+        () => getCategoryBaseCurrency(exchangeRates, profileCurrency),
+        [exchangeRates, profileCurrency],
+    );
     const cachedBudgets = useAppSelector((state) => {
         const cachedCurrentMonthBudgets = budgetsApi.endpoints.getBudgets.select(period)(state).data;
         if (cachedCurrentMonthBudgets !== undefined) {
@@ -284,6 +308,18 @@ const Categories = () => {
     });
     const budgetsForPeriod = currentMonthBudgets ?? cachedBudgets;
     const currentPeriodTransactions = periodTransactions ?? cachedTransactions;
+
+    const closeAddDrawer = React.useCallback(() => {
+        setAddOpen(false);
+        setCreateError(null);
+        window.setTimeout(() => addDrawerTriggerRef.current?.focus(), 0);
+    }, []);
+
+    const openAddDrawer: React.MouseEventHandler<HTMLButtonElement> = React.useCallback((event) => {
+        addDrawerTriggerRef.current = event.currentTarget;
+        setCreateError(null);
+        setAddOpen(true);
+    }, []);
 
     React.useEffect(() => {
         if (expandedId != null && !categories.some((category) => category.id === expandedId)) {
@@ -311,6 +347,26 @@ const Categories = () => {
             cancelled = true;
         };
     }, [period.month, period.year]);
+
+    React.useEffect(() => {
+        let cancelled = false;
+
+        apiClient.get<CurrencyOption[]>("/currencies")
+            .then(({ data }) => {
+                if (!cancelled) {
+                    setCurrencies(data);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setCurrencies([]);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const filteredCategories = React.useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -340,9 +396,10 @@ const Categories = () => {
                 categories,
                 transactions: currentPeriodTransactions,
                 exchangeRates,
+                baseCurrency,
                 now: new Date(period.year, period.month - 1, 1),
             }),
-        [categories, currentPeriodTransactions, exchangeRates, period.month, period.year],
+        [baseCurrency, categories, currentPeriodTransactions, exchangeRates, period.month, period.year],
     );
 
     const periodLabel = React.useMemo(
@@ -426,10 +483,7 @@ const Categories = () => {
                 title={t("categories.addDrawerTitle")}
                 subtitle={t("categories.addDrawerSubtitle")}
                 open={addOpen}
-                onClose={() => {
-                    setAddOpen(false);
-                    setCreateError(null);
-                }}
+                onClose={closeAddDrawer}
             >
                 {createError ? (
                     <Alert
@@ -440,10 +494,7 @@ const Categories = () => {
                     />
                 ) : null}
                 <CategoryCreateForm
-                    onCreated={() => {
-                        setAddOpen(false);
-                        setCreateError(null);
-                    }}
+                    onCreated={closeAddDrawer}
                     onError={() => setCreateError(t("categories.formErrors.createFailed"))}
                 />
             </InExDrawer>
@@ -470,7 +521,7 @@ const Categories = () => {
                                 onActiveOnlyChange={setActiveOnly}
                                 onViewChange={setView}
                                 onSearchChange={setSearch}
-                                onAdd={() => setAddOpen(true)}
+                                onAdd={openAddDrawer}
                             />
                         </React.Fragment>
                     ) : null}
@@ -508,7 +559,7 @@ const Categories = () => {
                                 <InExButton
                                     kind="primary"
                                     icon={<Plus size={16} aria-hidden="true" />}
-                                    onClick={() => setAddOpen(true)}
+                                    onClick={openAddDrawer}
                                 >
                                     {t("categories.emptyState.addManually")}
                                 </InExButton>

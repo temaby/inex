@@ -244,5 +244,31 @@
       "metricsShowFailureState": true
     },
     "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Metrics failed / 3,700.00 Metrics failed Metrics failed Budgeted 3,700.00 Spent Metrics failed Remaining Metrics failed Used Metrics failed Food budget Budget metrics could not load. Editing remains available. Retry"
+  },
+  {
+    "name": "round4-invalid-params-and-1024-collapse",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    },
+    "scrollWidth": 1009,
+    "clientWidth": 1009,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "invalidParamsNormalizedToSupportedMonth": true,
+      "normalizedUrl": "http://127.0.0.1:5177/budgets?year=2026&month=6",
+      "noNaNOrInvalidRequests": true,
+      "rowCollapsedAt1024": true
+    },
+    "layoutChecks": {
+      "budgetListHeaderDisplay": "none",
+      "budgetRowGridColumns": "895.333px"
+    },
+    "requestLog": [
+      "GET /api/budgets?year=2026&month=6",
+      "GET /api/reports/budget/comparison?year=2026&month=6&currency=PLN"
+    ],
+    "textSample": "Budgets invalid-param smoke normalized /budgets?year=abc&month=13 to year=2026&month=6 before data requests. At 1024px, the list header was hidden, rows used a single-column grid, and no horizontal overflow was present."
   }
 ]
