@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Card, Col, Row, Spin, Statistic, Typography } from "antd";
-import { ArrowDownOutlined, ArrowUpOutlined, BankOutlined } from "@ant-design/icons";
+import { Spin } from "antd";
+import { ArrowDown, ArrowUp, Banknote, Landmark, TrendingUp } from "lucide-react";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,10 +15,13 @@ import {
 } from "recharts";
 import BasicPage from "../layouts/BasicPage";
 import SpendingHeatmap from "../components/SpendingHeatmap";
+import { Num } from "../components/primitives";
 import type { BudgetReportResponse, ReportMetadataDTO } from "../model/Report/BudgetReport";
 import type { NetWorthHistoryPoint, NetWorthHistoryResponse } from "../model/Report/NetWorthHistory";
+import ReportAccessibleSummary from "./Reports/ReportAccessibleSummary";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
+import "./Dashboard/dashboard.css";
 
 interface Currency {
     id: number;
@@ -58,7 +61,7 @@ const totalsFromMetadata = (metadata?: ReportMetadataDTO | null): MonthTotals =>
 };
 
 const getDeltaPercent = (current: number, previous: number | null | undefined) => {
-    if (!previous) return null;
+    if (previous === null || previous === undefined || Math.abs(previous) < 0.01) return null;
 
     return ((current - previous) / Math.abs(previous)) * 100;
 };
@@ -67,7 +70,7 @@ const getDeltaColor = (delta: number | null, mode: TrendMode) => {
     if (delta === null || Math.abs(delta) < 0.01) return undefined;
 
     const isPositiveTrend = mode === "higherIsBetter" ? delta > 0 : delta < 0;
-    return isPositiveTrend ? "green" : "red";
+    return isPositiveTrend ? "good" : "bad";
 };
 
 const Dashboard = () => {
@@ -211,6 +214,12 @@ const Dashboard = () => {
         ...point,
         monthLabel: formatMonth(point.month),
     }));
+    const netWorthSummaryRows = netWorthHistory.slice(-6).reverse().map((point) => ({
+        key: point.month,
+        label: formatMonth(point.month),
+        value: <Num value={point.netWorth} currency={point.currency || chartCurrency} kind="neutral" />,
+        detail: point.monthEnd,
+    }));
     const currentMonthRange = useMemo(() => {
         const month = dayjs();
         return {
@@ -219,58 +228,72 @@ const Dashboard = () => {
         };
     }, []);
 
+    const momDelta = getDeltaPercent(summary.current.savings, summary.previous?.savings);
     const cards = [
         {
             key: "income",
             title: t("dashboard.summary.totalIncome"),
             value: summary.current.income,
             previous: summary.previous?.income,
-            icon: <ArrowUpOutlined />,
-            valueColor: "green",
+            icon: <ArrowUp size={18} />,
+            kind: "income" as const,
             trendMode: "higherIsBetter" as const,
+            hasBaseline: true,
         },
         {
             key: "expenses",
             title: t("dashboard.summary.totalExpenses"),
             value: summary.current.expenses,
             previous: summary.previous?.expenses,
-            icon: <ArrowDownOutlined />,
-            valueColor: "red",
+            icon: <ArrowDown size={18} />,
+            kind: "expense" as const,
             trendMode: "lowerIsBetter" as const,
+            hasBaseline: true,
         },
         {
             key: "savings",
             title: t("dashboard.summary.netSavings"),
             value: summary.current.savings,
             previous: summary.previous?.savings,
-            icon: <BankOutlined />,
-            valueColor: summary.current.savings >= 0 ? "green" : "red",
+            icon: <Banknote size={18} />,
+            kind: summary.current.savings >= 0 ? "income" as const : "expense" as const,
             trendMode: "higherIsBetter" as const,
+            hasBaseline: true,
+        },
+        {
+            key: "mom",
+            title: t("dashboard.summary.momDelta"),
+            value: momDelta ?? 0,
+            previous: undefined,
+            icon: <TrendingUp size={18} />,
+            kind: "neutral" as const,
+            trendMode: "higherIsBetter" as const,
+            percent: true,
+            hasBaseline: momDelta !== null,
         },
     ];
 
     return (
-        <BasicPage title={t("dashboard.title")}>
-            <div style={{ minHeight: "76vh", background: "white", padding: 24 }}>
-                <Typography.Paragraph type="secondary" style={{ marginBottom: 24, maxWidth: 720 }}>
-                    {t("dashboard.description")}
-                </Typography.Paragraph>
+        <BasicPage title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
+            <div className="dashboard-workspace">
+                <p className="dashboard-intro">{t("dashboard.description")}</p>
 
                 {error && (
-                    <Alert
-                        type="error"
-                        showIcon
-                        message={error}
-                        style={{ marginBottom: 16 }}
-                    />
+                    <div className="dashboard-alert" role="alert">{error}</div>
                 )}
 
                 <Spin spinning={isLoading} tip={t("dashboard.summary.loading")}>
-                    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                    <div className="dashboard-summary-grid">
                         {cards.map((card) => {
                             const delta = getDeltaPercent(card.value, card.previous);
                             const deltaColor = hasNoCurrentMonthActivity ? undefined : getDeltaColor(delta, card.trendMode);
-                            const deltaText = hasNoCurrentMonthActivity
+                            const deltaText = card.key === "mom"
+                                ? (hasNoCurrentMonthActivity || !card.hasBaseline
+                                    ? t("dashboard.summary.noPreviousMonth")
+                                    : t("dashboard.summary.vsLastMonth", {
+                                        value: `${card.value > 0 ? "+" : ""}${card.value.toFixed(0)}%`,
+                                    }))
+                                : hasNoCurrentMonthActivity
                                 ? t("dashboard.summary.noCurrentMonthData")
                                 : delta === null
                                 ? t("dashboard.summary.noPreviousMonth")
@@ -279,76 +302,68 @@ const Dashboard = () => {
                                 });
 
                             return (
-                                <Col key={card.key} xs={24} lg={8}>
-                                    <Card style={{ height: "100%" }}>
-                                        <Statistic
-                                            title={card.title}
-                                            value={card.value}
-                                            precision={2}
-                                            suffix={currency ?? ""}
-                                            valueStyle={hasNoCurrentMonthActivity ? undefined : { color: card.valueColor }}
-                                            prefix={card.icon}
-                                        />
-                                        <Typography.Text
-                                            type={deltaColor ? undefined : "secondary"}
-                                            style={{ color: deltaColor, display: "block", marginTop: 8 }}
-                                        >
-                                            {deltaText}
-                                        </Typography.Text>
-                                        <Typography.Text type="secondary" style={{ display: "block", marginTop: 4 }}>
-                                            {t("dashboard.summary.currentMonth")}
-                                        </Typography.Text>
-                                    </Card>
-                                </Col>
+                                <article className="dashboard-card" key={card.key}>
+                                    <div className="dashboard-card__top">
+                                        <span className="dashboard-card__label">{card.title}</span>
+                                        <span className="dashboard-card__icon" aria-hidden="true">{card.icon}</span>
+                                    </div>
+                                    <div className="dashboard-card__value">
+                                        {card.percent
+                                            ? (card.hasBaseline ? `${card.value > 0 ? "+" : ""}${card.value.toFixed(0)}%` : "-")
+                                            : <Num value={card.value} currency={currency ?? ""} kind={card.kind} />}
+                                    </div>
+                                    <span className={`dashboard-card__delta${deltaColor ? ` is-${deltaColor}` : ""}`}>
+                                        {deltaText}
+                                    </span>
+                                    <span className="dashboard-card__period">{t("dashboard.summary.currentMonth")}</span>
+                                </article>
                             );
                         })}
-                    </Row>
+                    </div>
                 </Spin>
 
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={t("reports.heatmapReport")}
-                            style={{ height: "100%" }}
-                            styles={{ body: { minHeight: 300, padding: 0 } }}
-                        >
+                <div className="dashboard-panel-grid">
+                    <section className="dashboard-panel">
+                        <div className="dashboard-panel__header">
+                            <div>
+                                <span className="dashboard-panel__eyebrow">{t("dashboard.analyticsLabel")}</span>
+                                <h2 className="dashboard-panel__title">{t("reports.heatmapReport")}</h2>
+                            </div>
+                            <Landmark size={18} aria-hidden="true" />
+                        </div>
+                        <div className="dashboard-chart-scroll">
                             <SpendingHeatmap
                                 start={currentMonthRange.start}
                                 end={currentMonthRange.end}
                                 height={210}
-                                minWidth={360}
+                                minWidth={320}
                                 padding={0}
                                 showRange={false}
                             />
-                        </Card>
-                    </Col>
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={t("dashboard.netWorth.title")}
-                            style={{ height: "100%" }}
-                            styles={{ body: { minHeight: 300 } }}
-                        >
+                        </div>
+                    </section>
+                    <section className="dashboard-panel">
+                        <div className="dashboard-panel__header">
+                            <div>
+                                <span className="dashboard-panel__eyebrow">{t("dashboard.analyticsLabel")}</span>
+                                <h2 className="dashboard-panel__title">{t("dashboard.netWorth.title")}</h2>
+                            </div>
+                            <TrendingUp size={18} aria-hidden="true" />
+                        </div>
                             {netWorthError && (
-                                <Alert
-                                    type="error"
-                                    showIcon
-                                    message={netWorthError}
-                                    style={{ marginBottom: 16 }}
-                                />
+                                <div className="dashboard-alert" role="alert">{netWorthError}</div>
                             )}
                             <Spin spinning={isLoadingNetWorth} tip={t("dashboard.netWorth.loading")}>
                                 {!isLoadingNetWorth && netWorthChartData.length === 0 && !netWorthError ? (
-                                    <Typography.Text type="secondary">
-                                        {t("dashboard.netWorth.empty")}
-                                    </Typography.Text>
+                                    <p className="dashboard-intro">{t("dashboard.netWorth.empty")}</p>
                                 ) : (
-                                    <div style={{ height: 260, width: "100%" }}>
+                                    <div className="dashboard-chart">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <LineChart
                                                 data={netWorthChartData}
                                                 margin={{ top: 12, right: 16, bottom: 12, left: 16 }}
                                             >
-                                                <CartesianGrid stroke="#f0f0f0" />
+                                                <CartesianGrid stroke="var(--border-1)" />
                                                 <XAxis
                                                     dataKey="monthLabel"
                                                     tickLine={false}
@@ -375,7 +390,7 @@ const Dashboard = () => {
                                                     type="monotone"
                                                     dataKey="netWorth"
                                                     name={t("dashboard.netWorth.valueLabel")}
-                                                    stroke="#1677ff"
+                                                    stroke="var(--income-500)"
                                                     strokeWidth={2}
                                                     dot={{ r: 3 }}
                                                     activeDot={{ r: 5 }}
@@ -385,9 +400,17 @@ const Dashboard = () => {
                                     </div>
                                 )}
                             </Spin>
-                        </Card>
-                    </Col>
-                </Row>
+                            {netWorthSummaryRows.length > 0 && (
+                                <ReportAccessibleSummary
+                                    title={t("dashboard.netWorth.summaryTitle")}
+                                    caption={t("dashboard.netWorth.summaryCaption")}
+                                    labelHeader={t("reports.month")}
+                                    valueHeader={t("reports.summaryValue")}
+                                    rows={netWorthSummaryRows}
+                                />
+                            )}
+                    </section>
+                </div>
             </div>
         </BasicPage>
     );

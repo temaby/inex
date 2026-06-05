@@ -1,77 +1,75 @@
 import * as React from "react";
-import { useEffect, useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import { Layout, Table, Tabs, Space, Typography, Row, Col, Card, Statistic } from "antd";
-import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { DatePicker, Spin, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import { DatePicker } from "antd";
+import { ArrowDown, ArrowUp, Banknote } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Num } from "../../components/primitives";
 import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
-import type { TableColumnsType } from "antd";
 import { reportActions } from "../../store/report/report-slice";
-import { CategoryResponse, useGetCategoriesQuery } from "../../store/categories/categories-api";
+import { useGetCategoriesQuery } from "../../store/categories/categories-api";
 import { useGetCategoryReportQuery } from "../../store/report/report-api";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import ReportAccessibleSummary from "./ReportAccessibleSummary";
+import "./reports.css";
 
-const { Text, Title } = Typography;
+const dateFormat = "YYYY-MM";
 
-const dateFormat: string = "YYYY-MM";
-
-const ReportCategory = (props: any) => {
+const ReportCategory = () => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-
+    const filterData = useAppSelector(state => state.transactions.filter);
+    const filter = useAppSelector(state => state.report.filter);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-    const filterData = useAppSelector(state => state.transactions.filter);
-
-    const queryParams: URLSearchParams = new URLSearchParams(location.search);
-    const interval: string | null = queryParams.get("interval");
-    const currentDate: Dayjs = useMemo(() => interval ? dayjs(interval, dateFormat) : dayjs(), [interval]);
+    const queryParams = new URLSearchParams(location.search);
+    const interval = queryParams.get("interval");
+    const currentDate = useMemo(() => interval ? dayjs(interval, dateFormat) : dayjs(), [interval]);
     const startDate = currentDate.isValid() ? currentDate.startOf("month").format("YYYY-MM-DD") : "";
     const endDate = currentDate.isValid() ? currentDate.endOf("month").format("YYYY-MM-DD") : "";
-
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
-    const activeCategories = allCategories.filter((c: CategoryResponse) => c.isEnabled);
     const { data: reportResponse, isLoading } = useGetCategoryReportQuery(
         { startDate, endDate },
-        { skip: !currentDate.isValid() }
+        { skip: !currentDate.isValid() },
     );
     const reportData = reportResponse?.data ?? [];
     const currency = reportResponse?.metadata.currency ?? "";
-    const filter = useAppSelector(state => state.report.filter);
-
-    const report: ReportCategoryDetails[] = getCategoryReport(activeCategories, reportData);
+    const activeCategories = useMemo(
+        () => allCategories.filter((category) => category.isEnabled),
+        [allCategories],
+    );
+    const report = useMemo(
+        () => getCategoryReport(activeCategories, reportData),
+        [activeCategories, reportData],
+    );
 
     useEffect(() => {
         if (currentDate.isValid()) {
             const range = [currentDate.startOf("month").unix(), currentDate.endOf("month").unix()];
 
-            dispatch(
-                reportActions.setFilter({
-                    filter: {
-                        ...filterData,
-                        range: range,
-                    },
-                })
-            );
+            dispatch(reportActions.setFilter({
+                filter: {
+                    ...filterData,
+                    range,
+                },
+            }));
         }
         return () => {
             dispatch(reportActions.setFilter({ filter: { range: [] } }));
         };
-    }, [currentDate]);
+    }, [currentDate, dispatch, filterData]);
 
     useEffect(() => {
         setExpandedRows([]);
     }, [startDate, endDate]);
 
     useEffect(() => {
-        if (!reportResponse) {
-            return;
-        }
+        if (!reportResponse) return;
 
         dispatch(reportActions.setDetails({
             title: reportResponse.metadata.name,
@@ -80,139 +78,134 @@ const ReportCategory = (props: any) => {
         }));
     }, [dispatch, reportResponse]);
 
-    const setIntervalHandler = (date: any) => {
-        if (date) {
-            navigate(`${location.pathname}?interval=${date.format(dateFormat)}`, { replace: false });
-        }
+    const setIntervalHandler = (date: Dayjs | null) => {
+        if (date) navigate(`${location.pathname}?interval=${date.format(dateFormat)}`, { replace: false });
     };
 
-    const rowExpandHandler = (expanded: boolean, record: any) => {
-        if (expanded) {
-            setExpandedRows(record ? [record.id.toString()] : []);
-        } else {
-            setExpandedRows([]);
-        }
+    const openTransactions = (item: ReportCategoryDetails) => {
+        if (!filter.range?.[0] || !filter.range?.[1]) return;
+        const start = new Date(filter.range[0] * 1000);
+        const startStr = `${start.getUTCFullYear()}-${start.getUTCMonth() + 1}-${start.getUTCDate()}`;
+        const end = new Date(filter.range[1] * 1000);
+        const endStr = `${end.getUTCFullYear()}-${end.getUTCMonth() + 1}-${end.getUTCDate()}`;
+        navigate(`../../transactions?filter=categoryIds:${item.id};start:${startStr};end:${endStr};`, { replace: false });
     };
 
-    const reportColumns: TableColumnsType<ReportCategoryDetails> = [
+    const reportColumns: ColumnsType<ReportCategoryDetails> = [
         {
             title: t("reports.category"),
             key: "name",
-            render: (text: string, item: any) => (
-                <a onClick={(event) => {
-                    event.stopPropagation();
-                    const start: Date = new Date(filter.range[0] * 1000);
-                    const startStr: string = `${start.getUTCFullYear()}-${start.getUTCMonth() + 1}-${start.getUTCDate()}`;
-                    const end: Date = new Date(filter.range[1] * 1000);
-                    const endStr: string = `${end.getUTCFullYear()}-${end.getUTCMonth() + 1}-${end.getUTCDate()}`;
-                    navigate(`../../transactions?filter=categoryIds:${item.id};start:${startStr};end:${endStr};`, { replace: false });
-                }}>
+            render: (_, item) => (
+                <button type="button" className="reports-link-button" onClick={() => openTransactions(item)}>
                     {item.name}
-                </a>
-            )
+                </button>
+            ),
         },
         {
             title: t("reports.amount"),
             key: "value",
             width: 170,
             align: "right",
-            render: (text: string, item: any) => {
-                let textColor = item.value > 0 ? "green" : "red";
-                return (
-                    <span style={{ color: textColor }}>
-                        {(Math.round((item.value > 0 ? item.value : 0 - item.value) * 100) / 100).toFixed(2)} {currency}
-                    </span>
-                );
-            },
+            render: (_, item) => (
+                <Num
+                    value={Math.abs(item.value)}
+                    currency={currency}
+                    kind={item.value > 0 ? "income" : "expense"}
+                />
+            ),
         },
     ];
 
     const totals = useMemo(() => {
-        let totalIncome = 0;
-        let totalExpences = 0;
-        report.forEach(({ value }) => {
-            if (value > 0) {
-                totalIncome += value;
-            } else {
-                totalExpences += value;
-            }
-        });
-        const totalBalance = totalIncome + totalExpences;
-        return { totalIncome, totalExpences, totalBalance };
+        return report.reduce(
+            (acc, item) => {
+                if (item.value > 0) {
+                    acc.totalIncome += item.value;
+                } else {
+                    acc.totalExpenses += item.value;
+                }
+                return acc;
+            },
+            { totalIncome: 0, totalExpenses: 0 },
+        );
     }, [report]);
+    const totalBalance = totals.totalIncome + totals.totalExpenses;
+
+    const summaryRows = report.map((item) => ({
+        key: item.id,
+        label: item.name,
+        value: <Num value={Math.abs(item.value)} currency={currency} kind={item.value > 0 ? "income" : "expense"} />,
+        detail: item.value > 0 ? t("reports.income") : t("reports.expense"),
+    }));
 
     return (
-        <div style={{ padding: "20px" }}>
-            <Space direction="vertical" size="large" style={{ width: "100%" }}>
-                <Space>
-                    <Title level={4}>{t("reports.interval")}</Title>
-                    <DatePicker
-                        id="report_interval"
-                        key="report_interval"
-                        size="large"
-                        picker="month"
-                        value={currentDate.isValid() ? currentDate : null}
-                        bordered={true}
-                        inputReadOnly={true}
-                        onChange={setIntervalHandler}
-                        allowClear={false}
-                    />
-                </Space>
+        <div className="reports-workspace">
+            <section className="report-panel">
+                <div className="report-toolbar">
+                    <div>
+                        <span className="reports-hub-section__title">{t("reports.interval")}</span>
+                        <h2 className="report-title">{t("reports.categoryReport")}</h2>
+                    </div>
+                    <div className="report-toolbar__control">
+                        <span className="report-toolbar__label">{t("reports.monthControl")}</span>
+                        <DatePicker
+                            id="report_interval"
+                            picker="month"
+                            value={currentDate.isValid() ? currentDate : null}
+                            inputReadOnly
+                            onChange={setIntervalHandler}
+                            allowClear={false}
+                        />
+                    </div>
+                </div>
+            </section>
 
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={8}>
-                        <Card>
-                            <Statistic
-                                title={t("reports.totalIncome")}
-                                value={totals.totalIncome}
-                                precision={2}
-                                suffix={currency}
-                                valueStyle={{ color: "green" }}
-                                prefix={<ArrowUpOutlined />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Card>
-                            <Statistic
-                                title={t("reports.totalExpense")}
-                                value={Math.abs(totals.totalExpences)}
-                                precision={2}
-                                suffix={currency}
-                                valueStyle={{ color: "red" }}
-                                prefix={<ArrowDownOutlined />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Card>
-                            <Statistic
-                                title={t("reports.balance")}
-                                value={totals.totalBalance}
-                                precision={2}
-                                suffix={currency}
-                                valueStyle={{ color: totals.totalBalance >= 0 ? "green" : "red" }}
-                                prefix={<BankOutlined />}
-                            />
-                        </Card>
-                    </Col>
-                </Row>
+            <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
+                <div className="report-stat">
+                    <span>{t("reports.totalIncome")}</span>
+                    <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={totals.totalIncome} currency={currency} kind="income" /></strong>
+                </div>
+                <div className="report-stat">
+                    <span>{t("reports.totalExpense")}</span>
+                    <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={Math.abs(totals.totalExpenses)} currency={currency} kind="expense" /></strong>
+                </div>
+                <div className="report-stat">
+                    <span>{t("reports.balance")}</span>
+                    <strong><Banknote size={16} aria-hidden="true" /> <Num value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} /></strong>
+                </div>
+            </section>
 
-                <Table
-                    rowKey={(record: any) => record.id.toString()}
-                    loading={isLoading}
-                    columns={reportColumns}
-                    expandable={{
-                        indentSize: 50,
-                        rowExpandable: (record: any) => false,
-                        onExpand: rowExpandHandler,
-                        expandedRowKeys: expandedRows,
-                    }}
-                    dataSource={report}
-                    pagination={false}
-                    sticky
+            <section className="report-panel">
+                <Spin spinning={isLoading}>
+                    <div className="report-table-wrap">
+                        <Table
+                            rowKey={(record) => record.id.toString()}
+                            columns={reportColumns}
+                            expandable={{
+                                indentSize: 50,
+                                rowExpandable: () => false,
+                                onExpand: (expanded, record) => {
+                                    setExpandedRows(expanded ? [record.id.toString()] : []);
+                                },
+                                expandedRowKeys: expandedRows,
+                            }}
+                            dataSource={report}
+                            pagination={false}
+                            sticky
+                        />
+                    </div>
+                </Spin>
+            </section>
+
+            {summaryRows.length > 0 && (
+                <ReportAccessibleSummary
+                    title={t("reports.categorySummaryTitle")}
+                    caption={t("reports.categorySummaryCaption")}
+                    labelHeader={t("reports.category")}
+                    valueHeader={t("reports.amount")}
+                    rows={summaryRows}
                 />
-            </Space>
+            )}
         </div>
     );
 };

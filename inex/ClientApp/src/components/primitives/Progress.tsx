@@ -21,9 +21,9 @@ export const BudgetProgress: React.FC<BudgetProgressProps> = ({
     showLabel = false,
     overBudgetLabel,
 }) => {
-    const ratio = max > 0 ? value / max : 0;
+    const ratio = max > 0 ? value / max : value > 0 ? 1 : 0;
     const percentage = Math.max(0, Math.min(100, ratio * 100));
-    const roundedPercentage = Math.round(percentage);
+    const roundedPercentage = max > 0 ? Math.round(ratio * 100) : Math.round(percentage);
 
     const trackStyle: React.CSSProperties = {
         alignItems: "center",
@@ -59,7 +59,7 @@ export const BudgetProgress: React.FC<BudgetProgressProps> = ({
     return (
         <div
             aria-label={ratio >= 1 ? overBudgetLabel : undefined}
-            aria-valuemax={max}
+            aria-valuemax={Math.max(max, value, 0)}
             aria-valuemin={0}
             aria-valuenow={value}
             role="progressbar"

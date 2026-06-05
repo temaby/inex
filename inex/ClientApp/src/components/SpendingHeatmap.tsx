@@ -146,6 +146,17 @@ const SpendingHeatmap = ({
     () => new Intl.NumberFormat(i18n.language, { style: "currency", currency }),
     [currency, i18n.language]
   );
+  const heatmapSummary = useMemo(() => {
+    const totalSpend = chartData.reduce((sum, day) => sum + day.totalSpend, 0);
+    const spendDays = chartData.filter(day => day.totalSpend > 0).length;
+    const topDays = chartData
+      .filter(day => day.totalSpend > 0)
+      .slice()
+      .sort((a, b) => b.totalSpend - a.totalSpend)
+      .slice(0, 5);
+
+    return { totalSpend, spendDays, topDays };
+  }, [chartData]);
 
   const renderTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload?: HeatmapPoint }> }) => {
     if (!active || !payload?.length) return null;
@@ -257,6 +268,29 @@ const SpendingHeatmap = ({
           ))}
           <Text type="secondary">{t("reports.heatmapLegendMore")}</Text>
         </Space>
+
+        <section aria-label={t("reports.heatmapSummaryTitle")}>
+          <Space direction="vertical" size={4} style={{ width: "100%" }}>
+            <Text strong>{t("reports.heatmapSummaryTitle")}</Text>
+            <Text type="secondary">
+              {t("reports.heatmapSummaryTotals", {
+                days: heatmapSummary.spendDays,
+                total: amountFormatter.format(heatmapSummary.totalSpend),
+              })}
+            </Text>
+            {heatmapSummary.topDays.length > 0 && (
+              <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>
+                {heatmapSummary.topDays.map(day => (
+                  <li key={day.date}>
+                    <Text>
+                      {day.label}: {amountFormatter.format(day.totalSpend)}
+                    </Text>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Space>
+        </section>
       </Space>
     </div>
   );

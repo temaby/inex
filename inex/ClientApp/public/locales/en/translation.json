@@ -62,11 +62,14 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "description": "A home overview for upcoming financial insight widgets.",
+    "subtitle": "Home",
+    "description": "Quick month status lives here. Use Reports when you need deeper analysis and drill-downs.",
+    "analyticsLabel": "Insight",
     "summary": {
       "totalIncome": "Total Income",
       "totalExpenses": "Total Expenses",
       "netSavings": "Net Savings",
+      "momDelta": "MoM Delta",
       "currentMonth": "Current month",
       "vsLastMonth": "{{value}} vs last month",
       "noPreviousMonth": "No previous month baseline",
@@ -80,7 +83,9 @@
       "valueLabel": "Net worth",
       "loading": "Loading net worth history",
       "empty": "No net worth history available",
-      "error": "Failed to load net worth history"
+      "error": "Failed to load net worth history",
+      "summaryTitle": "Net worth data summary",
+      "summaryCaption": "Recent monthly values shown in the chart."
     },
     "placeholders": {
       "monthSummary": {
@@ -454,6 +459,18 @@
   },
   "reports": {
     "title": "Reports",
+    "subtitleHub": "Analyze",
+    "subtitleDrilldown": "Report detail",
+    "allReports": "All reports",
+    "share": "Share",
+    "export": "Export",
+    "print": "Print",
+    "configure": "Configure",
+    "periodControl": "Report period",
+    "monthControl": "Month",
+    "yearControl": "Year",
+    "summaryTitle": "Report summary",
+    "summaryValue": "Value",
     "categoryReport": "Category Report",
     "budgetReport": "Budget Control",
     "historyReport": "Cash Flow",
@@ -484,7 +501,34 @@
     "heatmapTooltipSpend": "Spend: {{amount}}",
     "heatmapLegendLess": "Less",
     "heatmapLegendMore": "More",
-    "heatmapLegendCell": "Spending intensity"
+    "heatmapLegendCell": "Spending intensity",
+    "heatmapSummaryTitle": "Spending heatmap data summary",
+    "heatmapSummaryTotals": "{{days}} spend days, {{total}} total spend",
+    "categorySummaryTitle": "Category report data summary",
+    "categorySummaryCaption": "Category totals shown in the report table.",
+    "budgetSummaryTitle": "Budget report data summary",
+    "budgetSummaryCaption": "Remaining budget by category, with spent and budgeted values.",
+    "historySummaryTitle": "Cash flow chart data summary",
+    "historySummaryCaption": "Monthly savings values with income and expense context.",
+    "overBudget": "Over budget",
+    "viewCategoryReport": "View category report",
+    "hub": {
+      "description": "Launch an analytical report. The hub period is {{period}} and drill-down pages keep share, export, and print actions in their own header.",
+      "sectionSpending": "Spending",
+      "sectionPlanning": "Planning",
+      "sectionTrends": "Trends",
+      "categoryDescription": "See spending and income by category, then jump into matching transactions.",
+      "budgetDescription": "Compare planned budgets with actual spend and remaining capacity.",
+      "historyDescription": "Review income, expenses, and savings across the selected year.",
+      "heatmapDescription": "Scan daily spending intensity for the current reporting window.",
+      "metricPeriod": "Period",
+      "metricFocus": "Focus",
+      "metricRange": "Range",
+      "metricSelectedMonth": "Selected month",
+      "metricBudget": "Budget vs actual",
+      "metricYear": "12 months",
+      "metricCurrentMonth": "Current month"
+    }
   },
   "notFound": {
     "title": "Page not found",

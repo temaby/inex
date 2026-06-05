@@ -1,6 +1,6 @@
 # Story 10.4: Frontend UX - Reports Hub, Dashboard Landing, And Drill-Down Chrome
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -20,34 +20,46 @@ so that quick financial status and deeper analysis are separated but connected.
 
 ## Tasks / Subtasks
 
-- [ ] Add dashboard landing route and preserve existing route protections. (AC: 1, 5)
-  - [ ] Finalize the protected dashboard page route (`/dashboard`) and update post-login default redirect from `/` to `/dashboard` by consuming the route/data work delivered by Epic 6; do not recreate Epic 6 functional implementation here.
-  - [ ] Keep `/reports` nested report routes intact (`index`, `category`, `budget`, `history`) with no behavior regression.
-  - [ ] Keep `ProtectedRoute` ownership unchanged; do not move auth routes.
-- [ ] Build dashboard month-summary landing surface. (AC: 1, 5)
-  - [ ] Apply final Epic 10 visual/chrome treatment to month summary cards (income, expenses, net savings, MoM delta) on dashboard using existing Epic 6 report/state data flows.
-  - [ ] Provide no-data neutral state (0 values + explanatory copy), not blank or error-only UI.
-  - [ ] Keep all visible strings in EN/RU locale files.
-- [ ] Rebuild reports hub as launch-card navigation, not table rows. (AC: 2, 5)
-  - [ ] Replace current `ReportList` table UX with hub cards that include title, description, preview metric, and grouped sections.
-  - [ ] Keep date period and configure controls on the hub header only.
-  - [ ] Preserve existing drill-down route navigation targets.
-- [ ] Add drill-down chrome contract for report routes. (AC: 3, 5)
-  - [ ] For `/reports/category`, `/reports/budget`, and `/reports/history`, render header with All reports back affordance.
-  - [ ] Show Share/Export/Print actions only on drill-down pages (never on hub).
-  - [ ] Preserve existing report data fetch behavior while changing chrome/layout.
-- [ ] Add chart accessibility summaries. (AC: 4)
-  - [ ] For each chart on dashboard and drill-down routes, add a nearby textual/table summary (screen-reader-readable).
-  - [ ] Ensure summary values match chart source data and can support export review.
-  - [ ] Keep interactive chart affordances keyboard reachable where relevant.
-- [ ] Deliver responsive and visual QA verification. (AC: 5)
-  - [ ] Validate dashboard, reports hub, and at least one drill-down at 1440px and 390px.
-  - [ ] Confirm no page-level horizontal overflow and no bottom-nav occlusion of final actions/content.
-  - [ ] Capture screenshots for dashboard, hub, and drill-down states.
-- [ ] Run engineering quality gates. (AC: 1-5)
-  - [ ] Run `npm run build` from `inex/ClientApp`.
-  - [ ] Run `npm run lint` from `inex/ClientApp`.
-  - [ ] Confirm no new `any` in touched TypeScript files.
+- [x] Add dashboard landing route and preserve existing route protections. (AC: 1, 5)
+  - [x] Finalize the protected dashboard page route (`/dashboard`) and update post-login default redirect from `/` to `/dashboard` by consuming the route/data work delivered by Epic 6; do not recreate Epic 6 functional implementation here.
+  - [x] Keep `/reports` nested report routes intact (`index`, `category`, `budget`, `history`) with no behavior regression.
+  - [x] Keep `ProtectedRoute` ownership unchanged; do not move auth routes.
+- [x] Build dashboard month-summary landing surface. (AC: 1, 5)
+  - [x] Apply final Epic 10 visual/chrome treatment to month summary cards (income, expenses, net savings, MoM delta) on dashboard using existing Epic 6 report/state data flows.
+  - [x] Provide no-data neutral state (0 values + explanatory copy), not blank or error-only UI.
+  - [x] Keep all visible strings in EN/RU locale files.
+- [x] Rebuild reports hub as launch-card navigation, not table rows. (AC: 2, 5)
+  - [x] Replace current `ReportList` table UX with hub cards that include title, description, preview metric, and grouped sections.
+  - [x] Keep date period and configure controls on the hub header only.
+  - [x] Preserve existing drill-down route navigation targets.
+- [x] Add drill-down chrome contract for report routes. (AC: 3, 5)
+  - [x] For `/reports/category`, `/reports/budget`, and `/reports/history`, render header with All reports back affordance.
+  - [x] Show Share/Export/Print actions only on drill-down pages (never on hub).
+  - [x] Preserve existing report data fetch behavior while changing chrome/layout.
+- [x] Add chart accessibility summaries. (AC: 4)
+  - [x] For each chart on dashboard and drill-down routes, add a nearby textual/table summary (screen-reader-readable).
+  - [x] Ensure summary values match chart source data and can support export review.
+  - [x] Keep interactive chart affordances keyboard reachable where relevant.
+- [x] Deliver responsive and visual QA verification. (AC: 5)
+  - [x] Validate dashboard, reports hub, and at least one drill-down at 1440px and 390px.
+  - [x] Confirm no page-level horizontal overflow and no bottom-nav occlusion of final actions/content.
+  - [x] Capture screenshots for dashboard, hub, and drill-down states.
+- [x] Run engineering quality gates. (AC: 1-5)
+  - [x] Run `npm run build` from `inex/ClientApp`.
+  - [x] Run `npm run lint` from `inex/ClientApp`.
+  - [x] Confirm no new `any` in touched TypeScript files.
+
+### Review Findings
+
+- [x] [Review][Patch] Hub period control did not propagate to drill-down launch targets [`inex/ClientApp/src/pages/Reports/ReportList.tsx`]
+- [x] [Review][Patch] Category report active-category filtering and parent aggregation changed data semantics [`inex/ClientApp/src/pages/Reports/ReportCategory.tsx`]
+- [x] [Review][Patch] Monthly history chart drill-through was mouse-only [`inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx`]
+- [x] [Review][Patch] Budget report transaction drill-through was mouse-only [`inex/ClientApp/src/pages/Reports/ReportBudgetSpending.tsx`]
+- [x] [Review][Patch] Dashboard MoM card showed a misleading 0% when prior savings baseline was zero [`inex/ClientApp/src/pages/Dashboard.tsx`]
+- [x] [Review][Patch] Report actions had weak fallback behavior for share/export/configure [`inex/ClientApp/src/pages/Reports.tsx`]
+- [x] [Review][Patch] Accessible summary rows used unstable label keys and unclear label column headers [`inex/ClientApp/src/pages/Reports/ReportAccessibleSummary.tsx`]
+- [x] [Review][Patch] Budget progress displayed spent-with-zero-budget as 0% instead of over budget [`inex/ClientApp/src/components/primitives/Progress.tsx`]
+- [x] [Review][Defer] Monthly history report still uses the pre-existing USD report currency behavior [`inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx`] - deferred, pre-existing
 
 ## Prerequisites
 
@@ -264,13 +276,56 @@ GPT-5.3-Codex
 
 ### Debug Log References
 
+- 2026-06-04: Confirmed prerequisites from `docs/implementation/sprint-status.yaml`: Epic 6, Story 10.1c, Story 10.2, Story 10.3a, Story 10.3b, and Story 10.3c are marked `done`. Individual 10.1c/10.2/10.3a/10.3b story docs still show `review`, so sprint status is treated as the current delivery state for this run.
+- 2026-06-04: `AGENTS.md` and `docs/project-context.md` were requested but are absent from this worktree. Prompt-provided AGENTS instructions and `CLAUDE.md` plus planning/story context were loaded instead.
+- 2026-06-04: `npm ci` was required because `inex/ClientApp/node_modules` was absent. No package files were changed.
+- 2026-06-04: `npm run build` and `npm run lint` initially hit sandbox-related Node filesystem access errors and passed when rerun with escalation.
+- 2026-06-05: In-app Browser/Node REPL control failed with `windows sandbox failed: spawn setup refresh`; visual QA used headless Chrome DevTools Protocol fallback against local Vite and mocked existing API responses.
+- 2026-06-05: Visual QA refreshed after mobile bottom-nav fix. Evidence saved under `docs/implementation/visual-qa/10-4/`; summary confirms no horizontal overflow and no bottom-nav occlusion for `/dashboard`, `/reports`, and `/reports/category` at 1440px and 390px.
+- 2026-06-05: Added-`any` diff scan returned no matches.
+- 2026-06-05: BMad code review completed with Blind Hunter, Edge Case Hunter, and Acceptance Auditor layers. Fixed hub period propagation, preserved category data semantics, added keyboard drill-through paths, hardened report actions, fixed MoM zero-baseline display, stabilized accessible summary rows, and fixed zero-budget progress display.
+- 2026-06-05: Final `npm run build`, `npm run lint`, added-`any` scan, and visual QA refresh passed after review fixes. `qa-summary.json` generated at `2026-06-05T07:17:38.752Z`.
+
 ### Completion Notes List
 
-- Story context created via bmad-create-story workflow for key `10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome`.
-- Story status set to `ready-for-dev` and includes implementation guardrails for route IA, dashboard landing, reports hub, drill-down chrome, and chart accessibility summaries.
-- Validation pass applied to ensure explicit dashboard route requirements, drill-down action placement constraints, and no-regression route preservation notes are present.
-- Ultimate context engine analysis completed - comprehensive developer guide created.
+- Rebuilt Dashboard as the authenticated landing surface using existing report API flows for month cards, spending heatmap, and net-worth chart summary.
+- Rebuilt Reports hub as grouped launch cards with hub-only period/configure controls while preserving nested report routes.
+- Added drill-down route chrome with All reports, Share, Export, and Print actions only on report detail routes.
+- Added reusable accessible report summaries and route-specific summaries for dashboard charts, category report, budget progress, monthly history, and spending heatmap.
+- Completed required build, lint, added-`any` scan, and visual QA screenshot matrix.
+- Resolved BMad review patch findings and deferred one pre-existing monthly-history currency behavior for future report-domain work.
 
 ### File List
 
 - docs/implementation/10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome.md
+- docs/implementation/deferred-work.md
+- docs/implementation/sprint-status.yaml
+- docs/implementation/visual-qa/10-4/dashboard-1440.png
+- docs/implementation/visual-qa/10-4/dashboard-390.png
+- docs/implementation/visual-qa/10-4/reports-hub-1440.png
+- docs/implementation/visual-qa/10-4/reports-hub-390.png
+- docs/implementation/visual-qa/10-4/report-category-1440.png
+- docs/implementation/visual-qa/10-4/report-category-390.png
+- docs/implementation/visual-qa/10-4/qa-summary.json
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/components/SpendingHeatmap.tsx
+- inex/ClientApp/src/components/primitives/Progress.tsx
+- inex/ClientApp/src/layouts/AppShell.css
+- inex/ClientApp/src/layouts/AppShell.tsx
+- inex/ClientApp/src/model/Report/ReportCategoryDetails.ts
+- inex/ClientApp/src/pages/Dashboard.tsx
+- inex/ClientApp/src/pages/Dashboard/dashboard.css
+- inex/ClientApp/src/pages/Reports.tsx
+- inex/ClientApp/src/pages/Reports/ReportAccessibleSummary.tsx
+- inex/ClientApp/src/pages/Reports/ReportBudgetSpending.tsx
+- inex/ClientApp/src/pages/Reports/ReportCategory.tsx
+- inex/ClientApp/src/pages/Reports/ReportList.tsx
+- inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx
+- inex/ClientApp/src/pages/Reports/ReportSpendingHeatmap.tsx
+- inex/ClientApp/src/pages/Reports/reports.css
+
+### Change Log
+
+- 2026-06-05: Implemented Dashboard/Reports chrome split, accessible summaries, responsive visual QA evidence, and required frontend quality gates for Story 10.4.
+- 2026-06-05: Applied BMad code review fixes for period propagation, preserved category data semantics, keyboard drill-through access, report action fallbacks, MoM baseline handling, and progress/summary accessibility.

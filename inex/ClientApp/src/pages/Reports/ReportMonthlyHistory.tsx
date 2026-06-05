@@ -1,186 +1,176 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  ComposedChart,
-  Line,
   Bar,
+  CartesianGrid,
+  ComposedChart,
+  LabelList,
+  Legend,
+  Line,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LabelList,
-  ReferenceLine,
 } from "recharts";
-import { Space, Typography, Card, Row, Col, Statistic, Grid } from "antd";
-import { ArrowUpOutlined, ArrowDownOutlined, BankOutlined } from '@ant-design/icons';
-
-const { useBreakpoint } = Grid;
-import dayjs from "dayjs";
-import { DatePicker } from "antd";
+import { ArrowDown, ArrowUp, Banknote } from "lucide-react";
+import { Num } from "../../components/primitives";
 import { useGetHistoryReportQuery } from "../../store/report/report-api";
+import type { HistoryReportItem } from "../../store/report/report-api";
+import ReportAccessibleSummary from "./ReportAccessibleSummary";
+import "./reports.css";
 
-const { Title } = Typography;
+interface LabelProps {
+  x?: number | string;
+  y?: number | string;
+  value?: number | string;
+}
 
 const ReportMonthlyHistory = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [year, setYear] = useState(dayjs().year());
-  const { data: historyResponse } = useGetHistoryReportQuery({ year, currency: "USD" });
+  const location = useLocation();
+  const requestedYear = Number(new URLSearchParams(location.search).get("year"));
+  const [year, setYear] = useState(Number.isFinite(requestedYear) && requestedYear > 0 ? requestedYear : dayjs().year());
+  const currency = "USD";
+  const { data: historyResponse, isLoading } = useGetHistoryReportQuery({ year, currency });
   const history = historyResponse?.data ?? [];
-  const screens = useBreakpoint();
-  const isMobile = screens.md === false;
 
-  const handleYearChange = (date: any, dateString: string | string[]) => {
+  const handleYearChange = (date: Dayjs | null) => {
     if (date) {
       setYear(date.year());
+      navigate(`/reports/history?year=${date.year()}`, { replace: false });
     }
   };
 
+  useEffect(() => {
+    if (Number.isFinite(requestedYear) && requestedYear > 0) {
+      setYear(requestedYear);
+    }
+  }, [requestedYear]);
+
   const totals = useMemo(() => {
     return history.reduce(
-      (acc: any, curr: any) => ({
+      (acc, curr) => ({
         income: acc.income + curr.income,
         expense: acc.expense + curr.expense,
         savings: acc.savings + curr.savings,
       }),
-      { income: 0, expense: 0, savings: 0 }
+      { income: 0, expense: 0, savings: 0 },
     );
   }, [history]);
 
-  const currencyFormatter = (value: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const currencyFormatter = (value: number) => new Intl.NumberFormat(i18n.language, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
 
-  const tooltipFormatter = (value: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
-  };
+  const tooltipFormatter = (value: number) => new Intl.NumberFormat(i18n.language, {
+    style: "currency",
+    currency,
+  }).format(value);
 
   const compactFormatter = (value: number) => {
     if (Math.abs(value) >= 1000) {
-      return (value / 1000).toFixed(1) + 'k';
+      return `${(value / 1000).toFixed(1)}k`;
     }
     return value.toFixed(0);
   };
 
-  const CustomizedLabel = (props: any) => {
-    const { x, y, value } = props;
-    const fill = value >= 0 ? '#3f8600' : '#cf1322';
+  const CustomizedLabel = ({ x, y, value }: LabelProps) => {
+    const numericValue = Number(value ?? 0);
+    const fill = numericValue >= 0 ? "var(--income-600)" : "var(--expense-600)";
     return (
-      <text x={x} y={y} dy={-10} fill={fill} fontSize={14} textAnchor="middle" fontWeight="bold">
-        {compactFormatter(value)}
+      <text x={x} y={y} dy={-10} fill={fill} fontSize={13} textAnchor="middle" fontWeight="600">
+        {compactFormatter(numericValue)}
       </text>
     );
   };
 
-  const handleBarClick = (data: any) => {
-    if (data && data.month) {
-      const monthStr = data.month.toString().padStart(2, '0');
+  const handleBarClick = (data: { month?: number }) => {
+    if (data.month) {
+      const monthStr = data.month.toString().padStart(2, "0");
       navigate(`/reports/category?interval=${year}-${monthStr}`);
     }
   };
 
+  const summaryRows = history.map((item: HistoryReportItem) => ({
+    key: item.month,
+    label: item.monthName,
+    value: <Num value={item.savings} currency={currency} kind={item.savings >= 0 ? "income" : "expense"} />,
+    detail: `${t("reports.income")}: ${tooltipFormatter(item.income)} | ${t("reports.expense")}: ${tooltipFormatter(item.expense)}`,
+    actionLabel: t("reports.viewCategoryReport"),
+    onAction: () => handleBarClick({ month: item.month }),
+  }));
+
   return (
-    <div style={{ padding: "20px" }}>
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        <Space>
-            <Title level={4}>{t("reports.interval")}</Title>
-            <DatePicker picker="year" onChange={handleYearChange} defaultValue={dayjs()} allowClear={false} />
-        </Space>
+    <div className="reports-workspace">
+      <section className="report-panel">
+        <div className="report-toolbar">
+          <div>
+            <span className="reports-hub-section__title">{t("reports.interval")}</span>
+            <h2 className="report-title">{t("reports.historyReport")}</h2>
+          </div>
+          <div className="report-toolbar__control">
+            <span className="report-toolbar__label">{t("reports.yearControl")}</span>
+            <DatePicker picker="year" value={dayjs().year(year)} onChange={handleYearChange} allowClear={false} inputReadOnly />
+          </div>
+        </div>
+      </section>
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={8}>
-            <Card>
-              <Statistic
-                title={t("reports.totalIncome")}
-                value={totals.income}
-                precision={2}
-                valueStyle={{ color: '#3f8600' }}
-                prefix={<ArrowUpOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card>
-              <Statistic
-                title={t("reports.totalExpense")}
-                value={Math.abs(totals.expense)}
-                precision={2}
-                valueStyle={{ color: '#cf1322' }}
-                prefix={<ArrowDownOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card>
-              <Statistic
-                title={t("reports.savings")}
-                value={totals.savings}
-                precision={2}
-                valueStyle={{ color: totals.savings >= 0 ? '#3f8600' : '#cf1322' }}
-                prefix={<BankOutlined />}
-              />
-            </Card>
-          </Col>
-        </Row>
+      <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
+        <div className="report-stat">
+          <span>{t("reports.totalIncome")}</span>
+          <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={totals.income} currency={currency} kind="income" /></strong>
+        </div>
+        <div className="report-stat">
+          <span>{t("reports.totalExpense")}</span>
+          <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={Math.abs(totals.expense)} currency={currency} kind="expense" /></strong>
+        </div>
+        <div className="report-stat">
+          <span>{t("reports.savings")}</span>
+          <strong><Banknote size={16} aria-hidden="true" /> <Num value={totals.savings} currency={currency} kind={totals.savings >= 0 ? "income" : "expense"} /></strong>
+        </div>
+      </section>
 
-        <div style={{ height: isMobile ? 300 : 500, width: "100%" }}>
+      <section className="report-panel">
+        <div className="report-chart-box" aria-busy={isLoading}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={history}
-              margin={{
-                top: 30,
-                right: 20,
-                bottom: 30,
-                left: 20,
-              }}
-            >
-              <CartesianGrid stroke="#f5f5f5" />
-              <ReferenceLine y={0} stroke="#bfbfbf" />
+            <ComposedChart data={history} margin={{ top: 30, right: 20, bottom: 30, left: 20 }}>
+              <CartesianGrid stroke="var(--border-1)" />
+              <ReferenceLine y={0} stroke="var(--border-strong)" />
               <XAxis dataKey="monthName" />
-              <YAxis
-                tickFormatter={currencyFormatter}
-                domain={[(dataMin: number) => dataMin * 1.2, (dataMax: number) => dataMax * 1.2]}
-              />
-              <Tooltip formatter={tooltipFormatter} />
+              <YAxis tickFormatter={currencyFormatter} domain={[(dataMin: number) => dataMin * 1.2, (dataMax: number) => dataMax * 1.2]} />
+              <Tooltip formatter={(value) => tooltipFormatter(Number(value))} />
               <Legend />
-              <Bar dataKey="income" barSize={20} fill="#82ca9d" name={t("reports.income")} onClick={handleBarClick} cursor="pointer">
-                <LabelList
-                  dataKey="income"
-                  position="top"
-                  formatter={compactFormatter}
-                  fill="#3f8600"
-                  style={{ fontWeight: 'bold', fontSize: 14 }}
-                />
+              <Bar dataKey="income" barSize={20} fill="var(--income-200)" name={t("reports.income")} onClick={(data) => handleBarClick(data as { month?: number })} cursor="pointer">
+                <LabelList dataKey="income" position="top" formatter={(value: number) => compactFormatter(value)} fill="var(--income-600)" />
               </Bar>
-              <Bar dataKey="expense" barSize={20} fill="#ff7300" name={t("reports.expense")} onClick={handleBarClick} cursor="pointer">
-                <LabelList
-                  dataKey="expense"
-                  position="top"
-                  formatter={compactFormatter}
-                  fill="#cf1322"
-                  style={{ fontWeight: 'bold', fontSize: 14 }}
-                />
+              <Bar dataKey="expense" barSize={20} fill="var(--expense-200)" name={t("reports.expense")} onClick={(data) => handleBarClick(data as { month?: number })} cursor="pointer">
+                <LabelList dataKey="expense" position="top" formatter={(value: number) => compactFormatter(value)} fill="var(--expense-600)" />
               </Bar>
-              <Line type="monotone" dataKey="savings" stroke="#413ea0" name={t("reports.savings")}>
-                <LabelList
-                  dataKey="savings"
-                  content={<CustomizedLabel />}
-                />
+              <Line type="monotone" dataKey="savings" stroke="var(--brand-ink)" name={t("reports.savings")}>
+                <LabelList dataKey="savings" content={<CustomizedLabel />} />
               </Line>
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-      </Space>
+      </section>
+
+      {summaryRows.length > 0 && (
+        <ReportAccessibleSummary
+          title={t("reports.historySummaryTitle")}
+          caption={t("reports.historySummaryCaption")}
+          labelHeader={t("reports.month")}
+          valueHeader={t("reports.summaryValue")}
+          rows={summaryRows}
+        />
+      )}
     </div>
   );
 };
