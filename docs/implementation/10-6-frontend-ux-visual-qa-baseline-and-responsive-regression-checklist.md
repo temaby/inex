@@ -1,6 +1,6 @@
 # Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
 
-Status: ready-for-dev
+Status: blocked
 
 ## Story
 
@@ -30,6 +30,7 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 | 10.1b | Shared primitives (`Num`, `InExButton`, `InExDrawer`, `EmptyState`, etc.) |
 | 10.1c | App shell and navigation (desktop top nav + mobile bottom nav)            |
 | 10.2  | Transactions ledger redesign                                              |
+| 10.2a | Transactions design gap remediation                                       |
 | 10.3a | Accounts management redesign                                              |
 | 10.3b | Categories management redesign                                            |
 | 10.3c | Budgets management redesign                                               |
@@ -68,7 +69,7 @@ Epic 10 rebuilds the production React app to implement the `docs/design` visual 
 **Epic 10 sequence:**
 
 ```
-10.1a → 10.1b → 10.1c → 10.2 → 10.3a/b/c → 10.4 → 10.5a/b → 10.6 (this story)
+10.1a → 10.1b → 10.1c → 10.2 → 10.2a → 10.3a/b/c → 10.4 → 10.5a/b → 10.6 (this story)
 ```
 
 **Dashboard route:** QA verifies `/dashboard` as delivered by Story 10.4 on top of completed Epic 6 dashboard/report data work. `/` may redirect there, but QA must capture `/dashboard` directly so the baseline matches the implemented landing route. Story 10.6 must not implement or duplicate Epic 6 dashboard/report data or API behavior.

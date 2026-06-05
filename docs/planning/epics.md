@@ -185,11 +185,11 @@ FR-AWS-008: Epic 9 — CI/CD GitHub Actions → ECR → ECS rolling deploy
 
 FR-UX-001: Epic 10 - App shell and navigation redesign
 FR-UX-002: Epic 10 - Design tokens and shared frontend primitives
-FR-UX-003: Epic 10 - Transactions ledger redesign
+FR-UX-003: Epic 10 - Transactions ledger redesign and Transactions design gap remediation
 FR-UX-004: Epic 10 - Management pages redesign for Accounts, Categories, and Budgets
 FR-UX-005: Epic 10 - Reports hub, dashboard landing, and report drill-down chrome
 FR-UX-006: Epic 10 - Profile/settings and auth redesign
-FR-UX-007: Epic 10 - Visual QA baseline and responsive regression checks
+FR-UX-007: Epic 10 - Visual QA baseline and responsive regression checks after Transactions design gap remediation
 
 ## Epic List
 
@@ -265,9 +265,9 @@ The production React app implements the `docs/design` visual system: custom shel
 - Epic 7 Story 7.2 may be scheduled with this epic, but route lazy-loading remains Epic 7 ownership
 
 **Execution order:**
-10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6.
+10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6.
 
-Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b are done.
+Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Story 10.2a are done.
 
 ---
 
@@ -1298,7 +1298,7 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
-Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b are done.
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Story 10.2a are done.
 
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 
@@ -1399,6 +1399,36 @@ So that I can scan recent movement, filter quickly, and understand cash flow wit
 **Given** the story is complete
 **When** visual QA is run
 **Then** screenshots are captured for desktop populated, mobile populated, filter-active, filter-empty, and drawer-open states
+
+### Story 10.2a: Frontend UX - Transactions Design Gap Remediation
+
+**Dependency:** Story 10.2 must be complete. This story must complete before Story 10.6.
+
+As an invited account holder,
+I want the Transactions ledger scope, row meaning, and filter controls to match the design contract,
+So that transaction review is self-explanatory without hidden context or color-only cues.
+
+**Acceptance Criteria:**
+
+**Given** an active Transactions period
+**When** `/transactions` renders
+**Then** KPI values, supporting copy, visible currency context, ledger period badge, toolbar visible/total count, segmented-control counts, and pagination summary use one explicit localized scope contract
+
+**Given** grouped transaction rows render
+**When** a date is today, yesterday, or an older localized date
+**Then** the day header uses the correct friendly localized label and keeps item counts plus day totals visible
+
+**Given** a transaction category has parent context or the row account currency differs from the base display currency
+**When** the row renders
+**Then** metadata shows `Parent > Child` where applicable, transfers remain neutral, non-base rows show a muted approximate base-currency subline when rate data is available, and income/expense values include explicit signs or a reachable signage preference
+
+**Given** the advanced filter drawer is opened
+**When** filters render
+**Then** there is one intentional filter entry point, the drawer contains Date range, Account, Category, Tags/refs, and Amount equivalent in one typed form, URL/filter-chip compatibility is preserved, and touched TypeScript files add no new `any`
+
+**Given** the story is complete
+**When** `npm run build`, `npm run lint`, and visual QA run
+**Then** all pass and screenshots cover populated, filter-active, filter drawer open, long category paths, long amounts, and mobile ledger rows without horizontal overflow or bottom-nav occlusion
 
 ### Story 10.3a: Frontend UX - Accounts Management Redesign
 
@@ -1545,6 +1575,8 @@ So that authentication feels reliable and consistent with the finance app.
 **Then** screenshots cover login, register, loading state, validation error state, and API error state
 
 ### Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
+
+**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Story 10.2a are done.
 
 As a developer,
 I want a repeatable visual QA process for the redesigned UI,

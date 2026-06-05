@@ -107,6 +107,7 @@
     "addDrawerTitle": "Добавить транзакцию",
     "add": "Добавить",
     "filter": "Фильтр",
+    "filters": "Фильтры",
     "filtersActive": "Фильтры применены",
     "status": "Статус",
     "amount": "Сумма",
@@ -148,16 +149,29 @@
     "editDrawerSubtitle": "Измените или удалите выбранную строку журнала.",
     "tags": "Теги",
     "refs": "Ссылки",
+    "tagsAndRefs": "Теги / ссылки",
     "anyAmount": "Любая",
     "minAmount": "Минимальная сумма",
     "maxAmount": "Максимальная сумма",
+    "dateRange": "Диапазон дат",
+    "minAmountEquivalent": "Минимум в базовой валюте",
+    "maxAmountEquivalent": "Максимум в базовой валюте",
+    "approxBaseAmount": "Примерно",
     "uncategorized": "Без категории",
     "unknownAccount": "Неизвестный счёт",
     "itemCount_one": "{{count}} запись",
     "itemCount_few": "{{count}} записи",
     "itemCount_many": "{{count}} записей",
     "itemCount_other": "{{count}} записи",
-    "paginationSummary": "Показано {{visible}} из {{total}} транзакций",
+    "toolbarCount": "{{visible}} из {{total}} транзакций за {{period}}",
+    "paginationSummary": "Показано {{visible}} из {{total}} транзакций за {{period}}",
+    "period": {
+      "allActiveDates": "Все активные даты"
+    },
+    "day": {
+      "today": "Сегодня",
+      "yesterday": "Вчера"
+    },
     "emptyDescription": "Добавьте первую транзакцию, чтобы начать журнал.",
     "filterEmptyTitle": "Нет подходящих транзакций",
     "filterEmptyDescription": "Активные фильтры не совпали с текущей страницей журнала.",
@@ -167,7 +181,9 @@
       "expenses": "Расходы",
       "netFlow": "Чистый поток",
       "filteredPage": "Текущая страница журнала",
-      "updatesWithLedger": "Обновляется по видимому журналу"
+      "updatesWithLedger": "Обновляется по видимому журналу",
+      "visibleRows": "{{count}} видимых строк за {{period}}",
+      "baseCurrencyContext": "Видимая страница в {{currency}}, где есть курсы"
     },
     "loading": {
       "initial": "Загружаем транзакции",

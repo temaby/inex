@@ -89,6 +89,26 @@
     margin: 0;
 }
 
+.transactions-period-badge,
+.transactions-toolbar-count {
+    border-radius: var(--radius-1);
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 0;
+}
+
+.transactions-period-badge {
+    background: var(--bg-muted);
+    border: 1px solid var(--border-1);
+    color: var(--fg-2);
+    padding: 3px 8px;
+}
+
+.transactions-toolbar-count {
+    color: var(--fg-3);
+}
+
 .transactions-filter-indicator {
     align-items: center;
     background: var(--income-50);
@@ -289,6 +309,10 @@
     margin-top: 3px;
 }
 
+.transactions-category-path {
+    overflow-wrap: anywhere;
+}
+
 .transactions-row-token {
     background: transparent;
     border: 0;
@@ -321,8 +345,18 @@
 }
 
 .transactions-row-amount {
+    display: grid;
+    gap: 3px;
     font-weight: 700;
+    justify-items: end;
     text-align: right;
+}
+
+.transactions-row-amount-equivalent {
+    color: var(--fg-4);
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .transactions-row-chevron {
@@ -444,6 +478,11 @@
         overflow-x: auto;
     }
 
+    .transactions-ledger-controls > div:first-child {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
     .transactions-search {
         flex-basis: auto;
         max-width: none;
@@ -495,6 +534,7 @@
     .transactions-row-amount {
         grid-column: 1 / 3;
         grid-row: 1;
+        justify-items: start;
         text-align: left;
     }
 

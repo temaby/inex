@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Badge } from "antd";
+import { Alert } from "antd";
 import { Filter, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -11,10 +11,8 @@ import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
 import type { TransactionFilter } from "../store/transactions/transactions-slice";
 import {
-    Field,
     InExButton,
     InExDrawer,
-    Input,
     Num,
     SegmentedControl,
     type MoneyKind,
@@ -23,35 +21,22 @@ import TransactionCreate from "./Transactions/TransactionCreate";
 import TransactionFilterForm from "./Transactions/TransactionFilterForm";
 import TransactionList from "./Transactions/TransactionList";
 import { buildTransactionFilterSearch } from "./Transactions/transaction-filter-url";
+import {
+    emptyLedgerFilter,
+    emptyLedgerMetrics,
+    formatTransactionPeriodLabel,
+    getBaseCurrencyCode,
+    type LedgerMetrics,
+    type LedgerTypeFilter,
+    type LedgerUiFilter,
+} from "./Transactions/transaction-ledger-utils";
 import "./Transactions/transactions-ledger.css";
-
-export type LedgerTypeFilter = "all" | "income" | "expense" | "transfer";
-
-export interface LedgerUiFilter {
-    type: LedgerTypeFilter;
-    search: string;
-    minAmount: string;
-    maxAmount: string;
-}
-
-export interface LedgerSummary {
-    income: number;
-    expense: number;
-    net: number;
-}
 
 interface FilterChip {
     key: string;
     label: string;
     onClear: () => void;
 }
-
-const emptyLedgerFilter: LedgerUiFilter = {
-    type: "all",
-    search: "",
-    minAmount: "",
-    maxAmount: "",
-};
 
 const isTransactionFilterActive = (filter: TransactionFilter): boolean =>
     filter.accountIds.length > 0 ||
@@ -87,11 +72,12 @@ const Transactions = () => {
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
     const filterState = useAppSelector(state => state.transactions.filter);
     const formError = useAppSelector(state => state.transactions.error);
+    const exchangeRates = useAppSelector(state => state.rates.items);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
     const [ledgerFilter, setLedgerFilter] = useState<LedgerUiFilter>(emptyLedgerFilter);
-    const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary>({ income: 0, expense: 0, net: 0 });
+    const [ledgerMetrics, setLedgerMetrics] = useState<LedgerMetrics>(emptyLedgerMetrics);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
 
     const activeAccounts = useMemo(
@@ -105,6 +91,11 @@ const Transactions = () => {
 
     const filterActive = isTransactionFilterActive(filterState) || isLedgerUiFilterActive(ledgerFilter);
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
+    const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
+    const periodLabel = useMemo(
+        () => formatTransactionPeriodLabel(filterState.range, t("transactions.period.allActiveDates")),
+        [filterState.range, t],
+    );
 
     const clearServerFilter = (nextFilter: TransactionFilter) => {
         navigate(`${location.pathname}${buildTransactionFilterSearch(nextFilter)}`, { replace: true });
@@ -190,40 +181,28 @@ const Transactions = () => {
     const kpiItems = [
         {
             label: t("transactions.kpi.income"),
-            value: ledgerSummary.income,
+            value: ledgerMetrics.income,
             kind: "income" as MoneyKind,
-            sub: t("transactions.kpi.filteredPage"),
+            sub: t("transactions.kpi.visibleRows", { count: ledgerMetrics.visibleCount, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.expenses"),
-            value: ledgerSummary.expense,
+            value: ledgerMetrics.expense,
             kind: "expense" as MoneyKind,
-            sub: t("transactions.kpi.filteredPage"),
+            sub: t("transactions.kpi.visibleRows", { count: ledgerMetrics.visibleCount, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.netFlow"),
-            value: ledgerSummary.net,
-            kind: ledgerSummary.net > 0 ? "income" as MoneyKind : ledgerSummary.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
-            sub: t("transactions.kpi.updatesWithLedger"),
+            value: ledgerMetrics.net,
+            kind: ledgerMetrics.net > 0 ? "income" as MoneyKind : ledgerMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
+            sub: t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency }),
         },
     ];
 
     const headerActions = (
-        <>
-            <Badge dot={filterActive} title={filterIndicatorTitle}>
-                <InExButton
-                    icon={<SlidersHorizontal size={16} />}
-                    kind="ghost"
-                    onClick={() => setFilterDrawerOpen(true)}
-                    size="md"
-                >
-                    {t("transactions.filter")}
-                </InExButton>
-            </Badge>
-            <InExButton icon={<Plus size={16} />} kind="primary" onClick={() => setAddDrawerOpen(true)} size="md">
-                {t("transactions.add")}
-            </InExButton>
-        </>
+        <InExButton icon={<Plus size={16} />} kind="primary" onClick={() => setAddDrawerOpen(true)} size="md">
+            {t("transactions.add")}
+        </InExButton>
     );
 
     return (
@@ -238,7 +217,7 @@ const Transactions = () => {
                                     {ledgerInitialLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
-                                        <Num value={item.value} kind={item.kind} currency="" size={30} />
+                                        <Num value={item.value} kind={item.kind} currency={baseCurrency} signage="signed" size={30} />
                                     )}
                                 </div>
                                 <div className="transactions-kpi__sub">{item.sub}</div>
@@ -250,8 +229,16 @@ const Transactions = () => {
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
                                 <h2>{t("transactions.ledger")}</h2>
+                                <span className="transactions-period-badge">{periodLabel}</span>
+                                <span className="transactions-toolbar-count">
+                                    {t("transactions.toolbarCount", {
+                                        visible: ledgerMetrics.visibleCount,
+                                        total: ledgerMetrics.totalCount,
+                                        period: periodLabel,
+                                    })}
+                                </span>
                                 {filterActive && (
-                                    <span className="transactions-filter-indicator">
+                                    <span className="transactions-filter-indicator" title={filterIndicatorTitle}>
                                         <Filter size={13} />
                                         {t("transactions.filtersActive")}
                                     </span>
@@ -263,7 +250,7 @@ const Transactions = () => {
                                 onClick={() => setFilterDrawerOpen(true)}
                                 size="sm"
                             >
-                                {t("transactions.advancedFilters")}
+                                {t("transactions.filters")}
                             </InExButton>
                         </div>
 
@@ -271,10 +258,10 @@ const Transactions = () => {
                             <SegmentedControl
                                 onChange={(value) => setLedgerFilter(prev => ({ ...prev, type: value as LedgerTypeFilter }))}
                                 options={[
-                                    { key: "all", label: t("transactions.all") },
-                                    { key: "income", label: t("transactions.income") },
-                                    { key: "expense", label: t("transactions.expense") },
-                                    { key: "transfer", label: t("transactions.transfer") },
+                                    { key: "all", label: `${t("transactions.all")} ${ledgerMetrics.typeCounts.all}` },
+                                    { key: "income", label: `${t("transactions.income")} ${ledgerMetrics.typeCounts.income}` },
+                                    { key: "expense", label: `${t("transactions.expense")} ${ledgerMetrics.typeCounts.expense}` },
+                                    { key: "transfer", label: `${t("transactions.transfer")} ${ledgerMetrics.typeCounts.transfer}` },
                                 ]}
                                 value={ledgerFilter.type}
                             />
@@ -305,12 +292,15 @@ const Transactions = () => {
 
                         <TransactionList
                             accounts={allAccounts}
+                            baseCurrency={baseCurrency}
                             categories={allCategories}
+                            exchangeRates={exchangeRates}
                             ledgerFilter={ledgerFilter}
                             onAddTransaction={() => setAddDrawerOpen(true)}
                             onClearFilters={clearAllFilters}
                             onInitialLoadingChange={setLedgerInitialLoading}
-                            onSummaryChange={setLedgerSummary}
+                            onMetricsChange={setLedgerMetrics}
+                            periodLabel={periodLabel}
                         />
                     </section>
                 </section>
@@ -341,25 +331,9 @@ const Transactions = () => {
                     accounts={activeAccounts}
                     categories={activeCategories}
                     filter={filterParam}
+                    ledgerFilter={ledgerFilter}
+                    onLedgerFilterChange={setLedgerFilter}
                 />
-                <div className="transactions-local-filter-fields">
-                    <Field label={t("transactions.minAmount")}>
-                        <Input
-                            id="transactions-min-amount"
-                            onChange={(event) => setLedgerFilter(prev => ({ ...prev, minAmount: event.target.value }))}
-                            placeholder="0.00"
-                            value={ledgerFilter.minAmount}
-                        />
-                    </Field>
-                    <Field label={t("transactions.maxAmount")}>
-                        <Input
-                            id="transactions-max-amount"
-                            onChange={(event) => setLedgerFilter(prev => ({ ...prev, maxAmount: event.target.value }))}
-                            placeholder={t("transactions.anyAmount")}
-                            value={ledgerFilter.maxAmount}
-                        />
-                    </Field>
-                </div>
                 {formError && (
                     <Alert
                         className="transactions-form-error"
