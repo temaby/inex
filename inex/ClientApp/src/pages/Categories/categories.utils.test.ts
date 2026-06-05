@@ -154,6 +154,8 @@ describe("category spend utilities", () => {
         expect(stats.available).toBe(false);
         expect(stats.totalSpend).toBe(0);
         expect(stats.distribution).toEqual([]);
+        expect(stats.byCategoryId.get(1)?.totalSpend).toBe(0);
+        expect(stats.byCategoryId.get(1)?.transactionCount).toBe(0);
     });
 
     it("uses only exchange rates from the selected base currency", () => {

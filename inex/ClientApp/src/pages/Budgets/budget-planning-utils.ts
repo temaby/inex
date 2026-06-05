@@ -56,7 +56,7 @@ export const getBudgetReportCurrency = (
     userCurrencyId?: number,
 ) => {
     const profileCurrency = currencies.find((currency) => currency.id === userCurrencyId)?.key.trim();
-    return profileCurrency || BUDGET_REPORT_CURRENCY;
+    return profileCurrency || null;
 };
 
 export const getReportMetricsState = ({
@@ -89,7 +89,16 @@ export const getBudgetReportForBudget = (
     const matchingItems = reportItems.filter((reportItem) =>
         reportItem.categoryIds.some((categoryId) => budget.categoryIds.includes(categoryId)),
     );
-    if (matchingItems.length === 0) return undefined;
+    if (matchingItems.length === 0) {
+        return {
+            categoryName: budget.name,
+            categoryIds: budget.categoryIds,
+            budgetedAmount: budget.value,
+            spentAmount: 0,
+            remainingAmount: budget.value,
+            percentageUsed: 0,
+        };
+    }
 
     const spentAmount = matchingItems.reduce((sum, item) => sum + item.spentAmount, 0);
     const remainingAmount = budget.value - spentAmount;

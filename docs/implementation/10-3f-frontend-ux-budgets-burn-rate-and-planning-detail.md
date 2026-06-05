@@ -58,6 +58,10 @@ so that monthly budget health is accurate, actionable, and not shaped by backend
 - [x] [Post-Merge Review][Patch] Treat future budget months as zero elapsed days, completed months as zero remaining days, and disable unsupported period years in create/edit pickers. [`inex/ClientApp/src/pages/Budgets.tsx`, `inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx`, `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
 - [x] [Post-Merge Review][Patch] Hide edit snapshot metrics after the edited period no longer matches the selected report month. [`inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx`]
 - [x] [Post-Merge Review][Patch] Return focus to the Add budget trigger after Escape and Cancel drawer close paths and document interaction QA evidence. [`inex/ClientApp/src/pages/Budgets.tsx`, `docs/implementation/visual-qa/10-3f/qa-summary.json`]
+- [x] [Post-Merge Review][Patch] Keep budget report queries skipped when profile currency lookup fails or does not contain the user's currency instead of falling back to USD. [`inex/ClientApp/src/pages/Budgets.tsx`, `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
+- [x] [Post-Merge Review][Patch] Display the resolved profile/request currency rather than report metadata when rendering budget amounts. [`inex/ClientApp/src/pages/Budgets.tsx`]
+- [x] [Post-Merge Review][Patch] Keep categorized budgets scannable with zero-spend metrics when the report has no matching category item. [`inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
+- [x] [Post-Merge Review][Patch] Collapse budget rows before tablet widths can clip the seven-column grid. [`inex/ClientApp/src/pages/Budgets/budgets.css`]
 
 ## Dev Notes
 
@@ -110,6 +114,8 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: Post-merge BMad review found hardcoded USD report currency, stale selected-month query data risk, and mobile drawer evidence issues; fixes were applied with focused Vitest and refreshed drawer QA.
 - 2026-06-05: Second post-merge BMad review found the report query still sent an initial USD request before currencies loaded, future/past month pace boundaries were off by one, unsupported period years were selectable, edit snapshots could become stale after period edits, and Budgets drawer focus return lacked evidence; fixes were applied and verified with focused Vitest and route smoke.
 - 2026-06-05: Browser route smoke with the existing API contracts confirmed `/budgets` requested `currency=PLN` with no USD report request, had no 390px/360px overflow, and returned focus to `Add budget` after Escape and Cancel; evidence recorded in `docs/implementation/visual-qa/10-3f/qa-summary.json`.
+- 2026-06-05: Third post-merge BMad review found currency lookup failure could still trigger USD fallback, display currency could prefer mismatched metadata, categorized budgets with no report item showed unavailable metrics, and 769-969px budget rows could clip; fixes were applied with focused Vitest and CSS updates.
+- 2026-06-05: Round-3 route smoke confirmed `/budgets` requests `currency=PLN`, ignores mismatched USD report metadata for display, skips report requests when `/currencies` fails, collapses rows at 969px/900px, and restores Add budget focus after Escape/Cancel; evidence recorded in `docs/implementation/visual-qa/10-3f/qa-summary.json`.
 
 ### Completion Notes List
 
@@ -122,6 +128,8 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - Follow-up derives the report/display currency from the authenticated user's currency, uses month-scoped `currentData`, clamps the shared drawer, and refreshes Budgets drawer-open visual QA at 390px and 360px.
 - Second follow-up skips report fetching until profile currency resolution, corrects planning-period pace math, guards unsupported period years, hides stale edit snapshots, and verifies drawer Escape/Cancel focus return.
 - Browser screenshot refresh was attempted after the second follow-up, but the in-app browser process could not write PNG files to the workspace (`EPERM`); interaction evidence is recorded in the QA summary JSON.
+- Third follow-up removes the final USD fallback path, aligns display currency to the profile/request currency, keeps categorized no-spend budgets scannable, and collapses rows at tablet widths.
+- Budgets QA summary now includes round-3 PLN display, currency-failure, tablet-collapse, and drawer focus-return smoke evidence.
 
 ### File List
 
@@ -142,3 +150,5 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: Implemented Budgets burn-rate and planning detail completion, review fixes, tests, locale updates, and refreshed visual QA evidence.
 - 2026-06-05: Applied post-merge report currency, selected-month current-data, shared drawer viewport, and Budgets drawer visual QA fixes.
 - 2026-06-05: Applied second post-merge report query gating, pace boundary, period picker, edit snapshot, and drawer focus-return fixes with focused utility tests and route smoke.
+- 2026-06-05: Applied third post-merge currency fallback, display currency, zero-spend categorized budget, and tablet row layout fixes with focused utility tests.
+- 2026-06-05: Added round-3 Budgets route-smoke evidence for PLN display, currency failure, tablet row collapse, and drawer focus return.

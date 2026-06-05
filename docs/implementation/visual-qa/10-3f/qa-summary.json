@@ -156,5 +156,93 @@
       "hasHorizontalOverflow": false
     },
     "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 700.00 USD / 1,000.00 USD 300.00 USD left / 533.33 USD ahead of pace Budgeted 1,000.00 USD Spent 700.00 USD Remaining 300.00 USD Used 70% used Over budget 0 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Rent budget 70% used Apr 2026 May 2026 Jun 2026 Jul 2026 Aug 2026 Search budgets Copy from May 2026 Add budget Rent b"
+  },
+  {
+    "name": "round3-pln-smoke-1440",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1425,
+    "clientWidth": 1425,
+    "hasHorizontalOverflow": false,
+    "currencyRequestChecks": {
+      "firstReportRequest": "GET /api/reports/budget/comparison?year=2026&month=6&currency=PLN",
+      "requestedProfileCurrency": true,
+      "requestedHardcodedUsd": false,
+      "displayCurrencySource": "resolved profile/request currency",
+      "metadataCurrencyWasUsdInMock": true,
+      "metadataMismatchIgnored": true
+    },
+    "routeSmoke": {
+      "foodBudgetVisible": true,
+      "categorizedBudgetWithoutReportItemShowsZeroSpend": true,
+      "allVisibleAmountsUsePln": true
+    },
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,520.00 PLN / 3,700.00 PLN 1,180.00 PLN left / 1,780.00 PLN ahead of pace Budgeted 3,700.00 PLN Spent 2,520.00 PLN Remaining 1,180.00 PLN Used 68% used Over budget 1 Food budget 63% used Savings budget 0% used"
+  },
+  {
+    "name": "round3-tablet-row-collapse-969",
+    "title": "Budgets",
+    "viewport": {
+      "width": 969,
+      "height": 900
+    },
+    "scrollWidth": 954,
+    "clientWidth": 954,
+    "hasHorizontalOverflow": false,
+    "layoutChecks": {
+      "budgetListHeaderDisplay": "none",
+      "budgetRowGridColumns": "840.667px",
+      "rowCollapsedBeforeTabletClipping": true
+    },
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget 2,520.00 PLN / 3,700.00 PLN Food budget Food Groceries and cafes Food 63% used 83.33 PLN/day"
+  },
+  {
+    "name": "round3-drawer-close-focus-390",
+    "title": "Budgets",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "drawerBounds": {
+      "left": 0,
+      "right": 390,
+      "width": 390
+    },
+    "drawerWithinViewport": true,
+    "interactionChecks": {
+      "escapeClosesDrawer": true,
+      "escapeReturnsFocusTo": "Add budget",
+      "closedDialogVisible": false,
+      "hasHorizontalOverflowAfterClose": false
+    },
+    "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget 2,520.00 PLN / 3,700.00 PLN Add budget Food budget Food Groceries and cafes Food 63% used"
+  },
+  {
+    "name": "round3-currency-failure-1440",
+    "title": "Budgets",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1425,
+    "clientWidth": 1425,
+    "hasHorizontalOverflow": false,
+    "currencyRequestChecks": {
+      "currenciesEndpointFailed": true,
+      "reportRequests": [],
+      "requestedHardcodedUsd": false,
+      "reportQuerySkippedUntilCurrencyResolved": true
+    },
+    "routeSmoke": {
+      "budgetsRemainVisibleAndEditable": true,
+      "metricsShowFailureState": true
+    },
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets MONTH PLANNING Jun 2026 budget Metrics failed / 3,700.00 Metrics failed Metrics failed Budgeted 3,700.00 Spent Metrics failed Remaining Metrics failed Used Metrics failed Food budget Budget metrics could not load. Editing remains available. Retry"
   }
 ]

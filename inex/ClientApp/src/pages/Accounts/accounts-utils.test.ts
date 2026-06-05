@@ -107,4 +107,13 @@ describe("accounts value helpers", () => {
     expect(groups.every((group) => group.baseSubtotal === 0)).toBe(true);
     expect(groups.every((group) => group.share === 0)).toBe(true);
   });
+
+  it("does not show false zero shares when overall equivalent data is incomplete", () => {
+    const displayAccounts = buildDisplayAccounts(accounts, summaries.slice(0, 2), "USD", rates);
+    const groups = makeCurrencyGroups(displayAccounts, null);
+
+    expect(groups.find((group) => group.currency === "PLN")?.baseSubtotal).toBe(200);
+    expect(groups.find((group) => group.currency === "PLN")?.share).toBeNull();
+    expect(groups.find((group) => group.currency === "EUR")?.share).toBeNull();
+  });
 });

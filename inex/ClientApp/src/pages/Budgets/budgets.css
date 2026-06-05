@@ -603,6 +603,33 @@
   }
 }
 
+@media (max-width: 980px) {
+  .budgets-list__head {
+    display: none;
+  }
+
+  .budget-row {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-row__pace,
+  .budget-row__amount,
+  .budget-row__budgeted {
+    display: flex;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .budget-row__pace::before,
+  .budget-row__amount::before,
+  .budget-row__budgeted::before {
+    color: var(--fg-3);
+    content: attr(data-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-600);
+  }
+}
+
 @media (max-width: 768px) {
   .budgets-hero {
     grid-template-columns: 1fr;
@@ -629,31 +656,6 @@
 
   .budgets-toolbar__actions {
     justify-content: flex-start;
-  }
-
-  .budgets-list__head {
-    display: none;
-  }
-
-  .budget-row {
-    grid-template-columns: 1fr;
-  }
-
-  .budget-row__pace,
-  .budget-row__amount,
-  .budget-row__budgeted {
-    display: flex;
-    justify-content: space-between;
-    text-align: left;
-  }
-
-  .budget-row__pace::before,
-  .budget-row__amount::before,
-  .budget-row__budgeted::before {
-    color: var(--fg-3);
-    content: attr(data-label);
-    font-size: var(--fs-12);
-    font-weight: var(--fw-600);
   }
 
   .budget-edit-form__grid,

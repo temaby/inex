@@ -54,6 +54,9 @@ so that category structure can be managed with current financial context.
 - [x] [Post-Merge Review][Patch] Inherit parent budget links to descendant leaf categories without overriding direct child budgets. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
 - [x] [Post-Merge Review][Patch] Fetch current-period transactions through the existing paged list contract so direct navigation does not permanently show spend unavailable, while retaining complete-cache fallback and unavailable treatment on fetch failure. [`inex/ClientApp/src/pages/Categories.tsx`]
 - [x] [Post-Merge Review][Patch] Match category exchange rates by both base and target currency to avoid using rates from another base. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
+- [x] [Post-Merge Review][Patch] Reset all category spend stats when any conversion is missing so unavailable mode cannot leave partial spend ordering behind. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
+- [x] [Post-Merge Review][Patch] Require cached transaction ranges to cover the full final day before using them as complete current-month cache. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Post-Merge Review][Patch] Fetch current-month budgets through the existing budget list contract so direct navigation can show Budgeted chips and snapshots without relying on another route's cache. [`inex/ClientApp/src/pages/Categories.tsx`]
 
 ## Dev Notes
 
@@ -109,6 +112,8 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: BMad integrated code review completed; actionable Categories findings fixed.
 - 2026-06-05: Post-merge BMad review found parent-category budgets were not visible on by-spend leaf rows; inheritance was added and covered by focused Vitest.
 - 2026-06-05: Second post-merge BMad review found direct navigation left spend permanently unavailable without complete transaction cache; Categories now loads the current period through the existing transaction contract, and route smoke confirmed visible spend with no overflow.
+- 2026-06-05: Third post-merge BMad review found conversion-miss unavailable mode could retain partial spend, date-only cache ranges were too permissive, and budget chips depended on prior budget-route cache; fixes were applied with focused Vitest coverage.
+- 2026-06-05: Round-3 route smoke confirmed direct `/categories` navigation fetches current budgets and transactions, shows Food spend `400.00 PLN`, and has no horizontal overflow; evidence recorded in `docs/implementation/visual-qa/10-3e/qa-summary.json`.
 
 ### Completion Notes List
 
@@ -119,6 +124,8 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - Added EN/RU locale copy and visual QA evidence for required desktop/mobile states.
 - Follow-up fixed parent budget inheritance for descendant leaves in by-spend rows and inline snapshots.
 - Second follow-up fixed direct-navigation spend loading and stricter exchange-rate matching.
+- Third follow-up resets spend stats on conversion miss, requires complete cached period ranges, and fetches current-month budgets through the existing contract.
+- Categories QA summary now includes round-3 direct-navigation spend and budget-chip smoke evidence.
 
 ### File List
 
@@ -140,3 +147,5 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Implemented Categories spend and budget signals, review fixes, tests, locale updates, and refreshed visual QA evidence.
 - 2026-06-05: Applied post-merge parent-budget inheritance fix and focused utility test coverage.
 - 2026-06-05: Applied second post-merge Categories transaction loading and exchange-rate base matching fixes with focused utility test coverage and route smoke.
+- 2026-06-05: Applied third post-merge Categories conversion-miss reset, cache-range strictness, and current-budget fetch fixes with focused utility test coverage.
+- 2026-06-05: Added round-3 Categories direct-navigation route-smoke evidence.
