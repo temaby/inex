@@ -265,9 +265,9 @@ The production React app implements the `docs/design` visual system: custom shel
 - Epic 7 Story 7.2 may be scheduled with this epic, but route lazy-loading remains Epic 7 ownership
 
 **Execution order:**
-10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6.
+10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.3d/10.3e/10.3f -> 10.4 -> 10.5a/10.5b -> 10.6.
 
-Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Story 10.2a are done.
+Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation stories derived from the Accounts, Categories, and Budgets gap review files; they must complete before Story 10.6. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
 
 ---
 
@@ -1298,7 +1298,7 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
-Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Story 10.2a are done.
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.3d/10.3e/10.3f -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation stories derived from the Accounts, Categories, and Budgets gap review files; they must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
 
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 
@@ -1502,6 +1502,36 @@ So that monthly budget health is easy to compare.
 **When** `npm run build`, `npm run lint`, and visual QA run
 **Then** all pass and screenshots cover populated, empty, and drawer-open states
 
+### Story 10.3d: Frontend UX - Accounts Design Gap Remediation
+
+**Dependency:** Story 10.3d starts after Story 10.3a and the Accounts design gap review are complete. It may run in parallel with Stories 10.3e and 10.3f when EN/RU locale edits, shared primitives, and route ownership are actively coordinated.
+
+As an invited account holder,
+I want the Accounts workspace to finish the balance-scanning and workflow details found in the design gap review,
+So that account value, currency groups, empty states, and edit flows are trustworthy on desktop and mobile.
+
+Implementation source of truth: `docs/implementation/10-3d-frontend-ux-accounts-design-gap-remediation.md`.
+
+### Story 10.3e: Frontend UX - Categories Spend And Budget Signals
+
+**Dependency:** Story 10.3e starts after Story 10.3b and the Categories design gap review are complete. It may run in parallel with Stories 10.3d and 10.3f when EN/RU locale edits, cached data ownership, and route ownership are actively coordinated.
+
+As an invited account holder,
+I want Categories to show real spend, activity, and budget signals instead of placeholders,
+So that category structure can be managed with current financial context.
+
+Implementation source of truth: `docs/implementation/10-3e-frontend-ux-categories-spend-and-budget-signals.md`.
+
+### Story 10.3f: Frontend UX - Budgets Burn-Rate And Planning Detail Completion
+
+**Dependency:** Story 10.3f starts after Story 10.3c and the Budgets design gap review are complete. It may run in parallel with Stories 10.3d and 10.3e when EN/RU locale edits, shared drawer behavior, and route ownership are actively coordinated.
+
+As an invited account holder,
+I want Budgets to finish the burn-rate, row planning, and edit-flow details found in the design gap review,
+So that monthly budget health is accurate, actionable, and not shaped by backend-only form fields.
+
+Implementation source of truth: `docs/implementation/10-3f-frontend-ux-budgets-burn-rate-and-planning-detail.md`.
+
 ### Story 10.4: Frontend UX - Reports Hub, Dashboard Landing, And Drill-Down Chrome
 
 As an invited account holder,
@@ -1576,7 +1606,7 @@ So that authentication feels reliable and consistent with the finance app.
 
 ### Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
 
-**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Story 10.2a are done.
+**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
 
 As a developer,
 I want a repeatable visual QA process for the redesigned UI,

@@ -5,6 +5,11 @@ import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 
 export const BUDGET_REPORT_CURRENCY = "USD";
 
+export interface BudgetCurrencyOption {
+    id: number;
+    key: string;
+}
+
 export type ReportMetricsState = "loading" | "error" | "unavailable" | "ready";
 
 export interface ReportMetricsStateInput {
@@ -42,6 +47,14 @@ const PERCENT_EPSILON = 0.001;
 export const getBudgetDisplayCurrency = (metadataCurrency?: string | null) => {
     const normalizedCurrency = metadataCurrency?.trim();
     return normalizedCurrency ? normalizedCurrency : BUDGET_REPORT_CURRENCY;
+};
+
+export const getBudgetReportCurrency = (
+    currencies: BudgetCurrencyOption[],
+    userCurrencyId?: number,
+) => {
+    const profileCurrency = currencies.find((currency) => currency.id === userCurrencyId)?.key.trim();
+    return profileCurrency || BUDGET_REPORT_CURRENCY;
 };
 
 export const getReportMetricsState = ({

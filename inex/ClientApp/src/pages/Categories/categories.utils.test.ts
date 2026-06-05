@@ -181,4 +181,37 @@ describe("category spend utilities", () => {
         expect(index.get(3)?.name).toBe("Budget 1");
         expect(index.has(4)).toBe(false);
     });
+
+    it("inherits nearest parent budget links for descendants without overriding direct child budgets", () => {
+        const categories = [
+            category(1, "Food"),
+            category(2, "Groceries", 1),
+            category(3, "Dining", 1),
+            category(4, "Snacks", 2),
+        ];
+        const budget = (
+            id: number,
+            categoryIds: number[],
+        ): BudgetDetails => ({
+            id,
+            key: `budget-${id}`,
+            name: `Budget ${id}`,
+            description: "",
+            value: 100,
+            categoryIds,
+            year: 2026,
+            month: 6,
+        });
+
+        const index = buildBudgetCategoryIndex(
+            [budget(1, [1]), budget(2, [2]), budget(3, [3])],
+            { year: 2026, month: 6 },
+            categories,
+        );
+
+        expect(index.get(1)?.name).toBe("Budget 1");
+        expect(index.get(2)?.name).toBe("Budget 2");
+        expect(index.get(3)?.name).toBe("Budget 3");
+        expect(index.get(4)?.name).toBe("Budget 2");
+    });
 });

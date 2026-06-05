@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Drawer, Grid } from "antd";
+import { Drawer } from "antd";
 import { X } from "lucide-react";
 
 export interface InExDrawerProps {
@@ -19,8 +19,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
     width = 440,
     children,
 }) => {
-    const screens = Grid.useBreakpoint();
-    const drawerWidth: number | string = screens.md === false ? "100%" : width;
+    const drawerWidth = `min(${width}px, 100vw)`;
 
     const titleNode = (
         <div>

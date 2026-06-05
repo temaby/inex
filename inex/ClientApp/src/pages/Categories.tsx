@@ -279,8 +279,8 @@ const Categories = () => {
     );
 
     const budgetByCategoryId = React.useMemo(
-        () => buildBudgetCategoryIndex(cachedBudgets, categoryStats.period),
-        [cachedBudgets, categoryStats.period],
+        () => buildBudgetCategoryIndex(cachedBudgets, categoryStats.period, categories),
+        [cachedBudgets, categories, categoryStats.period],
     );
 
     const bySpendRows = React.useMemo(() => {

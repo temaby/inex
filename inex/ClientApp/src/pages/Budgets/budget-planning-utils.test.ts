@@ -6,6 +6,7 @@ import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 import {
     BUDGET_REPORT_CURRENCY,
     getBudgetDisplayCurrency,
+    getBudgetReportCurrency,
     getBudgetEditSnapshot,
     getBudgetPaceMetrics,
     getBudgetReportForBudget,
@@ -29,6 +30,8 @@ describe("budget planning helpers", () => {
         expect(BUDGET_REPORT_CURRENCY).toBe("USD");
         expect(getBudgetDisplayCurrency()).toBe("USD");
         expect(getBudgetDisplayCurrency("EUR")).toBe("EUR");
+        expect(getBudgetReportCurrency([{ id: 2, key: "PLN" }], 2)).toBe("PLN");
+        expect(getBudgetReportCurrency([{ id: 2, key: "PLN" }], 9)).toBe("USD");
     });
 
     it("classifies report metric availability without hiding editable budget data", () => {

@@ -62,7 +62,13 @@
     "clientWidth": 390,
     "hasHorizontalOverflow": false,
     "bottomNavVisible": true,
-    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,650.00 USD -1.2% MoM 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.6% 1,000.00 USD USD 30.3% 500.00 USD EUR 9.1% 150.00 USD Account inventory Visible accounts: 3 / 4 active only: 3 active Active All By currency Flat list Search accounts PLN 1 account 60.6% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Salary and bills PLN 60.6% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD 1 account 30.3% of net w"
+    "drawerBounds": {
+      "left": 0,
+      "right": 390,
+      "width": 390
+    },
+    "drawerWithinViewport": true,
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,500.00 USD -1.3% MoM 2 active 2 currencies CURRENCY DISTRIBUTION By current balance PLN 66.7% 1,000.00 USD USD 33.3% 500.00 USD Account inventory Visible accounts: 2 / 2 active only: 2 active Active All By currency Flat list Search accounts PLN 1 account 66.7% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Salary and bills PLN 66.7% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD 1 account 33.3% of net worth 500.00 USD appr"
   },
   {
     "name": "mobile-360",
@@ -89,5 +95,24 @@
     "hasHorizontalOverflow": false,
     "bottomNavVisible": true,
     "textSample": "I InEx QA MANAGE Accounts Add account No accounts yet Add your first cash, bank, or card account so balances and currencies can be tracked here. Add account Dashboard Transactions Accounts Categories Budgets Reports"
+  },
+  {
+    "name": "drawer-open-360",
+    "title": "Accounts",
+    "viewport": {
+      "width": 360,
+      "height": 900
+    },
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "hasHorizontalOverflow": false,
+    "bottomNavVisible": true,
+    "drawerBounds": {
+      "left": 0,
+      "right": 360,
+      "width": 360
+    },
+    "drawerWithinViewport": true,
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,500.00 USD -1.3% MoM 2 active 2 currencies CURRENCY DISTRIBUTION By current balance PLN 66.7% 1,000.00 USD USD 33.3% 500.00 USD Account inventory Visible accounts: 2 / 2 active only: 2 active Active All By currency Flat list Search accounts PLN 1 account 66.7% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Salary and bills PLN 66.7% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD 1 account 33.3% of net worth 500.00 USD appr"
   }
 ]

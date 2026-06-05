@@ -15,8 +15,10 @@ import { BudgetComparisonDTO } from "../model/Report/BudgetReport";
 import Dropdown from "../components/Dropdown";
 import ExpressionInputNumber from "../components/ExpressionInputNumber";
 import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, SegmentedControl } from "../components/primitives";
+import apiClient from "../utils/apiClient";
 import { parseAxiosError } from "../utils/parseAxiosError";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
+import { useAppSelector } from "../store/hooks";
 import {
     useCopyBudgetsMutation,
     useCreateBudgetMutation,
@@ -25,10 +27,10 @@ import {
 import { useGetBudgetReportQuery } from "../store/budgetReport/budgetReport-api";
 import BudgetEditForm from "./Budgets/BudgetEditForm";
 import {
-    BUDGET_REPORT_CURRENCY,
     getBudgetDisplayCurrency,
     getBudgetEditSnapshot,
     getBudgetPaceMetrics,
+    getBudgetReportCurrency,
     getBudgetReportForBudget,
     getBudgetUsageStatus,
     getPeriodPayload,
@@ -54,6 +56,12 @@ type BudgetFormValues = BudgetEditState & { period: Dayjs };
 interface BudgetCategoryContext {
     categoryNames: string[];
     parentNames: string[];
+}
+
+interface CurrencyOption {
+    id: number;
+    key: string;
+    name: string;
 }
 
 const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
@@ -119,6 +127,8 @@ const Budgets = () => {
     const [searchText, setSearchText] = useState("");
     const [drawerError, setDrawerError] = useState<string | null>(null);
     const [copyError, setCopyError] = useState<string | null>(null);
+    const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
+    const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
 
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const year = searchParams.get("year");
@@ -143,17 +153,42 @@ const Budgets = () => {
 
     const selectedYear = selectedMonth.year();
     const selectedMonthNumber = selectedMonth.month() + 1;
+    const reportCurrency = useMemo(
+        () => getBudgetReportCurrency(currencies, userCurrencyId),
+        [currencies, userCurrencyId],
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+
+        apiClient.get<CurrencyOption[]>("/currencies")
+            .then(({ data }) => {
+                if (!cancelled) {
+                    setCurrencies(data);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setCurrencies([]);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const {
-        data: budgets = [],
+        currentData: currentBudgets,
         isLoading: isBudgetInitialLoading,
         isFetching: isBudgetFetching,
         error: budgetError,
         refetch: refetchBudgets,
     } = useGetBudgetsQuery({ year: selectedYear, month: selectedMonthNumber });
+    const budgets = currentBudgets ?? [];
 
     const {
-        data: budgetReport,
+        currentData: budgetReport,
         isLoading: isReportInitialLoading,
         isFetching: isReportFetching,
         error: reportError,
@@ -161,7 +196,7 @@ const Budgets = () => {
     } = useGetBudgetReportQuery({
         year: selectedYear,
         month: selectedMonthNumber,
-        currency: BUDGET_REPORT_CURRENCY,
+        currency: reportCurrency,
     });
 
     const [createBudget, { isLoading: isCreateLoading }] = useCreateBudgetMutation();
@@ -181,7 +216,7 @@ const Budgets = () => {
     );
 
     const reportItems = budgetReport?.data ?? [];
-    const currency = getBudgetDisplayCurrency(budgetReport?.metadata?.currency);
+    const currency = getBudgetDisplayCurrency(budgetReport?.metadata?.currency ?? reportCurrency);
     const reportMetricsState = getReportMetricsState({
         isLoading: isReportInitialLoading,
         isFetching: isReportFetching,
@@ -213,10 +248,11 @@ const Budgets = () => {
     const overBudgetCount = isReportReady
         ? budgets.filter((budget) => isOverBudget(getBudgetReportForBudget(budget, reportItems))).length
         : undefined;
-    const isRefreshing = (isBudgetFetching || isReportFetching) && hasBudgets;
-    const hasInitialBudgetError = Boolean(budgetError) && !hasBudgets;
-    const hasPartialBudgetError = Boolean(budgetError) && hasBudgets;
-    const showFirstUseEmpty = !isBudgetInitialLoading && !hasInitialBudgetError && !hasBudgets;
+    const isBudgetDataLoading = (isBudgetInitialLoading || isBudgetFetching) && currentBudgets === undefined;
+    const isRefreshing = (isBudgetFetching || isReportFetching) && currentBudgets !== undefined && hasBudgets;
+    const hasInitialBudgetError = Boolean(budgetError) && currentBudgets === undefined;
+    const hasPartialBudgetError = Boolean(budgetError) && currentBudgets !== undefined;
+    const showFirstUseEmpty = !isBudgetDataLoading && !hasInitialBudgetError && !hasBudgets;
     const previousMonth = selectedMonth.subtract(1, "month");
     const metricStateLabel = getMetricStateLabel(reportMetricsState, t);
     const today = dayjs();
@@ -656,7 +692,7 @@ const Budgets = () => {
                                     }
                                 />
                             )}
-                            {isBudgetInitialLoading && !hasBudgets ? (
+                            {isBudgetDataLoading ? (
                                 <BudgetSkeleton />
                             ) : showFirstUseEmpty ? (
                                 <EmptyState
