@@ -68,6 +68,18 @@
       "width": 390
     },
     "drawerWithinViewport": true,
+    "interactionChecks": {
+      "escapeClosesDrawer": true,
+      "escapeReturnsFocusTo": "Add budget",
+      "cancelClosesDrawer": true,
+      "cancelReturnsFocusTo": "Add budget",
+      "hasHorizontalOverflowAfterClose": false
+    },
+    "currencyRequestChecks": {
+      "firstReportRequest": "GET /api/reports/budget/comparison?year=2026&month=6&currency=PLN",
+      "requestedProfileCurrency": true,
+      "requestedHardcodedUsd": false
+    },
     "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 700.00 USD / 1,000.00 USD 300.00 USD left / 533.33 USD ahead of pace Budgeted 1,000.00 USD Spent 700.00 USD Remaining 300.00 USD Used 70% used Over budget 0 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Rent budget 70% used Apr 2026 May 2026 Jun 2026 Jul 2026 Aug 2026 Search budgets Copy from May 2026 Add budget Rent b"
   },
   {
@@ -139,6 +151,10 @@
       "width": 360
     },
     "drawerWithinViewport": true,
+    "interactionChecks": {
+      "settledDrawerWithinViewport": true,
+      "hasHorizontalOverflow": false
+    },
     "textSample": "I InEx QA PLAN Budgets MONTH PLANNING Jun 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 700.00 USD / 1,000.00 USD 300.00 USD left / 533.33 USD ahead of pace Budgeted 1,000.00 USD Spent 700.00 USD Remaining 300.00 USD Used 70% used Over budget 0 Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Rent budget 70% used Apr 2026 May 2026 Jun 2026 Jul 2026 Aug 2026 Search budgets Copy from May 2026 Add budget Rent b"
   }
 ]

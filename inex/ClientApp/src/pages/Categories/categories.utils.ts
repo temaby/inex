@@ -188,7 +188,9 @@ const toBaseCurrencyAmount = (
         return amount;
     }
 
-    const rate = exchangeRates.find((item) => sameCurrency(item.currencyTo, accountCurrency));
+    const rate = exchangeRates.find((item) =>
+        sameCurrency(item.currencyFrom, baseCurrency) && sameCurrency(item.currencyTo, accountCurrency),
+    );
     if (!rate || !Number.isFinite(rate.rate) || rate.rate <= 0) {
         return null;
     }

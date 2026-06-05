@@ -21,7 +21,7 @@ import {
     useUpdateBudgetMutation,
 } from "../../store/budgets/budgets-api";
 import { useAppDispatch } from "../../store/hooks";
-import { getPeriodPayload } from "./budget-planning-utils";
+import { getPeriodPayload, isBudgetPeriodDisabled } from "./budget-planning-utils";
 import type { BudgetEditSnapshot } from "./budget-planning-utils";
 
 interface BudgetEditFormProps {
@@ -84,6 +84,8 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({
     );
     const [state, dispatchLocal] = useReducer(reducer, defaultState);
     const isUpdating = isUpdateLoading || isDeleteLoading;
+    const snapshotMatchesSelectedPeriod =
+        state.year === selectedMonth.year() && state.month === selectedMonth.month() + 1;
 
     useEffect(() => {
         dispatchLocal({
@@ -216,6 +218,7 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({
                         size="large"
                         allowClear={false}
                         className="budgets-period-picker"
+                        disabledDate={isBudgetPeriodDisabled}
                         style={{ width: "100%" }}
                         value={dayjs()
                             .year(state.year || selectedMonth.year())
@@ -226,7 +229,7 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({
                     />
                 </Form.Item>
             </div>
-            {snapshot && (
+            {snapshot && snapshotMatchesSelectedPeriod && (
                 <section className="budget-edit-form__snapshot" aria-label={t("budgets.snapshot.title", {
                     month: selectedMonth.format("MMM YYYY"),
                 })}>

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { useTranslation } from "react-i18next";
 import { Alert, DatePicker, Form, Input, message } from "antd";
 import type { MenuProps } from "antd";
@@ -35,6 +36,7 @@ import {
     getBudgetUsageStatus,
     getPeriodPayload,
     getReportMetricsState,
+    isBudgetPeriodDisabled,
 } from "./Budgets/budget-planning-utils";
 import type {
     BudgetEditSnapshot,
@@ -128,6 +130,8 @@ const Budgets = () => {
     const [drawerError, setDrawerError] = useState<string | null>(null);
     const [copyError, setCopyError] = useState<string | null>(null);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
+    const [currenciesResolved, setCurrenciesResolved] = useState(false);
+    const drawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
 
     const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -153,9 +157,10 @@ const Budgets = () => {
 
     const selectedYear = selectedMonth.year();
     const selectedMonthNumber = selectedMonth.month() + 1;
+    const reportCurrencyResolved = userCurrencyId !== undefined && currenciesResolved;
     const reportCurrency = useMemo(
-        () => getBudgetReportCurrency(currencies, userCurrencyId),
-        [currencies, userCurrencyId],
+        () => reportCurrencyResolved ? getBudgetReportCurrency(currencies, userCurrencyId) : "",
+        [currencies, reportCurrencyResolved, userCurrencyId],
     );
 
     useEffect(() => {
@@ -165,11 +170,13 @@ const Budgets = () => {
             .then(({ data }) => {
                 if (!cancelled) {
                     setCurrencies(data);
+                    setCurrenciesResolved(true);
                 }
             })
             .catch(() => {
                 if (!cancelled) {
                     setCurrencies([]);
+                    setCurrenciesResolved(true);
                 }
             });
 
@@ -193,11 +200,13 @@ const Budgets = () => {
         isFetching: isReportFetching,
         error: reportError,
         refetch: refetchBudgetReport,
-    } = useGetBudgetReportQuery({
-        year: selectedYear,
-        month: selectedMonthNumber,
-        currency: reportCurrency,
-    });
+    } = useGetBudgetReportQuery(reportCurrencyResolved
+        ? {
+            year: selectedYear,
+            month: selectedMonthNumber,
+            currency: reportCurrency,
+        }
+        : skipToken);
 
     const [createBudget, { isLoading: isCreateLoading }] = useCreateBudgetMutation();
     const [copyBudgets, { isLoading: isCopyLoading }] = useCopyBudgetsMutation();
@@ -216,9 +225,11 @@ const Budgets = () => {
     );
 
     const reportItems = budgetReport?.data ?? [];
-    const currency = getBudgetDisplayCurrency(budgetReport?.metadata?.currency ?? reportCurrency);
+    const currency = reportCurrencyResolved
+        ? getBudgetDisplayCurrency(budgetReport?.metadata?.currency ?? reportCurrency)
+        : "";
     const reportMetricsState = getReportMetricsState({
-        isLoading: isReportInitialLoading,
+        isLoading: !reportCurrencyResolved || isReportInitialLoading,
         isFetching: isReportFetching,
         hasReportData: Boolean(budgetReport),
         hasError: Boolean(reportError),
@@ -310,9 +321,11 @@ const Budgets = () => {
         setDrawerOpen(false);
         setDrawerError(null);
         form.resetFields();
+        window.setTimeout(() => drawerTriggerRef.current?.focus(), 0);
     };
 
-    const openDrawer = () => {
+    const openDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+        drawerTriggerRef.current = event.currentTarget;
         setDrawerError(null);
         form.setFieldsValue({
             key: "",
@@ -372,7 +385,9 @@ const Budgets = () => {
 
     const retryAll = () => {
         refetchBudgets();
-        refetchBudgetReport();
+        if (reportCurrencyResolved) {
+            refetchBudgetReport();
+        }
     };
 
     return (
@@ -453,6 +468,7 @@ const Budgets = () => {
                             size="large"
                             allowClear={false}
                             className="budgets-period-picker"
+                            disabledDate={isBudgetPeriodDisabled}
                             onChange={handleDrawerPeriodChange}
                             placeholder={t("budgets.period")}
                         />
@@ -686,7 +702,15 @@ const Budgets = () => {
                                     type="warning"
                                     showIcon
                                     action={
-                                        <InExButton kind="ghost" size="sm" onClick={() => refetchBudgetReport()}>
+                                        <InExButton
+                                            kind="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                if (reportCurrencyResolved) {
+                                                    refetchBudgetReport();
+                                                }
+                                            }}
+                                        >
                                             {t("budgets.error.retry")}
                                         </InExButton>
                                     }

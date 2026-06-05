@@ -156,6 +156,24 @@ describe("category spend utilities", () => {
         expect(stats.distribution).toEqual([]);
     });
 
+    it("uses only exchange rates from the selected base currency", () => {
+        const categories = [category(1, "Travel")];
+
+        const stats = computeCategorySpendStats({
+            categories,
+            transactions: [transaction(1, 1, -200, "2026-06-01T08:00:00Z", "EUR")],
+            exchangeRates: [
+                { currencyFrom: "USD", currencyTo: "PLN", rate: 4 },
+                { currencyFrom: "GBP", currencyTo: "EUR", rate: 2 },
+                { currencyFrom: "USD", currencyTo: "EUR", rate: 5 },
+            ],
+            now: "2026-06-05T12:00:00Z",
+        });
+
+        expect(stats.available).toBe(true);
+        expect(stats.totalSpend).toBe(40);
+    });
+
     it("indexes only current-month budget links by category", () => {
         const budget = (
             id: number,
