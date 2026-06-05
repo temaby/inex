@@ -51,7 +51,9 @@ so that monthly budget health is accurate, actionable, and not shaped by backend
 - [x] [Review][Patch] Keep categoryless budgets scannable with safe zero-spend report metrics instead of unavailable rows. [`inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
 - [x] [Review][Patch] Delete budgets against the original record period and invalidate the original list when edits move a budget to another period. [`inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx`]
 - [x] [Review][Patch] Bump the locale resource version so newly added budget locale keys are not hidden by cached translation JSON. [`inex/ClientApp/src/i18n.ts`]
-- [x] [Review][Defer] Budget/report currency conversion beyond the existing report metadata/`currency=USD` contract. [`inex/ClientApp/src/pages/Budgets.tsx`] - deferred, requires a backend/product contract for per-budget or user-base currency conversion before frontend can compare values in mixed currencies.
+- [x] [Post-Merge Review][Patch] Derive report/display currency from the authenticated user's profile currency through the existing currencies contract instead of a hardcoded USD request. [`inex/ClientApp/src/pages/Budgets.tsx`, `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
+- [x] [Post-Merge Review][Patch] Use `currentData` for selected-month budget and report rendering so prior-month query data cannot appear under a newly selected month. [`inex/ClientApp/src/pages/Budgets.tsx`]
+- [x] [Post-Merge Review][Patch] Clamp the shared drawer to the viewport and refresh Budgets drawer-open 390px/360px visual QA evidence. [`inex/ClientApp/src/components/primitives/InExDrawer.tsx`, `docs/implementation/visual-qa/10-3f/`]
 
 ## Dev Notes
 
@@ -101,6 +103,7 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: `npm run test` passed from `inex/ClientApp` with 12 files and 50 tests.
 - 2026-06-05: Targeted visual QA refreshed in `docs/implementation/visual-qa/10-3f/qa-summary.json`; no horizontal overflow in populated hero, highest-burn list, report-error, drawer-open, expanded edit, empty, filter-empty, 1440px, 1024px, 390px, and 360px states.
 - 2026-06-05: BMad integrated code review completed; actionable Budgets findings fixed and mixed-currency contract gap deferred.
+- 2026-06-05: Post-merge BMad review found hardcoded USD report currency, stale selected-month query data risk, and mobile drawer evidence issues; fixes were applied with focused Vitest and refreshed drawer QA.
 
 ### Completion Notes List
 
@@ -110,6 +113,7 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - Added row parent context, category tags, spent/remaining/budgeted scan targets, percent used, daily pace, pace delta, and exact-limit status.
 - Replaced separate year/month fields with a single period picker in create/edit flows while preserving API payloads; kept visible `key` because the backend create/update contract requires it.
 - Added inline edit snapshot metrics, EN/RU locale copy, tests, and visual QA evidence for required states.
+- Follow-up derives the report/display currency from the authenticated user's currency, uses month-scoped `currentData`, clamps the shared drawer, and refreshes Budgets drawer-open visual QA at 390px and 360px.
 
 ### File List
 
@@ -118,6 +122,7 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - `inex/ClientApp/src/pages/Budgets/budgets.css`
 - `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`
 - `inex/ClientApp/src/pages/Budgets/budget-planning-utils.test.ts`
+- `inex/ClientApp/src/components/primitives/InExDrawer.tsx`
 - `inex/ClientApp/public/locales/en/translation.json`
 - `inex/ClientApp/public/locales/ru/translation.json`
 - `inex/ClientApp/src/i18n.ts`
@@ -127,3 +132,4 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 
 - 2026-06-05: Created ready-for-dev follow-up story.
 - 2026-06-05: Implemented Budgets burn-rate and planning detail completion, review fixes, tests, locale updates, and refreshed visual QA evidence.
+- 2026-06-05: Applied post-merge report currency, selected-month current-data, shared drawer viewport, and Budgets drawer visual QA fixes.

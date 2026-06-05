@@ -83,9 +83,3 @@ Items surfaced during review but out of scope for the originating story. Each en
 ## Deferred from: code review of 10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome.md (2026-06-05)
 
 - **Monthly history report still uses USD as the report currency** - `inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx` had pre-existing hardcoded USD query/formatting behavior before Story 10.4. Address in report-domain currency behavior work rather than this chrome-only story.
-
----
-
-## Deferred from: code review of 10-3f-frontend-ux-budgets-burn-rate-and-planning-detail.md (2026-06-05)
-
-- **Budget/report mixed-currency conversion needs a backend/product contract** - `inex/ClientApp/src/pages/Budgets.tsx` now uses the accepted budget report `currency=USD` request and report metadata display instead of deriving currency from `accounts[0]`. The frontend cannot safely convert `BudgetDetails.value` for mixed-currency budgets because the budget model has no per-budget currency field or user-base currency contract. Define that contract before changing comparisons.

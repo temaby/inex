@@ -51,6 +51,7 @@ so that category structure can be managed with current financial context.
 - [x] [Review][Patch] Mark spend stats unavailable instead of undercounting when exchange-rate conversion is missing or invalid. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
 - [x] [Review][Patch] Refresh the current-month period for long-lived tabs crossing month boundaries. [`inex/ClientApp/src/pages/Categories.tsx`]
 - [x] [Review][Patch] Bump the locale resource version so newly added category locale keys are not hidden by cached translation JSON. [`inex/ClientApp/src/i18n.ts`]
+- [x] [Post-Merge Review][Patch] Inherit parent budget links to descendant leaf categories without overriding direct child budgets. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
 
 ## Dev Notes
 
@@ -104,6 +105,7 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: `npm run test` passed from `inex/ClientApp` with 12 files and 50 tests.
 - 2026-06-05: Targeted visual QA refreshed in `docs/implementation/visual-qa/10-3e/qa-summary.json`; no horizontal overflow in populated spend, by-spend, expanded snapshot, first-use empty, filter-empty, 390px, and 360px states.
 - 2026-06-05: BMad integrated code review completed; actionable Categories findings fixed.
+- 2026-06-05: Post-merge BMad review found parent-category budgets were not visible on by-spend leaf rows; inheritance was added and covered by focused Vitest.
 
 ### Completion Notes List
 
@@ -112,6 +114,7 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - Removed dead inline actions and kept budget linkage read-only through cached/current budget data.
 - Corrected first-use empty to skip spend/list chrome and remove default-seeding UI without a backend contract.
 - Added EN/RU locale copy and visual QA evidence for required desktop/mobile states.
+- Follow-up fixed parent budget inheritance for descendant leaves in by-spend rows and inline snapshots.
 
 ### File List
 
@@ -131,3 +134,4 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 
 - 2026-06-05: Created ready-for-dev follow-up story.
 - 2026-06-05: Implemented Categories spend and budget signals, review fixes, tests, locale updates, and refreshed visual QA evidence.
+- 2026-06-05: Applied post-merge parent-budget inheritance fix and focused utility test coverage.

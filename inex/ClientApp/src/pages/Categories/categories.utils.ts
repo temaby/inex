@@ -379,16 +379,38 @@ export const sortLeafCategoriesBySpend = (
 export const buildBudgetCategoryIndex = (
     budgets: BudgetDetails[],
     period: CategoryPeriod,
+    categories: CategoryResponse[] = [],
 ): Map<number, BudgetDetails> => {
-    const index = new Map<number, BudgetDetails>();
+    const directIndex = new Map<number, BudgetDetails>();
+    const inheritedIndex = new Map<number, BudgetDetails>();
+    const categoriesById = new Map(categories.map((category) => [category.id, category]));
 
-    budgets
-        .filter((budget) => budget.year === period.year && budget.month === period.month)
-        .forEach((budget) => {
-            budget.categoryIds.forEach((categoryId) => {
-                index.set(categoryId, budget);
-            });
+    const currentBudgets = budgets.filter(
+        (budget) => budget.year === period.year && budget.month === period.month,
+    );
+
+    currentBudgets.forEach((budget) => {
+        budget.categoryIds.forEach((categoryId) => {
+            directIndex.set(categoryId, budget);
         });
+    });
 
-    return index;
+    categories.forEach((category) => {
+        if (directIndex.has(category.id)) return;
+
+        const visited = new Set<number>([category.id]);
+        let parentId = category.parentId;
+        while (parentId != null && !visited.has(parentId)) {
+            const parentBudget = directIndex.get(parentId);
+            if (parentBudget) {
+                inheritedIndex.set(category.id, parentBudget);
+                break;
+            }
+
+            visited.add(parentId);
+            parentId = categoriesById.get(parentId)?.parentId ?? null;
+        }
+    });
+
+    return new Map([...inheritedIndex, ...directIndex]);
 };
