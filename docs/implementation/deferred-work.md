@@ -77,3 +77,9 @@ Items surfaced during review but out of scope for the originating story. Each en
 - **`GetCategoriesReportData` silent data gap for inactive categories** — Transactions against inactive categories are summed in `categoryValues` but filtered categories (ACTIVE only) means those amounts never appear in output. Pre-existing behavioral issue; investigate during Report domain PR (#7).
 
 - **Validators not listed in spec Code Map** — `CategoryCreateValidator` and `CategoryUpdateValidator` were missed in the initial spec but caught during implementation. Add validators to the Code Map checklist for future domain rename specs.
+
+---
+
+## Deferred from: code review of 10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome.md (2026-06-05)
+
+- **Monthly history report still uses USD as the report currency** - `inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx` had pre-existing hardcoded USD query/formatting behavior before Story 10.4. Address in report-domain currency behavior work rather than this chrome-only story.

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
     ArrowLeftRight,
     BarChart3,
+    LayoutDashboard,
     LogOut,
     Target,
     Tag,
@@ -21,7 +22,7 @@ interface AppShellProps {
     children: React.ReactNode;
 }
 
-type NavKey = "transactions" | "accounts" | "categories" | "budgets" | "reports";
+type NavKey = "dashboard" | "transactions" | "accounts" | "categories" | "budgets" | "reports";
 
 interface NavItem {
     key: NavKey;
@@ -31,6 +32,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
+    { key: "dashboard", labelKey: "nav.dashboard", path: "/dashboard", icon: LayoutDashboard },
     { key: "transactions", labelKey: "nav.transactions", path: "/transactions", icon: ArrowLeftRight },
     { key: "accounts", labelKey: "nav.accounts", path: "/accounts", icon: Wallet },
     { key: "categories", labelKey: "nav.categories", path: "/categories", icon: Tag },

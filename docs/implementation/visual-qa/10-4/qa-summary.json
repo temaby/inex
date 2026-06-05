@@ -1,0 +1,100 @@
+{
+  "story": "10.4",
+  "generatedAt": "2026-06-05T07:17:38.752Z",
+  "server": "Vite 127.0.0.1:54992 with mocked existing API responses",
+  "browser": "Chrome DevTools Protocol headless Chrome fallback; in-app Browser unavailable due windows sandbox spawn setup refresh",
+  "screenshots": [
+    "dashboard-1440.png",
+    "reports-hub-1440.png",
+    "report-category-1440.png",
+    "dashboard-390.png",
+    "reports-hub-390.png",
+    "report-category-390.png"
+  ],
+  "metrics": {
+    "/dashboard-1440": {
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "lastSelector": ".dashboard-panel-grid",
+      "lastBottom": 967.984375,
+      "scrollY": 279,
+      "scrollHeight": 1279,
+      "clientHeight": 1000,
+      "navTop": 0,
+      "bottomNavColumns": 0
+    },
+    "/reports-1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "lastSelector": ".reports-workspace",
+      "lastBottom": 924.46875,
+      "scrollY": 0,
+      "scrollHeight": 1000,
+      "clientHeight": 1000,
+      "navTop": 0,
+      "bottomNavColumns": 0
+    },
+    "/reports/category?interval=2026-06-1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "lastSelector": ".report-accessible-summary",
+      "lastBottom": 959.484375,
+      "scrollY": 0,
+      "scrollHeight": 1000,
+      "clientHeight": 1000,
+      "navTop": 0,
+      "bottomNavColumns": 0
+    },
+    "/dashboard-390": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "lastSelector": ".dashboard-panel-grid",
+      "lastBottom": 672.46875,
+      "scrollY": 1848,
+      "scrollHeight": 2648,
+      "clientHeight": 800,
+      "navTop": 739,
+      "bottomNavColumns": 6
+    },
+    "/reports-390": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "lastSelector": ".reports-workspace",
+      "lastBottom": 671.953125,
+      "scrollY": 588,
+      "scrollHeight": 1388,
+      "clientHeight": 800,
+      "navTop": 739,
+      "bottomNavColumns": 6
+    },
+    "/reports/category?interval=2026-06-390": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "lastSelector": ".report-accessible-summary",
+      "lastBottom": 672.46875,
+      "scrollY": 694,
+      "scrollHeight": 1494,
+      "clientHeight": 800,
+      "navTop": 739,
+      "bottomNavColumns": 6
+    }
+  }
+}
