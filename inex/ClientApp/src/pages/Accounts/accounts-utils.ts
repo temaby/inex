@@ -109,7 +109,7 @@ export const hasBaseValues = (accounts: AccountDisplay[]): boolean =>
 
 export const makeCurrencyGroups = (
   items: AccountDisplay[],
-  totalAbsBaseValue: number,
+  totalAbsBaseValue: number | null,
 ): CurrencyGroup[] => {
   const byCurrency = new Map<string, AccountDisplay[]>();
   for (const account of items) {
@@ -128,7 +128,7 @@ export const makeCurrencyGroups = (
       const sortValue = baseSubtotal === null
         ? 0
         : groupAccounts.reduce((sum, account) => sum + Math.abs(account.baseValue ?? 0), 0);
-      const share = baseSubtotal !== null
+      const share = baseSubtotal !== null && totalAbsBaseValue !== null
         ? totalAbsBaseValue > 0
           ? (sortValue / totalAbsBaseValue) * 100
           : 0

@@ -28,7 +28,6 @@ import {
 import { useGetBudgetReportQuery } from "../store/budgetReport/budgetReport-api";
 import BudgetEditForm from "./Budgets/BudgetEditForm";
 import {
-    getBudgetDisplayCurrency,
     getBudgetEditSnapshot,
     getBudgetPaceMetrics,
     getBudgetReportCurrency,
@@ -131,6 +130,8 @@ const Budgets = () => {
     const [copyError, setCopyError] = useState<string | null>(null);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
     const [currenciesResolved, setCurrenciesResolved] = useState(false);
+    const [currencyLoadError, setCurrencyLoadError] = useState(false);
+    const [currencyReloadToken, setCurrencyReloadToken] = useState(0);
     const drawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
 
@@ -157,14 +158,16 @@ const Budgets = () => {
 
     const selectedYear = selectedMonth.year();
     const selectedMonthNumber = selectedMonth.month() + 1;
-    const reportCurrencyResolved = userCurrencyId !== undefined && currenciesResolved;
     const reportCurrency = useMemo(
-        () => reportCurrencyResolved ? getBudgetReportCurrency(currencies, userCurrencyId) : "",
-        [currencies, reportCurrencyResolved, userCurrencyId],
+        () => currenciesResolved ? getBudgetReportCurrency(currencies, userCurrencyId) : null,
+        [currencies, currenciesResolved, userCurrencyId],
     );
+    const reportCurrencyResolved = reportCurrency !== null;
+    const hasCurrencyResolutionError = currenciesResolved && !reportCurrencyResolved;
 
     useEffect(() => {
         let cancelled = false;
+        setCurrencyLoadError(false);
 
         apiClient.get<CurrencyOption[]>("/currencies")
             .then(({ data }) => {
@@ -176,6 +179,7 @@ const Budgets = () => {
             .catch(() => {
                 if (!cancelled) {
                     setCurrencies([]);
+                    setCurrencyLoadError(true);
                     setCurrenciesResolved(true);
                 }
             });
@@ -183,7 +187,7 @@ const Budgets = () => {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [currencyReloadToken]);
 
     const {
         currentData: currentBudgets,
@@ -200,7 +204,7 @@ const Budgets = () => {
         isFetching: isReportFetching,
         error: reportError,
         refetch: refetchBudgetReport,
-    } = useGetBudgetReportQuery(reportCurrencyResolved
+    } = useGetBudgetReportQuery(reportCurrency
         ? {
             year: selectedYear,
             month: selectedMonthNumber,
@@ -225,14 +229,12 @@ const Budgets = () => {
     );
 
     const reportItems = budgetReport?.data ?? [];
-    const currency = reportCurrencyResolved
-        ? getBudgetDisplayCurrency(budgetReport?.metadata?.currency ?? reportCurrency)
-        : "";
+    const currency = reportCurrency ?? "";
     const reportMetricsState = getReportMetricsState({
         isLoading: !reportCurrencyResolved || isReportInitialLoading,
         isFetching: isReportFetching,
         hasReportData: Boolean(budgetReport),
-        hasError: Boolean(reportError),
+        hasError: Boolean(reportError) || hasCurrencyResolutionError || currencyLoadError,
     });
     const isReportReady = reportMetricsState === "ready";
     const monthOptions = getMonthOptions(selectedMonth);
@@ -385,8 +387,11 @@ const Budgets = () => {
 
     const retryAll = () => {
         refetchBudgets();
-        if (reportCurrencyResolved) {
+        if (reportCurrency) {
             refetchBudgetReport();
+        } else {
+            setCurrenciesResolved(false);
+            setCurrencyReloadToken((current) => current + 1);
         }
     };
 
@@ -696,7 +701,7 @@ const Budgets = () => {
                                     }
                                 />
                             )}
-                            {reportError && (
+                            {(reportError || hasCurrencyResolutionError || currencyLoadError) && (
                                 <Alert
                                     message={t("budgets.error.reportMetrics")}
                                     type="warning"
@@ -706,8 +711,11 @@ const Budgets = () => {
                                             kind="ghost"
                                             size="sm"
                                             onClick={() => {
-                                                if (reportCurrencyResolved) {
+                                                if (reportCurrency) {
                                                     refetchBudgetReport();
+                                                } else {
+                                                    setCurrenciesResolved(false);
+                                                    setCurrencyReloadToken((current) => current + 1);
                                                 }
                                             }}
                                         >

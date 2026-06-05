@@ -34,7 +34,8 @@ describe("budget planning helpers", () => {
         expect(getBudgetDisplayCurrency()).toBe("USD");
         expect(getBudgetDisplayCurrency("EUR")).toBe("EUR");
         expect(getBudgetReportCurrency([{ id: 2, key: "PLN" }], 2)).toBe("PLN");
-        expect(getBudgetReportCurrency([{ id: 2, key: "PLN" }], 9)).toBe("USD");
+        expect(getBudgetReportCurrency([{ id: 2, key: "PLN" }], 9)).toBeNull();
+        expect(getBudgetReportCurrency([], 2)).toBeNull();
     });
 
     it("classifies report metric availability without hiding editable budget data", () => {
@@ -70,6 +71,20 @@ describe("budget planning helpers", () => {
             budgetedAmount: 150,
             spentAmount: 0,
             remainingAmount: 150,
+            percentageUsed: 0,
+        });
+    });
+
+    it("keeps categorized budgets scannable when the report has no matching spend item", () => {
+        const budget = createBudgetDetails({ name: "Food", value: 500, categoryIds: [1, 2] });
+        const result = getBudgetReportForBudget(budget, []);
+
+        expect(result).toMatchObject({
+            categoryName: "Food",
+            categoryIds: [1, 2],
+            budgetedAmount: 500,
+            spentAmount: 0,
+            remainingAmount: 500,
             percentageUsed: 0,
         });
     });

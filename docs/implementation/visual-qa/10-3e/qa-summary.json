@@ -76,5 +76,30 @@
     "hasHorizontalOverflow": false,
     "bottomNavVisible": true,
     "textSample": "I InEx QA MANAGE Categories Create your first category Categories help you classify spending and keep reports meaningful. Add a parent group or child category to start building your structure. Add manually Dashboard Transactions Accounts Categories Budgets Reports"
+  },
+  {
+    "name": "round3-direct-navigation-1440",
+    "title": "Categories",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "directNavigationFetchedCurrentBudgets": true,
+      "foodSpendVisible": true,
+      "foodSpendText": "400.00 PLN",
+      "budgetChipVisible": true,
+      "strictPeriodCoverageRequired": true,
+      "conversionMissUsesZeroedUnavailableMap": true
+    },
+    "requestLog": [
+      "GET /api/categories?mode=ALL",
+      "GET /api/budgets?year=2026&month=6",
+      "GET /api/transactions?mode=active&pageSize=250&page=1&startDate=2026-06-01&endDate=2026-06-30"
+    ],
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories JUNE 2026 SPEND 2,420.00 PLN Most spent in Travel 1,020.00 PLN Active 4 Parents 4 Children 0 By category PLN equivalent Travel 42% Rent 41% Food 17% Category structure 4 of 4 categories active Active All Add Tree By spend CATEGORY ACTIVITY SPEND Food Groceries and cafes Budgeted 1 txn last 5 Jun 400.00 PLN PLN - June 2026"
   }
 ]

@@ -12,7 +12,7 @@ import {
 import BasicPage from "../layouts/BasicPage";
 import type { BudgetDetails } from "../model/Budget/BudgetDetails";
 import type { TransactionResponse } from "../model/Transaction/TransactionResponse";
-import { budgetsApi } from "../store/budgets/budgets-api";
+import { budgetsApi, useGetBudgetsQuery } from "../store/budgets/budgets-api";
 import type { CategoryResponse } from "../store/categories/categories-api";
 import { useGetCategoriesQuery } from "../store/categories/categories-api";
 import type { RootState } from "../store";
@@ -98,9 +98,6 @@ const getPeriodBounds = ({ year, month }: CategoryPeriod) => ({
     end: new Date(year, month, 0, 23, 59, 59).getTime() / 1000,
 });
 
-const getFinalDayStart = ({ year, month }: CategoryPeriod) =>
-    new Date(year, month, 0).getTime() / 1000;
-
 const formatPeriodDate = (year: number, month: number, day: number) =>
     `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
@@ -130,7 +127,7 @@ const isUnfilteredPeriodCoveringQuery = (
     }
 
     const periodBounds = getPeriodBounds(period);
-    return start <= periodBounds.start && (end >= periodBounds.end || end >= getFinalDayStart(period));
+    return start <= periodBounds.start && end >= periodBounds.end;
 };
 
 const makeTransactionCacheKey = (args: TransactionQueryArgs) =>
@@ -270,20 +267,22 @@ const Categories = () => {
         isError,
         refetch,
     } = useGetCategoriesQuery("ALL");
+    const { data: currentMonthBudgets } = useGetBudgetsQuery(period);
     const cachedTransactions = useAppSelector((state) =>
         selectCachedTransactions(state.transactionsApi.queries, period),
     );
     const exchangeRates = useAppSelector((state) => state.rates.items);
     const cachedBudgets = useAppSelector((state) => {
-        const currentMonthBudgets = budgetsApi.endpoints.getBudgets.select(period)(state).data;
-        if (currentMonthBudgets !== undefined) {
-            return currentMonthBudgets;
+        const cachedCurrentMonthBudgets = budgetsApi.endpoints.getBudgets.select(period)(state).data;
+        if (cachedCurrentMonthBudgets !== undefined) {
+            return cachedCurrentMonthBudgets;
         }
         const legacyBudgets = state.budgets.items as BudgetDetails[];
         return legacyBudgets.filter((budget) =>
             budget.year === period.year && budget.month === period.month,
         );
     });
+    const budgetsForPeriod = currentMonthBudgets ?? cachedBudgets;
     const currentPeriodTransactions = periodTransactions ?? cachedTransactions;
 
     React.useEffect(() => {
@@ -356,8 +355,8 @@ const Categories = () => {
     );
 
     const budgetByCategoryId = React.useMemo(
-        () => buildBudgetCategoryIndex(cachedBudgets, categoryStats.period, categories),
-        [cachedBudgets, categories, categoryStats.period],
+        () => buildBudgetCategoryIndex(budgetsForPeriod, categoryStats.period, categories),
+        [budgetsForPeriod, categories, categoryStats.period],
     );
 
     const bySpendRows = React.useMemo(() => {

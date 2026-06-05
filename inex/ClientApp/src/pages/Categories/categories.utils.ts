@@ -229,6 +229,9 @@ const createEmptySpendStat = (categoryId: number): CategorySpendStat => ({
     lastActiveDate: null,
 });
 
+const createEmptySpendStatsMap = (categories: CategoryResponse[]): Map<number, CategorySpendStat> =>
+    new Map(categories.map((category) => [category.id, createEmptySpendStat(category.id)]));
+
 const addSpendToCategory = (
     stat: CategorySpendStat,
     spend: number,
@@ -250,16 +253,14 @@ export const computeCategorySpendStats = ({
     now,
 }: ComputeCategorySpendStatsArgs): CategorySpendStats => {
     const period = getCurrentPeriod(now);
-    const byCategoryId = new Map(
-        categories.map((category) => [category.id, createEmptySpendStat(category.id)]),
-    );
+    const byCategoryId = createEmptySpendStatsMap(categories);
     const categoriesById = new Map(categories.map((category) => [category.id, category]));
     const currency = getBaseCurrency(exchangeRates);
 
     if (transactions == null) {
         return {
             available: false,
-            byCategoryId,
+            byCategoryId: createEmptySpendStatsMap(categories),
             currency,
             distribution: [],
             period,
@@ -304,7 +305,7 @@ export const computeCategorySpendStats = ({
     if (hasConversionMiss) {
         return {
             available: false,
-            byCategoryId,
+            byCategoryId: createEmptySpendStatsMap(categories),
             currency,
             distribution: [],
             period,

@@ -45,6 +45,7 @@ so that account value, currency groups, empty states, and edit flows are trustwo
 - [x] [Review][Patch] Bump the locale resource version so newly added account locale keys are not hidden by cached translation JSON. [`inex/ClientApp/src/i18n.ts`]
 - [x] [Post-Merge Review][Patch] Clamp the shared drawer to the viewport and refresh Accounts drawer-open 390px/360px visual QA evidence. [`inex/ClientApp/src/components/primitives/InExDrawer.tsx`, `docs/implementation/visual-qa/10-3d/`]
 - [x] [Post-Merge Review][Patch] Show zero percent distribution shares for complete zero-balance currency groups instead of marking equivalents unavailable. [`inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
+- [x] [Post-Merge Review][Patch] Distinguish incomplete equivalent data from complete zero totals so account rows and currency groups do not show false zero shares or unavailable zero-balance rows. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
 
 ## Dev Notes
 
@@ -95,6 +96,8 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: BMad integrated code review completed; actionable Accounts findings fixed.
 - 2026-06-05: Post-merge BMad review found the mobile drawer screenshot captured an offscreen transition state; shared drawer width was clamped and Accounts drawer-open 390px/360px evidence was refreshed with `drawerWithinViewport: true`.
 - 2026-06-05: Second post-merge BMad edge-case review found complete zero-balance currency groups rendered unavailable shares; utility logic now returns `0` shares with focused Vitest coverage.
+- 2026-06-05: Third post-merge BMad review found zero-balance row shares and incomplete equivalent data could be confused; row and group share inputs now use `null` only for incomplete data and `0` for complete zero totals.
+- 2026-06-05: Round-3 route smoke confirmed `/accounts` renders Cash wallet, PLN base equivalents, no horizontal overflow, and updated evidence in `docs/implementation/visual-qa/10-3d/qa-summary.json`.
 
 ### Completion Notes List
 
@@ -104,6 +107,8 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - Added EN/RU locale copy and visual QA evidence for required desktop/mobile states.
 - Follow-up fixed shared drawer viewport clamping and refreshed Accounts drawer-open visual QA at 390px and 360px.
 - Second follow-up fixed zero-balance currency group share handling.
+- Third follow-up fixed zero-balance row shares while preventing false zero shares when any scoped account lacks summary/rate data.
+- Accounts QA summary now includes round-3 smoke evidence for complete versus incomplete equivalent share handling.
 
 ### File List
 
@@ -125,3 +130,5 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Implemented Accounts design gap remediation, review fixes, tests, locale updates, and refreshed visual QA evidence.
 - 2026-06-05: Applied post-merge drawer viewport fix and refreshed Accounts drawer visual QA evidence.
 - 2026-06-05: Applied second post-merge zero-balance share fix with focused utility test coverage.
+- 2026-06-05: Applied third post-merge account row/group share distinction with focused utility test coverage.
+- 2026-06-05: Added round-3 Accounts route-smoke evidence.

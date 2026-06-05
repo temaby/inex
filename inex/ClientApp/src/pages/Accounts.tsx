@@ -129,7 +129,7 @@ const Accounts = () => {
         [hasScopedBaseValues, scopedAccounts, summaryIds],
     );
 
-    const equivalentShareTotal = hasCompleteScopedBaseValues ? totalAbsBaseValue : 0;
+    const equivalentShareTotal = hasCompleteScopedBaseValues ? totalAbsBaseValue : null;
 
     const thisMonthNet = useMemo(
         () => scopedAccounts.reduce((sum, account) => sum + (account.thisMonthNetBase ?? 0), 0),
@@ -299,9 +299,11 @@ const Accounts = () => {
     };
 
     const renderRow = (account: AccountDisplay) => {
-        const share = account.baseValue === null || equivalentShareTotal === 0
+        const share = account.baseValue === null || equivalentShareTotal === null
             ? null
-            : Math.abs(account.baseValue / equivalentShareTotal) * 100;
+            : equivalentShareTotal > 0
+                ? Math.abs(account.baseValue / equivalentShareTotal) * 100
+                : 0;
         const expanded = expandedId === account.id;
         const accountValue = account.value;
         const balanceUnavailable = accountValue === undefined;
