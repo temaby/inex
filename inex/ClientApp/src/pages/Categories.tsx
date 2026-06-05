@@ -17,6 +17,7 @@ import type { CategoryResponse } from "../store/categories/categories-api";
 import { useGetCategoriesQuery } from "../store/categories/categories-api";
 import type { RootState } from "../store";
 import { useAppSelector } from "../store/hooks";
+import apiClient from "../utils/apiClient";
 import CategoryCreateForm from "./Categories/CategoryCreateForm";
 import { CategoryInlineEdit } from "./Categories/CategoryInlineEdit";
 import { CategoryRow } from "./Categories/CategoryRow";
@@ -72,6 +73,9 @@ interface TransactionQueryArgs {
     };
 }
 
+const CATEGORY_TRANSACTIONS_PAGE_SIZE = 250;
+const CATEGORY_TRANSACTIONS_MAX_PAGES = 40;
+
 const isTransactionsPagedData = (value: unknown): value is TransactionsPagedData =>
     isRecord(value) &&
     Array.isArray(value.data) &&
@@ -92,6 +96,17 @@ const isTransactionQueryArgs = (value: unknown): value is TransactionQueryArgs =
 const getPeriodBounds = ({ year, month }: CategoryPeriod) => ({
     start: new Date(year, month - 1, 1).getTime() / 1000,
     end: new Date(year, month, 0, 23, 59, 59).getTime() / 1000,
+});
+
+const getFinalDayStart = ({ year, month }: CategoryPeriod) =>
+    new Date(year, month, 0).getTime() / 1000;
+
+const formatPeriodDate = (year: number, month: number, day: number) =>
+    `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+const getPeriodQueryDates = ({ year, month }: CategoryPeriod) => ({
+    startDate: formatPeriodDate(year, month, 1),
+    endDate: formatPeriodDate(year, month, new Date(year, month, 0).getDate()),
 });
 
 const isUnfilteredPeriodCoveringQuery = (
@@ -115,7 +130,7 @@ const isUnfilteredPeriodCoveringQuery = (
     }
 
     const periodBounds = getPeriodBounds(period);
-    return start <= periodBounds.start && end >= periodBounds.end;
+    return start <= periodBounds.start && (end >= periodBounds.end || end >= getFinalDayStart(period));
 };
 
 const makeTransactionCacheKey = (args: TransactionQueryArgs) =>
@@ -170,6 +185,45 @@ const selectCachedTransactions = (
     return completeGroups[0]?.transactions ?? null;
 };
 
+const fetchPeriodTransactions = async (period: CategoryPeriod): Promise<TransactionResponse[] | null> => {
+    const { startDate, endDate } = getPeriodQueryDates(period);
+    const transactions: TransactionResponse[] = [];
+    const seenIds = new Set<number>();
+    let totalItems = Number.POSITIVE_INFINITY;
+    let page = 1;
+
+    while (seenIds.size < totalItems && page <= CATEGORY_TRANSACTIONS_MAX_PAGES) {
+        const { data } = await apiClient.get<TransactionsPagedData>("/transactions", {
+            params: {
+                mode: "active",
+                pageSize: CATEGORY_TRANSACTIONS_PAGE_SIZE,
+                page,
+                startDate,
+                endDate,
+            },
+        });
+
+        if (!isTransactionsPagedData(data)) {
+            return null;
+        }
+
+        totalItems = data.metadata.totalItems;
+        data.data.forEach((transaction) => {
+            if (!seenIds.has(transaction.id)) {
+                seenIds.add(transaction.id);
+                transactions.push(transaction);
+            }
+        });
+
+        if (data.data.length === 0) {
+            break;
+        }
+        page += 1;
+    }
+
+    return seenIds.size >= totalItems ? transactions : null;
+};
+
 const getCurrentPeriod = () => {
     const now = new Date();
     return {
@@ -207,6 +261,7 @@ const Categories = () => {
     const [expandedId, setExpandedId] = React.useState<number | null>(null);
     const [createError, setCreateError] = React.useState<string | null>(null);
     const period = useCurrentPeriod();
+    const [periodTransactions, setPeriodTransactions] = React.useState<TransactionResponse[] | null>(null);
 
     const {
         data: categories = [],
@@ -229,12 +284,34 @@ const Categories = () => {
             budget.year === period.year && budget.month === period.month,
         );
     });
+    const currentPeriodTransactions = periodTransactions ?? cachedTransactions;
 
     React.useEffect(() => {
         if (expandedId != null && !categories.some((category) => category.id === expandedId)) {
             setExpandedId(null);
         }
     }, [categories, expandedId]);
+
+    React.useEffect(() => {
+        let cancelled = false;
+        setPeriodTransactions(null);
+
+        fetchPeriodTransactions(period)
+            .then((transactions) => {
+                if (!cancelled) {
+                    setPeriodTransactions(transactions);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setPeriodTransactions(null);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [period.month, period.year]);
 
     const filteredCategories = React.useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -262,11 +339,11 @@ const Categories = () => {
         () =>
             computeCategorySpendStats({
                 categories,
-                transactions: cachedTransactions,
+                transactions: currentPeriodTransactions,
                 exchangeRates,
                 now: new Date(period.year, period.month - 1, 1),
             }),
-        [cachedTransactions, categories, exchangeRates, period.month, period.year],
+        [categories, currentPeriodTransactions, exchangeRates, period.month, period.year],
     );
 
     const periodLabel = React.useMemo(

@@ -265,9 +265,9 @@ The production React app implements the `docs/design` visual system: custom shel
 - Epic 7 Story 7.2 may be scheduled with this epic, but route lazy-loading remains Epic 7 ownership
 
 **Execution order:**
-10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.3d/10.3e/10.3f -> 10.4 -> 10.5a/10.5b -> 10.6.
+10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6.
 
-Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation stories derived from the Accounts, Categories, and Budgets gap review files; they must complete before Story 10.6. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
+Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
 
 ---
 
@@ -1298,7 +1298,7 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
-Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.3d/10.3e/10.3f -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation stories derived from the Accounts, Categories, and Budgets gap review files; they must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
 
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 

@@ -94,4 +94,17 @@ describe("accounts value helpers", () => {
     expect(groups.find((group) => group.currency === "EUR")?.baseSubtotal).toBeNull();
     expect(groups.find((group) => group.currency === "EUR")?.share).toBeNull();
   });
+
+  it("shows zero share instead of unavailable when all known base balances are zero", () => {
+    const zeroSummaries = summaries.map((summary) => ({
+      ...summary,
+      value: 0,
+      thisMonthNet: 0,
+    }));
+    const displayAccounts = buildDisplayAccounts(accounts.slice(0, 2), zeroSummaries.slice(0, 2), "USD", rates);
+    const groups = makeCurrencyGroups(displayAccounts, 0);
+
+    expect(groups.every((group) => group.baseSubtotal === 0)).toBe(true);
+    expect(groups.every((group) => group.share === 0)).toBe(true);
+  });
 });

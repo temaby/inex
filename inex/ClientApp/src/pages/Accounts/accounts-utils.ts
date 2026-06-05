@@ -128,8 +128,10 @@ export const makeCurrencyGroups = (
       const sortValue = baseSubtotal === null
         ? 0
         : groupAccounts.reduce((sum, account) => sum + Math.abs(account.baseValue ?? 0), 0);
-      const share = baseSubtotal !== null && totalAbsBaseValue > 0
-        ? (sortValue / totalAbsBaseValue) * 100
+      const share = baseSubtotal !== null
+        ? totalAbsBaseValue > 0
+          ? (sortValue / totalAbsBaseValue) * 100
+          : 0
         : null;
 
       return {

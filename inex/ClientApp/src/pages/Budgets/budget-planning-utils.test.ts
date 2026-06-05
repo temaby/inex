@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { createBudgetDetails } from "../../model/Budget/BudgetDetails";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 import {
+    BUDGET_MAX_YEAR,
+    BUDGET_MIN_YEAR,
     BUDGET_REPORT_CURRENCY,
     getBudgetDisplayCurrency,
     getBudgetReportCurrency,
@@ -11,6 +13,7 @@ import {
     getBudgetPaceMetrics,
     getBudgetReportForBudget,
     getBudgetUsageStatus,
+    isBudgetPeriodDisabled,
     getPeriodPayload,
     getReportMetricsState,
 } from "./budget-planning-utils";
@@ -102,7 +105,52 @@ describe("budget planning helpers", () => {
         expect(snapshot.dailyAverageLeft).toBeCloseTo(71.4, 1);
     });
 
+    it("does not treat future budget months as partially elapsed", () => {
+        const selectedMonth = dayjs("2026-08-01");
+        const today = dayjs("2026-06-05");
+        const metrics = getBudgetPaceMetrics({
+            budgetedAmount: 3100,
+            spentAmount: 0,
+            selectedMonth,
+            today,
+        });
+        const snapshot = getBudgetEditSnapshot({
+            budgetedAmount: 3100,
+            spentAmount: 0,
+            remainingAmount: 3100,
+            selectedMonth,
+            today,
+        });
+
+        expect(metrics.dayOfMonth).toBe(0);
+        expect(metrics.elapsedPercent).toBe(0);
+        expect(metrics.expectedSpentToDate).toBe(0);
+        expect(metrics.paceStatus).toBe("idle");
+        expect(snapshot.dailyAverageLeft).toBe(100);
+    });
+
+    it("does not invent a remaining day for completed months", () => {
+        const snapshot = getBudgetEditSnapshot({
+            budgetedAmount: 3000,
+            spentAmount: 2000,
+            remainingAmount: 1000,
+            selectedMonth: dayjs("2026-05-01"),
+            today: dayjs("2026-06-05"),
+        });
+
+        expect(snapshot.dailyAverageLeft).toBe(0);
+    });
+
     it("keeps one visible period value while preserving submitted year and month fields", () => {
         expect(getPeriodPayload(dayjs("2026-06-01"))).toEqual({ year: 2026, month: 6 });
+    });
+
+    it("guards budget period years to the supported backend range", () => {
+        expect(BUDGET_MIN_YEAR).toBe(2020);
+        expect(BUDGET_MAX_YEAR).toBe(2030);
+        expect(isBudgetPeriodDisabled(dayjs("2019-12-01"))).toBe(true);
+        expect(isBudgetPeriodDisabled(dayjs("2020-01-01"))).toBe(false);
+        expect(isBudgetPeriodDisabled(dayjs("2030-12-01"))).toBe(false);
+        expect(isBudgetPeriodDisabled(dayjs("2031-01-01"))).toBe(true);
     });
 });

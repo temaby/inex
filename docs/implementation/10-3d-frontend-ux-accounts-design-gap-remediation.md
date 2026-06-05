@@ -44,6 +44,7 @@ so that account value, currency groups, empty states, and edit flows are trustwo
 - [x] [Review][Patch] Require complete account summary/base values before rendering net worth and distribution, and reject invalid exchange rates. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
 - [x] [Review][Patch] Bump the locale resource version so newly added account locale keys are not hidden by cached translation JSON. [`inex/ClientApp/src/i18n.ts`]
 - [x] [Post-Merge Review][Patch] Clamp the shared drawer to the viewport and refresh Accounts drawer-open 390px/360px visual QA evidence. [`inex/ClientApp/src/components/primitives/InExDrawer.tsx`, `docs/implementation/visual-qa/10-3d/`]
+- [x] [Post-Merge Review][Patch] Show zero percent distribution shares for complete zero-balance currency groups instead of marking equivalents unavailable. [`inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
 
 ## Dev Notes
 
@@ -93,6 +94,7 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Targeted visual QA refreshed in `docs/implementation/visual-qa/10-3d/qa-summary.json`; no horizontal overflow in grouped, flat, expanded, empty, filter-empty, drawer-open, 390px, and 360px states.
 - 2026-06-05: BMad integrated code review completed; actionable Accounts findings fixed.
 - 2026-06-05: Post-merge BMad review found the mobile drawer screenshot captured an offscreen transition state; shared drawer width was clamped and Accounts drawer-open 390px/360px evidence was refreshed with `drawerWithinViewport: true`.
+- 2026-06-05: Second post-merge BMad edge-case review found complete zero-balance currency groups rendered unavailable shares; utility logic now returns `0` shares with focused Vitest coverage.
 
 ### Completion Notes List
 
@@ -101,6 +103,7 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - Added inline account snapshot metrics and create-drawer Cancel/focus-return behavior while omitting unsupported dead actions.
 - Added EN/RU locale copy and visual QA evidence for required desktop/mobile states.
 - Follow-up fixed shared drawer viewport clamping and refreshed Accounts drawer-open visual QA at 390px and 360px.
+- Second follow-up fixed zero-balance currency group share handling.
 
 ### File List
 
@@ -121,3 +124,4 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Created ready-for-dev follow-up story.
 - 2026-06-05: Implemented Accounts design gap remediation, review fixes, tests, locale updates, and refreshed visual QA evidence.
 - 2026-06-05: Applied post-merge drawer viewport fix and refreshed Accounts drawer visual QA evidence.
+- 2026-06-05: Applied second post-merge zero-balance share fix with focused utility test coverage.

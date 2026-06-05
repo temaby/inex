@@ -4,6 +4,8 @@ import { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 
 export const BUDGET_REPORT_CURRENCY = "USD";
+export const BUDGET_MIN_YEAR = 2020;
+export const BUDGET_MAX_YEAR = 2030;
 
 export interface BudgetCurrencyOption {
     id: number;
@@ -139,7 +141,7 @@ const getSelectedMonthDay = (selectedMonth: Dayjs, today: Dayjs) => {
     if (selectedMonth.isBefore(today, "month")) {
         return daysInMonth;
     }
-    return 1;
+    return 0;
 };
 
 export const getBudgetPaceMetrics = ({
@@ -165,6 +167,8 @@ export const getBudgetPaceMetrics = ({
     let paceStatus: BudgetPaceStatus = "idle";
     if (spentAmount > budgetedAmount && budgetedAmount > MONEY_EPSILON) {
         paceStatus = "overBudget";
+    } else if (expectedSpentToDate <= MONEY_EPSILON) {
+        paceStatus = spentAmount > MONEY_EPSILON ? "ahead" : "idle";
     } else if (spentAmount > MONEY_EPSILON && absolutePaceDeltaPercent < 5) {
         paceStatus = "onPace";
     } else if (spentAmount > MONEY_EPSILON && paceDelta > 0) {
@@ -199,13 +203,15 @@ export const getBudgetEditSnapshot = ({
     today: Dayjs;
 }): BudgetEditSnapshot => {
     const dayOfMonth = getSelectedMonthDay(selectedMonth, today);
-    const remainingDays = Math.max(selectedMonth.daysInMonth() - dayOfMonth, 1);
+    const remainingDays = selectedMonth.daysInMonth() - dayOfMonth;
 
     return {
         budgetedAmount,
         spentAmount,
         remainingAmount,
-        dailyAverageLeft: Math.max(remainingAmount, 0) / remainingDays,
+        dailyAverageLeft: remainingDays > 0
+            ? Math.max(remainingAmount, 0) / remainingDays
+            : 0,
     };
 };
 
@@ -213,3 +219,6 @@ export const getPeriodPayload = (period: Dayjs) => ({
     year: period.year(),
     month: period.month() + 1,
 });
+
+export const isBudgetPeriodDisabled = (period: Dayjs) =>
+    period.year() < BUDGET_MIN_YEAR || period.year() > BUDGET_MAX_YEAR;

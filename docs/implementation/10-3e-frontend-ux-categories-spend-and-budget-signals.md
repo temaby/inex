@@ -10,9 +10,9 @@ so that category structure can be managed with current financial context.
 
 ## Acceptance Criteria
 
-1. Given categories and cached transaction data are available, when `/categories` renders, then the page computes current-month category stats with parent roll-up, transaction counts, last-active dates, total spend, top parent, top-five distribution, and Other without dispatching a Categories-page transaction fetch.
+1. Given categories and current-month transaction data are available through the existing transaction list contract, when `/categories` renders, then the page computes current-month category stats with parent roll-up, transaction counts, last-active dates, total spend, top parent, top-five distribution, and Other without adding or changing backend/API contracts.
 2. Given current-month spend exists, when the Categories hero and rows render, then the hero shows total expense spend, most-spent parent, and distribution, while rows show transaction count, last-active date, spend amount, and localized month sublabel.
-3. Given transaction data is unavailable or a category has no current-month activity, when Categories renders, then the UI shows the graceful no-spend or dash treatment without fake values, crashes, or new API requests.
+3. Given transaction data is unavailable, incomplete, or a category has no current-month activity, when Categories renders, then the UI shows the graceful no-spend or dash treatment without fake values, crashes, or stale partial-cache totals.
 4. Given By-spend mode is selected, when leaf categories render, then non-system leaves are sorted by current-month spend descending with stable secondary ordering, and zero-spend leaves trail populated rows.
 5. Given a category is linked to a budget or the row is expanded, when the row and inline snapshot render, then linked categories show the `Budgeted` chip, parent/group labeling does not impersonate budget state, and the snapshot shows real month spend, transaction count, budget status, and category ID where data exists.
 6. Given the user has no categories, when `/categories` opens, then the page renders the accepted shared empty-state composition without misleading spend panels or list chrome, and any default-categories action is implemented through a real contract or removed with owner-visible rationale.
@@ -20,8 +20,8 @@ so that category structure can be managed with current financial context.
 
 ## Tasks / Subtasks
 
-- [x] Add current-month category stats from existing frontend state. (AC: 1, 2, 3)
-  - [x] Read cached transaction data only; do not dispatch a Categories-page transaction fetch.
+- [x] Add current-month category stats from existing transaction data contracts. (AC: 1, 2, 3)
+  - [x] Read complete cached transaction data where available and fetch the current month through the existing paged transaction list contract when direct navigation has no complete cache.
   - [x] Roll child spend up to parents.
   - [x] Compute transaction count, last active date, total spend, most-spent parent, top-five distribution, and Other.
   - [x] Preserve graceful no-data behavior when transaction data is unavailable.
@@ -52,6 +52,8 @@ so that category structure can be managed with current financial context.
 - [x] [Review][Patch] Refresh the current-month period for long-lived tabs crossing month boundaries. [`inex/ClientApp/src/pages/Categories.tsx`]
 - [x] [Review][Patch] Bump the locale resource version so newly added category locale keys are not hidden by cached translation JSON. [`inex/ClientApp/src/i18n.ts`]
 - [x] [Post-Merge Review][Patch] Inherit parent budget links to descendant leaf categories without overriding direct child budgets. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
+- [x] [Post-Merge Review][Patch] Fetch current-period transactions through the existing paged list contract so direct navigation does not permanently show spend unavailable, while retaining complete-cache fallback and unavailable treatment on fetch failure. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Post-Merge Review][Patch] Match category exchange rates by both base and target currency to avoid using rates from another base. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
 
 ## Dev Notes
 
@@ -76,8 +78,8 @@ so that category structure can be managed with current financial context.
 
 ### Guardrails
 
-- Do not add backend endpoints or change category API contracts.
-- Do not fetch transactions from the Categories page. Use already available transaction state/cache and degrade gracefully if absent.
+- Do not add backend endpoints or change category or transaction API contracts.
+- Use the existing paged transaction list contract for current-period spend when the cache is incomplete, and degrade gracefully if that request fails.
 - Keep budget linkage read-only in this story; do not add budget mutation behavior from Categories.
 - Preserve search ancestor visibility, active/all scope, system category protection, and mobile indentation from Story 10.3b.
 
@@ -106,15 +108,17 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Targeted visual QA refreshed in `docs/implementation/visual-qa/10-3e/qa-summary.json`; no horizontal overflow in populated spend, by-spend, expanded snapshot, first-use empty, filter-empty, 390px, and 360px states.
 - 2026-06-05: BMad integrated code review completed; actionable Categories findings fixed.
 - 2026-06-05: Post-merge BMad review found parent-category budgets were not visible on by-spend leaf rows; inheritance was added and covered by focused Vitest.
+- 2026-06-05: Second post-merge BMad review found direct navigation left spend permanently unavailable without complete transaction cache; Categories now loads the current period through the existing transaction contract, and route smoke confirmed visible spend with no overflow.
 
 ### Completion Notes List
 
-- Added complete-cache category spend stats with parent roll-up, transaction counts, last-active dates, total spend, most-spent parent, distribution, and unavailable fallback.
-- Wired real spend/activity/budget signals into hero, rows, by-spend mode, and inline snapshot without dispatching a Categories-page transaction fetch.
+- Added current-period category spend stats with parent roll-up, transaction counts, last-active dates, total spend, most-spent parent, distribution, complete-cache fallback, and unavailable fallback.
+- Wired real spend/activity/budget signals into hero, rows, by-spend mode, and inline snapshot through existing transaction/budget contracts without adding backend endpoints.
 - Removed dead inline actions and kept budget linkage read-only through cached/current budget data.
 - Corrected first-use empty to skip spend/list chrome and remove default-seeding UI without a backend contract.
 - Added EN/RU locale copy and visual QA evidence for required desktop/mobile states.
 - Follow-up fixed parent budget inheritance for descendant leaves in by-spend rows and inline snapshots.
+- Second follow-up fixed direct-navigation spend loading and stricter exchange-rate matching.
 
 ### File List
 
@@ -135,3 +139,4 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Created ready-for-dev follow-up story.
 - 2026-06-05: Implemented Categories spend and budget signals, review fixes, tests, locale updates, and refreshed visual QA evidence.
 - 2026-06-05: Applied post-merge parent-budget inheritance fix and focused utility test coverage.
+- 2026-06-05: Applied second post-merge Categories transaction loading and exchange-rate base matching fixes with focused utility test coverage and route smoke.
