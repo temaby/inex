@@ -1,6 +1,6 @@
 # Story 10.2a: Frontend UX - Transactions Design Gap Remediation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -95,6 +95,7 @@ GPT-5 Codex
 - 2026-06-05: Targeted visual QA captured screenshots under `docs/implementation/visual-qa/10-2a/` and recorded no horizontal overflow or bottom-nav occlusion at 390px and 360px.
 - 2026-06-05: BMad code review found one base-currency fidelity issue; patched conversion/totals/filter behavior and reran targeted/full tests, build, lint, and visual QA.
 - 2026-06-05: BMad review rerun found one scope-hygiene issue in shared planning docs; narrowed those docs to 10.2a and 10.6 blocking only.
+- 2026-06-05: PR #156 merged to `master`; post-merge BMad review found no actionable issues, and `npm test`, `npm run build`, and `npm run lint` passed again from `inex/ClientApp`.
 
 ### Completion Notes List
 
@@ -106,6 +107,7 @@ GPT-5 Codex
 - Added `transaction-ledger-utils` helpers and focused tests for the introduced ledger formatting, scope, and conversion behavior.
 - Made base-currency conversion nullable so base totals and amount-equivalent filters do not silently mix native amounts when rate data is unavailable.
 - No backend, API, DTO, service, repository, or store contract changes were made.
+- Post-merge verification on `master` passed and story status was finalized to done.
 
 ### File List
 
@@ -137,3 +139,4 @@ GPT-5 Codex
 - 2026-06-05: Created ready-for-dev follow-up story.
 - 2026-06-05: Started implementation; status set to in-progress.
 - 2026-06-05: Implemented Transactions design gap remediation, fixed BMad review finding, completed build/lint/test/visual QA gates, and moved story to review.
+- 2026-06-05: Post-merge BMad review and frontend verification passed on `master`; story marked done.
