@@ -1,27 +1,63 @@
 import * as React from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Input } from "antd";
-import { Form, Col, Row } from "antd";
-
+import { Button, Col, DatePicker, Form, Input, Row } from "antd";
+import type { MenuProps } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-
-import { DatePicker } from "antd";
-const { RangePicker } = DatePicker;
-
-import { useMemo, useState, useEffect } from "react";
-import { useAppDispatch } from "../../store/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import Dropdown from "../../components/Dropdown";
-import { defaultCategory, CategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
-import { defaultAccount, AccountDetails } from "../../model/Account/AccountDetails";
-
+import { defaultCategory, CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
+import { defaultAccount } from "../../model/Account/AccountDetails";
+import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsDefaultFilter, transactionsActions } from "../../store/transactions/transactions-slice";
 import type { TransactionFilter } from "../../store/transactions/transactions-slice";
+import { useAppDispatch } from "../../store/hooks";
 import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./transaction-filter-url";
+import type { LedgerUiFilter } from "./transaction-ledger-utils";
 
-const TransactionFilterForm = (props: any) => {
+const { RangePicker } = DatePicker;
+
+type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
+type DateRangeValue = [Dayjs | null, Dayjs | null] | null;
+
+interface TransactionFilterFormProps {
+    accounts: AccountResponse[];
+    categories: CategoryResponse[];
+    filter: string | null;
+    ledgerFilter: LedgerUiFilter;
+    onLedgerFilterChange: React.Dispatch<React.SetStateAction<LedgerUiFilter>>;
+}
+
+const hasActiveTransactionFilter = (filter: TransactionFilter): boolean =>
+    filter.categoryIds.some((id) => id > 0) ||
+    filter.accountIds.some((id) => id > 0) ||
+    filter.tags.some((tag) => tag !== "") ||
+    filter.refs.some((ref) => ref !== "") ||
+    filter.range.length === 2;
+
+const toCategoryDetails = (category: CategoryResponse): CategoryDetails =>
+    createCategoryDetails({
+        id: category.id,
+        key: category.key,
+        name: category.name,
+        description: category.description ?? "",
+        parentId: category.parentId ?? undefined,
+        isEnabled: category.isEnabled,
+        isSystem: category.isSystem,
+        systemCode: category.systemCode ?? "",
+        children: [],
+    });
+
+const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
+    accounts,
+    categories,
+    filter,
+    ledgerFilter,
+    onLedgerFilterChange,
+}) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const location = useLocation();
@@ -29,7 +65,6 @@ const TransactionFilterForm = (props: any) => {
 
     const [localFilter, setLocalFilter] = useState<TransactionFilter>(transactionsDefaultFilter);
     const [tagsAndRefsInput, setTagsAndRefsInput] = useState("");
-    const { categories, accounts, filter } = props;
 
     useEffect(() => {
         const queryFilter = parseTransactionFilterParam(filter);
@@ -38,78 +73,80 @@ const TransactionFilterForm = (props: any) => {
             dispatch(transactionsActions.resetFilter());
             setLocalFilter(transactionsDefaultFilter);
             setTagsAndRefsInput("");
-        } else {
-            setLocalFilter(queryFilter);
-            setTagsAndRefsInput([
-                queryFilter.tags.map((tag: string) => `#${tag}`).join(" "),
-                queryFilter.refs.map((ref: string) => `@${ref}`).join(" "),
-            ].filter(Boolean).join(" "));
-
-            dispatch(
-                transactionsActions.setFilter({
-                    filter: queryFilter,
-                })
-            );
+            return;
         }
+
+        setLocalFilter(queryFilter);
+        setTagsAndRefsInput([
+            queryFilter.tags.map((tag) => `#${tag}`).join(" "),
+            queryFilter.refs.map((ref) => `@${ref}`).join(" "),
+        ].filter(Boolean).join(" "));
+
+        dispatch(
+            transactionsActions.setFilter({
+                filter: queryFilter,
+            }),
+        );
     }, [dispatch, filter]);
 
-    const isFilterActive: any =
-        localFilter.categoryIds.find((i: number) => i > 0) ||
-        localFilter.accountIds.find((i: number) => i > 0) ||
-        localFilter.tags.find((i: string) => i !== "") ||
-        localFilter.refs.find((i: string) => i !== "") ||
-        localFilter.range && localFilter.range.length === 2;
+    const categoryTree = useMemo(
+        () => getCategoriesTree(categories.map(toCategoryDetails), false, t("categories.systemGroup")) as CategoryDetails[],
+        [categories, t],
+    );
 
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
-
-    const filterDetails: any = useMemo(() => {
-        const filteredCategories = categories.filter((category: CategoryDetails) =>
-            localFilter.categoryIds.find((i: number) => i === category.id)
+    const filterDetails = useMemo(() => {
+        const filteredCategories = categories.filter((category) =>
+            localFilter.categoryIds.includes(category.id),
         );
-        const filteredAccounts = accounts.filter((account: AccountDetails) =>
-            localFilter.accountIds.find((i: number) => i === account.id)
+        const filteredAccounts = accounts.filter((account) =>
+            localFilter.accountIds.includes(account.id),
         );
-        const range = localFilter.range.map((i: number) => dayjs.unix(i));
+        const range = localFilter.range.length === 2
+            ? [dayjs.unix(localFilter.range[0]), dayjs.unix(localFilter.range[1])] as [Dayjs, Dayjs]
+            : null;
 
-        const tags = localFilter.tags.map((tag: string) => `#${tag}`).join(" ");
-        const refs = localFilter.refs.map((ref: string) => `@${ref}`).join(" ");
+        const tags = localFilter.tags.map((tag) => `#${tag}`).join(" ");
+        const refs = localFilter.refs.map((ref) => `@${ref}`).join(" ");
         const combinedTagsAndRefs = [tags, refs].filter(Boolean).join(" ");
 
         return {
             accounts: filteredAccounts.length === 0 ? [defaultAccount] : filteredAccounts,
-            categories: filteredCategories.length === 0 ? [defaultCategory] : filteredCategories,
+            categories: filteredCategories.length === 0 ? [defaultCategory] : filteredCategories.map(toCategoryDetails),
             tagsAndRefs: tagsAndRefsInput || combinedTagsAndRefs,
-            range: range
+            range,
         };
-    }, [categories, accounts, localFilter, tagsAndRefsInput]);
+    }, [accounts, categories, localFilter, tagsAndRefsInput]);
 
-    const setAccountsHandler = (item: any) => {
-        setLocalFilter((prevState: any) => ({
+    const amountFilterActive = ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "";
+    const filterActive = hasActiveTransactionFilter(localFilter) || amountFilterActive;
+
+    const setAccountsHandler = (item: DropdownSelectInfo) => {
+        setLocalFilter((prevState) => ({
             ...prevState,
             accountIds: item.selectedKeys
-                .map((i: string) => +i)
-                .filter((i: number) => i > 0),
-        }));
-    }
-
-    const setCategoriesHandler = (item: any) => {
-        setLocalFilter((prevState: any) => ({
-            ...prevState,
-            categoryIds: item.selectedKeys
-                .map((i: string) => +i)
-                .filter((i: number) => i > 0),
+                .map((key) => Number(key))
+                .filter((id) => id > 0),
         }));
     };
 
-    const setTagsAndRefsHandler = (item: any) => {
-        const input = item.target.value;
+    const setCategoriesHandler = (item: DropdownSelectInfo) => {
+        setLocalFilter((prevState) => ({
+            ...prevState,
+            categoryIds: item.selectedKeys
+                .map((key) => Number(key))
+                .filter((id) => id > 0),
+        }));
+    };
+
+    const setTagsAndRefsHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const input = event.target.value;
         const tags: string[] = [];
         const refs: string[] = [];
 
         const tagRegex = /#(\S+)/g;
         const refRegex = /@(\S+)/g;
 
-        let match;
+        let match: RegExpExecArray | null;
         while ((match = tagRegex.exec(input)) !== null) {
             tags.push(match[1]);
         }
@@ -117,28 +154,52 @@ const TransactionFilterForm = (props: any) => {
             refs.push(match[1]);
         }
 
-        setLocalFilter((prevState: any) => ({
+        setLocalFilter((prevState) => ({
             ...prevState,
-            tags: tags,
-            refs: refs,
+            tags,
+            refs,
         }));
         setTagsAndRefsInput(input);
     };
 
-    const setRangeHandler = (dates: any) => {
-        setLocalFilter((prevState: any) => ({
+    const setRangeHandler = (dates: DateRangeValue) => {
+        setLocalFilter((prevState) => ({
             ...prevState,
-            range: [dayjs(dates[0], "YYYY-MM-DD").unix(), dayjs(dates[1], "YYYY-MM-DD").unix()]
+            range: dates?.[0] && dates[1]
+                ? [dates[0].startOf("day").unix(), dates[1].endOf("day").unix()]
+                : [],
+        }));
+    };
+
+    const setMinAmountHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        onLedgerFilterChange((prevState) => ({
+            ...prevState,
+            minAmount: event.target.value,
+        }));
+    };
+
+    const setMaxAmountHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        onLedgerFilterChange((prevState) => ({
+            ...prevState,
+            maxAmount: event.target.value,
         }));
     };
 
     const resetFilterHandler = () => {
+        dispatch(transactionsActions.resetFilter());
+        setLocalFilter(transactionsDefaultFilter);
+        setTagsAndRefsInput("");
+        onLedgerFilterChange((prevState) => ({
+            ...prevState,
+            minAmount: "",
+            maxAmount: "",
+        }));
         navigate(location.pathname, { replace: true });
-    }
+    };
 
     const applyFilterHandler = () => {
         navigate(`${location.pathname}${buildTransactionFilterSearch(localFilter)}`, { replace: true });
-    }
+    };
 
     const rangePresets = useMemo((): Record<string, [Dayjs, Dayjs]> => ({
         [t("transactions.last7Days")]: [dayjs().subtract(7, "day").startOf("day"), dayjs().endOf("day")],
@@ -151,13 +212,27 @@ const TransactionFilterForm = (props: any) => {
         <Form layout="vertical" hideRequiredMark>
             <Row gutter={8}>
                 <Col span={24}>
+                    <Form.Item label={t("transactions.dateRange")}>
+                        <RangePicker
+                            id="filter_range"
+                            bordered={false}
+                            inputReadOnly
+                            onChange={setRangeHandler}
+                            ranges={rangePresets}
+                            value={filterDetails.range}
+                        />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Row gutter={8}>
+                <Col span={24}>
                     <Form.Item label={t("transactions.account")}>
                         <Dropdown
                             id="filter_account"
                             selection={filterDetails.accounts}
                             onChange={setAccountsHandler}
-                            items={props.accounts}
-                            multiple={true}
+                            items={accounts}
+                            multiple
                         />
                     </Form.Item>
                 </Col>
@@ -170,14 +245,14 @@ const TransactionFilterForm = (props: any) => {
                             selection={filterDetails.categories}
                             onChange={setCategoriesHandler}
                             items={categoryTree}
-                            multiple={true}
+                            multiple
                         />
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label="Tags &amp; Refs">
+                    <Form.Item label={t("transactions.tagsAndRefs")}>
                         <Input
                             id="filter_tags_refs"
                             placeholder="#tag @ref"
@@ -189,15 +264,25 @@ const TransactionFilterForm = (props: any) => {
                 </Col>
             </Row>
             <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("common.interval")}>
-                        <RangePicker
-                            id="filter_range"
-                            bordered={false}
-                            inputReadOnly={true}
-                            value={filterDetails.range}
-                            ranges={rangePresets}
-                            onChange={setRangeHandler}
+                <Col span={12}>
+                    <Form.Item label={t("transactions.minAmountEquivalent")}>
+                        <Input
+                            id="transactions-min-amount"
+                            onChange={setMinAmountHandler}
+                            placeholder="0.00"
+                            value={ledgerFilter.minAmount}
+                            size="large"
+                        />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item label={t("transactions.maxAmountEquivalent")}>
+                        <Input
+                            id="transactions-max-amount"
+                            onChange={setMaxAmountHandler}
+                            placeholder={t("transactions.anyAmount")}
+                            value={ledgerFilter.maxAmount}
+                            size="large"
                         />
                     </Form.Item>
                 </Col>
@@ -205,14 +290,14 @@ const TransactionFilterForm = (props: any) => {
             <Row gutter={8}>
                 <Col span={12} style={{ textAlign: "center" }}>
                     <Form.Item>
-                        <Button block disabled={!isFilterActive} onClick={resetFilterHandler}>
+                        <Button block disabled={!filterActive} onClick={resetFilterHandler}>
                             {t("transactions.resetFilter")}
                         </Button>
                     </Form.Item>
                 </Col>
                 <Col span={12} style={{ textAlign: "center" }}>
                     <Form.Item>
-                        <Button block type="primary" disabled={!isFilterActive} onClick={applyFilterHandler}>
+                        <Button block type="primary" disabled={!filterActive} onClick={applyFilterHandler}>
                             {t("transactions.applyFilter")}
                         </Button>
                     </Form.Item>

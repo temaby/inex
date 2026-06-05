@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from "react-i18next";
 
 import { useSignage } from "./SignageContext";
+import type { Signage } from "./SignageContext";
 
 export type MoneyKind = "income" | "expense" | "transfer" | "neutral" | "warn";
 
@@ -11,6 +12,7 @@ export interface NumProps {
     kind?: MoneyKind;
     bare?: boolean;
     compact?: boolean;
+    signage?: Signage;
     size?: string | number;
 }
 
@@ -69,12 +71,14 @@ export const Num: React.FC<NumProps> = ({
     kind,
     bare = false,
     compact = false,
+    signage,
     size,
 }) => {
     const { t } = useTranslation();
-    const { signage } = useSignage();
+    const { signage: contextSignage } = useSignage();
     const resolvedKind = kind ?? inferKind(value);
-    const formattedValue = `${getPrefix(value, resolvedKind, signage)}${formatAmount(value, compact)}`;
+    const resolvedSignage = signage ?? contextSignage;
+    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact)}`;
     const visibleValue = bare || !currency ? formattedValue : `${formattedValue} ${currency}`;
     const kindLabel = t(`primitives.kindLabel.${resolvedKind}`);
 

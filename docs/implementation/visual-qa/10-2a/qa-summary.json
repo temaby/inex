@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-06-05T10:52:47.128Z",
+  "previewUrl": "http://127.0.0.1:49678",
+  "screenshots": [
+    "desktop-populated.png",
+    "drawer-open.png",
+    "filter-active.png",
+    "long-category-path.png",
+    "long-amounts.png",
+    "mobile-ledger-390.png",
+    "mobile-ledger-360.png"
+  ],
+  "states": {
+    "populated": true,
+    "filterActive": true,
+    "filterDrawerOpen": true,
+    "longCategoryPaths": true,
+    "longAmounts": true,
+    "mobileLedgerRows": true
+  },
+  "overflow": {
+    "mobile390": {
+      "viewportWidth": 390,
+      "documentClientWidth": 390,
+      "documentScrollWidth": 390,
+      "bodyScrollWidth": 390,
+      "appShellScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavOccludesLastRow": false,
+      "visibleTextChecks": {
+        "today": true,
+        "yesterday": true,
+        "periodScope": true,
+        "parentPath": true,
+        "approxBase": true,
+        "signedExpense": true
+      }
+    },
+    "mobile360": {
+      "viewportWidth": 360,
+      "documentClientWidth": 360,
+      "documentScrollWidth": 360,
+      "bodyScrollWidth": 360,
+      "appShellScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "bottomNavOccludesLastRow": false,
+      "visibleTextChecks": {
+        "today": true,
+        "yesterday": true,
+        "periodScope": true,
+        "parentPath": true,
+        "approxBase": true,
+        "signedExpense": true
+      }
+    }
+  },
+  "visibleTextChecks": {
+    "today": true,
+    "yesterday": true,
+    "periodScope": true,
+    "parentPath": true,
+    "approxBase": true,
+    "signedExpense": true
+  }
+}

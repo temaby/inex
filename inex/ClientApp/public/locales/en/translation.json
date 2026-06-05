@@ -107,6 +107,7 @@
     "addDrawerTitle": "Add Transaction",
     "add": "Add",
     "filter": "Filter",
+    "filters": "Filters",
     "filtersActive": "Filters active",
     "status": "Status",
     "amount": "Amount",
@@ -148,14 +149,27 @@
     "editDrawerSubtitle": "Update or remove the selected ledger row.",
     "tags": "Tags",
     "refs": "Refs",
+    "tagsAndRefs": "Tags / refs",
     "anyAmount": "Any",
     "minAmount": "Minimum amount",
     "maxAmount": "Maximum amount",
+    "dateRange": "Date range",
+    "minAmountEquivalent": "Minimum equivalent",
+    "maxAmountEquivalent": "Maximum equivalent",
+    "approxBaseAmount": "Approx.",
     "uncategorized": "Uncategorised",
     "unknownAccount": "Unknown account",
     "itemCount_one": "{{count}} item",
     "itemCount_other": "{{count}} items",
-    "paginationSummary": "Showing {{visible}} of {{total}} transactions",
+    "toolbarCount": "{{visible}} of {{total}} transactions in {{period}}",
+    "paginationSummary": "Showing {{visible}} of {{total}} transactions for {{period}}",
+    "period": {
+      "allActiveDates": "All active dates"
+    },
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
     "emptyDescription": "Add the first transaction to start building the ledger.",
     "filterEmptyTitle": "No matching transactions",
     "filterEmptyDescription": "The active filters do not match the current ledger page.",
@@ -165,7 +179,9 @@
       "expenses": "Expenses",
       "netFlow": "Net Flow",
       "filteredPage": "Current ledger page",
-      "updatesWithLedger": "Updates with the visible ledger"
+      "updatesWithLedger": "Updates with the visible ledger",
+      "visibleRows": "{{count}} visible rows for {{period}}",
+      "baseCurrencyContext": "Visible page shown in {{currency}} where rates exist"
     },
     "loading": {
       "initial": "Loading transactions",
