@@ -309,11 +309,29 @@ const Categories = () => {
     const budgetsForPeriod = currentMonthBudgets ?? cachedBudgets;
     const currentPeriodTransactions = periodTransactions ?? cachedTransactions;
 
-    const closeAddDrawer = React.useCallback(() => {
+    const focusAddTrigger = React.useCallback((preferToolbarFallback = false) => {
+        const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+        const findEnabledButton = (label: string) =>
+            buttons.find((button) => !button.disabled && button.textContent?.trim() === label) ?? null;
+        const originalTrigger = addDrawerTriggerRef.current;
+        const connectedOriginalTrigger = originalTrigger?.isConnected ? originalTrigger : null;
+        const toolbarAddButton = findEnabledButton(t("common.add"));
+        const emptyAddButton = findEnabledButton(t("categories.emptyState.addManually"));
+        const focusTarget = preferToolbarFallback
+            ? toolbarAddButton ?? connectedOriginalTrigger ?? emptyAddButton
+            : connectedOriginalTrigger ?? toolbarAddButton ?? emptyAddButton;
+
+        focusTarget?.focus();
+    }, [t]);
+
+    const closeAddDrawer = React.useCallback((preferToolbarFallback = false) => {
         setAddOpen(false);
         setCreateError(null);
-        window.setTimeout(() => addDrawerTriggerRef.current?.focus(), 0);
-    }, []);
+        window.setTimeout(() => focusAddTrigger(preferToolbarFallback), 0);
+        if (preferToolbarFallback) {
+            window.setTimeout(() => focusAddTrigger(true), 250);
+        }
+    }, [focusAddTrigger]);
 
     const openAddDrawer: React.MouseEventHandler<HTMLButtonElement> = React.useCallback((event) => {
         addDrawerTriggerRef.current = event.currentTarget;
@@ -494,7 +512,7 @@ const Categories = () => {
                     />
                 ) : null}
                 <CategoryCreateForm
-                    onCreated={closeAddDrawer}
+                    onCreated={() => closeAddDrawer(true)}
                     onError={() => setCreateError(t("categories.formErrors.createFailed"))}
                 />
             </InExDrawer>

@@ -24,6 +24,12 @@ const parseTextValues = (values: string[]): string[] =>
         .map(decodeFilterValue)
         .filter(value => value !== "");
 
+const parseStartDate = (value: string): number =>
+    dayjs(value).startOf("day").unix();
+
+const parseEndDate = (value: string): number =>
+    dayjs(value).endOf("day").unix();
+
 export const parseTransactionFilterParam = (filter: string | null): TransactionFilter | null => {
     const parsedFilter: TransactionFilter = {
         accountIds: [],
@@ -69,8 +75,8 @@ export const parseTransactionFilterParam = (filter: string | null): TransactionF
 
     if (startDate !== "" && endDate !== "") {
         parsedFilter.range = [
-            dayjs(startDate, "YYYY-MM-DD").unix(),
-            dayjs(endDate, "YYYY-MM-DD").unix(),
+            parseStartDate(startDate),
+            parseEndDate(endDate),
         ];
     }
 

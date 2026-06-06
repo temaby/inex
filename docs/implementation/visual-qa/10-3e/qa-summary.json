@@ -129,5 +129,29 @@
       "activeText": "Add"
     },
     "textSample": "Direct Categories smoke included the final-day Food transaction for 460.00 PLN, used an end-of-day transaction request, rendered Spend unavailable when currency/rate resolution failed, and returned focus to Add after the create drawer closed."
+  },
+  {
+    "name": "pr-review-url-filter-empty-create-focus",
+    "title": "Categories",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "transactionUrlEndDateUsesEndOfDay": true,
+      "emptyStateCreateFocusReturnedToToolbarAdd": true,
+      "createdCategoryVisibleAfterEmptyCreate": true
+    },
+    "requestLog": [
+      "GET /api/transactions?mode=active&pageSize=20&page=1&startDate=2026-06-01T00:00:00&endDate=2026-06-30T23:59:59"
+    ],
+    "focusAfterCreate": {
+      "activeTag": "BUTTON",
+      "activeText": "Add"
+    },
+    "textSample": "PR-review smoke confirmed date-only Transactions URL filters serialize end dates as 23:59:59, and first category creation from the empty state returns focus to the mounted toolbar Add button after the empty-state opener unmounts."
   }
 ]
