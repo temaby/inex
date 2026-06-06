@@ -80,6 +80,7 @@ const Accounts = () => {
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [collapsedCurrencies, setCollapsedCurrencies] = useState<Set<string>>(new Set());
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
+    const [pendingCreatedFocusRestore, setPendingCreatedFocusRestore] = useState(false);
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
 
     const exchangeRates = useAppSelector((state) => state.rates.items);
@@ -215,19 +216,43 @@ const Accounts = () => {
             ? t("accounts.group.accountCountOne", { count })
             : t("accounts.group.accountCountOther", { count });
 
-    const focusDrawerTrigger = () => {
-        window.setTimeout(() => drawerTriggerRef.current?.focus(), 0);
-    };
+    const focusDrawerTrigger = React.useCallback((preferHeaderFallback = false) => {
+        const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+        const findEnabledButton = (label: string) =>
+            buttons.find((button) => !button.disabled && button.textContent?.trim() === label) ?? null;
+        const originalTrigger = drawerTriggerRef.current;
+        const connectedOriginalTrigger = originalTrigger?.isConnected ? originalTrigger : null;
+        const headerAddButton = findEnabledButton(t("accounts.addAccount"));
+        const emptyAddButton = findEnabledButton(t("accounts.emptyState.primaryAction"));
+        const focusTarget = preferHeaderFallback
+            ? headerAddButton ?? connectedOriginalTrigger ?? emptyAddButton
+            : connectedOriginalTrigger ?? headerAddButton ?? emptyAddButton;
+
+        focusTarget?.focus();
+    }, [t]);
 
     const openDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         drawerTriggerRef.current = event.currentTarget;
         setDrawerOpen(true);
     };
 
-    const closeDrawer = () => {
+    const closeDrawer = (preferHeaderFallback = false) => {
+        if (preferHeaderFallback) {
+            setPendingCreatedFocusRestore(true);
+        }
         setDrawerOpen(false);
-        focusDrawerTrigger();
+        window.setTimeout(() => focusDrawerTrigger(preferHeaderFallback), 0);
+        if (preferHeaderFallback) {
+            window.setTimeout(() => focusDrawerTrigger(true), 250);
+        }
     };
+
+    useEffect(() => {
+        if (!pendingCreatedFocusRestore || drawerOpen || accounts.length === 0) return;
+
+        window.setTimeout(() => focusDrawerTrigger(true), 0);
+        setPendingCreatedFocusRestore(false);
+    }, [accounts.length, drawerOpen, focusDrawerTrigger, pendingCreatedFocusRestore]);
 
     const toggleCurrencyGroup = (currency: string) => {
         setCollapsedCurrencies((current) => {
@@ -522,7 +547,7 @@ const Accounts = () => {
             title={t("accounts.addDrawerTitle")}
             subtitle={t("accounts.drawerSubtitle")}
         >
-            <AccountCreateForm onCancel={closeDrawer} onCreated={closeDrawer} />
+            <AccountCreateForm onCancel={() => closeDrawer()} onCreated={() => closeDrawer(true)} />
         </InExDrawer>
     );
 

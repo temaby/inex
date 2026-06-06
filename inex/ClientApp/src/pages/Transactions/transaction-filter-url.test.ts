@@ -40,4 +40,19 @@ describe("transaction filter URL helpers", () => {
       dayjs("2026-06-30T23:59:59").unix(),
     ]);
   });
+
+  it("ignores malformed date ranges instead of creating invalid timestamps", () => {
+    expect(parseTransactionFilterParam("start:not-a-date;end:2026-06-30;")).toBeNull();
+    expect(parseTransactionFilterParam("start:2026-07-01;end:2026-06-30;")).toBeNull();
+
+    expect(parseTransactionFilterParam("accountIds:7;start:not-a-date;end:2026-06-30;")).toMatchObject({
+      accountIds: [7],
+      range: [],
+    });
+  });
+
+  it("rejects impossible calendar dates instead of normalizing them", () => {
+    expect(parseTransactionFilterParam("start:2026-02-31;end:2026-03-31;")).toBeNull();
+    expect(parseTransactionFilterParam("start:2026-02-01;end:2026-02-31;")).toBeNull();
+  });
 });

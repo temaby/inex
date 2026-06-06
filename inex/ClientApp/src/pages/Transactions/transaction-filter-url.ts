@@ -1,8 +1,12 @@
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 import type { TransactionFilter } from "../../store/transactions/transactions-slice";
 
 const FILTER_PARAM = "filter";
+const DATE_FORMAT = "YYYY-MM-DD";
+
+dayjs.extend(customParseFormat);
 
 const encodeFilterValue = (value: string): string => encodeURIComponent(value);
 
@@ -24,11 +28,16 @@ const parseTextValues = (values: string[]): string[] =>
         .map(decodeFilterValue)
         .filter(value => value !== "");
 
-const parseStartDate = (value: string): number =>
-    dayjs(value).startOf("day").unix();
+const parseDate = (value: string) => {
+    const parsedDate = dayjs(value, DATE_FORMAT, true);
+    return parsedDate.isValid() ? parsedDate : null;
+};
 
-const parseEndDate = (value: string): number =>
-    dayjs(value).endOf("day").unix();
+const parseStartDate = (value: string): number | null =>
+    parseDate(value)?.startOf("day").unix() ?? null;
+
+const parseEndDate = (value: string): number | null =>
+    parseDate(value)?.endOf("day").unix() ?? null;
 
 export const parseTransactionFilterParam = (filter: string | null): TransactionFilter | null => {
     const parsedFilter: TransactionFilter = {
@@ -74,10 +83,12 @@ export const parseTransactionFilterParam = (filter: string | null): TransactionF
     });
 
     if (startDate !== "" && endDate !== "") {
-        parsedFilter.range = [
-            parseStartDate(startDate),
-            parseEndDate(endDate),
-        ];
+        const start = parseStartDate(startDate);
+        const end = parseEndDate(endDate);
+
+        if (start !== null && end !== null && start <= end) {
+            parsedFilter.range = [start, end];
+        }
     }
 
     const hasActiveFilter =

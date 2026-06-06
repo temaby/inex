@@ -1,5 +1,6 @@
 using inex.Data.Repositories.Base;
 using inex.Services.Models.Enums;
+using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Models.Records.Report;
@@ -57,10 +58,12 @@ public class BudgetReportService : Service, IBudgetReportService
 
         // 2.2 Get Categories to identify system categories
         var categoriesResponse = _categoryService.Get(userId, ActivityMode.ALL);
-        var systemCategoryIds = categoriesResponse.Data
+        var categories = categoriesResponse.Data.ToList();
+        var systemCategoryIds = categories
             .Where(c => c.IsSystem)
             .Select(c => c.Id)
             .ToHashSet();
+        var descendantCategoryIdsByParent = BuildDescendantCategoryIdsByParent(categories);
 
         // 3. Get Exchange Rates
         var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
@@ -147,11 +150,20 @@ public class BudgetReportService : Service, IBudgetReportService
             decimal spentForBudget = 0;
             if (budget.CategoryIds != null)
             {
-                foreach (var categoryId in budget.CategoryIds)
+                var countedCategoryIds = new HashSet<int>();
+                foreach (var categoryId in budget.CategoryIds.Distinct())
                 {
-                    if (categorySpending.ContainsKey(categoryId))
+                    foreach (var scopedCategoryId in GetBudgetCategoryScopeIds(categoryId, descendantCategoryIdsByParent))
                     {
-                        spentForBudget += categorySpending[categoryId];
+                        if (!countedCategoryIds.Add(scopedCategoryId))
+                        {
+                            continue;
+                        }
+
+                        if (categorySpending.ContainsKey(scopedCategoryId))
+                        {
+                            spentForBudget += categorySpending[scopedCategoryId];
+                        }
                     }
                 }
             }
@@ -180,5 +192,63 @@ public class BudgetReportService : Service, IBudgetReportService
                 TotalOutcome = totalOutcome
             }
         };
+    }
+
+    private static Dictionary<int, List<int>> BuildDescendantCategoryIdsByParent(IEnumerable<CategoryResponse> categories)
+    {
+        var childrenByParent = categories
+            .Where(category => category.ParentId.HasValue)
+            .GroupBy(category => category.ParentId!.Value)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(category => category.Id).ToList());
+        var descendantsByParent = new Dictionary<int, List<int>>();
+
+        foreach (var parentId in childrenByParent.Keys)
+        {
+            var descendants = new List<int>();
+            var pending = new Stack<int>(childrenByParent[parentId]);
+            var visited = new HashSet<int>();
+
+            while (pending.Count > 0)
+            {
+                var childId = pending.Pop();
+                if (!visited.Add(childId))
+                {
+                    continue;
+                }
+
+                descendants.Add(childId);
+
+                if (childrenByParent.TryGetValue(childId, out var childIds))
+                {
+                    foreach (var nestedChildId in childIds)
+                    {
+                        pending.Push(nestedChildId);
+                    }
+                }
+            }
+
+            descendantsByParent[parentId] = descendants;
+        }
+
+        return descendantsByParent;
+    }
+
+    private static IEnumerable<int> GetBudgetCategoryScopeIds(
+        int categoryId,
+        IReadOnlyDictionary<int, List<int>> descendantCategoryIdsByParent)
+    {
+        yield return categoryId;
+
+        if (!descendantCategoryIdsByParent.TryGetValue(categoryId, out var descendantCategoryIds))
+        {
+            yield break;
+        }
+
+        foreach (var descendantCategoryId in descendantCategoryIds)
+        {
+            yield return descendantCategoryId;
+        }
     }
 }

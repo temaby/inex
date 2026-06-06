@@ -64,6 +64,8 @@ so that monthly budget health is accurate, actionable, and not shaped by backend
 - [x] [Post-Merge Review][Patch] Collapse budget rows before tablet widths can clip the seven-column grid. [`inex/ClientApp/src/pages/Budgets/budgets.css`]
 - [x] [Post-Merge Review][Patch] Normalize invalid, nonnumeric, or unsupported URL year/month params to the current supported budget period before querying. [`inex/ClientApp/src/pages/Budgets.tsx`, `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`]
 - [x] [Post-Merge Review][Patch] Collapse budget rows at 1024px tablet width so the seven-column row cannot clip before the mobile layout applies. [`inex/ClientApp/src/pages/Budgets/budgets.css`]
+- [x] [Post-Merge Review][Patch] Keep focus recovery valid when the empty-state Add budget opener unmounts after first budget creation. [`inex/ClientApp/src/pages/Budgets.tsx`, `docs/implementation/visual-qa/10-3f/qa-summary.json`]
+- [x] [Post-Merge Review][Patch] Include descendant category report spend when a budget is assigned to a parent category by aggregating budget report rows backend-side without double-counting parent/child category scopes. [`inex.Services/Services/BudgetReportService.cs`, `inex.Services.Tests/Services/BudgetReportServiceTests.cs`, `inex/ClientApp/src/pages/Budgets/budget-planning-utils.test.ts`]
 
 ## Dev Notes
 
@@ -103,7 +105,7 @@ so that monthly budget health is accurate, actionable, and not shaped by backend
 
 ### Agent Model Used
 
-GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-review layers.
+GPT-5 Codex with BMad dev-story Worker C (Budgets), integrated BMad code-review layers, and round-5 post-merge review follow-up.
 
 ### Debug Log References
 
@@ -119,6 +121,7 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: Third post-merge BMad review found currency lookup failure could still trigger USD fallback, display currency could prefer mismatched metadata, categorized budgets with no report item showed unavailable metrics, and 769-969px budget rows could clip; fixes were applied with focused Vitest and CSS updates.
 - 2026-06-05: Round-3 route smoke confirmed `/budgets` requests `currency=PLN`, ignores mismatched USD report metadata for display, skips report requests when `/currencies` fails, collapses rows at 969px/900px, and restores Add budget focus after Escape/Cancel; evidence recorded in `docs/implementation/visual-qa/10-3f/qa-summary.json`.
 - 2026-06-05: Fourth post-merge BMad review found invalid URL period params could produce unsupported queries and 1024px tablet rows could still clip; fixes were applied with focused Vitest and route smoke.
+- 2026-06-06: Fifth post-merge BMad review found first budget creation from the empty state could unmount the stored focus target and parent-category budgets did not include descendant report spend; focus fallback was added, backend budget report aggregation now includes descendant spend without parent/child double-counting, and round-5 390px route smoke evidence was recorded.
 
 ### Completion Notes List
 
@@ -135,10 +138,13 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - Budgets QA summary now includes round-3 PLN display, currency-failure, tablet-collapse, and drawer focus-return smoke evidence.
 - Fourth follow-up normalizes invalid URL year/month params before Budgets queries and moves the row-collapse breakpoint to cover 1024px tablet widths.
 - Budgets QA summary now includes round-4 smoke evidence for invalid-param normalization and 1024px row collapse.
+- Fifth follow-up keeps focus recovery valid after creating the first budget from the empty state and includes descendant category spend for parent-category budgets through backend report aggregation while preserving frontend exact-row matching.
+- Budgets QA summary now includes round-5 smoke evidence for empty-create focus return, parent-category spend, and no 390px overflow.
 
 ### File List
 
 - `inex/ClientApp/src/pages/Budgets.tsx`
+- `inex/ClientApp/src/pages/Budgets.empty-focus.test.tsx`
 - `inex/ClientApp/src/pages/Budgets/BudgetEditForm.tsx`
 - `inex/ClientApp/src/pages/Budgets/budgets.css`
 - `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`
@@ -147,6 +153,8 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - `inex/ClientApp/public/locales/en/translation.json`
 - `inex/ClientApp/public/locales/ru/translation.json`
 - `inex/ClientApp/src/i18n.ts`
+- `inex.Services/Services/BudgetReportService.cs`
+- `inex.Services.Tests/Services/BudgetReportServiceTests.cs`
 - `docs/implementation/visual-qa/10-3f/`
 
 ### Change Log
@@ -158,3 +166,4 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets) and integrated BMad code-revi
 - 2026-06-05: Applied third post-merge currency fallback, display currency, zero-spend categorized budget, and tablet row layout fixes with focused utility tests.
 - 2026-06-05: Added round-3 Budgets route-smoke evidence for PLN display, currency failure, tablet row collapse, and drawer focus return.
 - 2026-06-05: Applied fourth post-merge Budgets URL period normalization and 1024px row-collapse fixes with focused utility tests and route smoke.
+- 2026-06-06: Applied fifth post-merge Budgets empty-state create focus fallback and backend parent-category descendant spend aggregation with focused frontend/backend tests and route smoke.
