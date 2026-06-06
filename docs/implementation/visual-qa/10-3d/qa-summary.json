@@ -133,5 +133,32 @@
       "incompleteEquivalentDataDoesNotRenderFalseZero": true
     },
     "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 4,554.35 PLN +5.5% MoM 3 active 3 currencies CURRENCY DISTRIBUTION By current balance USD 43.9% 2,000.00 PLN EUR 28.6% 1,304.35 PLN PLN 27.4% 1,250.00 PLN Account inventory Visible accounts: 3 / 3 active only: 3 active Active All By currency Flat list Search accounts USD 1 account 43.9% of net worth 500.00 USD approx 2,000.00 PLN"
+  },
+  {
+    "name": "round4-base-and-zero-bars-1440",
+    "title": "Accounts",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "scrollWidth": 1425,
+    "clientWidth": 1425,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "cashWalletVisible": true,
+      "missingBaseShowsBalanceUnavailable": true,
+      "missingBaseShowsEquivalentUnavailable": true,
+      "missingBaseDoesNotInventUsdHero": true,
+      "completeZeroShareBarsRenderAtZeroWidth": true
+    },
+    "zeroShareBarWidths": [
+      "width: 0%;",
+      "width: 0%;",
+      "width: 0%;",
+      "width: 0%;",
+      "width: 0%;",
+      "width: 0%;"
+    ],
+    "textSample": "Normal Accounts smoke rendered Cash Wallet with PLN base equivalents and no horizontal overflow. Missing currency/rate smoke rendered NET WORTH Balance unavailable and Equivalent unavailable labels instead of inventing USD. Zero-balance smoke rendered all distribution and group bars at width: 0%."
   }
 ]

@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { waitFor } from "@testing-library/react";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import dayjs from "dayjs";
 import { vi } from "vitest";
 
 import apiClient from "../../../utils/apiClient";
@@ -92,6 +93,32 @@ describe("transactionsApi", () => {
     expect(mockApiClient).toHaveBeenCalledTimes(1);
     expect(mockApiClient).toHaveBeenCalledWith({
       url: "/transactions?mode=active&pageSize=25&page=1",
+      method: "get",
+      data: undefined,
+      params: undefined,
+    });
+  });
+
+  it("serializes transaction range filters with times so final-day activity is included", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(fixture));
+
+    await store.dispatch(
+      transactionsApi.endpoints.getTransactions.initiate({
+        pageSize: 25,
+        page: 1,
+        filter: {
+          ...emptyFilter,
+          range: [
+            dayjs("2026-06-01T00:00:00").unix(),
+            dayjs("2026-06-30T23:59:59").unix(),
+          ],
+        },
+      }),
+    );
+
+    expect(mockApiClient).toHaveBeenCalledWith({
+      url: "/transactions?mode=active&pageSize=25&page=1&startDate=2026-06-01T00%3A00%3A00&endDate=2026-06-30T23%3A59%3A59",
       method: "get",
       data: undefined,
       params: undefined,

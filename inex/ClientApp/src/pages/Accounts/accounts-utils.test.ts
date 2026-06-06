@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import {
   buildDisplayAccounts,
+  getBaseCurrency,
   makeCurrencyGroups,
   sortAccountsByBaseValue,
   toBaseCurrencyAmount,
@@ -49,6 +50,11 @@ const rates = [
 ];
 
 describe("accounts value helpers", () => {
+  it("does not invent USD when no profile or rate base is available", () => {
+    expect(getBaseCurrency([], null)).toBeNull();
+    expect(toBaseCurrencyAmount(100, "USD", null, [])).toBeNull();
+  });
+
   it("returns base equivalents only when existing rate data supports them", () => {
     expect(toBaseCurrencyAmount(100, "USD", "USD", rates)).toBe(100);
     expect(toBaseCurrencyAmount(800, "PLN", "USD", rates)).toBe(200);

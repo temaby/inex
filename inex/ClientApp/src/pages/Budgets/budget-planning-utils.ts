@@ -231,3 +231,25 @@ export const getPeriodPayload = (period: Dayjs) => ({
 
 export const isBudgetPeriodDisabled = (period: Dayjs) =>
     period.year() < BUDGET_MIN_YEAR || period.year() > BUDGET_MAX_YEAR;
+
+export const getSupportedBudgetMonthFromParams = (
+    yearParam: string | null,
+    monthParam: string | null,
+    fallback: Dayjs,
+) => {
+    const fallbackMonth = fallback.date(1).startOf("day");
+    const year = Number(yearParam);
+    const month = Number(monthParam);
+
+    if (
+        !Number.isInteger(year) ||
+        !Number.isInteger(month) ||
+        month < 1 ||
+        month > 12
+    ) {
+        return fallbackMonth;
+    }
+
+    const parsedMonth = fallbackMonth.year(year).month(month - 1);
+    return isBudgetPeriodDisabled(parsedMonth) ? fallbackMonth : parsedMonth;
+};

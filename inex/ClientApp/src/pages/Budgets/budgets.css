@@ -603,7 +603,7 @@
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1048px) {
   .budgets-list__head {
     display: none;
   }

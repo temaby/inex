@@ -46,6 +46,8 @@ so that account value, currency groups, empty states, and edit flows are trustwo
 - [x] [Post-Merge Review][Patch] Clamp the shared drawer to the viewport and refresh Accounts drawer-open 390px/360px visual QA evidence. [`inex/ClientApp/src/components/primitives/InExDrawer.tsx`, `docs/implementation/visual-qa/10-3d/`]
 - [x] [Post-Merge Review][Patch] Show zero percent distribution shares for complete zero-balance currency groups instead of marking equivalents unavailable. [`inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
 - [x] [Post-Merge Review][Patch] Distinguish incomplete equivalent data from complete zero totals so account rows and currency groups do not show false zero shares or unavailable zero-balance rows. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
+- [x] [Post-Merge Review][Patch] Derive base currency only from profile/rate data so missing currency resolution shows unavailable states instead of inventing USD. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
+- [x] [Post-Merge Review][Patch] Render complete zero-share currency distribution and group bars at 0% instead of a minimum-width sliver. [`inex/ClientApp/src/pages/Accounts.tsx`]
 
 ## Dev Notes
 
@@ -98,6 +100,7 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Second post-merge BMad edge-case review found complete zero-balance currency groups rendered unavailable shares; utility logic now returns `0` shares with focused Vitest coverage.
 - 2026-06-05: Third post-merge BMad review found zero-balance row shares and incomplete equivalent data could be confused; row and group share inputs now use `null` only for incomplete data and `0` for complete zero totals.
 - 2026-06-05: Round-3 route smoke confirmed `/accounts` renders Cash wallet, PLN base equivalents, no horizontal overflow, and updated evidence in `docs/implementation/visual-qa/10-3d/qa-summary.json`.
+- 2026-06-05: Fourth post-merge BMad review found profile/rate lookup failures could still imply a USD base and complete zero-share bars rendered visible slivers; fixes were applied with focused Vitest and route smoke evidence.
 
 ### Completion Notes List
 
@@ -109,6 +112,8 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - Second follow-up fixed zero-balance currency group share handling.
 - Third follow-up fixed zero-balance row shares while preventing false zero shares when any scoped account lacks summary/rate data.
 - Accounts QA summary now includes round-3 smoke evidence for complete versus incomplete equivalent share handling.
+- Fourth follow-up removes the final USD fallback path for Accounts base currency and renders complete zero-balance distribution/group bars at true 0% width.
+- Accounts QA summary now includes round-4 smoke evidence for missing base-currency unavailable states and zero-width zero-share bars.
 
 ### File List
 
@@ -132,3 +137,4 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Applied second post-merge zero-balance share fix with focused utility test coverage.
 - 2026-06-05: Applied third post-merge account row/group share distinction with focused utility test coverage.
 - 2026-06-05: Added round-3 Accounts route-smoke evidence.
+- 2026-06-05: Applied fourth post-merge Accounts base-currency fallback and zero-share bar fixes with focused utility tests and route smoke.

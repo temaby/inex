@@ -57,6 +57,11 @@ so that category structure can be managed with current financial context.
 - [x] [Post-Merge Review][Patch] Reset all category spend stats when any conversion is missing so unavailable mode cannot leave partial spend ordering behind. [`inex/ClientApp/src/pages/Categories/categories.utils.ts`]
 - [x] [Post-Merge Review][Patch] Require cached transaction ranges to cover the full final day before using them as complete current-month cache. [`inex/ClientApp/src/pages/Categories.tsx`]
 - [x] [Post-Merge Review][Patch] Fetch current-month budgets through the existing budget list contract so direct navigation can show Budgeted chips and snapshots without relying on another route's cache. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Post-Merge Review][Patch] Send current-period direct transaction fetches and shared transaction filters with full-day datetimes so final-day transactions are included. [`inex/ClientApp/src/pages/Categories.tsx`, `inex/ClientApp/src/store/transactions/transactions-api.ts`]
+- [x] [Post-Merge Review][Patch] Resolve category spend base currency only from profile/rate data and show unavailable spend instead of inventing USD when resolution fails. [`inex/ClientApp/src/pages/Categories.tsx`, `inex/ClientApp/src/pages/Categories/categories.utils.ts`]
+- [x] [Post-Merge Review][Patch] Return focus to the Add Category trigger after the create drawer closes. [`inex/ClientApp/src/pages/Categories.tsx`, `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`]
+- [x] [PR Review][Patch] Parse date-only transaction filter URLs as inclusive calendar days so linked/report-driven end dates do not drop final-day activity. [`inex/ClientApp/src/pages/Transactions/transaction-filter-url.ts`]
+- [x] [PR Review][Patch] Keep Add Category focus recovery valid when the empty-state opener unmounts after a successful first category create. [`inex/ClientApp/src/pages/Categories.tsx`]
 
 ## Dev Notes
 
@@ -114,6 +119,8 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Second post-merge BMad review found direct navigation left spend permanently unavailable without complete transaction cache; Categories now loads the current period through the existing transaction contract, and route smoke confirmed visible spend with no overflow.
 - 2026-06-05: Third post-merge BMad review found conversion-miss unavailable mode could retain partial spend, date-only cache ranges were too permissive, and budget chips depended on prior budget-route cache; fixes were applied with focused Vitest coverage.
 - 2026-06-05: Round-3 route smoke confirmed direct `/categories` navigation fetches current budgets and transactions, shows Food spend `400.00 PLN`, and has no horizontal overflow; evidence recorded in `docs/implementation/visual-qa/10-3e/qa-summary.json`.
+- 2026-06-05: Fourth post-merge BMad review found final-day direct-fetch transactions were excluded, missing base-currency resolution could imply USD, and Add Category drawer close did not restore trigger focus; fixes were applied with focused Vitest and route smoke.
+- 2026-06-06: BMad PR review found URL-driven transaction filters still parsed date-only end values at midnight and empty-state create could unmount the stored Add opener; the shared transaction filter URL parser now expands date-only end dates to the end of day, and Add focus recovery falls back to the mounted toolbar trigger.
 
 ### Completion Notes List
 
@@ -126,16 +133,24 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - Second follow-up fixed direct-navigation spend loading and stricter exchange-rate matching.
 - Third follow-up resets spend stats on conversion miss, requires complete cached period ranges, and fetches current-month budgets through the existing contract.
 - Categories QA summary now includes round-3 direct-navigation spend and budget-chip smoke evidence.
+- Fourth follow-up serializes transaction filter ranges with full-day datetimes, removes the final category spend USD fallback path, and restores Add Category trigger focus after drawer close.
+- Categories QA summary now includes round-4 smoke evidence for final-day spend inclusion, missing-base unavailable state, and Add trigger focus return.
+- PR review follow-up expands date-only transaction URL filter end dates to inclusive end-of-day timestamps so linked transaction views preserve final-day coverage, and keeps focus recovery valid when the empty-state Add opener unmounts after create.
 
 ### File List
 
 - `inex/ClientApp/src/pages/Categories.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoriesHero.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoryRow.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx`
 - `inex/ClientApp/src/pages/Categories/categories.css`
 - `inex/ClientApp/src/pages/Categories/categories.utils.ts`
 - `inex/ClientApp/src/pages/Categories/categories.utils.test.ts`
+- `inex/ClientApp/src/store/transactions/transactions-api.ts`
+- `inex/ClientApp/src/store/transactions/__tests__/transactions-api.test.ts`
+- `inex/ClientApp/src/pages/Transactions/transaction-filter-url.ts`
+- `inex/ClientApp/src/pages/Transactions/transaction-filter-url.test.ts`
 - `inex/ClientApp/public/locales/en/translation.json`
 - `inex/ClientApp/public/locales/ru/translation.json`
 - `inex/ClientApp/src/i18n.ts`
@@ -149,3 +164,5 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Applied second post-merge Categories transaction loading and exchange-rate base matching fixes with focused utility test coverage and route smoke.
 - 2026-06-05: Applied third post-merge Categories conversion-miss reset, cache-range strictness, and current-budget fetch fixes with focused utility test coverage.
 - 2026-06-05: Added round-3 Categories direct-navigation route-smoke evidence.
+- 2026-06-05: Applied fourth post-merge Categories full-day transaction filter, base-currency fallback, and Add drawer focus-return fixes with focused tests and route smoke.
+- 2026-06-06: Fixed PR-review findings for inclusive date-only transaction URL filters and empty-state Add focus fallback with focused parser tests.

@@ -16,7 +16,7 @@ interface CategoriesToolbarProps {
     onActiveOnlyChange: (activeOnly: boolean) => void;
     onViewChange: (view: CategoriesViewMode) => void;
     onSearchChange: (search: string) => void;
-    onAdd: () => void;
+    onAdd: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({

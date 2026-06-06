@@ -22,6 +22,9 @@ export interface TransactionsPagedResult {
   metadata: { totalItems: number };
 }
 
+export const formatTransactionFilterDateTime = (timestamp: number): string =>
+  dayjs.unix(timestamp).format("YYYY-MM-DDTHH:mm:ss");
+
 export interface CreateTransactionArgs {
   accountId: number;
   categoryId: number;
@@ -62,10 +65,10 @@ function buildTransactionParams(
   filter.tags.forEach((tag) => params.append("tag", tag));
   filter.refs.forEach((ref) => params.append("ref", ref));
   if (filter.range.length === 2 && filter.range[0] > 0) {
-    params.set("startDate", dayjs.unix(filter.range[0]).format("YYYY-MM-DD"));
+    params.set("startDate", formatTransactionFilterDateTime(filter.range[0]));
   }
   if (filter.range.length === 2 && filter.range[1] > 0) {
-    params.set("endDate", dayjs.unix(filter.range[1]).format("YYYY-MM-DD"));
+    params.set("endDate", formatTransactionFilterDateTime(filter.range[1]));
   }
   return params;
 }

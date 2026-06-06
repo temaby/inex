@@ -26,15 +26,18 @@ export const toFixedMoney = (value: number): number => Math.round(value * 100) /
 
 export const normalizeAccountSearch = (value: string): string => value.trim().toLowerCase();
 
-export const getBaseCurrency = (exchangeRates: ExchangeRateLike[]): string =>
-  exchangeRates[0]?.currencyFrom ?? "USD";
+export const getBaseCurrency = (
+  exchangeRates: ExchangeRateLike[],
+  profileCurrency?: string | null,
+): string | null => profileCurrency?.trim() || exchangeRates[0]?.currencyFrom || null;
 
 export const toBaseCurrencyAmount = (
   value: number,
   currency: string,
-  baseCurrency: string,
+  baseCurrency: string | null,
   exchangeRates: ExchangeRateLike[],
 ): number | null => {
+  if (!baseCurrency) return null;
   if (currency === baseCurrency) return value;
 
   const rate = exchangeRates.find((item) =>
@@ -49,7 +52,7 @@ export const toBaseCurrencyAmount = (
 export const buildDisplayAccounts = (
   accounts: AccountResponse[],
   summaries: AccountSummary[],
-  baseCurrency: string,
+  baseCurrency: string | null,
   exchangeRates: ExchangeRateLike[],
 ): AccountDisplay[] => {
   const summaryById = new Map(summaries.map((summary) => [summary.id, summary]));
