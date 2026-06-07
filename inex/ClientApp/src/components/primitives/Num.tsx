@@ -14,6 +14,7 @@ export interface NumProps {
     compact?: boolean;
     signage?: Signage;
     size?: string | number;
+    currencySize?: "same" | "sm";
 }
 
 const colorMap: Record<MoneyKind, string> = {
@@ -73,6 +74,7 @@ export const Num: React.FC<NumProps> = ({
     compact = false,
     signage,
     size,
+    currencySize = "same",
 }) => {
     const { t } = useTranslation();
     const { signage: contextSignage } = useSignage();
@@ -84,6 +86,9 @@ export const Num: React.FC<NumProps> = ({
 
     const visibleStyle: React.CSSProperties = {
         color: colorMap[resolvedKind],
+        display: "inline-flex",
+        alignItems: "baseline",
+        gap: 3,
         fontFamily: "var(--font-num)",
         fontFeatureSettings: "\"tnum\" 1",
         fontVariantNumeric: "tabular-nums",
@@ -91,10 +96,24 @@ export const Num: React.FC<NumProps> = ({
         whiteSpace: "nowrap",
     };
 
+    const currencyStyle: React.CSSProperties = {
+        fontSize: "0.72em",
+        fontWeight: 600,
+        lineHeight: 1,
+        marginLeft: 1,
+    };
+
+    const shouldSplitCurrency = !bare && Boolean(currency) && currencySize === "sm";
+
     return (
         <span aria-label={`${kindLabel}: ${visibleValue}`} role="text">
             <span aria-hidden="true" style={visibleStyle}>
-                {visibleValue}
+                {shouldSplitCurrency ? (
+                    <>
+                        <span>{formattedValue}</span>
+                        <span style={currencyStyle}>{currency}</span>
+                    </>
+                ) : visibleValue}
             </span>
         </span>
     );

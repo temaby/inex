@@ -119,6 +119,7 @@ Do not touch backend source, migrations, auth routing, Redux architecture, or un
 
 - Story 10.1a is done and supplies token CSS plus Ant Design theme bridge.
 - Story 10.1b is done and supplies `InExButton`, `Input`, `SegmentedControl`, `InExDrawer`, `EmptyState`, `FilterEmpty`, `Num`, and `lucide-react`.
+- Story 10.1e is review/done and supplies the shared mockup-alignment contracts for labeled compact controls, 220px search, continuous list panels, drawer footers, and simple no-match rows.
 - Story 10.1c supplies the `AppShell`/`BasicPage` page-head `extra` contract and mobile bottom nav behavior.
 - Story 10.3b is done and supplies Categories hierarchy, search, scope, inline edit, add drawer, localized states, and visual QA baseline.
 - Story 10.3e is done and supplies Categories current-period spend/budget signals, direct current-period transaction/budget fetches, budget inheritance, conversion-unavailable guardrails, strict date handling, and focus recovery.
@@ -195,6 +196,7 @@ These decisions should be resolved by the orchestrator before implementation or 
 - `D:\work\inex\docs\implementation\10-3e-frontend-ux-categories-spend-and-budget-signals.md`
 - `D:\work\inex\docs\implementation\10-1a-frontend-ux-design-tokens-and-theme-bridge.md`
 - `D:\work\inex\docs\implementation\10-1b-frontend-ux-shared-primitives.md`
+- `D:\work\inex\docs\implementation\10-1e-shared-mockup-alignment-primitives-contract.md`
 - `D:\work\inex\docs\implementation\10-1c-frontend-ux-app-shell-and-navigation.md`
 - `D:\work\inex\docs\implementation\10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist.md`
 - `D:\work\inex\docs\implementation\sprint-status.yaml`

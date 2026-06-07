@@ -89,7 +89,7 @@ Out of scope:
 
 - Story 10.3a rebuilt `/accounts` and then fixed two review findings: filter-empty hero distribution and account-count plural copy. It also records prior visual QA under `docs/implementation/visual-qa/10-3a/`. Source: `docs/implementation/10-3a-frontend-ux-accounts-management-redesign.md`.
 - Story 10.3d is `done` and already completed balance scan fidelity, base equivalents, deterministic sorting, first-use empty short-circuiting, filter-empty context preservation, edit snapshot metrics, create-drawer Cancel, drawer viewport clamping, zero-share handling, missing base-currency unavailable states, and empty-state focus fallback. Do not duplicate these fixes unless the current source regressed. Source: `docs/implementation/10-3d-frontend-ux-accounts-design-gap-remediation.md`.
-- Story 10.1b owns shared primitives. `SegmentedControl` currently has no explicit label prop, so this story may either add local label wrappers or carefully extend the primitive. Source: `docs/implementation/10-1b-frontend-ux-shared-primitives.md`.
+- Story 10.1b owns the base shared primitives. Story 10.1e owns the mockup-alignment extensions for labeled compact segmented controls, 220px search, list panels, compact currency suffixes, drawer footers, and no-match rows. Source: `docs/implementation/10-1b-frontend-ux-shared-primitives.md`; `docs/implementation/10-1e-shared-mockup-alignment-primitives-contract.md`.
 - Story 10.1c originally targeted a five-item nav, but current source now includes Dashboard as a sixth item after Story 10.4 work. Do not remove Dashboard inside this page story without a shared IA decision. Sources: `docs/implementation/10-1c-frontend-ux-app-shell-and-navigation.md`, `inex/ClientApp/src/layouts/AppShell.tsx`.
 - Story 10.6 is blocked until Epic 10 prerequisite stories are done. If 10.3g is added to the sprint, 10.6 should remain blocked until 10.3g reaches `done`. Source: `docs/implementation/10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist.md`.
 
@@ -139,6 +139,7 @@ Conditional/shared files only if the orchestrator expands scope:
 
 - Story 10.1a done: tokens and Ant Design theme bridge exist.
 - Story 10.1b done: shared primitives exist.
+- Story 10.1e review/done: shared mockup-alignment primitive contracts exist and should be consumed instead of page-local wrappers for toolbar labels, search, list-panel composition, compact balances, drawer actions, and filter-empty separation.
 - Story 10.1c implemented shell and bottom-nav contracts; current source includes later Dashboard route changes.
 - Story 10.3a done: base Accounts redesign exists.
 - Story 10.3d done: earlier Accounts gap remediation exists and must be preserved.
@@ -193,6 +194,7 @@ Conditional/shared files only if the orchestrator expands scope:
 - `docs/implementation/sprint-status.yaml` (current Epic 10 statuses)
 - `docs/implementation/10-1a-frontend-ux-design-tokens-and-theme-bridge.md`
 - `docs/implementation/10-1b-frontend-ux-shared-primitives.md`
+- `docs/implementation/10-1e-shared-mockup-alignment-primitives-contract.md`
 - `docs/implementation/10-1c-frontend-ux-app-shell-and-navigation.md`
 - `docs/implementation/10-3a-frontend-ux-accounts-management-redesign.md`
 - `docs/implementation/10-3a-accounts-design-implementation-gap-review.md`
