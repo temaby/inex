@@ -118,7 +118,15 @@ describe("mockup-alignment primitive contracts", () => {
         expect(screen.getByRole("region", { name: "Transactions" })).toBeInTheDocument();
         expect(screen.getByText("3 of 12 visible")).toBeVisible();
         expect(screen.getByText("Date")).toBeVisible();
+        expect(screen.queryByRole("row")).not.toBeInTheDocument();
+        expect(screen.queryByRole("columnheader")).not.toBeInTheDocument();
         expect(screen.getByRole("status")).toHaveTextContent("No transactions match these filters");
+    });
+
+    it("renders zero as a valid list-panel count", () => {
+        render(<ListPanelHeader title="Accounts" count={0} />);
+
+        expect(screen.getByText("0").tagName).toBe("P");
     });
 
     it("passes footer action alignment through the shared drawer contract", () => {

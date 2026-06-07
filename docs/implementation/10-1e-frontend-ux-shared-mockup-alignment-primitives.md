@@ -44,6 +44,9 @@ so that Transactions, Accounts, Categories, and Budgets can align without four s
 - [x] Document dependencies for page-local stories. (AC: 7)
   - [x] Add explicit references in page stories to these shared decisions.
   - [x] Keep page-local CSS only for page-specific grids and row content.
+- [x] Review Follow-ups (AI)
+  - [x] [AI-Review][Medium] Make `ListPanelColumnHeader` presentational instead of rendering invalid row/columnheader roles without a table/grid parent.
+  - [x] [AI-Review][Low] Render numeric `0` counts in `ListPanelHeader` instead of dropping them as falsy.
 
 ## Dev Notes
 
@@ -126,6 +129,11 @@ GPT-5 Codex
 - 2026-06-07: `npm run lint` from `inex/ClientApp` - passed.
 - 2026-06-07: `npm test` from `inex/ClientApp` - passed, 17 test files and 75 tests.
 - 2026-06-07: `rg -n "\bany\b"` over touched TypeScript files - no matches.
+- 2026-06-08: `npm test -- --run src/components/primitives/mockup-alignment-primitives.test.tsx` - red for invalid `row`/`columnheader` roles, then passed with 6 tests after ListPanel fix.
+- 2026-06-08: `npm test` from `inex/ClientApp` - passed, 17 test files and 76 tests.
+- 2026-06-08: `npm run build` from `inex/ClientApp` - passed; Vite reported existing large `vendor-antd` chunk warning.
+- 2026-06-08: `npm run lint` from `inex/ClientApp` - passed.
+- 2026-06-08: `rg -n "\bany\b"` over touched review-fix TypeScript files - no matches.
 
 ### Completion Notes List
 
@@ -137,6 +145,8 @@ GPT-5 Codex
 - Extended `Num` with opt-in `currencySize="sm"` while preserving default same-size amount/currency rendering.
 - Extended `InExDrawer` with `bodyPadding`, `footer`, and `footerAlign` so page drawers share footer action alignment while retaining existing defaults.
 - Documented the 10.1e primitive contracts and added explicit dependency/reference lines in page-local stories 10.2b, 10.3g, 10.3h, and 10.3i.
+- Resolved PR #182 review finding [Medium]: `ListPanelColumnHeader` now renders presentational desktop labels without invalid table/grid roles.
+- Resolved PR #182 review finding [Low]: `ListPanelHeader` now renders `count={0}` through the normal count paragraph while still omitting only `null` and `undefined`.
 
 ### File List
 
@@ -159,3 +169,4 @@ GPT-5 Codex
 ### Change Log
 
 - 2026-06-07: Implemented shared mockup-alignment primitive extensions, list-panel contracts, focused Vitest coverage, contract documentation, and page-story dependency references; story marked ready for review.
+- 2026-06-08: Addressed PR #182 requested changes for ListPanel presentational headers and zero-count rendering; story remains ready for review.

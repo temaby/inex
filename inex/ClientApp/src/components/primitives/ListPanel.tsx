@@ -38,7 +38,7 @@ export const ListPanelHeader: React.FC<ListPanelHeaderProps> = ({ title, count, 
     <div className="inex-list-panel__header">
         <div className="inex-list-panel__title-block">
             <h2>{title}</h2>
-            {count && <p>{count}</p>}
+            {count !== null && count !== undefined && <p>{count}</p>}
         </div>
         {actions && <div className="inex-list-panel__actions">{actions}</div>}
     </div>
@@ -49,9 +49,9 @@ export const ListPanelFilterBar: React.FC<ListPanelFilterBarProps> = ({ children
 );
 
 export const ListPanelColumnHeader: React.FC<ListPanelColumnHeaderProps> = ({ columns }) => (
-    <div className="inex-list-panel__columns" role="row">
+    <div className="inex-list-panel__columns">
         {columns.map((column, index) => (
-            <span key={index} role="columnheader">
+            <span key={index}>
                 {column}
             </span>
         ))}
