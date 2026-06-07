@@ -1,6 +1,6 @@
 # Story 10.3d: Frontend UX - Accounts Design Gap Remediation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -48,6 +48,7 @@ so that account value, currency groups, empty states, and edit flows are trustwo
 - [x] [Post-Merge Review][Patch] Distinguish incomplete equivalent data from complete zero totals so account rows and currency groups do not show false zero shares or unavailable zero-balance rows. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
 - [x] [Post-Merge Review][Patch] Derive base currency only from profile/rate data so missing currency resolution shows unavailable states instead of inventing USD. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`]
 - [x] [Post-Merge Review][Patch] Render complete zero-share currency distribution and group bars at 0% instead of a minimum-width sliver. [`inex/ClientApp/src/pages/Accounts.tsx`]
+- [x] [Post-Merge Review][Patch] Keep focus recovery valid when the empty-state Add account opener unmounts after first account creation. [`inex/ClientApp/src/pages/Accounts.tsx`, `inex/ClientApp/src/pages/Accounts.empty-focus.test.tsx`, `docs/implementation/visual-qa/10-3d/qa-summary.json`]
 
 ## Dev Notes
 
@@ -86,7 +87,7 @@ so that account value, currency groups, empty states, and edit flows are trustwo
 
 ### Agent Model Used
 
-GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-review layers.
+GPT-5 Codex with BMad dev-story Worker A (Accounts), integrated BMad code-review layers, and round-5 post-merge review follow-up.
 
 ### Debug Log References
 
@@ -101,6 +102,8 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Third post-merge BMad review found zero-balance row shares and incomplete equivalent data could be confused; row and group share inputs now use `null` only for incomplete data and `0` for complete zero totals.
 - 2026-06-05: Round-3 route smoke confirmed `/accounts` renders Cash wallet, PLN base equivalents, no horizontal overflow, and updated evidence in `docs/implementation/visual-qa/10-3d/qa-summary.json`.
 - 2026-06-05: Fourth post-merge BMad review found profile/rate lookup failures could still imply a USD base and complete zero-share bars rendered visible slivers; fixes were applied with focused Vitest and route smoke evidence.
+- 2026-06-06: Fifth post-merge BMad review found first account creation from the empty state could unmount the stored focus target; focus recovery now falls back to the mounted Add account trigger, with round-5 390px route-smoke evidence and executable RTL coverage recorded.
+- 2026-06-07: Final verification passed after restoring the invite-token guard that blocked CI: `dotnet build --no-restore`, `dotnet test --no-build`, `npm run lint`, `npm run build`, and `npm run test`.
 
 ### Completion Notes List
 
@@ -114,10 +117,12 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - Accounts QA summary now includes round-3 smoke evidence for complete versus incomplete equivalent share handling.
 - Fourth follow-up removes the final USD fallback path for Accounts base currency and renders complete zero-balance distribution/group bars at true 0% width.
 - Accounts QA summary now includes round-4 smoke evidence for missing base-currency unavailable states and zero-width zero-share bars.
+- Fifth follow-up keeps focus recovery valid after creating the first account from the empty state, records round-5 no-overflow smoke evidence, and adds executable RTL coverage for the unmounted empty-state opener path.
 
 ### File List
 
 - `inex/ClientApp/src/pages/Accounts.tsx`
+- `inex/ClientApp/src/pages/Accounts.empty-focus.test.tsx`
 - `inex/ClientApp/src/pages/Accounts/AccountCreateForm.tsx`
 - `inex/ClientApp/src/pages/Accounts/AccountEditForm.tsx`
 - `inex/ClientApp/src/pages/Accounts/accounts.css`
@@ -138,3 +143,5 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts) and integrated BMad code-rev
 - 2026-06-05: Applied third post-merge account row/group share distinction with focused utility test coverage.
 - 2026-06-05: Added round-3 Accounts route-smoke evidence.
 - 2026-06-05: Applied fourth post-merge Accounts base-currency fallback and zero-share bar fixes with focused utility tests and route smoke.
+- 2026-06-06: Applied fifth post-merge Accounts empty-state create focus fallback with route-smoke evidence and executable focus regression coverage.
+- 2026-06-07: Marked done after backend and frontend verification passed.

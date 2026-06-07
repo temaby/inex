@@ -160,5 +160,29 @@
       "width: 0%;"
     ],
     "textSample": "Normal Accounts smoke rendered Cash Wallet with PLN base equivalents and no horizontal overflow. Missing currency/rate smoke rendered NET WORTH Balance unavailable and Equivalent unavailable labels instead of inventing USD. Zero-balance smoke rendered all distribution and group bars at width: 0%."
+  },
+  {
+    "name": "round5-empty-create-focus-390",
+    "title": "Accounts",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "firstUseCreateFocusReturnedToHeaderAdd": true,
+      "createdAccountVisibleAfterEmptyCreate": true,
+      "closedDrawerVisible": false
+    },
+    "executableRegressionTests": [
+      "inex/ClientApp/src/pages/Accounts.empty-focus.test.tsx"
+    ],
+    "focusAfterCreate": {
+      "activeTag": "BUTTON",
+      "activeText": "Add account"
+    },
+    "textSample": "Round-5 smoke created the first account from the empty-state Add account button. After the empty-state opener unmounted, focus returned to the mounted Add account button, Cash wallet was visible, and no 390px horizontal overflow was present."
   }
 ]

@@ -135,6 +135,7 @@ const Budgets = () => {
     const [currenciesResolved, setCurrenciesResolved] = useState(false);
     const [currencyLoadError, setCurrencyLoadError] = useState(false);
     const [currencyReloadToken, setCurrencyReloadToken] = useState(0);
+    const [pendingCreatedFocusRestore, setPendingCreatedFocusRestore] = useState(false);
     const initialSearchParamsInvalidRef = React.useRef(false);
     const drawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
@@ -322,12 +323,39 @@ const Budgets = () => {
         };
     };
 
-    const closeDrawer = () => {
+    const focusDrawerTrigger = React.useCallback((preferToolbarFallback = false) => {
+        const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+        const addButtons = buttons.filter((button) =>
+            !button.disabled && button.textContent?.trim() === t("budgets.addBudget"));
+        const originalTrigger = drawerTriggerRef.current;
+        const connectedOriginalTrigger = originalTrigger?.isConnected ? originalTrigger : null;
+        const toolbarAddButton = addButtons[0] ?? null;
+        const focusTarget = preferToolbarFallback
+            ? toolbarAddButton ?? connectedOriginalTrigger
+            : connectedOriginalTrigger ?? toolbarAddButton;
+
+        focusTarget?.focus();
+    }, [t]);
+
+    const closeDrawer = (preferToolbarFallback = false) => {
+        if (preferToolbarFallback) {
+            setPendingCreatedFocusRestore(true);
+        }
         setDrawerOpen(false);
         setDrawerError(null);
         form.resetFields();
-        window.setTimeout(() => drawerTriggerRef.current?.focus(), 0);
+        window.setTimeout(() => focusDrawerTrigger(preferToolbarFallback), 0);
+        if (preferToolbarFallback) {
+            window.setTimeout(() => focusDrawerTrigger(true), 250);
+        }
     };
+
+    useEffect(() => {
+        if (!pendingCreatedFocusRestore || drawerOpen || !hasBudgets) return;
+
+        window.setTimeout(() => focusDrawerTrigger(true), 0);
+        setPendingCreatedFocusRestore(false);
+    }, [drawerOpen, focusDrawerTrigger, hasBudgets, pendingCreatedFocusRestore]);
 
     const openDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         drawerTriggerRef.current = event.currentTarget;
@@ -367,7 +395,7 @@ const Budgets = () => {
                 month: periodPayload.month,
             }).unwrap();
             message.success(t("budgets.created"));
-            closeDrawer();
+            closeDrawer(true);
         } catch (error) {
             setDrawerError(parseAxiosError(error, t("budgets.formErrors.create"), t));
         }
@@ -482,7 +510,7 @@ const Budgets = () => {
                         />
                     </Form.Item>
                     <div className="budgets-drawer__actions">
-                        <InExButton kind="ghost" onClick={closeDrawer}>
+                        <InExButton kind="ghost" onClick={() => closeDrawer()}>
                             {t("budgets.cancel")}
                         </InExButton>
                         <InExButton kind="primary" type="submit" disabled={isCreateLoading}>

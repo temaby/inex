@@ -1,6 +1,6 @@
 # Story 10.3e: Frontend UX - Categories Spend And Budget Signals
 
-Status: review
+Status: done
 
 ## Story
 
@@ -62,6 +62,9 @@ so that category structure can be managed with current financial context.
 - [x] [Post-Merge Review][Patch] Return focus to the Add Category trigger after the create drawer closes. [`inex/ClientApp/src/pages/Categories.tsx`, `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`]
 - [x] [PR Review][Patch] Parse date-only transaction filter URLs as inclusive calendar days so linked/report-driven end dates do not drop final-day activity. [`inex/ClientApp/src/pages/Transactions/transaction-filter-url.ts`]
 - [x] [PR Review][Patch] Keep Add Category focus recovery valid when the empty-state opener unmounts after a successful first category create. [`inex/ClientApp/src/pages/Categories.tsx`]
+- [x] [Post-Merge Review][Patch] Fetch direct category spend with `mode=ALL` so disabled-account/category transactions are not silently omitted from rollups. [`inex/ClientApp/src/pages/Categories.tsx`, `docs/implementation/visual-qa/10-3e/qa-summary.json`]
+- [x] [Post-Merge Review][Patch] Ignore malformed or reversed transaction URL date ranges instead of serializing `NaN` filters. [`inex/ClientApp/src/pages/Transactions/transaction-filter-url.ts`, `inex/ClientApp/src/pages/Transactions/transaction-filter-url.test.ts`]
+- [x] [Post-Merge Review][Patch] Do not fall back to stale active-mode transaction cache after direct all-mode category spend fails, and reject impossible calendar dates strictly. [`inex/ClientApp/src/pages/Categories.tsx`, `inex/ClientApp/src/pages/Categories.transaction-source.test.tsx`, `inex/ClientApp/src/pages/Transactions/transaction-filter-url.ts`]
 
 ## Dev Notes
 
@@ -105,7 +108,7 @@ so that category structure can be managed with current financial context.
 
 ### Agent Model Used
 
-GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-review layers.
+GPT-5 Codex with BMad dev-story Worker B (Categories), integrated BMad code-review layers, and round-5 post-merge review follow-up.
 
 ### Debug Log References
 
@@ -121,6 +124,8 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Round-3 route smoke confirmed direct `/categories` navigation fetches current budgets and transactions, shows Food spend `400.00 PLN`, and has no horizontal overflow; evidence recorded in `docs/implementation/visual-qa/10-3e/qa-summary.json`.
 - 2026-06-05: Fourth post-merge BMad review found final-day direct-fetch transactions were excluded, missing base-currency resolution could imply USD, and Add Category drawer close did not restore trigger focus; fixes were applied with focused Vitest and route smoke.
 - 2026-06-06: BMad PR review found URL-driven transaction filters still parsed date-only end values at midnight and empty-state create could unmount the stored Add opener; the shared transaction filter URL parser now expands date-only end dates to the end of day, and Add focus recovery falls back to the mounted toolbar trigger.
+- 2026-06-06: Fifth post-merge BMad review found direct Categories spend still used active transaction mode, active-mode cached transactions could be reused after direct all-mode fetch failure, and malformed/impossible URL date filters could create invalid ranges; Categories direct fetch now uses `mode=ALL`, stale active-cache fallback was removed, and malformed/reversed/impossible ranges are ignored with focused Vitest coverage.
+- 2026-06-07: Final verification passed after restoring the invite-token guard that blocked CI: `dotnet build --no-restore`, `dotnet test --no-build`, `npm run lint`, `npm run build`, and `npm run test`.
 
 ### Completion Notes List
 
@@ -136,10 +141,12 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - Fourth follow-up serializes transaction filter ranges with full-day datetimes, removes the final category spend USD fallback path, and restores Add Category trigger focus after drawer close.
 - Categories QA summary now includes round-4 smoke evidence for final-day spend inclusion, missing-base unavailable state, and Add trigger focus return.
 - PR review follow-up expands date-only transaction URL filter end dates to inclusive end-of-day timestamps so linked transaction views preserve final-day coverage, and keeps focus recovery valid when the empty-state Add opener unmounts after create.
+- Fifth follow-up uses all-mode direct category spend fetching, removes stale active-cache fallback after direct fetch failure, adds malformed/reversed/impossible transaction URL range guards, and records round-5 390px no-overflow smoke evidence.
 
 ### File List
 
 - `inex/ClientApp/src/pages/Categories.tsx`
+- `inex/ClientApp/src/pages/Categories.transaction-source.test.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoriesHero.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoryRow.tsx`
@@ -166,3 +173,5 @@ GPT-5 Codex with BMad dev-story Worker B (Categories) and integrated BMad code-r
 - 2026-06-05: Added round-3 Categories direct-navigation route-smoke evidence.
 - 2026-06-05: Applied fourth post-merge Categories full-day transaction filter, base-currency fallback, and Add drawer focus-return fixes with focused tests and route smoke.
 - 2026-06-06: Fixed PR-review findings for inclusive date-only transaction URL filters and empty-state Add focus fallback with focused parser tests.
+- 2026-06-06: Applied fifth post-merge Categories all-mode direct spend fetch, stale active-cache fallback removal, and strict invalid transaction URL range guards with focused tests and route smoke.
+- 2026-06-07: Marked done after backend and frontend verification passed.

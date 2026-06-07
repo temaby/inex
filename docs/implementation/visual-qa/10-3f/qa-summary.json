@@ -270,5 +270,34 @@
       "GET /api/reports/budget/comparison?year=2026&month=6&currency=PLN"
     ],
     "textSample": "Budgets invalid-param smoke normalized /budgets?year=abc&month=13 to year=2026&month=6 before data requests. At 1024px, the list header was hidden, rows used a single-column grid, and no horizontal overflow was present."
+  },
+  {
+    "name": "round5-empty-create-focus-parent-spend-390",
+    "title": "Budgets",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "firstUseCreateFocusReturnedToAddBudget": true,
+      "createdBudgetVisibleAfterEmptyCreate": true,
+      "parentCategoryBudgetIncludesChildSpend": true,
+      "backendReportAggregatesDescendantSpend": true,
+      "parentChildBudgetScopeDoesNotDoubleCount": true,
+      "closedDrawerVisible": false
+    },
+    "executableRegressionTests": [
+      "inex/ClientApp/src/pages/Budgets.empty-focus.test.tsx",
+      "inex/ClientApp/src/pages/Budgets/budget-planning-utils.test.ts",
+      "inex.Services.Tests/Services/BudgetReportServiceTests.cs"
+    ],
+    "focusAfterCreate": {
+      "activeTag": "BUTTON",
+      "activeText": "Add budget"
+    },
+    "textSample": "Round-5 smoke created the first budget from the empty-state Add budget button. After the empty-state opener unmounted, focus returned to Add budget, Food plan was visible, backend budget comparison included child Groceries spend for the parent Food budget at 31% used without parent/child double-counting, and no 390px horizontal overflow was present."
   }
 ]

@@ -153,5 +153,32 @@
       "activeText": "Add"
     },
     "textSample": "PR-review smoke confirmed date-only Transactions URL filters serialize end dates as 23:59:59, and first category creation from the empty state returns focus to the mounted toolbar Add button after the empty-state opener unmounts."
+  },
+  {
+    "name": "round5-all-mode-spend-and-invalid-url-390",
+    "title": "Categories",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "routeSmoke": {
+      "categorySpendFetchUsesAllMode": true,
+      "disabledAccountSpendIncludedInCategoryRollup": true,
+      "foodAndGroceriesVisible": true,
+      "malformedTransactionDateRangeGuardCoveredByVitest": true,
+      "activeModeCacheIgnoredAfterDirectFetchFailure": true,
+      "impossibleTransactionDateGuardCoveredByVitest": true
+    },
+    "executableRegressionTests": [
+      "inex/ClientApp/src/pages/Categories.transaction-source.test.tsx",
+      "inex/ClientApp/src/pages/Transactions/transaction-filter-url.test.ts"
+    ],
+    "requestLog": [
+      "GET /api/transactions?mode=ALL&pageSize=250&page=1&startDate=2026-06-01T00:00:00&endDate=2026-06-30T23:59:59"
+    ],
+    "textSample": "Round-5 smoke rendered Food/Groceries category spend at 390px with no horizontal overflow and confirmed the direct Categories spend request uses mode=ALL, so transactions from disabled accounts/categories are not silently dropped. Focused Vitest coverage rejects malformed, reversed, or impossible transaction URL date ranges and confirms stale active-mode transaction cache is not reused after direct all-mode fetch failure."
   }
 ]

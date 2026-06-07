@@ -52,9 +52,9 @@ public class AuthService : IAuthService
 
         var user = new AppUser
         {
-            UserName     = request.Username,
-            Email        = request.Email,
-            CurrencyId   = request.CurrencyId,
+            UserName = request.Username,
+            Email = request.Email,
+            CurrencyId = request.CurrencyId,
             LanguageCode = request.LanguageCode,
         };
 

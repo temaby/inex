@@ -15,7 +15,6 @@ import type { TransactionResponse } from "../model/Transaction/TransactionRespon
 import { budgetsApi, useGetBudgetsQuery } from "../store/budgets/budgets-api";
 import type { CategoryResponse } from "../store/categories/categories-api";
 import { useGetCategoriesQuery } from "../store/categories/categories-api";
-import type { RootState } from "../store";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
 import CategoryCreateForm from "./Categories/CategoryCreateForm";
@@ -63,17 +62,6 @@ interface TransactionsPagedData {
     metadata: { totalItems: number };
 }
 
-interface TransactionQueryArgs {
-    page: number;
-    filter: {
-        accountIds: number[];
-        categoryIds: number[];
-        tags: string[];
-        refs: string[];
-        range: number[];
-    };
-}
-
 interface CurrencyOption {
     id: number;
     key: string;
@@ -88,21 +76,6 @@ const isTransactionsPagedData = (value: unknown): value is TransactionsPagedData
     value.data.every(isTransactionResponse) &&
     isRecord(value.metadata) &&
     typeof value.metadata.totalItems === "number";
-
-const isTransactionQueryArgs = (value: unknown): value is TransactionQueryArgs =>
-    isRecord(value) &&
-    typeof value.page === "number" &&
-    isRecord(value.filter) &&
-    Array.isArray(value.filter.accountIds) &&
-    Array.isArray(value.filter.categoryIds) &&
-    Array.isArray(value.filter.tags) &&
-    Array.isArray(value.filter.refs) &&
-    Array.isArray(value.filter.range);
-
-const getPeriodBounds = ({ year, month }: CategoryPeriod) => ({
-    start: new Date(year, month - 1, 1).getTime() / 1000,
-    end: new Date(year, month, 0, 23, 59, 59).getTime() / 1000,
-});
 
 const formatPeriodDate = (year: number, month: number, day: number) =>
     `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -119,82 +92,6 @@ const getPeriodQueryDates = ({ year, month }: CategoryPeriod) => ({
     endDate: formatPeriodDateTime(year, month, new Date(year, month, 0).getDate(), "end"),
 });
 
-const isUnfilteredPeriodCoveringQuery = (
-    args: TransactionQueryArgs,
-    period: CategoryPeriod,
-) => {
-    const { filter } = args;
-    const hasServerFilters =
-        filter.accountIds.length > 0 ||
-        filter.categoryIds.length > 0 ||
-        filter.tags.length > 0 ||
-        filter.refs.length > 0;
-    if (hasServerFilters) return false;
-
-    if (filter.range.length === 0) return true;
-    if (filter.range.length !== 2) return false;
-
-    const [start, end] = filter.range;
-    if (typeof start !== "number" || typeof end !== "number" || start <= 0 || end <= 0) {
-        return false;
-    }
-
-    const periodBounds = getPeriodBounds(period);
-    return start <= periodBounds.start && end >= periodBounds.end;
-};
-
-const makeTransactionCacheKey = (args: TransactionQueryArgs) =>
-    JSON.stringify({
-        accountIds: args.filter.accountIds,
-        categoryIds: args.filter.categoryIds,
-        tags: args.filter.tags,
-        refs: args.filter.refs,
-        range: args.filter.range,
-    });
-
-const selectCachedTransactions = (
-    queries: RootState["transactionsApi"]["queries"],
-    period: CategoryPeriod,
-) => {
-    const groups = new Map<string, {
-        ids: Set<number>;
-        transactions: TransactionResponse[];
-        totalItems: number;
-    }>();
-
-    Object.values(queries).forEach((query) => {
-        const data = query?.data;
-        const originalArgs = query?.originalArgs;
-        if (!isTransactionsPagedData(data) || !isTransactionQueryArgs(originalArgs)) {
-            return;
-        }
-        if (!isUnfilteredPeriodCoveringQuery(originalArgs, period)) {
-            return;
-        }
-
-        const key = makeTransactionCacheKey(originalArgs);
-        const group = groups.get(key) ?? {
-            ids: new Set<number>(),
-            transactions: [],
-            totalItems: data.metadata.totalItems,
-        };
-        group.totalItems = Math.max(group.totalItems, data.metadata.totalItems);
-        data.data.forEach((transaction) => {
-            if (!group.ids.has(transaction.id)) {
-                group.ids.add(transaction.id);
-                group.transactions.push(transaction);
-            }
-        });
-        groups.set(key, group);
-    });
-
-    const completeGroups = Array.from(groups.values())
-        .filter((group) => group.totalItems === 0 || group.ids.size >= group.totalItems)
-        .sort((left, right) => left.totalItems - right.totalItems);
-
-    return completeGroups[0]?.transactions ?? null;
-};
-
 const fetchPeriodTransactions = async (period: CategoryPeriod): Promise<TransactionResponse[] | null> => {
     const { startDate, endDate } = getPeriodQueryDates(period);
     const transactions: TransactionResponse[] = [];
@@ -205,7 +102,7 @@ const fetchPeriodTransactions = async (period: CategoryPeriod): Promise<Transact
     while (seenIds.size < totalItems && page <= CATEGORY_TRANSACTIONS_MAX_PAGES) {
         const { data } = await apiClient.get<TransactionsPagedData>("/transactions", {
             params: {
-                mode: "active",
+                mode: "ALL",
                 pageSize: CATEGORY_TRANSACTIONS_PAGE_SIZE,
                 page,
                 startDate,
@@ -283,9 +180,6 @@ const Categories = () => {
         refetch,
     } = useGetCategoriesQuery("ALL");
     const { data: currentMonthBudgets } = useGetBudgetsQuery(period);
-    const cachedTransactions = useAppSelector((state) =>
-        selectCachedTransactions(state.transactionsApi.queries, period),
-    );
     const exchangeRates = useAppSelector((state) => state.rates.items);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
     const profileCurrency = React.useMemo(
@@ -307,7 +201,7 @@ const Categories = () => {
         );
     });
     const budgetsForPeriod = currentMonthBudgets ?? cachedBudgets;
-    const currentPeriodTransactions = periodTransactions ?? cachedTransactions;
+    const currentPeriodTransactions = periodTransactions;
 
     const focusAddTrigger = React.useCallback((preferToolbarFallback = false) => {
         const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));

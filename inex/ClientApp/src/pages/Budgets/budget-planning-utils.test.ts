@@ -62,6 +62,19 @@ describe("budget planning helpers", () => {
         expect(result?.percentageUsed).toBeCloseTo(33.33, 1);
     });
 
+    it("uses the parent budget report row without double-counting separate child rows", () => {
+        const budget = createBudgetDetails({ value: 400, categoryIds: [1] });
+        const result = getBudgetReportForBudget(budget, [
+            reportItem({ categoryIds: [1], spentAmount: 200 }),
+            reportItem({ categoryIds: [2], spentAmount: 125 }),
+        ]);
+
+        expect(result?.budgetedAmount).toBe(400);
+        expect(result?.spentAmount).toBe(200);
+        expect(result?.remainingAmount).toBe(200);
+        expect(result?.percentageUsed).toBe(50);
+    });
+
     it("keeps categoryless budgets scannable with zero-spend report metrics", () => {
         const budget = createBudgetDetails({ name: "Savings", value: 150, categoryIds: [] });
         const result = getBudgetReportForBudget(budget, []);
