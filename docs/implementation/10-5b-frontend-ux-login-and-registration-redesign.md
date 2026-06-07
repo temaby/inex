@@ -59,7 +59,7 @@ Story 10.5a (Profile redesign) is a sibling story — no dependency in either di
 
 Story 10.4 must be done before finalizing auth redirects to `/dashboard`. Do not leave temporary `/transactions` redirects in the completed story.
 
-Story 10.1d finalizes the authenticated landing-route policy for this story: successful login and successful registration must navigate to `/dashboard`; authenticated `/` must continue to resolve to `/dashboard`; direct route access to protected pages must preserve the requested destination when `ProtectedRoute` already supports it, otherwise the fallback target is `/dashboard`. Do not implement Transactions-first auth redirects to match the mockup root behavior.
+Story 10.1d finalizes the authenticated landing-route policy for this story: successful login and successful registration must navigate to `/dashboard`; authenticated `/` must continue to resolve to `/dashboard`; unauthenticated direct access to protected pages redirects to `/login` without preserving a return target in the current `ProtectedRoute`, so the post-auth fallback target remains `/dashboard`; authenticated direct access to protected pages must render the requested route. Do not implement Transactions-first auth redirects to match the mockup root behavior.
 
 ## Shared Ownership Hotspots
 
@@ -708,6 +708,8 @@ Before marking this story done, verify:
 - [ ] `npm run build` passes from `inex/ClientApp/`
 - [ ] `npm run lint` passes with no new `any` in touched files
 - [ ] Navigating to `/` redirects according to Story 10.1d: authenticated default target is `/dashboard`; `/transactions` is not acceptable in the completed story
+- [ ] Unauthenticated direct protected-route access redirects to `/login`; after successful auth, the current fallback landing route is `/dashboard` because return-state preservation is not part of this story.
+- [ ] Authenticated direct protected-route access renders the requested protected route.
 - [ ] `ProtectedRoute` still shows a spinner while `isInitializing` is true
 - [ ] Logging in successfully navigates to `/dashboard` after 10.4 is present
 - [ ] Registering successfully navigates to `/dashboard` after 10.4 is present

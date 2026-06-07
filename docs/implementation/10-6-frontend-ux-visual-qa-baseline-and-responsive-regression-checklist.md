@@ -30,11 +30,19 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 | 10.1b | Shared primitives (`Num`, `InExButton`, `InExDrawer`, `EmptyState`, etc.) |
 | 10.1c | App shell and navigation (desktop top nav + mobile bottom nav)            |
 | 10.1d | Shell, locale, route, fixture, and accepted-deviation policy              |
+| 10.1e | Shared mockup-alignment primitives                                        |
 | 10.2  | Transactions ledger redesign                                              |
 | 10.2a | Transactions design gap remediation                                       |
+| 10.2b | Transactions mockup-alignment delta                                       |
 | 10.3a | Accounts management redesign                                              |
 | 10.3b | Categories management redesign                                            |
 | 10.3c | Budgets management redesign                                               |
+| 10.3d | Accounts design gap remediation                                           |
+| 10.3e | Categories spend and budget signals                                       |
+| 10.3f | Budgets burn-rate and planning detail completion                          |
+| 10.3g | Accounts mockup-alignment delta                                           |
+| 10.3h | Categories mockup-alignment delta                                         |
+| 10.3i | Budgets mockup-alignment delta                                            |
 | 10.4  | Reports hub, dashboard landing, and drill-down chrome                     |
 | 10.5a | Profile and settings redesign                                             |
 | 10.5b | Login and registration redesign                                           |
@@ -44,7 +52,12 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 **Story 10.1d policy gate:** before capturing final QA screenshots, confirm the current implementation and checklist use these decisions from Story 10.1d:
 
 - Authenticated desktop and mobile navigation keep Dashboard as a sixth production IA item. This is an accepted deviation from the five-item management-page mockups, not a QA failure.
-- Authenticated `/`, successful login, successful registration, protected-route returns without an intended destination, and direct `/dashboard` access all resolve to `/dashboard`. Capture `/dashboard` directly for the Dashboard baseline.
+- Authenticated `/` redirects to `/dashboard`.
+- Successful login lands on `/dashboard`.
+- Successful registration lands on `/dashboard`; any remaining `/transactions` registration redirect is a Story 10.5b regression to fix before final QA.
+- Protected-route fallback remains the current production behavior: unauthenticated direct access to a protected route redirects to `/login` without preserving a return target, and successful auth lands on `/dashboard`.
+- Authenticated direct route access must preserve the requested protected route. Direct `/dashboard`, `/transactions`, `/accounts`, `/categories`, `/budgets`, `/reports`, report drill-down routes, and `/profile` should render their matched route.
+- Capture `/dashboard` directly for the Dashboard baseline.
 - The app shell may keep both the profile pill and the separate visible sign-out icon. Profile access and logout must remain keyboard reachable on desktop and reachable on mobile.
 - English is the primary visual parity baseline. Russian is a required long-label responsive stress test, not the baseline used for mockup pixel/content parity.
 - Each QA row must label `dataMode: fixture` or `dataMode: live-seed`. Exact value parity is required only for fixture rows; live-seed rows may differ in values while still failing on layout, hierarchy, missing state, formatting, overflow, or inaccessible controls.
@@ -80,10 +93,18 @@ Epic 10 rebuilds the production React app to implement the `docs/design` visual 
 **Epic 10 sequence:**
 
 ```
-10.1a → 10.1b → 10.1c → 10.2 → 10.2a → 10.3a/b/c → 10.4 → 10.5a/b → 10.6 (this story)
+10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.6 (this story)
 ```
 
-**Dashboard route:** QA verifies `/dashboard` as delivered by Story 10.4 on top of completed Epic 6 dashboard/report data work. `/` may redirect there, but QA must capture `/dashboard` directly so the baseline matches the implemented landing route. Story 10.6 must not implement or duplicate Epic 6 dashboard/report data or API behavior.
+**Dashboard route:** QA verifies `/dashboard` as delivered by Story 10.4 on top of completed Epic 6 dashboard/report data work. Authenticated `/` must redirect there, and QA must capture `/dashboard` directly so the baseline matches the implemented landing route. Story 10.6 must not implement or duplicate Epic 6 dashboard/report data or API behavior.
+
+**Route regression checklist:** final QA must verify the route policy from Story 10.1d:
+
+- Authenticated `/` redirects to `/dashboard`.
+- Successful login redirects to `/dashboard`.
+- Successful registration redirects to `/dashboard`.
+- Unauthenticated direct access to a protected route redirects to `/login`; after successful auth, the fallback landing route is `/dashboard` because current `ProtectedRoute` does not preserve return state.
+- Authenticated direct access to protected routes renders the requested route instead of rerouting to Dashboard.
 
 **Shell and accepted-deviation baseline:** Story 10.1d intentionally keeps Dashboard in authenticated navigation and allows the production profile pill plus separate sign-out icon to remain visible. Do not fail Story 10.6 solely because the shell has six nav items or a separate sign-out icon. Do fail the QA run if navigation, profile, or logout controls are clipped, unreachable by keyboard, hidden on mobile, or occluded by the bottom nav.
 

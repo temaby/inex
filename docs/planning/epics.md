@@ -265,9 +265,9 @@ The production React app implements the `docs/design` visual system: custom shel
 - Epic 7 Story 7.2 may be scheduled with this epic, but route lazy-loading remains Epic 7 ownership
 
 **Execution order:**
-10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6.
+10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.6.
 
-Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
+Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Stories 10.1d and 10.1e are post-audit shared policy and primitive gates derived from `docs/ui-audit/implementation-roadmap.md`; they must complete before page-local mockup-alignment deltas and before Story 10.6. Stories 10.2b, 10.3g, 10.3h, and 10.3i are post-audit page-local mockup-alignment delta stories and must complete before Story 10.6 unless explicitly waived as accepted deviations. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Stories 10.1d, 10.1e, 10.2a, 10.2b, and 10.3d through 10.3i are done.
 
 ---
 
@@ -1298,7 +1298,7 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
-Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.1d -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.1d is the policy gate for shell IA, authenticated landing route, account controls, locale baseline, fixture/live-data QA mode, and accepted mockup deviations. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.6. The grouped management, page-delta, and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.1d is the policy gate for shell IA, authenticated landing route, account controls, locale baseline, fixture/live-data QA mode, and accepted mockup deviations. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Stories 10.1d and 10.1e are post-audit shared policy and primitive gates derived from `docs/ui-audit/implementation-roadmap.md`; they must complete before page-local mockup-alignment deltas and before Story 10.6. Stories 10.2b, 10.3g, 10.3h, and 10.3i are post-audit page-local mockup-alignment delta stories derived from the tracked page audits and must complete before Story 10.6 unless explicitly waived as accepted deviations. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.1d, 10.1e, 10.2a, 10.2b, and 10.3d through 10.3i are done.
 
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 
@@ -1370,7 +1370,7 @@ So that desktop and mobile navigation are predictable across authenticated workf
 
 ### Story 10.1d: Frontend UX - Shell Locale Fixture And Visual QA Policy
 
-**Dependency:** Story 10.1d starts after Story 10.1c and must complete before page-local mockup-alignment, profile/settings, auth, and final visual QA work.
+**Dependency:** Story 10.1d starts after Story 10.1c and Story 10.4 are done. It must complete before 10.1e, 10.2b, 10.3g, 10.3h, 10.3i, 10.5a, 10.5b, and 10.6.
 
 As an invited account holder,
 I want the audited Epic 10 pages to share one explicit shell, locale, route, and visual QA data policy,
@@ -1397,6 +1397,18 @@ So that later page-alignment work does not keep re-litigating Dashboard navigati
 **Given** Story 10.6 is prepared
 **When** final visual QA starts
 **Then** Story 10.6 references the shell IA, route, account-control, locale, fixture/live-data, and accepted-deviation policies before screenshots are accepted
+
+Implementation source of truth: `docs/implementation/10-1d-frontend-ux-shell-locale-fixture-and-visual-qa-policy.md`.
+
+### Story 10.1e: Frontend UX - Shared Mockup Alignment Primitives
+
+**Dependency:** Story 10.1e starts after Story 10.1d. It must complete before 10.2b, 10.3g, 10.3h, 10.3i, and 10.6.
+
+As an invited account holder,
+I want the shared controls and list primitives to support the audited mockup patterns,
+So that Transactions, Accounts, Categories, and Budgets can align without four separate one-off implementations.
+
+Implementation source of truth: `docs/implementation/10-1e-frontend-ux-shared-mockup-alignment-primitives.md`.
 
 ### Story 10.2: Frontend UX - Transactions Ledger Redesign
 
@@ -1459,6 +1471,16 @@ So that transaction review is self-explanatory without hidden context or color-o
 **Given** the story is complete
 **When** `npm run build`, `npm run lint`, and visual QA run
 **Then** all pass and screenshots cover populated, filter-active, filter drawer open, long category paths, long amounts, and mobile ledger rows without horizontal overflow or bottom-nav occlusion
+
+### Story 10.2b: Frontend UX - Transactions Mockup Alignment Delta
+
+**Dependency:** Story 10.2b starts after Stories 10.1d, 10.1e, 10.2, and 10.2a are complete. It must complete before Story 10.6 unless explicitly waived as an accepted mockup deviation.
+
+As an invited account holder,
+I want the remaining Transactions mockup mismatches resolved after the ledger redesign and 10.2a remediation,
+So that the Transactions workspace matches the audited design contract before the Epic 10 visual QA gate.
+
+Implementation source of truth: `docs/implementation/10-2b-frontend-ux-transactions-mockup-alignment-delta.md`.
 
 ### Story 10.3a: Frontend UX - Accounts Management Redesign
 
@@ -1562,6 +1584,36 @@ So that monthly budget health is accurate, actionable, and not shaped by backend
 
 Implementation source of truth: `docs/implementation/10-3f-frontend-ux-budgets-burn-rate-and-planning-detail.md`.
 
+### Story 10.3g: Frontend UX - Accounts Mockup Alignment Delta
+
+**Dependency:** Story 10.3g starts after Stories 10.1d, 10.1e, 10.3a, and 10.3d are complete. It must complete before Story 10.6 unless explicitly waived as an accepted mockup deviation.
+
+As an invited account holder,
+I want the Accounts workspace to resolve the remaining Accounts mockup audit mismatches,
+So that the page reads like the approved dense management mockup while preserving the completed 10.3a and 10.3d production fixes.
+
+Implementation source of truth: `docs/implementation/10-3g-frontend-ux-accounts-mockup-alignment-delta.md`.
+
+### Story 10.3h: Frontend UX - Categories Mockup Alignment Delta
+
+**Dependency:** Story 10.3h starts after Stories 10.1d, 10.1e, 10.3b, and 10.3e are complete. It must complete before Story 10.6 unless explicitly waived as an accepted mockup deviation.
+
+As an invited account holder,
+I want the Categories workspace to align with the audited mockup where production has not intentionally diverged,
+So that category management has the same header actions, list composition, row density, drawer behavior, empty states, and mobile hierarchy expected by the Epic 10 visual QA gate.
+
+Implementation source of truth: `docs/implementation/10-3h-frontend-ux-categories-mockup-alignment-delta.md`.
+
+### Story 10.3i: Frontend UX - Budgets Mockup Alignment Delta
+
+**Dependency:** Story 10.3i starts after Stories 10.1d, 10.1e, 10.3c, and 10.3f are complete. It must complete before Story 10.6 unless explicitly waived as an accepted mockup deviation.
+
+As an invited account holder,
+I want the Budgets workspace to close the remaining mockup-alignment gaps after the burn-rate/detail work,
+So that month planning is compact, scannable, and ready for the Epic 10 visual QA gate.
+
+Implementation source of truth: `docs/implementation/10-3i-frontend-ux-budgets-mockup-alignment-delta.md`.
+
 ### Story 10.4: Frontend UX - Reports Hub, Dashboard Landing, And Drill-Down Chrome
 
 As an invited account holder,
@@ -1636,7 +1688,7 @@ So that authentication feels reliable and consistent with the finance app.
 
 ### Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
 
-**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done, including the Story 10.1d policy baseline.
+**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Stories 10.1d, 10.1e, 10.2a, 10.2b, and 10.3d through 10.3i are done, including the Story 10.1d policy baseline.
 
 As a developer,
 I want a repeatable visual QA process for the redesigned UI,

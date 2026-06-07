@@ -22,6 +22,8 @@ docs/*
 !docs/planning/**
 !docs/implementation/
 !docs/implementation/**
+!docs/ui-audit/
+!docs/ui-audit/**
 !docs/operations/
 !docs/operations/**
 **/logs/
