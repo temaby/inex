@@ -29,6 +29,7 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 | 10.1a | Design tokens and Ant Design theme bridge                                 |
 | 10.1b | Shared primitives (`Num`, `InExButton`, `InExDrawer`, `EmptyState`, etc.) |
 | 10.1c | App shell and navigation (desktop top nav + mobile bottom nav)            |
+| 10.1d | Shell, locale, route, fixture, and accepted-deviation policy              |
 | 10.2  | Transactions ledger redesign                                              |
 | 10.2a | Transactions design gap remediation                                       |
 | 10.3a | Accounts management redesign                                              |
@@ -40,6 +41,14 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 
 **Check before starting:** every story above must be status `done` in `docs/implementation/sprint-status.yaml`. If any story is not `done`, do not start the final Epic 10 QA gate; send the incomplete story back to its owner first. Subset QA is allowed only as story-level evidence for an individual route story, not as completion evidence for Story 10.6.
 
+**Story 10.1d policy gate:** before capturing final QA screenshots, confirm the current implementation and checklist use these decisions from Story 10.1d:
+
+- Authenticated desktop and mobile navigation keep Dashboard as a sixth production IA item. This is an accepted deviation from the five-item management-page mockups, not a QA failure.
+- Authenticated `/`, successful login, successful registration, protected-route returns without an intended destination, and direct `/dashboard` access all resolve to `/dashboard`. Capture `/dashboard` directly for the Dashboard baseline.
+- The app shell may keep both the profile pill and the separate visible sign-out icon. Profile access and logout must remain keyboard reachable on desktop and reachable on mobile.
+- English is the primary visual parity baseline. Russian is a required long-label responsive stress test, not the baseline used for mockup pixel/content parity.
+- Each QA row must label `dataMode: fixture` or `dataMode: live-seed`. Exact value parity is required only for fixture rows; live-seed rows may differ in values while still failing on layout, hierarchy, missing state, formatting, overflow, or inaccessible controls.
+
 **Dev server must be running** with populated data. Follow the local startup flow in `README.md`: start MySQL with Docker Compose, run the backend (`dotnet watch run --project inex`), and run the frontend (`npm start` from `inex/ClientApp/`). Confirm `http://localhost:3000` loads and you can log in.
 
 **Test account setup:** log in with a test user that has at least:
@@ -49,6 +58,8 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 - 5+ categories (mix of active and inactive, with parent/child)
 - 3+ budgets for the current month
 - At least one report result accessible from the Reports hub
+
+**Data mode setup:** choose either fixed April 2026 mockup fixtures or live seeded user data before a QA pass starts. Use the same mode across Transactions, Accounts, Categories, and Budgets for a comparable pass, and record the mode in every checklist row. If fixture mode is used, route/query/period/currency values must match the mockup fixture. If live-seed mode is used, account balances, transaction amounts, category totals, budget usage, and currency values may differ from the mockup, but visual structure, labels, affordances, responsive behavior, and empty/filter/drawer states must still match the accepted design contract.
 
 ## Epic Context
 
@@ -73,6 +84,10 @@ Epic 10 rebuilds the production React app to implement the `docs/design` visual 
 ```
 
 **Dashboard route:** QA verifies `/dashboard` as delivered by Story 10.4 on top of completed Epic 6 dashboard/report data work. `/` may redirect there, but QA must capture `/dashboard` directly so the baseline matches the implemented landing route. Story 10.6 must not implement or duplicate Epic 6 dashboard/report data or API behavior.
+
+**Shell and accepted-deviation baseline:** Story 10.1d intentionally keeps Dashboard in authenticated navigation and allows the production profile pill plus separate sign-out icon to remain visible. Do not fail Story 10.6 solely because the shell has six nav items or a separate sign-out icon. Do fail the QA run if navigation, profile, or logout controls are clipped, unreachable by keyboard, hidden on mobile, or occluded by the bottom nav.
+
+**Locale baseline:** run mockup parity screenshots in English. Reset the app language to English before parity capture by setting `localStorage.setItem("i18nextLng", "en")` and reloading, or by using the profile/settings language control when available. Run the Russian pass separately as the long-label stress state and record it as RU stress coverage.
 
 **Dependencies from epics.md:**
 
@@ -373,7 +388,7 @@ qa-screenshots.mjs
 
 ### populated
 
-Navigate to the route while logged in with the test account containing seed data. Verify the page renders content.
+Navigate to the route while logged in with the selected data mode. For `dataMode: fixture`, verify visible values match the April 2026 mockup fixture for the route/query/period/currency under test. For `dataMode: live-seed`, verify the page renders representative data and do not treat value differences from the mockup as defects.
 
 ### empty
 
@@ -397,7 +412,7 @@ From the Reports hub, open any specific report (e.g., category spending, net wor
 
 ### long translated labels (RU locale)
 
-Switch the app locale to Russian (via the language toggle in Profile/Settings or by changing `i18n.changeLanguage('ru')` in browser console). Navigate to pages with labels and verify buttons, table headers, and chips do not clip or overflow.
+Switch the app locale to Russian (via the language toggle in Profile/Settings or by changing `i18n.changeLanguage('ru')` in browser console). Navigate to pages with labels and verify buttons, table headers, and chips do not clip or overflow. This is a responsive stress test; switch back to English before primary mockup parity screenshots.
 
 ```js
 // Switch to Russian in browser console:
@@ -441,6 +456,8 @@ node qa-screenshots.mjs
 
 - Browser/tool used:
 - Local URL:
+- Locale baseline: English for parity; Russian only for long-label stress rows
+- Data mode per row: every Notes cell must start with `dataMode: fixture` or `dataMode: live-seed`
 - Viewports captured: 1440px, 1024px, 390px, 360px
 - Screenshot output folder:
 - Notes for Windows/macOS/Linux differences:

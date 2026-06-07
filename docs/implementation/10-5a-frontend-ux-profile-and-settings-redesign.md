@@ -54,6 +54,7 @@ so that profile, currency, language, and password changes are easy to complete o
 - Story 10.1a (tokens/theme bridge) is mandatory before starting this story so profile/settings surfaces use the Epic 10 CSS variable and Ant Design theme bridge instead of local color constants.
 - Story 10.1b (shared primitives) is mandatory before starting this story so settings actions, empty/help states, error banners, and icon buttons align with the shared primitive contracts.
 - Story 10.1c (app shell/navigation) is mandatory before starting this story. `/profile` must be rebuilt inside the implemented authenticated app shell/navigation contract, including mobile bottom-nav spacing and no page-level horizontal overflow at 390px and 360px.
+- Story 10.1d fixes the shell account-control policy for this story: production may keep the separate visible sign-out icon as an accepted mockup deviation, while the profile pill remains the profile/settings entry point. This story owns `/profile` content and settings behavior; it must not move logout behind the profile pill or remove the sign-out affordance unless a later shell story explicitly changes that policy.
 - Story 10.4 is a sequencing prerequisite for this story unless the team explicitly waives the fixed Epic 10 order in the story handoff. Profile/settings should be rebuilt after dashboard/reports route chrome is stable so app-shell navigation and `/dashboard` landing behavior are not reworked in parallel.
 
 ## Profile/Settings Validation Matrix
@@ -99,6 +100,10 @@ so that profile, currency, language, and password changes are easy to complete o
 
 ### Design And UX Guardrails
 
+- Preserve Story 10.1d shell decisions:
+  - Dashboard remains visible in authenticated desktop and mobile navigation as an accepted production IA deviation from the five-item mockup management nav.
+  - The profile pill and separate sign-out icon may both remain visible in the app shell.
+  - Profile access and logout must remain keyboard reachable on desktop and reachable on mobile after any `/profile` page changes.
 - Desktop settings layout contract:
   - settings container uses wide workspace padding and two-column grid (`sidebar + content`).
   - sidebar is sticky under top nav.

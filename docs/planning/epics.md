@@ -1298,7 +1298,7 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
-Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.1d -> 10.2 -> 10.2a -> 10.3a/10.3b/10.3c -> 10.4 -> 10.5a/10.5b -> 10.6. The grouped management and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.1d is the policy gate for shell IA, authenticated landing route, account controls, locale baseline, fixture/live-data QA mode, and accepted mockup deviations. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
 
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 
@@ -1367,6 +1367,36 @@ So that desktop and mobile navigation are predictable across authenticated workf
 **Given** the story is complete
 **When** `npm run build`, `npm run lint`, and mobile visual QA run
 **Then** all pass with no route protection, logout, or localization regressions
+
+### Story 10.1d: Frontend UX - Shell Locale Fixture And Visual QA Policy
+
+**Dependency:** Story 10.1d starts after Story 10.1c and must complete before page-local mockup-alignment, profile/settings, auth, and final visual QA work.
+
+As an invited account holder,
+I want the audited Epic 10 pages to share one explicit shell, locale, route, and visual QA data policy,
+So that later page-alignment work does not keep re-litigating Dashboard navigation, profile/sign-out controls, language, fixture data, or landing-route behavior.
+
+**Acceptance Criteria:**
+
+**Given** the audited management-page mockups use five navigation items
+**When** shell policy is documented
+**Then** Dashboard remains in authenticated desktop and mobile navigation as an accepted production IA deviation from the mockups
+
+**Given** the mockup root renders Transactions but production redirects `/` to `/dashboard`
+**When** landing-route policy is finalized
+**Then** authenticated `/`, post-login, post-registration, protected-route fallback behavior, and direct `/dashboard` access use `/dashboard` as the documented target
+
+**Given** the mockups show a single profile pill while production shows profile and sign-out controls
+**When** shell account-control policy is finalized
+**Then** the separate sign-out icon may remain as an accepted deviation, and profile access plus logout must remain keyboard reachable on desktop and reachable on mobile
+
+**Given** visual QA compares mockups against production
+**When** locale and data policy are finalized
+**Then** English is the primary parity baseline, Russian is a long-label responsive stress test, and each QA row labels `dataMode: fixture` or `dataMode: live-seed`
+
+**Given** Story 10.6 is prepared
+**When** final visual QA starts
+**Then** Story 10.6 references the shell IA, route, account-control, locale, fixture/live-data, and accepted-deviation policies before screenshots are accepted
 
 ### Story 10.2: Frontend UX - Transactions Ledger Redesign
 
@@ -1606,7 +1636,7 @@ So that authentication feels reliable and consistent with the finance app.
 
 ### Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
 
-**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done.
+**Dependency:** Story 10.6 must start only after Stories 10.1a through 10.5b plus Stories 10.2a and 10.3d through 10.3f are done, including the Story 10.1d policy baseline.
 
 As a developer,
 I want a repeatable visual QA process for the redesigned UI,

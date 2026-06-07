@@ -59,6 +59,8 @@ Story 10.5a (Profile redesign) is a sibling story — no dependency in either di
 
 Story 10.4 must be done before finalizing auth redirects to `/dashboard`. Do not leave temporary `/transactions` redirects in the completed story.
 
+Story 10.1d finalizes the authenticated landing-route policy for this story: successful login and successful registration must navigate to `/dashboard`; authenticated `/` must continue to resolve to `/dashboard`; direct route access to protected pages must preserve the requested destination when `ProtectedRoute` already supports it, otherwise the fallback target is `/dashboard`. Do not implement Transactions-first auth redirects to match the mockup root behavior.
+
 ## Shared Ownership Hotspots
 
 | Hotspot | Rule for this story |
@@ -401,6 +403,7 @@ import { AlertCircle } from "lucide-react";
 - `useAppDispatch`, `useAppSelector`, `loginUser`, `setAuthError` imports
 - `const authError = useAppSelector((s) => s.auth.error);`
 - `useEffect` that redirects authenticated users; update the target to `/dashboard` once Story 10.4 is in the branch, and do not leave `/transactions` as the final post-auth landing route for Epic 10
+- Story 10.1d has finalized `/dashboard` as the post-login target; treat `/transactions` as incorrect for the completed story.
 - `onValuesChange` that clears `authError`
 - `onFinish` handler (no change)
 - `isSubmitting` local state
@@ -521,6 +524,7 @@ import { AlertCircle } from "lucide-react";
 
 - All Redux imports (`registerUser`, `setAuthError`)
 - `useEffect` redirect on `accessToken`, with the final Epic 10 redirect target aligned to `/dashboard` after Story 10.4
+- Story 10.1d has finalized `/dashboard` as the post-registration target; treat `/transactions` as incorrect for the completed story.
 - `useEffect` that fetches currencies and pre-selects EUR
 - `handleLanguageChange` function (changes `i18n.language` and `localStorage`)
 - `onValuesChange` that clears `authError`
@@ -703,7 +707,7 @@ Before marking this story done, verify:
 
 - [ ] `npm run build` passes from `inex/ClientApp/`
 - [ ] `npm run lint` passes with no new `any` in touched files
-- [ ] Navigating to `/` redirects according to Story 10.4: final Epic 10 target is `/dashboard`; `/transactions` is acceptable only on a temporary branch that has not merged 10.4 yet
+- [ ] Navigating to `/` redirects according to Story 10.1d: authenticated default target is `/dashboard`; `/transactions` is not acceptable in the completed story
 - [ ] `ProtectedRoute` still shows a spinner while `isInitializing` is true
 - [ ] Logging in successfully navigates to `/dashboard` after 10.4 is present
 - [ ] Registering successfully navigates to `/dashboard` after 10.4 is present
