@@ -43,8 +43,8 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
-        //if (!string.Equals(request.InviteToken, _invite.Token, StringComparison.Ordinal))
-        //    throw new AccessDeniedException("Registration requires a valid invite token.", reason: "invalid-invite-token");
+        if (!string.Equals(request.InviteToken, _invite.Token, StringComparison.Ordinal))
+            throw new AccessDeniedException("Registration requires a valid invite token.", reason: "invalid-invite-token");
 
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing is not null)

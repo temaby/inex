@@ -1,6 +1,6 @@
 # Story 10.3e: Frontend UX - Categories Spend And Budget Signals
 
-Status: review
+Status: done
 
 ## Story
 
@@ -125,6 +125,7 @@ GPT-5 Codex with BMad dev-story Worker B (Categories), integrated BMad code-revi
 - 2026-06-05: Fourth post-merge BMad review found final-day direct-fetch transactions were excluded, missing base-currency resolution could imply USD, and Add Category drawer close did not restore trigger focus; fixes were applied with focused Vitest and route smoke.
 - 2026-06-06: BMad PR review found URL-driven transaction filters still parsed date-only end values at midnight and empty-state create could unmount the stored Add opener; the shared transaction filter URL parser now expands date-only end dates to the end of day, and Add focus recovery falls back to the mounted toolbar trigger.
 - 2026-06-06: Fifth post-merge BMad review found direct Categories spend still used active transaction mode, active-mode cached transactions could be reused after direct all-mode fetch failure, and malformed/impossible URL date filters could create invalid ranges; Categories direct fetch now uses `mode=ALL`, stale active-cache fallback was removed, and malformed/reversed/impossible ranges are ignored with focused Vitest coverage.
+- 2026-06-07: Final verification passed after restoring the invite-token guard that blocked CI: `dotnet build --no-restore`, `dotnet test --no-build`, `npm run lint`, `npm run build`, and `npm run test`.
 
 ### Completion Notes List
 
@@ -173,3 +174,4 @@ GPT-5 Codex with BMad dev-story Worker B (Categories), integrated BMad code-revi
 - 2026-06-05: Applied fourth post-merge Categories full-day transaction filter, base-currency fallback, and Add drawer focus-return fixes with focused tests and route smoke.
 - 2026-06-06: Fixed PR-review findings for inclusive date-only transaction URL filters and empty-state Add focus fallback with focused parser tests.
 - 2026-06-06: Applied fifth post-merge Categories all-mode direct spend fetch, stale active-cache fallback removal, and strict invalid transaction URL range guards with focused tests and route smoke.
+- 2026-06-07: Marked done after backend and frontend verification passed.

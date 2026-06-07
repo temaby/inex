@@ -1,6 +1,6 @@
 # Story 10.3f: Frontend UX - Budgets Burn-Rate And Planning Detail Completion
 
-Status: review
+Status: done
 
 ## Story
 
@@ -122,6 +122,7 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets), integrated BMad code-review 
 - 2026-06-05: Round-3 route smoke confirmed `/budgets` requests `currency=PLN`, ignores mismatched USD report metadata for display, skips report requests when `/currencies` fails, collapses rows at 969px/900px, and restores Add budget focus after Escape/Cancel; evidence recorded in `docs/implementation/visual-qa/10-3f/qa-summary.json`.
 - 2026-06-05: Fourth post-merge BMad review found invalid URL period params could produce unsupported queries and 1024px tablet rows could still clip; fixes were applied with focused Vitest and route smoke.
 - 2026-06-06: Fifth post-merge BMad review found first budget creation from the empty state could unmount the stored focus target and parent-category budgets did not include descendant report spend; focus fallback was added, backend budget report aggregation now includes descendant spend without parent/child double-counting, and round-5 390px route smoke evidence was recorded.
+- 2026-06-07: Final verification passed after restoring the invite-token guard that blocked CI: `dotnet build --no-restore`, `dotnet test --no-build`, `npm run lint`, `npm run build`, and `npm run test`.
 
 ### Completion Notes List
 
@@ -167,3 +168,4 @@ GPT-5 Codex with BMad dev-story Worker C (Budgets), integrated BMad code-review 
 - 2026-06-05: Added round-3 Budgets route-smoke evidence for PLN display, currency failure, tablet row collapse, and drawer focus return.
 - 2026-06-05: Applied fourth post-merge Budgets URL period normalization and 1024px row-collapse fixes with focused utility tests and route smoke.
 - 2026-06-06: Applied fifth post-merge Budgets empty-state create focus fallback and backend parent-category descendant spend aggregation with focused frontend/backend tests and route smoke.
+- 2026-06-07: Marked done after backend and frontend verification passed.

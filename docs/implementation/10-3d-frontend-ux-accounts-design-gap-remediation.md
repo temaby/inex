@@ -1,6 +1,6 @@
 # Story 10.3d: Frontend UX - Accounts Design Gap Remediation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -103,6 +103,7 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts), integrated BMad code-review
 - 2026-06-05: Round-3 route smoke confirmed `/accounts` renders Cash wallet, PLN base equivalents, no horizontal overflow, and updated evidence in `docs/implementation/visual-qa/10-3d/qa-summary.json`.
 - 2026-06-05: Fourth post-merge BMad review found profile/rate lookup failures could still imply a USD base and complete zero-share bars rendered visible slivers; fixes were applied with focused Vitest and route smoke evidence.
 - 2026-06-06: Fifth post-merge BMad review found first account creation from the empty state could unmount the stored focus target; focus recovery now falls back to the mounted Add account trigger, with round-5 390px route-smoke evidence and executable RTL coverage recorded.
+- 2026-06-07: Final verification passed after restoring the invite-token guard that blocked CI: `dotnet build --no-restore`, `dotnet test --no-build`, `npm run lint`, `npm run build`, and `npm run test`.
 
 ### Completion Notes List
 
@@ -143,3 +144,4 @@ GPT-5 Codex with BMad dev-story Worker A (Accounts), integrated BMad code-review
 - 2026-06-05: Added round-3 Accounts route-smoke evidence.
 - 2026-06-05: Applied fourth post-merge Accounts base-currency fallback and zero-share bar fixes with focused utility tests and route smoke.
 - 2026-06-06: Applied fifth post-merge Accounts empty-state create focus fallback with route-smoke evidence and executable focus regression coverage.
+- 2026-06-07: Marked done after backend and frontend verification passed.
