@@ -58,7 +58,7 @@ public class ExchangeRateService : Service, IExchangeRateService
         }
 
         baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
-        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(baseCurrency, ct);
+        IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(userId, baseCurrency, ct);
 
         DateTime startDate = start.Date;
         DateTime endDate = end.Date;
@@ -143,14 +143,16 @@ public class ExchangeRateService : Service, IExchangeRateService
     }
 
     /// <summary>
-    /// Returns all currency codes that are not the base currency — these are the target codes
-    /// for which rates will be fetched.
+    /// Returns currency codes used in the user's enabled accounts, excluding the base currency.
+    /// Only currencies actually in use are fetched from providers, preventing legacy or
+    /// unsupported seeded currencies from keeping dates permanently uncached.
     /// </summary>
-    private async Task<IList<string>> ResolveTargetCurrencyCodes(string baseCurrency, CancellationToken ct = default)
+    private async Task<IList<string>> ResolveTargetCurrencyCodes(int userId, string baseCurrency, CancellationToken ct = default)
     {
-        return await DbInEx.CurrencyRepository.Get(true)
-            .Where(i => i.Key != baseCurrency)
-            .Select(i => i.Key)
+        return await DbInEx.AccountRepository.Get(true, null, a => a.Currency)
+            .Where(a => a.UserId == userId && a.IsEnabled && a.Currency.Key != baseCurrency)
+            .Select(a => a.Currency.Key)
+            .Distinct()
             .ToListAsync(ct);
     }
 

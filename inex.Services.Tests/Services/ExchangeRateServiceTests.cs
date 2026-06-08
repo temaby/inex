@@ -6,6 +6,7 @@ using inex.Services.Services;
 using inex.Services.Tests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using System.Linq.Expressions;
 
 namespace inex.Services.Tests.Services;
 
@@ -20,7 +21,7 @@ public class ExchangeRateServiceTests
     private readonly Mock<IExchangeRateClient> _fallbackClientMock = new();
     private readonly Mock<INbrbApiClient> _nbrbClientMock = new();
     private readonly Mock<IEditableRepository<ExchangeRate>> _exchangeRateRepoMock = new();
-    private readonly Mock<IRepository<Currency>> _currencyRepoMock = new();
+    private readonly Mock<IEditableRepository<Account>> _accountRepoMock = new();
     private readonly Mock<IRepository<AppUser>> _userRepoMock = new();
     private readonly FakeClock _clock = new(new DateTime(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc));
 
@@ -29,7 +30,7 @@ public class ExchangeRateServiceTests
         // Wire UoW repository properties so each test only needs to configure
         // the data returned by each repo, not the property access itself.
         _uowMock.Setup(u => u.ExchangeRateRepository).Returns(_exchangeRateRepoMock.Object);
-        _uowMock.Setup(u => u.CurrencyRepository).Returns(_currencyRepoMock.Object);
+        _uowMock.Setup(u => u.AccountRepository).Returns(_accountRepoMock.Object);
         _uowMock.Setup(u => u.UserRepository).Returns(_userRepoMock.Object);
     }
 
@@ -48,8 +49,13 @@ public class ExchangeRateServiceTests
     private static IQueryable<ExchangeRate> EmptyRates() =>
         Enumerable.Empty<ExchangeRate>().AsAsyncQueryable();
 
-    private static IQueryable<Currency> CurrenciesFor(params string[] codes) =>
-        codes.Select(c => new Currency { Key = c }).AsAsyncQueryable();
+    // Accounts with populated Currency navigation — used to set up ResolveTargetCurrencyCodes.
+    private static IQueryable<Account> AccountsFor(int userId, params string[] currencyCodes) =>
+        currencyCodes.Select(c => new Account { UserId = userId, IsEnabled = true, Currency = new Currency { Key = c } })
+                     .AsAsyncQueryable();
+
+    private static IQueryable<Account> EmptyAccounts() =>
+        Enumerable.Empty<Account>().AsAsyncQueryable();
 
     // Currency navigation property must be pre-populated because ResolveBaseCurrency
     // calls .First(u => u.Id == userId).Currency.Key without a separate join.
@@ -81,8 +87,8 @@ public class ExchangeRateServiceTests
             .Returns(AppUsersFor(1, baseCurrency));
 
         // Single-date delegates to the range overload which always calls ResolveTargetCurrencyCodes.
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
 
         // Cache already contains a non-temporary rate for this date — sync should be skipped.
         _exchangeRateRepoMock.Setup(r => r.Get(true, null))
@@ -107,8 +113,8 @@ public class ExchangeRateServiceTests
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
 
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor("USD"));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, "USD"));
 
         // No rates cached — service will call the provider.
         _exchangeRateRepoMock.Setup(r => r.Get(true, null))
@@ -140,8 +146,8 @@ public class ExchangeRateServiceTests
             .Returns(AppUsersFor(1, baseCurrency));
 
         // Range overload always calls ResolveTargetCurrencyCodes before the loop.
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor("USD"));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, "USD"));
 
         // No rates exist for today or any prior date — temporary creation is attempted but skipped gracefully.
         _exchangeRateRepoMock.Setup(r => r.Get(true, null))
@@ -167,8 +173,8 @@ public class ExchangeRateServiceTests
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
 
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
 
         // No rates cached — SyncRatesForDate will call the provider.
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
@@ -210,8 +216,8 @@ public class ExchangeRateServiceTests
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
 
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
 
         // Yesterday has an actual rate; today has none.
         // LINQ-to-objects predicates inside CreateTemporaryRatesForTodayIfNeeded will correctly
@@ -242,8 +248,8 @@ public class ExchangeRateServiceTests
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
 
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
 
         // Cache has a temporary rate — Count of non-temporary will be 0, triggering a provider fetch.
         var temporaryRate = new ExchangeRate { FromCode = baseCurrency, ToCode = targetCode, Rate = 1m, Created = pastDate, IsTemporary = true };
@@ -285,8 +291,8 @@ public class ExchangeRateServiceTests
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
 
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
 
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
@@ -328,8 +334,8 @@ public class ExchangeRateServiceTests
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
 
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
 
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
@@ -369,8 +375,8 @@ public class ExchangeRateServiceTests
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
 
@@ -406,8 +412,8 @@ public class ExchangeRateServiceTests
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
 
@@ -442,8 +448,8 @@ public class ExchangeRateServiceTests
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(new[] { priorRate }.AsAsyncQueryable());
         _nbrbClientMock.Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, targetCode, It.IsAny<CancellationToken>()))
@@ -466,8 +472,8 @@ public class ExchangeRateServiceTests
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor(targetCode));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, targetCode));
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
         _nbrbClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, targetCode, It.IsAny<CancellationToken>()))
@@ -490,8 +496,8 @@ public class ExchangeRateServiceTests
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor("USD", "BYN"));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, "USD", "BYN"));
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
         _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.Is<string[]>(a => a.Contains("USD") && a.Contains("BYN")), It.IsAny<CancellationToken>()))
@@ -533,8 +539,8 @@ public class ExchangeRateServiceTests
 
         _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<System.Linq.Expressions.Expression<Func<AppUser, object>>>()))
             .Returns(AppUsersFor(1, baseCurrency));
-        _currencyRepoMock.Setup(r => r.Get(true, null))
-            .Returns(CurrenciesFor("USD", "RUB"));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, "USD", "RUB"));
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(new[] { priorRubRate }.AsAsyncQueryable());
         _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.Is<string[]>(a => a.SequenceEqual(new[] { "USD" })), It.IsAny<CancellationToken>()))
@@ -557,5 +563,71 @@ public class ExchangeRateServiceTests
 
         _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == requestedDate && e.ToCode == "USD" && e.Rate == 0.31m), It.IsAny<CancellationToken>()), Times.Once);
         _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == requestedDate && e.ToCode == "RUB" && e.Rate == 30m), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>
+    /// Regression test for the cache-completeness bug:
+    ///   Before the fix, <c>ResolveTargetCurrencyCodes</c> returned every seeded currency (e.g. EUR, USD, BYR).
+    ///   BYR (a legacy currency) is never returned by any provider and has no prior rate, so the required
+    ///   row count for cache completeness was never reached, and the external provider was called on every
+    ///   dashboard refresh.
+    ///
+    ///   After the fix the target set is narrowed to currencies in the user's <em>enabled</em> accounts.
+    ///   A user with only a USD account therefore has target count = 1.  Once that single rate is saved the
+    ///   date is considered fully cached, and a subsequent call for the same date must not hit the provider.
+    /// </summary>
+    [Fact]
+    public async Task Get_SecondCall_WhenUnavailableSeededCurrencyAbsentFromUserAccounts_DoesNotRetryProvider()
+    {
+        // Arrange
+        var pastDate = new DateTime(2026, 3, 15);
+        var baseCurrency = "EUR";
+        var accountCurrency = "USD"; // user has one enabled account in USD — no BYR account
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+
+        // User's only enabled account is USD.  BYR (the unsupported seeded currency) is absent.
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
+            .Returns(AccountsFor(1, accountCurrency));
+
+        // First call: no rates cached yet — provider will be called.
+        // Second call: rates exist — provider must NOT be called.
+        var usdRate = new ExchangeRate { FromCode = baseCurrency, ToCode = accountCurrency, Rate = 1.1m, Created = pastDate.Date, IsTemporary = false };
+        var callCount = 0;
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() =>
+            {
+                // On the first invocation the cache is empty; after saving we expose the persisted rate.
+                callCount++;
+                return callCount == 1 ? EmptyRates() : new[] { usdRate }.AsAsyncQueryable();
+            });
+
+        _fallbackClientMock
+            .Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
+            {
+                [pastDate] = new ExchangeRateResponse
+                {
+                    Data = new Dictionary<string, ExchangeDateData>
+                    {
+                        [accountCurrency] = new ExchangeDateData { Code = accountCurrency, Value = 1.1m }
+                    }
+                }
+            });
+
+        var sut = CreateSut();
+
+        // Act — first call fetches and caches the USD rate.
+        await sut.Get(1, pastDate);
+
+        // Act — second call for the same date.
+        await sut.Get(1, pastDate);
+
+        // Assert — provider was called exactly once (first call only); the second call found the
+        // date already complete because USD (the sole target) was cached after the first call.
+        _fallbackClientMock.Verify(
+            c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }
