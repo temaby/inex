@@ -1,6 +1,6 @@
 # Story 10.2b: Frontend UX - Transactions Mockup Alignment Delta
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -25,39 +25,39 @@ so that the Transactions workspace matches the audited design contract before th
 
 ## Tasks / Subtasks
 
-- [ ] Align page header, KPI typography, and ledger toolbar fidelity. (AC: 1, 2, 3)
-  - [ ] Change the Transactions header CTA copy from generic `Add` to localized `Add transaction`; update EN/RU locale keys without breaking existing drawer labels.
-  - [ ] Add a mobile-specific full-width CTA rule through the existing AppShell/page-head contract or Transactions page CSS.
-  - [ ] Extend `Num` with an optional currency suffix typography variant, or add a narrow wrapper that does not break existing `Num` call sites.
-  - [ ] Add the visible `View` label before the segmented control and right-align desktop search while keeping mobile wrapping stable.
-- [ ] Clean up ledger row and day-header visual deltas. (AC: 4, 5)
-  - [ ] Remove the visible `CalendarDays` icon from day headers.
-  - [ ] Keep `getFriendlyTransactionDayLabel` behavior from Story 10.2a; do not regress Today/Yesterday/localized older labels.
-  - [ ] Hide/remove the mobile chevron while preserving row `role="button"`, `tabIndex`, Enter/Space handling, and click-to-edit behavior.
-- [ ] Rework the filter drawer to the audited mockup contract. (AC: 6, 7)
-  - [ ] Replace the AntD `RangePicker` surface with separate From/To date inputs or a visually equivalent shared primitive/native-input treatment.
-  - [ ] Replace menu-style account/category dropdown rows with native-looking select controls where practical; preserve multi-select semantics if production filtering requires multiple account/category values.
-  - [ ] Update keyword placeholder from `#tag @ref` to localized mockup-style example copy while continuing to parse tags and refs.
-  - [ ] Recompose min/max amount-equivalent inputs into one labeled row with base-currency suffix blocks.
-  - [ ] Make drawer footer buttons content-width and right-aligned; actions must be safe when no filters are active.
-  - [ ] Preserve URL query compatibility and Redux `transactions.filter` behavior from 10.2/10.2a.
-- [ ] Rework add drawer copy, selector, fields, and actions. (AC: 8, 9, 10)
-  - [ ] Replace AntD card tabs with the shared segmented/pill control for Expense, Income, and Transfer.
-  - [ ] Type `TransactionCreate` and the three create form components; remove existing `any` in touched create-flow files.
-  - [ ] Reorder Expense and Income fields to Amount, Account, Category, Date, Comment, Tags.
-  - [ ] Add Tags input support without changing backend DTOs; merge tags into the submitted comment as `#tag` tokens unless an existing supported API field is discovered.
-  - [ ] Add a Cancel footer action that closes the drawer without submitting and resets only local create-form state.
-  - [ ] Localize mode-specific save labels such as `Save expense`, `Save income`, and `Save transfer`.
-- [ ] Replace no-match rendering with the simple mockup state. (AC: 11)
-  - [ ] Keep desktop column headers visible when local search/type/amount filters eliminate all rows from a populated server result.
-  - [ ] Render one centered no-match message in the table/list body.
-  - [ ] Preserve active chips and clear-all behavior, but remove the redundant toolbar `Filters active` badge in this state.
-  - [ ] Keep initial empty, loading, full API error, and partial refresh states intact unless the no-match change requires a small compatibility adjustment.
-- [ ] Add focused verification and visual QA. (AC: 12)
-  - [ ] Add or update focused Vitest coverage for any extracted helpers, especially tag-to-comment merging and no-match classification if extracted.
-  - [ ] Run `npm test` or the narrowest relevant Vitest command, then `npm run build` and `npm run lint` from `inex/ClientApp`.
-  - [ ] Capture screenshots for desktop populated, filter drawer, add drawer, no-match/filter-empty, mobile 390px, and mobile 360px.
-  - [ ] Confirm no new `any` in touched TypeScript files with a targeted `rg "\bany\b"` search.
+- [x] Align page header, KPI typography, and ledger toolbar fidelity. (AC: 1, 2, 3)
+  - [x] Change the Transactions header CTA copy from generic `Add` to localized `Add transaction`; update EN/RU locale keys without breaking existing drawer labels.
+  - [x] Add a mobile-specific full-width CTA rule through the existing AppShell/page-head contract or Transactions page CSS.
+  - [x] Extend `Num` with an optional currency suffix typography variant, or add a narrow wrapper that does not break existing `Num` call sites.
+  - [x] Add the visible `View` label before the segmented control and right-align desktop search while keeping mobile wrapping stable.
+- [x] Clean up ledger row and day-header visual deltas. (AC: 4, 5)
+  - [x] Remove the visible `CalendarDays` icon from day headers.
+  - [x] Keep `getFriendlyTransactionDayLabel` behavior from Story 10.2a; do not regress Today/Yesterday/localized older labels.
+  - [x] Hide/remove the mobile chevron while preserving row `role="button"`, `tabIndex`, Enter/Space handling, and click-to-edit behavior.
+- [x] Rework the filter drawer to the audited mockup contract. (AC: 6, 7)
+  - [x] Replace the AntD `RangePicker` surface with separate From/To date inputs or a visually equivalent shared primitive/native-input treatment.
+  - [x] Replace menu-style account/category dropdown rows with native-looking select controls where practical; preserve multi-select semantics if production filtering requires multiple account/category values.
+  - [x] Update keyword placeholder from `#tag @ref` to localized mockup-style example copy while continuing to parse tags and refs.
+  - [x] Recompose min/max amount-equivalent inputs into one labeled row with base-currency suffix blocks.
+  - [x] Make drawer footer buttons content-width and right-aligned; actions must be safe when no filters are active.
+  - [x] Preserve URL query compatibility and Redux `transactions.filter` behavior from 10.2/10.2a.
+- [x] Rework add drawer copy, selector, fields, and actions. (AC: 8, 9, 10)
+  - [x] Replace AntD card tabs with the shared segmented/pill control for Expense, Income, and Transfer.
+  - [x] Type `TransactionCreate` and the three create form components; remove existing `any` in touched create-flow files.
+  - [x] Reorder Expense and Income fields to Amount, Account, Category, Date, Comment, Tags.
+  - [x] Add Tags input support without changing backend DTOs; merge tags into the submitted comment as `#tag` tokens unless an existing supported API field is discovered.
+  - [x] Add a Cancel footer action that closes the drawer without submitting and resets only local create-form state.
+  - [x] Localize mode-specific save labels such as `Save expense`, `Save income`, and `Save transfer`.
+- [x] Replace no-match rendering with the simple mockup state. (AC: 11)
+  - [x] Keep desktop column headers visible when local search/type/amount filters eliminate all rows from a populated server result.
+  - [x] Render one centered no-match message in the table/list body.
+  - [x] Preserve active chips and clear-all behavior, but remove the redundant toolbar `Filters active` badge in this state.
+  - [x] Keep initial empty, loading, full API error, and partial refresh states intact unless the no-match change requires a small compatibility adjustment.
+- [x] Add focused verification and visual QA. (AC: 12)
+  - [x] Add or update focused Vitest coverage for any extracted helpers, especially tag-to-comment merging and no-match classification if extracted.
+  - [x] Run `npm test` or the narrowest relevant Vitest command, then `npm run build` and `npm run lint` from `inex/ClientApp`.
+  - [x] Capture screenshots for desktop populated, filter drawer, add drawer, no-match/filter-empty, mobile 390px, and mobile 360px.
+  - [x] Confirm no new `any` in touched TypeScript files with a targeted `rg "\bany\b"` search.
 
 ## Dev Notes
 
@@ -183,14 +183,50 @@ so that the Transactions workspace matches the audited design contract before th
 
 ### Agent Model Used
 
+GPT-5 Codex
+
 ### Debug Log References
+
+- 2026-06-08: Created `feature/10-2b-transactions-alignment` from local `master`; initial `.git` write required escalation.
+- 2026-06-08: In-app Browser could not open localhost/127.0.0.1 Vite URLs due `ERR_BLOCKED_BY_CLIENT`; visual QA was completed with installed Playwright in `dataMode: fixture`.
+- 2026-06-08: Vite/Playwright commands required escalation for Windows process spawn; screenshots were saved under `%TEMP%\inex-10-2b-visual-qa` and not committed.
+- 2026-06-08: Verification commands run from `inex/ClientApp`: `npm test -- src/pages/Transactions/transaction-ledger-utils.test.ts`, `npm run build`, `npm run lint`, `npm test`, targeted `rg "\bany\b"` search on touched Transactions TypeScript files, and Playwright fixture visual QA.
+- 2026-06-08: PR #184 review verification run from `inex/ClientApp`: `npm test -- src/pages/Transactions/TransactionCreate.test.tsx`, `npm run build`, `npm run lint`, and targeted `rg "\bany\b"` search on touched TransactionCreate TypeScript files.
 
 ### Completion Notes List
 
 - Story context created via bmad-create-story workflow for key `10-2b-frontend-ux-transactions-mockup-alignment-delta`.
 - Story status set to `ready-for-dev` in this file only.
 - Shared planning/status updates were integrated by the orchestrator after story creation.
+- Transactions header now uses localized `Add transaction`, full-width mobile CTA styling, smaller KPI currency suffixes through existing `Num currencySize="sm"`, and a labeled compact `View` segmented control with right-aligned search.
+- Ledger day headers no longer render a calendar icon, mobile rows no longer render a chevron, and row click/Enter edit behavior is preserved.
+- Filter drawer now uses separate native From/To date inputs, native multi-select account/category controls, mockup keyword placeholder, one amount-equivalent Min/Max row with base-currency suffixes, and enabled safe Clear all / Apply filters actions.
+- Add drawer now uses `New transaction` / `Record a new expense`, a shared segmented mode selector, typed create-flow props/reducer/actions, reordered expense/income fields, Tags input merging into submitted comments via the existing `#tag` parsing contract, and Cancel / mode-specific save actions.
+- PR #184 P1 review finding fixed: add drawer save is disabled while transaction or transfer create mutations are in flight, preserving the `Saving...` label and enabled Cancel behavior.
+- No-match state keeps column headers, renders `No transactions match these filters`, preserves chips/clear behavior, and suppresses the redundant `Filters active` badge.
+- Visual QA fixture metrics: no horizontal overflow at 1440, 390, 360, or RU 390; mobile bottom nav visible; no day-header icons or mobile chevrons; Enter opens edit drawer on mobile.
 
 ### File List
 
 - docs/implementation/10-2b-frontend-ux-transactions-mockup-alignment-delta.md
+- docs/implementation/sprint-status.yaml
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/pages/Transactions.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreate.test.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreate.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreateExpenseForm.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreateIncomeForm.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreateTransferForm.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionFilterForm.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionList.tsx
+- inex/ClientApp/src/pages/Transactions/transaction-ledger-utils.test.ts
+- inex/ClientApp/src/pages/Transactions/transaction-ledger-utils.ts
+- inex/ClientApp/src/pages/Transactions/transactions-ledger.css
+
+## Change Log
+
+| Date | Version | Description | Author |
+| --- | --- | --- | --- |
+| 2026-06-08 | 1.0 | Implemented Transactions mockup-alignment delta, focused tests, visual QA, and story status update. | GPT-5 Codex |
+| 2026-06-08 | 1.1 | Addressed PR #184 duplicate-submit review finding for add-transaction save. | GPT-5 Codex |
