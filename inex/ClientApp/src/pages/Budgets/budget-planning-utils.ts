@@ -25,6 +25,8 @@ export type BudgetUsageStatus = "unavailable" | "idle" | "ok" | "near" | "atLimi
 
 export type BudgetPaceStatus = "idle" | "under" | "onPace" | "ahead" | "overBudget";
 
+export type BudgetSortMode = "burnRate" | "remaining" | "amount" | "name";
+
 export interface BudgetPaceMetrics {
     dayOfMonth: number;
     daysInMonth: number;
@@ -111,6 +113,24 @@ export const getBudgetReportForBudget = (
         percentageUsed: budget.value > 0 ? (spentAmount / budget.value) * 100 : 0,
     };
 };
+
+export const getSortedBudgets = (
+    budgets: BudgetDetails[],
+    reportItems: BudgetComparisonDTO[],
+    sortMode: BudgetSortMode,
+) => [...budgets].sort((left, right) => {
+    const leftReport = getBudgetReportForBudget(left, reportItems);
+    const rightReport = getBudgetReportForBudget(right, reportItems);
+    const byName = left.name.localeCompare(right.name);
+
+    if (sortMode === "name") return byName;
+    if (sortMode === "amount") return right.value - left.value || byName;
+    if (sortMode === "remaining") {
+        return (leftReport?.remainingAmount ?? left.value) - (rightReport?.remainingAmount ?? right.value) || byName;
+    }
+
+    return (rightReport?.percentageUsed ?? 0) - (leftReport?.percentageUsed ?? 0) || byName;
+});
 
 export const getBudgetUsageStatus = (
     reportItem: BudgetComparisonDTO | undefined,

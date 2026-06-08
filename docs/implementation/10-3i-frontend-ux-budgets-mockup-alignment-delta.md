@@ -1,6 +1,6 @@
 # Story 10.3i: Frontend UX - Budgets Mockup Alignment Delta
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -23,42 +23,42 @@ so that month planning is compact, scannable, and ready for the Epic 10 visual Q
 
 ## Tasks / Subtasks
 
-- [ ] Move page-level actions into the `AppShell` header contract. (AC: 1)
-  - [ ] Pass `extra` to `BasicPage`/`AppShell` from `Budgets.tsx` for Copy and Add.
-  - [ ] Remove Copy/Add from the current external `.budgets-toolbar`.
-  - [ ] Keep Copy disabled/loading/error behavior and Add drawer focus-return behavior intact.
-  - [ ] Verify mobile header actions stack full-width under the Budgets title without overlap.
-- [ ] Compress the hero to the mockup default hierarchy. (AC: 2, 9)
-  - [ ] Remove the default metric-card grid from `.budgets-hero__metrics`, or move it to a deliberate secondary detail location.
-  - [ ] Keep the spent/budget rollup, progress marker, remaining/pace sentence, status legend, and five-row burn list.
-  - [ ] Tighten hero spacing so mobile exposes the list toolbar much earlier than the current tall hero.
-- [ ] Recompose the Budgets list card and toolbar. (AC: 3, 4)
-  - [ ] Add a list title/count/scope header with localized singular/plural copy.
-  - [ ] Move month controls, jump picker, search, and view/sort controls into the list header/toolbar.
-  - [ ] Add previous/next icon buttons while preserving URL `year`/`month` synchronization and period validation.
-  - [ ] Add `Burn rate`, `Remaining`, `Amount`, and `Name` sort modes without changing API contracts.
-- [ ] Align desktop row schema and collapsed-row content. (AC: 5, 6, 8)
-  - [ ] Change desktop grid from seven columns to the five mockup columns.
-  - [ ] Fold spent/budgeted into Progress as `spent / budgeted` plus percent above the progress bar.
-  - [ ] Render Remaining as signed value plus `left/over · currency` sublabel.
-  - [ ] Hide description from collapsed rows and keep it in expanded/edit detail.
-  - [ ] Render category chips compactly, with one tag plus overflow count where needed.
-  - [ ] Add a visible expand/collapse caret button or affordance.
-- [ ] Align status styling, density, and card chrome. (AC: 6, 7, 9)
-  - [ ] Replace full-row over-budget gradient with a narrow left rail plus progress/status color.
-  - [ ] Keep non-color text labels for over-budget and at-limit states.
-  - [ ] Tighten Budgets card radius/shadow and row height toward the mockup compact card language.
-  - [ ] Verify row and toolbar text can wrap/shrink without layout shift.
-- [ ] Update localization for changed Budgets copy. (AC: 1, 3, 4, 5, 10)
-  - [ ] Add EN/RU keys for list count/scope, sort options, jump-to-month, previous/next month labels, compact remaining sublabels, and category overflow labels.
-  - [ ] Change the English search placeholder to `Search budgets...` unless the orchestrator explicitly accepts current product copy.
-  - [ ] Preserve existing keys used by 10.3f and avoid overwriting sibling story locale edits.
-- [ ] Verify and capture evidence. (AC: 9, 10)
-  - [ ] Run `npm run build` from `inex/ClientApp`.
-  - [ ] Run `npm run lint` from `inex/ClientApp`.
-  - [ ] Run Budgets-focused frontend tests if present, especially `budget-planning-utils` coverage after sort/status changes.
-  - [ ] Capture or update Budgets visual QA evidence for 1440px, 1024px, 390px, and 360px populated states.
-  - [ ] Capture Budgets empty, filter-empty, drawer-open, expanded-row, over-budget, exact-limit, long amount, and RU-label states.
+- [x] Move page-level actions into the `AppShell` header contract. (AC: 1)
+  - [x] Pass `extra` to `BasicPage`/`AppShell` from `Budgets.tsx` for Copy and Add.
+  - [x] Remove Copy/Add from the current external `.budgets-toolbar`.
+  - [x] Keep Copy disabled/loading/error behavior and Add drawer focus-return behavior intact.
+  - [x] Verify mobile header actions stack full-width under the Budgets title without overlap.
+- [x] Compress the hero to the mockup default hierarchy. (AC: 2, 9)
+  - [x] Remove the default metric-card grid from `.budgets-hero__metrics`, or move it to a deliberate secondary detail location.
+  - [x] Keep the spent/budget rollup, progress marker, remaining/pace sentence, status legend, and five-row burn list.
+  - [x] Tighten hero spacing so mobile exposes the list toolbar much earlier than the current tall hero.
+- [x] Recompose the Budgets list card and toolbar. (AC: 3, 4)
+  - [x] Add a list title/count/scope header with localized singular/plural copy.
+  - [x] Move month controls, jump picker, search, and view/sort controls into the list header/toolbar.
+  - [x] Add previous/next icon buttons while preserving URL `year`/`month` synchronization and period validation.
+  - [x] Add `Burn rate`, `Remaining`, `Amount`, and `Name` sort modes without changing API contracts.
+- [x] Align desktop row schema and collapsed-row content. (AC: 5, 6, 8)
+  - [x] Change desktop grid from seven columns to the five mockup columns.
+  - [x] Fold spent/budgeted into Progress as `spent / budgeted` plus percent above the progress bar.
+  - [x] Render Remaining as signed value plus `left/over · currency` sublabel.
+  - [x] Hide description from collapsed rows and keep it in expanded/edit detail.
+  - [x] Render category chips compactly, with one tag plus overflow count where needed.
+  - [x] Add a visible expand/collapse caret button or affordance.
+- [x] Align status styling, density, and card chrome. (AC: 6, 7, 9)
+  - [x] Replace full-row over-budget gradient with a narrow left rail plus progress/status color.
+  - [x] Keep non-color text labels for over-budget and at-limit states.
+  - [x] Tighten Budgets card radius/shadow and row height toward the mockup compact card language.
+  - [x] Verify row and toolbar text can wrap/shrink without layout shift.
+- [x] Update localization for changed Budgets copy. (AC: 1, 3, 4, 5, 10)
+  - [x] Add EN/RU keys for list count/scope, sort options, jump-to-month, previous/next month labels, compact remaining sublabels, and category overflow labels.
+  - [x] Change the English search placeholder to `Search budgets...` unless the orchestrator explicitly accepts current product copy.
+  - [x] Preserve existing keys used by 10.3f and avoid overwriting sibling story locale edits.
+- [x] Verify and capture evidence. (AC: 9, 10)
+  - [x] Run `npm run build` from `inex/ClientApp`.
+  - [x] Run `npm run lint` from `inex/ClientApp`.
+  - [x] Run Budgets-focused frontend tests if present, especially `budget-planning-utils` coverage after sort/status changes.
+  - [x] Capture or update Budgets visual QA evidence for 1440px, 1024px, 390px, and 360px populated states.
+  - [x] Capture Budgets empty, filter-empty, drawer-open, expanded-row, over-budget, exact-limit, long amount, and RU-label states.
 
 ## Dev Notes
 
@@ -197,12 +197,36 @@ GPT-5 Codex
 
 - 2026-06-07: Created story from BMad create-story workflow using the Budgets audit, roadmap section 3.4, existing Epic 10 stories, sprint status, epics, architecture, UX planning, project context, and current Budgets source.
 - 2026-06-07: Branch requirement satisfied on `docs/10-3i-budgets-alignment`.
+- 2026-06-08: Implemented on `feature/10-3i-budgets-alignment`; preserved unrelated in-progress worktree edits from other workers and limited source edits to Budgets-owned files plus `budgets.*` locale keys.
+- 2026-06-08: Added failing then passing `getSortedBudgets` coverage for `Burn rate`, `Remaining`, `Amount`, and `Name` sort modes.
+- 2026-06-08: Verification passed from `inex/ClientApp`: `npm run build`, `npm run lint`, focused `npm run test -- src/pages/Budgets/budget-planning-utils.test.ts`, and full `npm run test` (18 files, 83 tests).
+- 2026-06-08: Added-`any` scan over touched Budgets TypeScript diffs returned no matches.
+- 2026-06-08: Browser visual QA evidence captured with `dataMode: fixture` via isolated local fixture proxy: populated 1440/1024/390/360 had no horizontal overflow; 1440 showed header Copy/Add, compact hero, list title/count, toolbar, five desktop columns, no Spent/Budgeted headers, no hero metric cards, over-budget rail, exact-limit rows, long amount row, and caret affordance.
+- 2026-06-08: Browser visual QA evidence captured with `dataMode: fixture`: filter-empty 390 retained list header and no overflow; expanded-row 1440 had `aria-expanded=true`, caret state, edit detail, and no collapsed description; drawer-open 390 had no overflow; empty 390 kept full-width header actions; bottom-nav 360 left final row above fixed nav; RU-label 360 had localized labels and no overflow.
 
 ### Completion Notes List
 
 - Story context created for unresolved Budgets mockup-alignment delta after completed 10.3c and 10.3f work.
 - Shared docs were not modified by the story worker; recommended shared-doc updates were integrated by the orchestrator after story creation.
+- Moved Copy/Add into `BasicPage.extra`, removed the external Budgets toolbar actions, and kept copy loading/error plus drawer focus behavior intact.
+- Compressed the hero to the mockup hierarchy by removing default metric cards while retaining rollup, progress marker, remaining/pace sentence, legend, and five-row burn list.
+- Rebuilt the list card header with localized count/scope copy, previous/next period buttons, month chips, jump-to-month picker, compact search, and compact sort segmented control.
+- Added immutable Budgets sort modes for burn rate, remaining, amount, and name without changing API contracts.
+- Aligned rows to Budget/Categories/Progress/Daily pace/Remaining, folded spent/budgeted into Progress, rendered compact category overflow, hid collapsed descriptions, added caret affordance, and changed over/at-limit styling to narrow rails with non-color text.
+- Kept `At limit` taxonomy because 10.3f already established exact-limit classification and this story explicitly allowed retaining it when documented.
+- Localized new Budgets copy in EN/RU only under `budgets.*`; no shared primitive changes were needed.
 
 ### File List
 
 - `docs/implementation/10-3i-frontend-ux-budgets-mockup-alignment-delta.md`
+- `docs/implementation/sprint-status.yaml`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/pages/Budgets.tsx`
+- `inex/ClientApp/src/pages/Budgets/budget-planning-utils.test.ts`
+- `inex/ClientApp/src/pages/Budgets/budget-planning-utils.ts`
+- `inex/ClientApp/src/pages/Budgets/budgets.css`
+
+### Change Log
+
+- 2026-06-08: Completed Story 10.3i Budgets mockup-alignment delta and moved story to review.

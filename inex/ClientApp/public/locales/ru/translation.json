@@ -582,7 +582,26 @@
       "update": "Не удалось обновить бюджет",
       "delete": "Не удалось удалить бюджет",
       "copy": "Не удалось скопировать бюджеты"
-    }
+    },
+    "budget": "Бюджет",
+    "listTitle": "Бюджеты",
+    "listScope_one": "{{visible}} из {{total}} бюджета за {{month}}",
+    "listScope_few": "{{visible}} из {{total}} бюджетов за {{month}}",
+    "listScope_many": "{{visible}} из {{total}} бюджетов за {{month}}",
+    "listScope_other": "{{visible}} из {{total}} бюджета за {{month}}",
+    "previousMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц",
+    "jumpToMonth": "Перейти к месяцу",
+    "sortLabel": "Сортировка",
+    "sort": {
+      "burnRate": "Темп расхода",
+      "remaining": "Остаток",
+      "amount": "Сумма",
+      "name": "Название"
+    },
+    "remainingSublabelLeft": "осталось · {{currency}}",
+    "remainingSublabelOver": "сверх · {{currency}}",
+    "categoryOverflow": "+{{count}}"
   },
   "reports": {
     "title": "Отчёты",

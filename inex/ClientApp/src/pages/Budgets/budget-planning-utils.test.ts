@@ -12,6 +12,7 @@ import {
     getBudgetEditSnapshot,
     getBudgetPaceMetrics,
     getBudgetReportForBudget,
+    getSortedBudgets,
     getBudgetUsageStatus,
     getSupportedBudgetMonthFromParams,
     isBudgetPeriodDisabled,
@@ -190,5 +191,27 @@ describe("budget planning helpers", () => {
         expect(getSupportedBudgetMonthFromParams("2026", "13", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
         expect(getSupportedBudgetMonthFromParams("2031", "1", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
         expect(getSupportedBudgetMonthFromParams("abc", "6", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
+    });
+
+    it("sorts visible budgets by mockup toolbar modes without changing API data", () => {
+        const groceries = createBudgetDetails({ id: 1, name: "Groceries", value: 500, categoryIds: [1] });
+        const rent = createBudgetDetails({ id: 2, name: "Rent", value: 1200, categoryIds: [2] });
+        const cafes = createBudgetDetails({ id: 3, name: "Cafes", value: 200, categoryIds: [3] });
+        const budgets = [groceries, rent, cafes];
+        const reportItems = [
+            reportItem({ categoryIds: [1], spentAmount: 450, remainingAmount: 50, percentageUsed: 90 }),
+            reportItem({ categoryIds: [2], spentAmount: 700, remainingAmount: 500, percentageUsed: 58.3 }),
+            reportItem({ categoryIds: [3], spentAmount: 260, remainingAmount: -60, percentageUsed: 130 }),
+        ];
+
+        expect(getSortedBudgets(budgets, reportItems, "burnRate").map((budget) => budget.name))
+            .toEqual(["Cafes", "Groceries", "Rent"]);
+        expect(getSortedBudgets(budgets, reportItems, "remaining").map((budget) => budget.name))
+            .toEqual(["Cafes", "Groceries", "Rent"]);
+        expect(getSortedBudgets(budgets, reportItems, "amount").map((budget) => budget.name))
+            .toEqual(["Rent", "Groceries", "Cafes"]);
+        expect(getSortedBudgets(budgets, reportItems, "name").map((budget) => budget.name))
+            .toEqual(["Cafes", "Groceries", "Rent"]);
+        expect(budgets.map((budget) => budget.name)).toEqual(["Groceries", "Rent", "Cafes"]);
     });
 });
