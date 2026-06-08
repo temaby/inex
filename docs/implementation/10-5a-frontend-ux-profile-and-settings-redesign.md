@@ -251,6 +251,7 @@ GPT-5.3-Codex
 - 2026-06-08: Used isolated worktree `D:\work\inex\.worktrees\10-5a-profile-settings-redesign` from `origin/master` because the main checkout was dirty with other story work.
 - 2026-06-08: RED test added in `Profile.test.tsx`; initial run failed against the old single-card page due missing settings title/tab/field contracts.
 - 2026-06-08: Browser visual QA used Vite on port 3005 plus a temporary local mock API on port 5000 to preserve protected-route behavior without backend changes.
+- 2026-06-08: PR #187 follow-up RED tests covered field-associated API validation errors and section-navigation semantics before patching `Profile.tsx`.
 
 ### Completion Notes List
 
@@ -262,7 +263,8 @@ GPT-5.3-Codex
 - Preserved existing `BasicPage`/`AppShell`, `ProtectedRoute`, `apiClient`, `updateProfile`, `changePassword`, and language-application contracts; no login/register/auth-shell implementation changed.
 - Added localized profile/settings validation, success, loading/disabled, API banner, password confirmation, and password-strength UX.
 - Added profile-focused Vitest coverage for settings workspace rendering, thunk payload contracts, localized confirm-password validation, and hardcoded confirm-label regression.
-- Captured visual QA artifacts under `docs/implementation/visual-qa/10-5a`; 390px and 360px browser metrics report `overflowX: false`.
+- Captured visual QA artifacts under `docs/implementation/visual-qa/10-5a`; 390px and 360px browser metrics report `overflowX: false` and are labeled `dataMode: fixture`.
+- Addressed PR #187 review feedback by mapping profile/password API validation codes and known identity/password domain errors onto form fields with localized messages, converting the scroll rail from ARIA tabs to section navigation, and labeling QA evidence data mode.
 
 ### File List
 
@@ -282,3 +284,4 @@ GPT-5.3-Codex
 ### Change Log
 
 - 2026-06-08: Implemented Story 10.5a profile/settings redesign; added profile-local responsive styles, tests, locale keys, and visual QA artifacts.
+- 2026-06-08: Addressed PR #187 requested changes for field-associated API validation errors, accessible section navigation semantics, and visual QA `dataMode` metadata.

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Alert, Button, Form, Input, Select } from "antd";
+import type { FormInstance } from "antd/es/form";
 import { CheckCircle2, KeyRound, Languages, ShieldCheck, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +30,15 @@ interface PasswordFormValues {
 }
 
 type SettingsSection = "account" | "security";
+type FieldMap<T> = Record<string, keyof T>;
+type FieldError<T> = {
+    name: keyof T;
+    message: string;
+};
+type ValidationEntry = {
+    source?: string;
+    messages: string[];
+};
 
 const passwordRules = {
     minLength: 8,
@@ -53,6 +63,68 @@ const getStrengthKey = (score: number) => {
     if (score >= 4) return "profile.security.strength.strong";
     if (score >= 2) return "profile.security.strength.medium";
     return "profile.security.strength.weak";
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+    typeof value === "object" && value !== null
+);
+
+const normalizeValidationKey = (key: string) => key.replace(/[^a-z0-9]/gi, "").toLowerCase();
+const isValidationCode = (message: string) => /^[a-z0-9_]+(\.[a-z0-9_]+)+$/i.test(message);
+
+const getErrorData = (error: unknown) => {
+    if (!isRecord(error)) return null;
+
+    const response = error.response;
+    if (isRecord(response) && "data" in response) return response.data;
+    if ("data" in error) return error.data;
+    return null;
+};
+
+const getValidationEntries = (error: unknown): ValidationEntry[] => {
+    const data = getErrorData(error);
+    if (!isRecord(data) || !("errors" in data)) return [];
+
+    const { errors } = data;
+    if (Array.isArray(errors)) {
+        return [{
+            messages: errors.filter((message): message is string => typeof message === "string"),
+        }];
+    }
+
+    if (!isRecord(errors)) return [];
+
+    return Object.entries(errors).map(([source, value]) => {
+        if (Array.isArray(value)) {
+            return {
+                source,
+                messages: value.filter((message): message is string => typeof message === "string"),
+            };
+        }
+
+        return {
+            source,
+            messages: typeof value === "string" ? [value] : [],
+        };
+    });
+};
+
+const resolveFieldName = <T extends object>(
+    source: string | undefined,
+    message: string,
+    fieldMap: FieldMap<T>,
+) => {
+    const candidates = [
+        source,
+        message.split(".")[0],
+    ].filter((candidate): candidate is string => Boolean(candidate));
+
+    for (const candidate of candidates) {
+        const fieldName = fieldMap[normalizeValidationKey(candidate)];
+        if (fieldName) return fieldName;
+    }
+
+    return null;
 };
 
 const Profile = () => {
@@ -135,6 +207,90 @@ const Profile = () => {
         target?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
+    const translateValidationCode = (code: string) => t(`errors.${code}`);
+
+    const resolveProfileDomainError = (message: string): FieldError<ProfileFormValues> | null => {
+        const normalizedMessage = message.toLowerCase();
+
+        if (normalizedMessage.includes("username") || normalizedMessage.includes("user name")) {
+            return {
+                name: "username",
+                message: t("profile.errors.usernameRejected"),
+            };
+        }
+
+        if (normalizedMessage.includes("currency")) {
+            return {
+                name: "currencyId",
+                message: t("errors.currency_id.invalid"),
+            };
+        }
+
+        if (normalizedMessage.includes("language")) {
+            return {
+                name: "languageCode",
+                message: t("errors.language_code.invalid"),
+            };
+        }
+
+        return null;
+    };
+
+    const resolvePasswordDomainError = (message: string): FieldError<PasswordFormValues> | null => {
+        const normalizedMessage = message.toLowerCase();
+
+        if (normalizedMessage.includes("incorrect password") || normalizedMessage.includes("current password")) {
+            return {
+                name: "currentPassword",
+                message: t("profile.errors.currentPasswordIncorrect"),
+            };
+        }
+
+        if (normalizedMessage.includes("password")) {
+            return {
+                name: "newPassword",
+                message: t("profile.errors.newPasswordRejected"),
+            };
+        }
+
+        return null;
+    };
+
+    const applyApiValidationErrors = <T extends object>(
+        form: FormInstance<T>,
+        error: unknown,
+        fieldMap: FieldMap<T>,
+        resolveDomainError: (message: string) => FieldError<T> | null,
+    ) => {
+        const entries = getValidationEntries(error);
+        const fieldErrors = new Map<keyof T, string[]>();
+
+        for (const entry of entries) {
+            for (const message of entry.messages) {
+                const fieldName = resolveFieldName(entry.source, message, fieldMap);
+                const domainError = isValidationCode(message) ? null : resolveDomainError(message);
+                const resolvedField = fieldName ?? domainError?.name;
+
+                if (!resolvedField) continue;
+
+                const translatedMessage = domainError?.message ?? translateValidationCode(message);
+                const currentErrors = fieldErrors.get(resolvedField) ?? [];
+                currentErrors.push(translatedMessage);
+                fieldErrors.set(resolvedField, currentErrors);
+            }
+        }
+
+        if (fieldErrors.size === 0) return false;
+
+        const formFields = Array.from(fieldErrors.entries()).map(([name, errors]) => ({
+            name: [name as string],
+            errors,
+        })) as Parameters<FormInstance<T>["setFields"]>[0];
+
+        form.setFields(formFields);
+        return true;
+    };
+
     const onProfileFinish = async (values: ProfileFormValues) => {
         setIsSavingProfile(true);
         setProfileApiError(null);
@@ -148,7 +304,20 @@ const Profile = () => {
             }));
             setProfileSuccess(t("profile.account.success"));
         } catch (error) {
-            setProfileApiError(parseAxiosError(error, t("profile.errors.profileUpdateFailed"), t));
+            const didMapErrors = applyApiValidationErrors(
+                profileForm,
+                error,
+                {
+                    username: "username",
+                    currencyid: "currencyId",
+                    languagecode: "languageCode",
+                },
+                resolveProfileDomainError,
+            );
+
+            if (!didMapErrors) {
+                setProfileApiError(t("profile.errors.profileUpdateFailed"));
+            }
         } finally {
             setIsSavingProfile(false);
         }
@@ -167,7 +336,21 @@ const Profile = () => {
             setPasswordSuccess(t("profile.security.success"));
             passwordForm.resetFields();
         } catch (error) {
-            setPasswordApiError(parseAxiosError(error, t("profile.errors.passwordChangeFailed"), t));
+            const didMapErrors = applyApiValidationErrors(
+                passwordForm,
+                error,
+                {
+                    currentpassword: "currentPassword",
+                    newpassword: "newPassword",
+                    password: "newPassword",
+                    confirmpassword: "confirmPassword",
+                },
+                resolvePasswordDomainError,
+            );
+
+            if (!didMapErrors) {
+                setPasswordApiError(t("profile.errors.passwordChangeFailed"));
+            }
         } finally {
             setIsSavingPassword(false);
         }
@@ -201,22 +384,21 @@ const Profile = () => {
                             <span>{user?.email ?? t("profile.overview.unknownEmail")}</span>
                         </div>
                     </div>
-                    <div className="profile-tabs" role="tablist" aria-label={t("profile.tabs.label")}>
+                    <nav className="profile-tabs" aria-label={t("profile.tabs.label")}>
                         {sectionTabs.map((section) => (
                             <button
                                 aria-controls={section.panelId}
-                                aria-selected={activeSection === section.key}
+                                aria-current={activeSection === section.key ? "location" : undefined}
                                 className={activeSection === section.key ? "is-active" : undefined}
                                 key={section.key}
                                 onClick={() => navigateToSection(section.key)}
-                                role="tab"
                                 type="button"
                             >
                                 {section.icon}
                                 <span>{section.label}</span>
                             </button>
                         ))}
-                    </div>
+                    </nav>
                 </aside>
 
                 <div className="profile-content">
@@ -247,7 +429,6 @@ const Profile = () => {
                         className="profile-card"
                         id="profile-account-panel"
                         ref={accountSectionRef}
-                        role="tabpanel"
                     >
                         <div className="profile-section-head">
                             <div>
@@ -360,7 +541,6 @@ const Profile = () => {
                         className="profile-card"
                         id="profile-security-panel"
                         ref={securitySectionRef}
-                        role="tabpanel"
                     >
                         <div className="profile-section-head">
                             <div>

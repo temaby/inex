@@ -92,9 +92,9 @@ describe("Profile", () => {
         render(<Profile />);
 
         expect(screen.getByRole("heading", { name: "profile.title" })).toBeInTheDocument();
-        expect(screen.getByRole("tablist", { name: "profile.tabs.label" })).toBeInTheDocument();
-        expect(screen.getByRole("tab", { name: "profile.tabs.account" })).toHaveAttribute("aria-selected", "true");
-        expect(screen.getByRole("tab", { name: "profile.tabs.security" })).toBeInTheDocument();
+        expect(screen.getByRole("navigation", { name: "profile.tabs.label" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "profile.tabs.account" })).toHaveAttribute("aria-current", "location");
+        expect(screen.getByRole("button", { name: "profile.tabs.security" })).toBeInTheDocument();
         expect(screen.getByText("profile.account.title")).toBeInTheDocument();
         expect(screen.getByText("profile.security.title")).toBeInTheDocument();
 
@@ -123,6 +123,44 @@ describe("Profile", () => {
         }, type: "auth/updateProfile" });
     });
 
+    it("maps profile API validation codes to localized field errors", async () => {
+        dispatch.mockRejectedValueOnce({
+            response: {
+                data: {
+                    errors: {
+                        username: ["username.required"],
+                    },
+                },
+            },
+        });
+
+        render(<Profile />);
+
+        fireEvent.change(await screen.findByLabelText("auth.username"), { target: { value: "server-rejected" } });
+        fireEvent.click(screen.getByRole("button", { name: "profile.account.save" }));
+
+        expect(await screen.findByText("errors.username.required")).toBeInTheDocument();
+        expect(screen.queryByText("profile.errors.profileUpdateFailed")).not.toBeInTheDocument();
+    });
+
+    it("maps profile identity domain errors to localized field errors", async () => {
+        dispatch.mockRejectedValueOnce({
+            response: {
+                data: {
+                    errors: ["Username already taken."],
+                },
+            },
+        });
+
+        render(<Profile />);
+
+        fireEvent.change(await screen.findByLabelText("auth.username"), { target: { value: "server-rejected" } });
+        fireEvent.click(screen.getByRole("button", { name: "profile.account.save" }));
+
+        expect(await screen.findByText("profile.errors.usernameRejected")).toBeInTheDocument();
+        expect(screen.queryByText("profile.errors.profileUpdateFailed")).not.toBeInTheDocument();
+    });
+
     it("shows localized password validation and preserves changePassword payload", async () => {
         render(<Profile />);
 
@@ -143,5 +181,49 @@ describe("Profile", () => {
                 newPassword: "new-password",
             });
         });
+    });
+
+    it("maps password API validation codes to localized field errors", async () => {
+        dispatch.mockRejectedValueOnce({
+            response: {
+                data: {
+                    errors: {
+                        current_password: ["current_password.required"],
+                        new_password: ["new_password.min_length"],
+                    },
+                },
+            },
+        });
+
+        render(<Profile />);
+
+        fireEvent.change(await screen.findByLabelText("auth.currentPassword"), { target: { value: "old-password" } });
+        fireEvent.change(screen.getByLabelText("auth.newPassword"), { target: { value: "server-rejected-password" } });
+        fireEvent.change(screen.getByLabelText("profile.security.confirmPassword"), { target: { value: "server-rejected-password" } });
+        fireEvent.click(screen.getByRole("button", { name: "profile.security.save" }));
+
+        expect(await screen.findByText("errors.current_password.required")).toBeInTheDocument();
+        expect(await screen.findByText("errors.new_password.min_length")).toBeInTheDocument();
+        expect(screen.queryByText("profile.errors.passwordChangeFailed")).not.toBeInTheDocument();
+    });
+
+    it("maps password identity domain errors to localized field errors", async () => {
+        dispatch.mockRejectedValueOnce({
+            response: {
+                data: {
+                    errors: ["Incorrect password."],
+                },
+            },
+        });
+
+        render(<Profile />);
+
+        fireEvent.change(await screen.findByLabelText("auth.currentPassword"), { target: { value: "wrong-password" } });
+        fireEvent.change(screen.getByLabelText("auth.newPassword"), { target: { value: "server-rejected-password" } });
+        fireEvent.change(screen.getByLabelText("profile.security.confirmPassword"), { target: { value: "server-rejected-password" } });
+        fireEvent.click(screen.getByRole("button", { name: "profile.security.save" }));
+
+        expect(await screen.findByText("profile.errors.currentPasswordIncorrect")).toBeInTheDocument();
+        expect(screen.queryByText("profile.errors.passwordChangeFailed")).not.toBeInTheDocument();
     });
 });

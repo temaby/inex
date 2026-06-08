@@ -118,7 +118,10 @@
     "errors": {
       "currencyLoadFailed": "Не удалось загрузить валюты.",
       "profileUpdateFailed": "Не удалось обновить профиль.",
-      "passwordChangeFailed": "Не удалось изменить пароль."
+      "passwordChangeFailed": "Не удалось изменить пароль.",
+      "usernameRejected": "Имя пользователя недоступно или некорректно.",
+      "currentPasswordIncorrect": "Текущий пароль неверный.",
+      "newPasswordRejected": "Новый пароль не соответствует требованиям."
     }
   },
   "language": {

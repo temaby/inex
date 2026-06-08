@@ -118,7 +118,10 @@
     "errors": {
       "currencyLoadFailed": "Could not load currencies.",
       "profileUpdateFailed": "Failed to update profile.",
-      "passwordChangeFailed": "Failed to change password."
+      "passwordChangeFailed": "Failed to change password.",
+      "usernameRejected": "Username is unavailable or invalid.",
+      "currentPasswordIncorrect": "Current password is incorrect.",
+      "newPasswordRejected": "New password does not meet the password requirements."
     }
   },
   "language": {
