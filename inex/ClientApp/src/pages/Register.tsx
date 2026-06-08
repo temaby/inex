@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Input, Select } from "antd";
+import { Button, Form, Input, Select, Spin } from "antd";
 import { useTranslation } from "react-i18next";
 
 import ErrorBanner from "../components/ErrorBanner";
@@ -60,23 +60,42 @@ const Register = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [currencyLoadError, setCurrencyLoadError] = useState<string | null>(null);
   const authError = useAppSelector((s) => s.auth.error);
   const displayError = translateRegisterError(authError, t);
   const password = Form.useWatch("password", form) ?? "";
   const strength = passwordStrength(password);
 
+  const isInitializing = useAppSelector((s) => s.auth.isInitializing);
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   useEffect(() => {
     if (accessToken) navigate("/dashboard", { replace: true });
   }, [accessToken, navigate]);
 
   useEffect(() => {
-    apiClient.get<Currency[]>("/currencies").then(({ data }) => {
-      setCurrencies(data);
-      const eur = data.find((c) => c.key === "EUR");
-      if (eur) form.setFieldValue("currencyId", eur.id);
-    });
-  }, [form]);
+    let isMounted = true;
+
+    apiClient
+      .get<Currency[]>("/currencies")
+      .then(({ data }) => {
+        if (!isMounted) return;
+
+        setCurrencies(data);
+        setCurrencyLoadError(null);
+        const eur = data.find((c) => c.key === "EUR");
+        if (eur) form.setFieldValue("currencyId", eur.id);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+
+        setCurrencies([]);
+        setCurrencyLoadError(t("errors.currency_id.invalid"));
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [form, t]);
 
   const onValuesChange = () => {
     if (authError) dispatch(setAuthError(""));
@@ -109,6 +128,12 @@ const Register = () => {
 
   return (
     <>
+      {isInitializing ? (
+        <div style={{ display: "grid", placeItems: "center", minHeight: 260 }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <>
       <div style={{ marginBottom: 24 }}>
         <div
           style={{
@@ -246,6 +271,8 @@ const Register = () => {
         <Form.Item
           name="currencyId"
           label={t("common.currency")}
+          help={currencyLoadError}
+          validateStatus={currencyLoadError ? "error" : undefined}
           rules={[{ required: true, message: t("errors.currency_id.invalid") }]}
         >
           <Select
@@ -257,6 +284,7 @@ const Register = () => {
               value: c.id,
               label: `${c.key} - ${c.name}`,
             }))}
+            disabled={Boolean(currencyLoadError)}
           />
         </Form.Item>
 
@@ -294,6 +322,8 @@ const Register = () => {
           </Button>
         </Form.Item>
       </Form>
+        </>
+      )}
     </>
   );
 };

@@ -179,11 +179,13 @@
       "mobileLogoDisplay": "flex",
       "submitLoading": false,
       "submitDisabled": false,
-      "h2": "Create your InEx account",
+      "h2": "Создайте аккаунт InEx",
       "alert": null,
-      "validation": [],
-      "currencyText": true,
-      "ruChanged": false
+      "validation": [
+        "Выберите корректную валюту"
+      ],
+      "currencyText": false,
+      "ruChanged": true
     }
   ]
 }

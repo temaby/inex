@@ -30,7 +30,16 @@ export const translateLoginError = (error: string | null, t: Translate): string 
 export const translateRegisterError = (error: string | null, t: Translate): string | null => {
   if (!error) return null;
 
-  if (normalizedIncludes(error, ["already", "duplicate", "email exists", "email is taken"])) {
+  if (
+    normalizedIncludes(error, [
+      "email already",
+      "email is already",
+      "duplicate email",
+      "email exists",
+      "email is taken",
+      "email already exists",
+    ])
+  ) {
     return t("auth.errors.duplicateEmail");
   }
 

@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
 
 let authState = {
   accessToken: null as string | null,
+  isInitializing: false,
   error: null as string | null,
 };
 
@@ -106,7 +107,7 @@ describe("Register", () => {
   });
 
   beforeEach(() => {
-    authState = { accessToken: null, error: null };
+    authState = { accessToken: null, isInitializing: false, error: null };
     mocks.navigate.mockReset();
     mocks.dispatch.mockReset();
     mocks.changeLanguage.mockReset();
@@ -137,6 +138,32 @@ describe("Register", () => {
     expect(await screen.findByText("EUR - Euro")).toBeInTheDocument();
   });
 
+  it("shows a loading state instead of the form while the session is restoring", () => {
+    authState = { accessToken: null, isInitializing: true, error: null };
+    mocks.apiGet.mockReturnValue(new Promise(() => undefined));
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("heading", { name: "Create your InEx account" })).not.toBeInTheDocument();
+    expect(document.querySelector(".ant-spin")).toBeInTheDocument();
+  });
+
+  it("shows a localized currency load error when currencies cannot be fetched", async () => {
+    mocks.apiGet.mockRejectedValue(new Error("network"));
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Please select a valid currency")).toBeInTheDocument();
+  });
+
   it("shows password strength feedback and localized validation errors", async () => {
     const user = userEvent.setup();
 
@@ -158,7 +185,7 @@ describe("Register", () => {
 
   it("maps register API errors, clears them on edit, and redirects success to dashboard", async () => {
     const user = userEvent.setup();
-    authState = { accessToken: null, error: "Email already exists" };
+    authState = { accessToken: null, isInitializing: false, error: "Email already exists" };
     let resolveDispatch: () => void = () => undefined;
     mocks.dispatch.mockReturnValue(new Promise<void>((resolve) => {
       resolveDispatch = resolve;
@@ -187,7 +214,7 @@ describe("Register", () => {
   });
 
   it("uses a localized fallback for unclassified register API errors", async () => {
-    authState = { accessToken: null, error: "Unexpected backend detail" };
+    authState = { accessToken: null, isInitializing: false, error: "Unexpected backend detail" };
 
     render(
       <MemoryRouter>
@@ -197,5 +224,18 @@ describe("Register", () => {
 
     expect(await screen.findByText("Could not create the account. Check the form and try again.")).toBeInTheDocument();
     expect(screen.queryByText("Unexpected backend detail")).not.toBeInTheDocument();
+  });
+
+  it("does not misclassify non-email duplicate errors as duplicate email", async () => {
+    authState = { accessToken: null, isInitializing: false, error: "Username already exists" };
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Could not create the account. Check the form and try again.")).toBeInTheDocument();
+    expect(screen.queryByText("Email is already registered")).not.toBeInTheDocument();
   });
 });

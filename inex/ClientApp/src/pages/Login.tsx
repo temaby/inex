@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, Spin } from "antd";
 import { useTranslation } from "react-i18next";
 
 import ErrorBanner from "../components/ErrorBanner";
@@ -25,6 +25,7 @@ const Login = () => {
   const authError = useAppSelector((s) => s.auth.error);
   const displayError = translateLoginError(authError, t);
 
+  const isInitializing = useAppSelector((s) => s.auth.isInitializing);
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   useEffect(() => {
     if (accessToken) navigate("/dashboard", { replace: true });
@@ -48,6 +49,12 @@ const Login = () => {
 
   return (
     <>
+      {isInitializing ? (
+        <div style={{ display: "grid", placeItems: "center", minHeight: 260 }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <>
       <div style={{ marginBottom: 24 }}>
         <div
           style={{
@@ -136,6 +143,8 @@ const Login = () => {
           </Button>
         </Form.Item>
       </Form>
+        </>
+      )}
     </>
   );
 };

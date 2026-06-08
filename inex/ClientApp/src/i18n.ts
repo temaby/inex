@@ -7,7 +7,7 @@ function syncDayjsLocale(lang: string) {
     dayjs.locale(lang === "ru" ? "ru" : "en");
 }
 
-const localeResourceVersion = "2026-06-05-management-gap-remediation";
+const localeResourceVersion = "2026-06-08-auth-profile-redesign";
 
 i18n
     .use(HttpBackend)

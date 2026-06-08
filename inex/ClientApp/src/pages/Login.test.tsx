@@ -8,6 +8,7 @@ const dispatchMock = vi.fn();
 
 let authState = {
   accessToken: null as string | null,
+  isInitializing: false,
   error: null as string | null,
 };
 
@@ -69,7 +70,7 @@ describe("Login", () => {
   });
 
   beforeEach(() => {
-    authState = { accessToken: null, error: null };
+    authState = { accessToken: null, isInitializing: false, error: null };
     navigateMock.mockReset();
     dispatchMock.mockReset();
   });
@@ -88,9 +89,22 @@ describe("Login", () => {
     expect(screen.getByLabelText("Password")).toHaveAttribute("name", "password");
   });
 
+  it("shows a loading state instead of the form while the session is restoring", () => {
+    authState = { accessToken: null, isInitializing: true, error: null };
+
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("heading", { name: "Sign in to InEx" })).not.toBeInTheDocument();
+    expect(document.querySelector(".ant-spin")).toBeInTheDocument();
+  });
+
   it("maps API errors into the auth error banner and clears them on edit", async () => {
     const user = userEvent.setup();
-    authState = { accessToken: null, error: "Invalid credentials" };
+    authState = { accessToken: null, isInitializing: false, error: "Invalid credentials" };
 
     render(
       <MemoryRouter>
@@ -106,7 +120,7 @@ describe("Login", () => {
   });
 
   it("uses a localized fallback for unclassified login API errors", () => {
-    authState = { accessToken: null, error: "Unexpected backend detail" };
+    authState = { accessToken: null, isInitializing: false, error: "Unexpected backend detail" };
 
     render(
       <MemoryRouter>

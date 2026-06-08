@@ -1,6 +1,6 @@
 # Story 10.5b: Frontend UX - Login And Registration Redesign
 
-Status: review
+Status: done
 
 ## Story
 
@@ -756,7 +756,9 @@ GPT-5.3-Codex
 - Implemented `AuthShell` split-screen auth route, redesigned login/register forms, and kept successful auth redirects on `/dashboard`.
 - Added localized API error display fallbacks so unknown backend auth text is not rendered directly.
 - Added visual QA screenshots and metadata for required desktop/mobile auth states with `dataMode: fixture`.
-- Story status moved to `review` in this file.
+- Kept `you@example.com` as an intentional locale-neutral email-format placeholder exception in EN/RU.
+- Addressed code-review findings: bumped locale cache version, narrowed duplicate-email error classification, blocked form flash while session restore is initializing, guarded currency loading, and recaptured the RU 360px stress state.
+- Story status moved to `done` after code review fixes and verification.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 
 ### File List
@@ -781,6 +783,7 @@ GPT-5.3-Codex
 - inex/ClientApp/src/components/AuthShell.test.tsx
 - inex/ClientApp/src/components/AuthShell.tsx
 - inex/ClientApp/src/components/ErrorBanner.tsx
+- inex/ClientApp/src/i18n.ts
 - inex/ClientApp/src/pages/Login.test.tsx
 - inex/ClientApp/src/pages/Login.tsx
 - inex/ClientApp/src/pages/Register.test.tsx
@@ -790,3 +793,4 @@ GPT-5.3-Codex
 ### Change Log
 
 - 2026-06-08: Redesigned auth shell/forms, localized auth errors, added auth tests and visual QA artifacts.
+- 2026-06-08: Addressed code-review findings and marked story done.
