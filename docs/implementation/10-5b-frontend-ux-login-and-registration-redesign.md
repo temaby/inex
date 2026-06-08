@@ -1,6 +1,6 @@
 # Story 10.5b: Frontend UX - Login And Registration Redesign
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,30 +24,30 @@ so that authentication feels reliable and consistent with the finance app.
 
 ## Tasks / Subtasks
 
-- [ ] Build auth layout route and route integration. (AC: 1, 2, 3)
-  - [ ] Create `inex/ClientApp/src/components/AuthShell.tsx` with split-screen desktop and single-column mobile behavior.
-  - [ ] Move `/login` and `/register` under `<Route element={<AuthShell />}>` in `inex/ClientApp/src/App.tsx`.
-  - [ ] Ensure auth pages stay outside `ProtectedRoute` and do not render app shell or bottom nav.
-- [ ] Rebuild `Login.tsx` UX and form behavior. (AC: 1, 4, 5, 7, 9)
-  - [ ] Remove Card wrapper and legacy centered layout.
-  - [ ] Add heading/subtitle, `ErrorBanner`, localized validation messages, and loading submit state.
-  - [ ] Use `Input.Password` with `autoComplete="current-password"` and explicit HTML `name` for password-manager compatibility.
-  - [ ] Clear `auth.error` on field edits.
-  - [ ] Redirect authenticated/successful login users to `/dashboard`; Story 10.4 must be complete before this story is finalized.
-- [ ] Rebuild `Register.tsx` UX and form behavior. (AC: 1, 4, 6, 7, 8, 9)
-  - [ ] Remove Card wrapper and legacy centered layout.
-  - [ ] Add heading/subtitle, `ErrorBanner`, localized validation, invite-token hint, and loading submit state.
-  - [ ] Add password strength indicator (0-5 scoring) with localized strength labels.
-  - [ ] Use password-manager-friendly `autoComplete` + explicit HTML `name` attributes, including `name="invite-token"`.
-  - [ ] Redirect successful registration to `/dashboard`; Story 10.4 must be complete before this story is finalized.
-- [ ] Extend localization dictionaries. (AC: 7, 8)
-  - [ ] Add required auth keys to `inex/ClientApp/public/locales/en/translation.json`.
-  - [ ] Add matching RU keys to `inex/ClientApp/public/locales/ru/translation.json`.
-  - [ ] Verify no hardcoded English copy remains in touched auth UI.
-- [ ] Validate quality and visual QA deliverables. (AC: 10, 11)
-  - [ ] Run `npm run build` in `inex/ClientApp`.
-  - [ ] Run `npm run lint` in `inex/ClientApp`.
-  - [ ] Capture required desktop/mobile screenshots for login/register states.
+- [x] Build auth layout route and route integration. (AC: 1, 2, 3)
+  - [x] Create `inex/ClientApp/src/components/AuthShell.tsx` with split-screen desktop and single-column mobile behavior.
+  - [x] Move `/login` and `/register` under `<Route element={<AuthShell />}>` in `inex/ClientApp/src/App.tsx`.
+  - [x] Ensure auth pages stay outside `ProtectedRoute` and do not render app shell or bottom nav.
+- [x] Rebuild `Login.tsx` UX and form behavior. (AC: 1, 4, 5, 7, 9)
+  - [x] Remove Card wrapper and legacy centered layout.
+  - [x] Add heading/subtitle, `ErrorBanner`, localized validation messages, and loading submit state.
+  - [x] Use `Input.Password` with `autoComplete="current-password"` and explicit HTML `name` for password-manager compatibility.
+  - [x] Clear `auth.error` on field edits.
+  - [x] Redirect authenticated/successful login users to `/dashboard`; Story 10.4 must be complete before this story is finalized.
+- [x] Rebuild `Register.tsx` UX and form behavior. (AC: 1, 4, 6, 7, 8, 9)
+  - [x] Remove Card wrapper and legacy centered layout.
+  - [x] Add heading/subtitle, `ErrorBanner`, localized validation, invite-token hint, and loading submit state.
+  - [x] Add password strength indicator (0-5 scoring) with localized strength labels.
+  - [x] Use password-manager-friendly `autoComplete` + explicit HTML `name` attributes, including `name="invite-token"`.
+  - [x] Redirect successful registration to `/dashboard`; Story 10.4 must be complete before this story is finalized.
+- [x] Extend localization dictionaries. (AC: 7, 8)
+  - [x] Add required auth keys to `inex/ClientApp/public/locales/en/translation.json`.
+  - [x] Add matching RU keys to `inex/ClientApp/public/locales/ru/translation.json`.
+  - [x] Verify no hardcoded English copy remains in touched auth UI.
+- [x] Validate quality and visual QA deliverables. (AC: 10, 11)
+  - [x] Run `npm run build` in `inex/ClientApp`.
+  - [x] Run `npm run lint` in `inex/ClientApp`.
+  - [x] Capture required desktop/mobile screenshots for login/register states.
 
 ## Prerequisites
 
@@ -744,13 +744,53 @@ GPT-5.3-Codex
 
 ### Debug Log References
 
+- `npm run test -- AuthShell Login Register`
+- `npm run lint`
+- `npm run build`
+- Visual QA artifacts: `docs/implementation/visual-qa/10-5b-auth/`
+
 ### Completion Notes List
 
 - Story context updated via bmad-create-story workflow for key `10-5b-frontend-ux-login-and-registration-redesign`.
 - Checklist validation applied: added executable task breakdown, resolved password-manager `name` attribute ambiguity, added latest-library guidance, and appended implementation record metadata.
-- Story status remains `ready-for-dev` in this file.
+- Implemented `AuthShell` split-screen auth route, redesigned login/register forms, and kept successful auth redirects on `/dashboard`.
+- Added localized API error display fallbacks so unknown backend auth text is not rendered directly.
+- Added visual QA screenshots and metadata for required desktop/mobile auth states with `dataMode: fixture`.
+- Kept `you@example.com` as an intentional locale-neutral email-format placeholder exception in EN/RU.
+- Addressed code-review findings: bumped locale cache version, narrowed duplicate-email error classification, blocked form flash while session restore is initializing, guarded currency loading, and recaptured the RU 360px stress state.
+- Story status moved to `done` after code review fixes and verification.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 
 ### File List
 
 - docs/implementation/10-5b-frontend-ux-login-and-registration-redesign.md
+- docs/implementation/sprint-status.yaml
+- docs/implementation/visual-qa/10-5b-auth/login-api-error.png
+- docs/implementation/visual-qa/10-5b-auth/login-default.png
+- docs/implementation/visual-qa/10-5b-auth/login-loading.png
+- docs/implementation/visual-qa/10-5b-auth/login-mobile-narrow.png
+- docs/implementation/visual-qa/10-5b-auth/login-mobile.png
+- docs/implementation/visual-qa/10-5b-auth/qa-report.json
+- docs/implementation/visual-qa/10-5b-auth/register-api-error.png
+- docs/implementation/visual-qa/10-5b-auth/register-default.png
+- docs/implementation/visual-qa/10-5b-auth/register-mobile-narrow.png
+- docs/implementation/visual-qa/10-5b-auth/register-mobile.png
+- docs/implementation/visual-qa/10-5b-auth/register-ru-stress-360.png
+- docs/implementation/visual-qa/10-5b-auth/register-validation-errors.png
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/App.tsx
+- inex/ClientApp/src/components/AuthShell.test.tsx
+- inex/ClientApp/src/components/AuthShell.tsx
+- inex/ClientApp/src/components/ErrorBanner.tsx
+- inex/ClientApp/src/i18n.ts
+- inex/ClientApp/src/pages/Login.test.tsx
+- inex/ClientApp/src/pages/Login.tsx
+- inex/ClientApp/src/pages/Register.test.tsx
+- inex/ClientApp/src/pages/Register.tsx
+- inex/ClientApp/src/pages/auth-error-message.ts
+
+### Change Log
+
+- 2026-06-08: Redesigned auth shell/forms, localized auth errors, added auth tests and visual QA artifacts.
+- 2026-06-08: Addressed code-review findings and marked story done.
