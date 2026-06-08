@@ -1,6 +1,6 @@
 # Story 10.5a: Frontend UX - Profile And Settings Redesign
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -21,33 +21,33 @@ so that profile, currency, language, and password changes are easy to complete o
 
 ## Tasks / Subtasks
 
-- [ ] Rebuild profile/settings page layout and navigation shell usage. (AC: 1, 4, 5)
-  - [ ] Replace the current narrow single-card profile layout with the design-system settings workspace for `/profile`.
-  - [ ] Keep `AppShell` wrapper usage and page-level route behavior intact.
-  - [ ] Implement desktop two-column settings structure with sticky sidebar and main content sections.
-  - [ ] Implement mobile horizontal settings tab rail (scrollable) and single-column content flow.
-- [ ] Implement profile account/preferences form states and localization. (AC: 2, 3)
-  - [ ] Keep existing `updateProfile` dispatch contract (`username`, `currencyId`, `languageCode`).
-  - [ ] Move hardcoded validation and error strings to locale files.
-  - [ ] Provide explicit loading, disabled, success, and API error banner states.
-  - [ ] Ensure language switching keeps current i18n behavior and local storage preference updates.
-- [ ] Implement password update section UX and validation behavior. (AC: 2, 3)
-  - [ ] Keep existing `changePassword` dispatch contract (`currentPassword`, `newPassword`).
-  - [ ] Implement field-level errors and confirm-password match logic using localized strings.
-  - [ ] Add accessible password strength hint/progress treatment aligned with design direction.
-  - [ ] Preserve password-manager-friendly attributes (`autoComplete`, semantic names).
-- [ ] Fix mobile overflow risk and responsive stability explicitly. (AC: 1, 4)
-  - [ ] Apply `min-width: 0` on grid children and any overflow-prone flex/grid nodes.
-  - [ ] Verify no horizontal overflow on 390px and 360px in profile/settings sections.
-  - [ ] Ensure content bottom spacing avoids mobile bottom-nav occlusion.
-- [ ] Update translation coverage. (AC: 2, 3)
-  - [ ] Add needed keys to `inex/ClientApp/public/locales/en/translation.json`.
-  - [ ] Add matching keys to `inex/ClientApp/public/locales/ru/translation.json`.
-  - [ ] Remove newly introduced hardcoded UI labels in touched profile/settings files.
-- [ ] Validate implementation quality gates. (AC: 4, 5)
-  - [ ] Run `npm run build` from `inex/ClientApp`.
-  - [ ] Run `npm run lint` from `inex/ClientApp`.
-  - [ ] Capture visual QA screenshots for desktop profile overview, desktop error state, and mobile tabs state.
+- [x] Rebuild profile/settings page layout and navigation shell usage. (AC: 1, 4, 5)
+  - [x] Replace the current narrow single-card profile layout with the design-system settings workspace for `/profile`.
+  - [x] Keep `AppShell` wrapper usage and page-level route behavior intact.
+  - [x] Implement desktop two-column settings structure with sticky sidebar and main content sections.
+  - [x] Implement mobile horizontal settings tab rail (scrollable) and single-column content flow.
+- [x] Implement profile account/preferences form states and localization. (AC: 2, 3)
+  - [x] Keep existing `updateProfile` dispatch contract (`username`, `currencyId`, `languageCode`).
+  - [x] Move hardcoded validation and error strings to locale files.
+  - [x] Provide explicit loading, disabled, success, and API error banner states.
+  - [x] Ensure language switching keeps current i18n behavior and local storage preference updates.
+- [x] Implement password update section UX and validation behavior. (AC: 2, 3)
+  - [x] Keep existing `changePassword` dispatch contract (`currentPassword`, `newPassword`).
+  - [x] Implement field-level errors and confirm-password match logic using localized strings.
+  - [x] Add accessible password strength hint/progress treatment aligned with design direction.
+  - [x] Preserve password-manager-friendly attributes (`autoComplete`, semantic names).
+- [x] Fix mobile overflow risk and responsive stability explicitly. (AC: 1, 4)
+  - [x] Apply `min-width: 0` on grid children and any overflow-prone flex/grid nodes.
+  - [x] Verify no horizontal overflow on 390px and 360px in profile/settings sections.
+  - [x] Ensure content bottom spacing avoids mobile bottom-nav occlusion.
+- [x] Update translation coverage. (AC: 2, 3)
+  - [x] Add needed keys to `inex/ClientApp/public/locales/en/translation.json`.
+  - [x] Add matching keys to `inex/ClientApp/public/locales/ru/translation.json`.
+  - [x] Remove newly introduced hardcoded UI labels in touched profile/settings files.
+- [x] Validate implementation quality gates. (AC: 4, 5)
+  - [x] Run `npm run build` from `inex/ClientApp`.
+  - [x] Run `npm run lint` from `inex/ClientApp`.
+  - [x] Capture visual QA screenshots for desktop profile overview, desktop error state, and mobile tabs state.
 
 ## Prerequisites
 
@@ -248,13 +248,37 @@ GPT-5.3-Codex
 
 ### Debug Log References
 
+- 2026-06-08: Used isolated worktree `D:\work\inex\.worktrees\10-5a-profile-settings-redesign` from `origin/master` because the main checkout was dirty with other story work.
+- 2026-06-08: RED test added in `Profile.test.tsx`; initial run failed against the old single-card page due missing settings title/tab/field contracts.
+- 2026-06-08: Browser visual QA used Vite on port 3005 plus a temporary local mock API on port 5000 to preserve protected-route behavior without backend changes.
+
 ### Completion Notes List
 
 - Story context created via bmad-create-story workflow for key `10-5a-frontend-ux-profile-and-settings-redesign`.
 - Sprint status target for this story updated to `ready-for-dev`.
 - Story includes comprehensive implementation guardrails for layout, responsive behavior, i18n, route boundaries, and verification.
 - Ultimate context engine analysis completed - comprehensive developer guide created.
+- Rebuilt `/profile` into a settings workspace with sticky desktop sidebar, account/security tab rail, overview metrics, two-column content sections, and mobile single-column flow.
+- Preserved existing `BasicPage`/`AppShell`, `ProtectedRoute`, `apiClient`, `updateProfile`, `changePassword`, and language-application contracts; no login/register/auth-shell implementation changed.
+- Added localized profile/settings validation, success, loading/disabled, API banner, password confirmation, and password-strength UX.
+- Added profile-focused Vitest coverage for settings workspace rendering, thunk payload contracts, localized confirm-password validation, and hardcoded confirm-label regression.
+- Captured visual QA artifacts under `docs/implementation/visual-qa/10-5a`; 390px and 360px browser metrics report `overflowX: false`.
 
 ### File List
 
 - docs/implementation/10-5a-frontend-ux-profile-and-settings-redesign.md
+- docs/implementation/sprint-status.yaml
+- docs/implementation/visual-qa/10-5a/profile-form-error-1440.png
+- docs/implementation/visual-qa/10-5a/profile-mobile-tabs-360.png
+- docs/implementation/visual-qa/10-5a/profile-mobile-tabs-390.png
+- docs/implementation/visual-qa/10-5a/profile-overview-1440.png
+- docs/implementation/visual-qa/10-5a/qa-summary.json
+- inex/ClientApp/public/locales/en/translation.json
+- inex/ClientApp/public/locales/ru/translation.json
+- inex/ClientApp/src/pages/Profile.css
+- inex/ClientApp/src/pages/Profile.test.tsx
+- inex/ClientApp/src/pages/Profile.tsx
+
+### Change Log
+
+- 2026-06-08: Implemented Story 10.5a profile/settings redesign; added profile-local responsive styles, tests, locale keys, and visual QA artifacts.
