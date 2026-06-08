@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-06-08T10:10:01.432Z",
+  "dataMode": "fixture",
+  "desktopMetrics": {
+    "dataMode": "fixture",
+    "bodyClientWidth": 1425,
+    "bodyScrollWidth": 1425,
+    "clientWidth": 1425,
+    "profileCards": 2,
+    "scrollWidth": 1425,
+    "tabs": [
+      {
+        "selected": "true",
+        "text": "Account"
+      },
+      {
+        "selected": "false",
+        "text": "Security"
+      }
+    ],
+    "url": "http://127.0.0.1:3005/profile"
+  },
+  "mobile390": {
+    "dataMode": "fixture",
+    "bodyClientWidth": 375,
+    "bodyScrollWidth": 375,
+    "clientWidth": 375,
+    "overflowX": false,
+    "scrollWidth": 375,
+    "tabRailOverflow": {
+      "clientWidth": 341,
+      "scrollWidth": 341
+    },
+    "width": 390
+  },
+  "mobile360": {
+    "dataMode": "fixture",
+    "bodyClientWidth": 345,
+    "bodyScrollWidth": 345,
+    "clientWidth": 345,
+    "overflowX": false,
+    "scrollWidth": 345,
+    "tabRailOverflow": {
+      "clientWidth": 311,
+      "scrollWidth": 311
+    },
+    "width": 360
+  },
+  "screenshots": [
+    "profile-overview-1440.png",
+    "profile-form-error-1440.png",
+    "profile-mobile-tabs-390.png",
+    "profile-mobile-tabs-360.png"
+  ]
+}

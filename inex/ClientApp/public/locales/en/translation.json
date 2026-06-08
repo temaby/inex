@@ -56,6 +56,74 @@
     "profileUpdated": "Profile updated",
     "passwordChanged": "Password changed"
   },
+  "profile": {
+    "title": "Profile & Settings",
+    "subtitle": "Account",
+    "tabs": {
+      "label": "Profile settings sections",
+      "account": "Account",
+      "security": "Security"
+    },
+    "overview": {
+      "eyebrow": "Profile",
+      "title": "Account settings",
+      "description": "Manage the identity, currency, language, and password used by your InEx session.",
+      "currency": "Preferred currency",
+      "language": "Language",
+      "session": "Session",
+      "protected": "Protected",
+      "currencyUnavailable": "Not selected",
+      "unknownUser": "User",
+      "unknownEmail": "No email"
+    },
+    "account": {
+      "eyebrow": "Preferences",
+      "title": "Profile details",
+      "description": "Update the account information returned by the current authenticated profile endpoint.",
+      "save": "Save profile",
+      "success": "Profile settings saved.",
+      "helpTitle": "Language and currency",
+      "helpDescription": "Saved preferences update the active session through the existing profile flow.",
+      "savedLanguage": "Current language",
+      "savedCurrency": "Current currency"
+    },
+    "security": {
+      "eyebrow": "Password",
+      "title": "Password update",
+      "description": "Change your password without changing route or session ownership.",
+      "confirmPassword": "Confirm new password",
+      "save": "Change password",
+      "success": "Password changed. The fields were cleared.",
+      "helpTitle": "Password guidance",
+      "helpDescription": "Use a password manager and keep this password unique to InEx.",
+      "tipLength": "Use at least 8 characters; 12 or more is stronger.",
+      "tipUnique": "Avoid reusing passwords from other services.",
+      "tipManager": "Password manager autofill is supported.",
+      "strength": {
+        "label": "Password strength",
+        "weak": "Strength: weak",
+        "medium": "Strength: medium",
+        "strong": "Strength: strong"
+      }
+    },
+    "validation": {
+      "usernameRequired": "Username is required",
+      "currencyRequired": "Currency is required",
+      "currentPasswordRequired": "Current password is required",
+      "newPasswordRequired": "New password is required",
+      "confirmPasswordRequired": "Confirm the new password",
+      "passwordMinLength": "At least 8 characters",
+      "passwordMismatch": "Passwords do not match"
+    },
+    "errors": {
+      "currencyLoadFailed": "Could not load currencies.",
+      "profileUpdateFailed": "Failed to update profile.",
+      "passwordChangeFailed": "Failed to change password.",
+      "usernameRejected": "Username is unavailable or invalid.",
+      "currentPasswordIncorrect": "Current password is incorrect.",
+      "newPasswordRejected": "New password does not meet the password requirements."
+    }
+  },
   "language": {
     "en": "English",
     "ru": "Russian"
