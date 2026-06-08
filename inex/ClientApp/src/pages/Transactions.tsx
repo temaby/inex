@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "antd";
-import { Filter, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { Filter, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
@@ -13,6 +13,7 @@ import type { TransactionFilter } from "../store/transactions/transactions-slice
 import {
     InExButton,
     InExDrawer,
+    Input,
     Num,
     SegmentedControl,
     type MoneyKind,
@@ -92,6 +93,7 @@ const Transactions = () => {
     const filterActive = isTransactionFilterActive(filterState) || isLedgerUiFilterActive(ledgerFilter);
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
     const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
+    const noMatchActive = filterActive && ledgerMetrics.totalCount > 0 && ledgerMetrics.visibleCount === 0;
     const periodLabel = useMemo(
         () => formatTransactionPeriodLabel(filterState.range, t("transactions.period.allActiveDates")),
         [filterState.range, t],
@@ -200,9 +202,11 @@ const Transactions = () => {
     ];
 
     const headerActions = (
-        <InExButton icon={<Plus size={16} />} kind="primary" onClick={() => setAddDrawerOpen(true)} size="md">
-            {t("transactions.add")}
-        </InExButton>
+        <div className="transactions-header-actions">
+            <InExButton icon={<Plus size={16} />} kind="primary" onClick={() => setAddDrawerOpen(true)} size="md">
+                {t("transactions.addTransaction")}
+            </InExButton>
+        </div>
     );
 
     return (
@@ -217,7 +221,7 @@ const Transactions = () => {
                                     {ledgerInitialLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
-                                        <Num value={item.value} kind={item.kind} currency={baseCurrency} signage="signed" size={30} />
+                                        <Num currency={baseCurrency} currencySize="sm" kind={item.kind} signage="signed" size={30} value={item.value} />
                                     )}
                                 </div>
                                 <div className="transactions-kpi__sub">{item.sub}</div>
@@ -237,7 +241,7 @@ const Transactions = () => {
                                         period: periodLabel,
                                     })}
                                 </span>
-                                {filterActive && (
+                                {filterActive && !noMatchActive && (
                                     <span className="transactions-filter-indicator" title={filterIndicatorTitle}>
                                         <Filter size={13} />
                                         {t("transactions.filtersActive")}
@@ -256,6 +260,7 @@ const Transactions = () => {
 
                         <div className="transactions-ledger-controls">
                             <SegmentedControl
+                                label={t("transactions.view")}
                                 onChange={(value) => setLedgerFilter(prev => ({ ...prev, type: value as LedgerTypeFilter }))}
                                 options={[
                                     { key: "all", label: `${t("transactions.all")} ${ledgerMetrics.typeCounts.all}` },
@@ -263,17 +268,17 @@ const Transactions = () => {
                                     { key: "expense", label: `${t("transactions.expense")} ${ledgerMetrics.typeCounts.expense}` },
                                     { key: "transfer", label: `${t("transactions.transfer")} ${ledgerMetrics.typeCounts.transfer}` },
                                 ]}
+                                size="compact"
                                 value={ledgerFilter.type}
                             />
-                            <label className="transactions-search">
-                                <Search aria-hidden="true" size={15} />
-                                <span className="sr-only">{t("transactions.search")}</span>
-                                <input
-                                    onChange={(event) => setLedgerFilter(prev => ({ ...prev, search: event.target.value }))}
-                                    placeholder={t("transactions.searchPlaceholder")}
-                                    value={ledgerFilter.search}
-                                />
-                            </label>
+                            <Input
+                                aria-label={t("transactions.search")}
+                                className="transactions-search"
+                                onChange={(event) => setLedgerFilter(prev => ({ ...prev, search: event.target.value }))}
+                                placeholder={t("transactions.searchPlaceholder")}
+                                value={ledgerFilter.search}
+                                variant="search"
+                            />
                         </div>
 
                         {chips.length > 0 && (
@@ -309,13 +314,14 @@ const Transactions = () => {
             <InExDrawer
                 onClose={() => setAddDrawerOpen(false)}
                 open={addDrawerOpen}
-                subtitle={t("transactions.addDrawerSubtitle")}
+                subtitle={t("transactions.newExpenseSubtitle")}
                 title={t("transactions.addDrawerTitle")}
                 width={460}
             >
                 <TransactionCreate
                     accounts={activeAccounts}
                     categories={activeCategories}
+                    onCancel={() => setAddDrawerOpen(false)}
                     onSubmit={() => setAddDrawerOpen(false)}
                 />
             </InExDrawer>
@@ -330,6 +336,7 @@ const Transactions = () => {
                 <TransactionFilterForm
                     accounts={activeAccounts}
                     categories={activeCategories}
+                    baseCurrency={baseCurrency}
                     filter={filterParam}
                     ledgerFilter={ledgerFilter}
                     onLedgerFilterChange={setLedgerFilter}

@@ -1,58 +1,85 @@
-import * as React from 'react';
+import * as React from "react";
+import type { MenuProps } from "antd";
+import { DatePicker, Form, Input } from "antd";
+import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
-import { Input } from 'antd';
-import { DatePicker } from "antd";
-import { Form, Col, Row } from 'antd';
 
 import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
+import type { AccountDetails } from "../../model/Account/AccountDetails";
+import type { AccountResponse } from "../../store/accounts/accounts-api";
 
-const TransactionCreateTransferForm = (props: any) => {
+type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
+
+interface TransactionCreateTransferFormProps {
+    accounts: AccountResponse[];
+    comment: string;
+    date: Dayjs;
+    fromAccount: AccountDetails;
+    fromAmount: number;
+    onSetComment: React.ChangeEventHandler<HTMLInputElement>;
+    onSetDate: (value: Dayjs) => void;
+    onSetFromAccount: (item: DropdownSelectInfo) => void;
+    onSetFromAmount: (value: number | null) => void;
+    onSetToAccount: (item: DropdownSelectInfo) => void;
+    onSetToAmount: (value: number | null) => void;
+    toAccount: AccountDetails;
+    toAmount: number;
+}
+
+const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps> = ({
+    accounts,
+    comment,
+    date,
+    fromAccount,
+    fromAmount,
+    onSetComment,
+    onSetDate,
+    onSetFromAccount,
+    onSetFromAmount,
+    onSetToAccount,
+    onSetToAmount,
+    toAccount,
+    toAmount,
+}) => {
     const { t } = useTranslation();
+
     return (
         <Form layout="vertical" hideRequiredMark>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.transferFrom")}>
-                        <Dropdown id="transfer_from_account" selection={[props.fromAccount]} onChange={props.onSetFromAccount} items={props.accounts} multiple={false} />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.amount")}>
-                        <ExpressionInputNumber key="transfer_from_amount" size="large" onChange={props.onSetFromAmount} addonAfter={props.fromAccount.currency} value={props.fromAmount} precision={2} placeholder={t("common.enterAmount")} />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.transferTo")}>
-                        <Dropdown id='transfer_to_acccount' selection={[props.toAccount]} onChange={props.onSetToAccount} items={props.accounts} multiple={false} />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.amount")}>
-                        <ExpressionInputNumber key="transfer_to_amount" size="large" onChange={props.onSetToAmount} addonAfter={props.toAccount.currency} value={props.toAmount} precision={2} placeholder={t("common.enterAmount")} />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.date")}>
-                        <DatePicker mode="date" value={props.date} onChange={props.onSetDate} />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.comment")}>
-                        <Input key="transfer_comment" size="large" onChange={props.onSetComment} value={props.comment} />
-                    </Form.Item>
-                </Col>
-            </Row>
+            <Form.Item label={t("transactions.transferFrom")}>
+                <Dropdown id="transfer_from_account" items={accounts} multiple={false} onChange={onSetFromAccount} selection={[fromAccount]} />
+            </Form.Item>
+            <Form.Item label={t("transactions.amount")}>
+                <ExpressionInputNumber
+                    addonAfter={fromAccount.currency}
+                    key="transfer_from_amount"
+                    onChange={onSetFromAmount}
+                    placeholder={t("common.enterAmount")}
+                    precision={2}
+                    size="large"
+                    value={fromAmount}
+                />
+            </Form.Item>
+            <Form.Item label={t("transactions.transferTo")}>
+                <Dropdown id="transfer_to_account" items={accounts} multiple={false} onChange={onSetToAccount} selection={[toAccount]} />
+            </Form.Item>
+            <Form.Item label={t("transactions.amount")}>
+                <ExpressionInputNumber
+                    addonAfter={toAccount.currency}
+                    key="transfer_to_amount"
+                    onChange={onSetToAmount}
+                    placeholder={t("common.enterAmount")}
+                    precision={2}
+                    size="large"
+                    value={toAmount}
+                />
+            </Form.Item>
+            <Form.Item label={t("transactions.date")}>
+                <DatePicker mode="date" onChange={(value) => value && onSetDate(value)} value={date} />
+            </Form.Item>
+            <Form.Item label={t("transactions.comment")}>
+                <Input key="transfer_comment" onChange={onSetComment} size="large" value={comment} />
+            </Form.Item>
         </Form>
     );
 };

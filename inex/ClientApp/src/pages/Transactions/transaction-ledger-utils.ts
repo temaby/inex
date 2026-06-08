@@ -170,3 +170,18 @@ export const formatTransactionPeriodLabel = (range: number[], fallback: string):
 
   return `${dayjs.unix(range[0]).format("D MMM YYYY")} - ${dayjs.unix(range[1]).format("D MMM YYYY")}`;
 };
+
+export const mergeCommentWithTags = (comment: string, tagsInput: string): string => {
+  const cleanComment = comment.trim();
+  const existingTags = new Set(
+    Array.from(cleanComment.matchAll(/#([\p{L}\p{N}_-]+)/gu), (match) => match[1]),
+  );
+  const tags = Array.from(tagsInput.matchAll(/#?([\p{L}\p{N}_-]+)/gu), (match) => match[1])
+    .filter((tag, index, allTags) => tag !== "" && allTags.indexOf(tag) === index && !existingTags.has(tag));
+
+  if (tags.length === 0) return cleanComment;
+
+  return [cleanComment, tags.map((tag) => `#${tag}`).join(" ")]
+    .filter(Boolean)
+    .join(" ");
+};

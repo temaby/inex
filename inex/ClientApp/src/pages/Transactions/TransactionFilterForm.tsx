@@ -1,15 +1,12 @@
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Col, DatePicker, Form, Input, Row } from "antd";
-import type { MenuProps } from "antd";
+import { Form, Input } from "antd";
 import dayjs from "dayjs";
-import type { Dayjs } from "dayjs";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import Dropdown from "../../components/Dropdown";
-import { defaultCategory, CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
-import { defaultAccount } from "../../model/Account/AccountDetails";
+import { InExButton } from "../../components/primitives";
+import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsDefaultFilter, transactionsActions } from "../../store/transactions/transactions-slice";
@@ -18,13 +15,11 @@ import { useAppDispatch } from "../../store/hooks";
 import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./transaction-filter-url";
 import type { LedgerUiFilter } from "./transaction-ledger-utils";
 
-const { RangePicker } = DatePicker;
-
-type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
-type DateRangeValue = [Dayjs | null, Dayjs | null] | null;
+type FlatCategory = Omit<CategoryDetails, "children"> & { depth: number };
 
 interface TransactionFilterFormProps {
     accounts: AccountResponse[];
+    baseCurrency: string;
     categories: CategoryResponse[];
     filter: string | null;
     ledgerFilter: LedgerUiFilter;
@@ -37,6 +32,9 @@ const hasActiveTransactionFilter = (filter: TransactionFilter): boolean =>
     filter.tags.some((tag) => tag !== "") ||
     filter.refs.some((ref) => ref !== "") ||
     filter.range.length === 2;
+
+const toDateInputValue = (timestamp: number | undefined): string =>
+    timestamp && timestamp > 0 ? dayjs.unix(timestamp).format("YYYY-MM-DD") : "";
 
 const toCategoryDetails = (category: CategoryResponse): CategoryDetails =>
     createCategoryDetails({
@@ -53,6 +51,7 @@ const toCategoryDetails = (category: CategoryResponse): CategoryDetails =>
 
 const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
     accounts,
+    baseCurrency,
     categories,
     filter,
     ledgerFilter,
@@ -65,6 +64,8 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
 
     const [localFilter, setLocalFilter] = useState<TransactionFilter>(transactionsDefaultFilter);
     const [tagsAndRefsInput, setTagsAndRefsInput] = useState("");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
 
     useEffect(() => {
         const queryFilter = parseTransactionFilterParam(filter);
@@ -73,10 +74,14 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
             dispatch(transactionsActions.resetFilter());
             setLocalFilter(transactionsDefaultFilter);
             setTagsAndRefsInput("");
+            setFromDate("");
+            setToDate("");
             return;
         }
 
         setLocalFilter(queryFilter);
+        setFromDate(toDateInputValue(queryFilter.range[0]));
+        setToDate(toDateInputValue(queryFilter.range[1]));
         setTagsAndRefsInput([
             queryFilter.tags.map((tag) => `#${tag}`).join(" "),
             queryFilter.refs.map((ref) => `@${ref}`).join(" "),
@@ -90,51 +95,32 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
     }, [dispatch, filter]);
 
     const categoryTree = useMemo(
-        () => getCategoriesTree(categories.map(toCategoryDetails), false, t("categories.systemGroup")) as CategoryDetails[],
+        () => getCategoriesTree(categories.map(toCategoryDetails), true, t("categories.systemGroup")) as FlatCategory[],
         [categories, t],
     );
 
     const filterDetails = useMemo(() => {
-        const filteredCategories = categories.filter((category) =>
-            localFilter.categoryIds.includes(category.id),
-        );
-        const filteredAccounts = accounts.filter((account) =>
-            localFilter.accountIds.includes(account.id),
-        );
-        const range = localFilter.range.length === 2
-            ? [dayjs.unix(localFilter.range[0]), dayjs.unix(localFilter.range[1])] as [Dayjs, Dayjs]
-            : null;
-
         const tags = localFilter.tags.map((tag) => `#${tag}`).join(" ");
         const refs = localFilter.refs.map((ref) => `@${ref}`).join(" ");
         const combinedTagsAndRefs = [tags, refs].filter(Boolean).join(" ");
 
         return {
-            accounts: filteredAccounts.length === 0 ? [defaultAccount] : filteredAccounts,
-            categories: filteredCategories.length === 0 ? [defaultCategory] : filteredCategories.map(toCategoryDetails),
             tagsAndRefs: tagsAndRefsInput || combinedTagsAndRefs,
-            range,
         };
-    }, [accounts, categories, localFilter, tagsAndRefsInput]);
+    }, [localFilter.refs, localFilter.tags, tagsAndRefsInput]);
 
     const amountFilterActive = ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "";
     const filterActive = hasActiveTransactionFilter(localFilter) || amountFilterActive;
 
-    const setAccountsHandler = (item: DropdownSelectInfo) => {
+    const setSelectedIds = (
+        event: React.ChangeEvent<HTMLSelectElement>,
+        key: "accountIds" | "categoryIds",
+    ) => {
+        const ids = Array.from(event.target.selectedOptions, option => Number(option.value))
+            .filter((id) => id > 0);
         setLocalFilter((prevState) => ({
             ...prevState,
-            accountIds: item.selectedKeys
-                .map((key) => Number(key))
-                .filter((id) => id > 0),
-        }));
-    };
-
-    const setCategoriesHandler = (item: DropdownSelectInfo) => {
-        setLocalFilter((prevState) => ({
-            ...prevState,
-            categoryIds: item.selectedKeys
-                .map((key) => Number(key))
-                .filter((id) => id > 0),
+            [key]: ids,
         }));
     };
 
@@ -162,13 +148,27 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
         setTagsAndRefsInput(input);
     };
 
-    const setRangeHandler = (dates: DateRangeValue) => {
+    const setDateRange = (nextFrom: string, nextTo: string) => {
+        const start = nextFrom ? dayjs(nextFrom).startOf("day") : null;
+        const end = nextTo ? dayjs(nextTo).endOf("day") : null;
         setLocalFilter((prevState) => ({
             ...prevState,
-            range: dates?.[0] && dates[1]
-                ? [dates[0].startOf("day").unix(), dates[1].endOf("day").unix()]
+            range: start?.isValid() && end?.isValid() && start.unix() <= end.unix()
+                ? [start.unix(), end.unix()]
                 : [],
         }));
+    };
+
+    const setFromDateHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setFromDate(value);
+        setDateRange(value, toDate);
+    };
+
+    const setToDateHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setToDate(value);
+        setDateRange(fromDate, value);
     };
 
     const setMinAmountHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,6 +189,8 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
         dispatch(transactionsActions.resetFilter());
         setLocalFilter(transactionsDefaultFilter);
         setTagsAndRefsInput("");
+        setFromDate("");
+        setToDate("");
         onLedgerFilterChange((prevState) => ({
             ...prevState,
             minAmount: "",
@@ -201,108 +203,100 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
         navigate(`${location.pathname}${buildTransactionFilterSearch(localFilter)}`, { replace: true });
     };
 
-    const rangePresets = useMemo((): Record<string, [Dayjs, Dayjs]> => ({
-        [t("transactions.last7Days")]: [dayjs().subtract(7, "day").startOf("day"), dayjs().endOf("day")],
-        [t("transactions.last30Days")]: [dayjs().subtract(30, "day").startOf("day"), dayjs().endOf("day")],
-        [t("transactions.lastMonth")]: [dayjs().subtract(1, "month").startOf("month"), dayjs().subtract(1, "month").endOf("month")],
-        [t("transactions.thisMonth")]: [dayjs().startOf("month"), dayjs().endOf("day")],
-    }), [t]);
-
     return (
-        <Form layout="vertical" hideRequiredMark>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.dateRange")}>
-                        <RangePicker
-                            id="filter_range"
-                            bordered={false}
-                            inputReadOnly
-                            onChange={setRangeHandler}
-                            ranges={rangePresets}
-                            value={filterDetails.range}
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.account")}>
-                        <Dropdown
-                            id="filter_account"
-                            selection={filterDetails.accounts}
-                            onChange={setAccountsHandler}
-                            items={accounts}
-                            multiple
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.category")}>
-                        <Dropdown
-                            id="filter_category"
-                            selection={filterDetails.categories}
-                            onChange={setCategoriesHandler}
-                            items={categoryTree}
-                            multiple
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={24}>
-                    <Form.Item label={t("transactions.tagsAndRefs")}>
-                        <Input
-                            id="filter_tags_refs"
-                            placeholder="#tag @ref"
-                            onChange={setTagsAndRefsHandler}
-                            value={filterDetails.tagsAndRefs}
-                            size="large"
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={12}>
-                    <Form.Item label={t("transactions.minAmountEquivalent")}>
-                        <Input
-                            id="transactions-min-amount"
-                            onChange={setMinAmountHandler}
-                            placeholder="0.00"
-                            value={ledgerFilter.minAmount}
-                            size="large"
-                        />
-                    </Form.Item>
-                </Col>
-                <Col span={12}>
-                    <Form.Item label={t("transactions.maxAmountEquivalent")}>
-                        <Input
-                            id="transactions-max-amount"
-                            onChange={setMaxAmountHandler}
-                            placeholder={t("transactions.anyAmount")}
-                            value={ledgerFilter.maxAmount}
-                            size="large"
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col span={12} style={{ textAlign: "center" }}>
-                    <Form.Item>
-                        <Button block disabled={!filterActive} onClick={resetFilterHandler}>
-                            {t("transactions.resetFilter")}
-                        </Button>
-                    </Form.Item>
-                </Col>
-                <Col span={12} style={{ textAlign: "center" }}>
-                    <Form.Item>
-                        <Button block type="primary" disabled={!filterActive} onClick={applyFilterHandler}>
-                            {t("transactions.applyFilter")}
-                        </Button>
-                    </Form.Item>
-                </Col>
-            </Row>
+        <Form className="transactions-filter-form" layout="vertical" hideRequiredMark>
+            <div className="transactions-filter-form__date-grid">
+                <Form.Item label={t("transactions.from")}>
+                    <input
+                        className="transactions-native-input"
+                        id="filter_from"
+                        onChange={setFromDateHandler}
+                        type="date"
+                        value={fromDate}
+                    />
+                </Form.Item>
+                <Form.Item label={t("transactions.to")}>
+                    <input
+                        className="transactions-native-input"
+                        id="filter_to"
+                        onChange={setToDateHandler}
+                        type="date"
+                        value={toDate}
+                    />
+                </Form.Item>
+            </div>
+
+            <Form.Item label={t("transactions.account")}>
+                <select
+                    className="transactions-native-select"
+                    id="filter_account"
+                    multiple
+                    onChange={(event) => setSelectedIds(event, "accountIds")}
+                    value={localFilter.accountIds.map(String)}
+                >
+                    {accounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                            {account.name}
+                        </option>
+                    ))}
+                </select>
+            </Form.Item>
+
+            <Form.Item label={t("transactions.category")}>
+                <select
+                    className="transactions-native-select"
+                    id="filter_category"
+                    multiple
+                    onChange={(event) => setSelectedIds(event, "categoryIds")}
+                    value={localFilter.categoryIds.map(String)}
+                >
+                    {categoryTree.map((category) => (
+                        <option disabled={category.id <= 0} key={category.id} value={category.id}>
+                            {`${"\u00A0".repeat(category.depth * 2)}${category.name}`}
+                        </option>
+                    ))}
+                </select>
+            </Form.Item>
+
+            <Form.Item label={t("transactions.keyword")}>
+                <Input
+                    id="filter_tags_refs"
+                    onChange={setTagsAndRefsHandler}
+                    placeholder={t("transactions.keywordPlaceholder")}
+                    size="large"
+                    value={filterDetails.tagsAndRefs}
+                />
+            </Form.Item>
+
+            <Form.Item label={t("transactions.amountEquivalent")}>
+                <div className="transactions-filter-form__amount-grid">
+                    <Input
+                        addonAfter={baseCurrency}
+                        id="transactions-min-amount"
+                        onChange={setMinAmountHandler}
+                        placeholder={t("transactions.min")}
+                        size="large"
+                        value={ledgerFilter.minAmount}
+                    />
+                    <Input
+                        addonAfter={baseCurrency}
+                        id="transactions-max-amount"
+                        onChange={setMaxAmountHandler}
+                        placeholder={t("transactions.max")}
+                        size="large"
+                        value={ledgerFilter.maxAmount}
+                    />
+                </div>
+            </Form.Item>
+
+            <div className="transactions-drawer-actions" data-filter-active={filterActive}>
+                <InExButton kind="default" onClick={resetFilterHandler}>
+                    {t("transactions.clearAll")}
+                </InExButton>
+                <InExButton kind="primary" onClick={applyFilterHandler}>
+                    {t("transactions.applyFilters")}
+                </InExButton>
+            </div>
         </Form>
     );
 };
