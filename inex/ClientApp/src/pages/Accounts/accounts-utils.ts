@@ -26,6 +26,18 @@ export const toFixedMoney = (value: number): number => Math.round(value * 100) /
 
 export const normalizeAccountSearch = (value: string): string => value.trim().toLowerCase();
 
+export const getAccountDisplayDescription = (
+  name: string,
+  description: string | null,
+): string | null => {
+  const trimmedDescription = description?.trim();
+  if (!trimmedDescription) return null;
+
+  return normalizeAccountSearch(trimmedDescription) === normalizeAccountSearch(name)
+    ? null
+    : trimmedDescription;
+};
+
 export const getBaseCurrency = (
   exchangeRates: ExchangeRateLike[],
   profileCurrency?: string | null,

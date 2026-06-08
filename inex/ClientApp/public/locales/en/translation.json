@@ -205,9 +205,9 @@
     "drawerSubtitle": "Create an account and assign its currency",
     "addAccount": "Add account",
     "noDescription": "No description",
-    "workspaceTitle": "Account inventory",
+    "workspaceTitle": "Accounts",
     "searchLabel": "Search accounts",
-    "searchPlaceholder": "Search name or currency",
+    "searchPlaceholder": "Search accounts...",
     "clearSearch": "Clear search",
     "filteringBy": "Filtering by \"{{query}}\"",
     "shareOfNetWorth": "{{value}}% of net worth",
@@ -219,6 +219,16 @@
       "byCurrency": "By currency",
       "flat": "Flat list"
     },
+    "toolbar": {
+      "statusLabel": "STATUS",
+      "viewLabel": "VIEW"
+    },
+    "headers": {
+      "account": "ACCOUNT",
+      "currency": "CURRENCY",
+      "share": "SHARE",
+      "balance": "BALANCE"
+    },
     "group": {
       "accountCountOne": "{{count}} account",
       "accountCountOther": "{{count}} accounts",
@@ -228,7 +238,7 @@
       "collapse": "Collapse {{currency}} accounts"
     },
     "inventory": {
-      "summary": "Visible accounts: {{visible}} / {{total}}",
+      "summary": "Visible accounts: {{visible}} / {{total}} in scope",
       "activeOnly": "active only: {{count}} active",
       "allScope": "all accounts"
     },
@@ -249,6 +259,8 @@
       "balanceUnavailable": "Balance unavailable",
       "momUnavailable": "MoM delta unavailable",
       "momDelta": "{{value}} MoM",
+      "momDeltaPercent": "{{value}} MoM",
+      "momComparisonPeriod": "vs previous month",
       "activeAccounts": "{{count}} active",
       "currencyCount": "{{count}} currencies",
       "currencyDistribution": "Currency distribution",

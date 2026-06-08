@@ -207,9 +207,9 @@
     "drawerSubtitle": "Создайте счёт и назначьте его валюту",
     "addAccount": "Добавить счёт",
     "noDescription": "Без описания",
-    "workspaceTitle": "Список счетов",
+    "workspaceTitle": "Счета",
     "searchLabel": "Поиск счетов",
-    "searchPlaceholder": "Поиск по названию или валюте",
+    "searchPlaceholder": "Поиск счетов...",
     "clearSearch": "Очистить поиск",
     "filteringBy": "Фильтр: \"{{query}}\"",
     "shareOfNetWorth": "{{value}}% от чистой стоимости",
@@ -221,6 +221,16 @@
       "byCurrency": "По валюте",
       "flat": "Список"
     },
+    "toolbar": {
+      "statusLabel": "СТАТУС",
+      "viewLabel": "ВИД"
+    },
+    "headers": {
+      "account": "СЧЕТ",
+      "currency": "ВАЛЮТА",
+      "share": "ДОЛЯ",
+      "balance": "БАЛАНС"
+    },
     "group": {
       "accountCountOne": "{{count}} счёт",
       "accountCountOther": "{{count}} счетов",
@@ -230,7 +240,7 @@
       "collapse": "Свернуть счета {{currency}}"
     },
     "inventory": {
-      "summary": "Видимые счета: {{visible}} / {{total}}",
+      "summary": "Видимые счета: {{visible}} / {{total}} в области",
       "activeOnly": "только активные: {{count}}",
       "allScope": "все счета"
     },
@@ -251,6 +261,8 @@
       "balanceUnavailable": "Баланс недоступен",
       "momUnavailable": "Динамика за месяц недоступна",
       "momDelta": "{{value}} м/м",
+      "momDeltaPercent": "{{value}} м/м",
+      "momComparisonPeriod": "к прошлому месяцу",
       "activeAccounts": "{{count}} активных",
       "currencyCount": "{{count}} валют",
       "currencyDistribution": "Распределение по валютам",

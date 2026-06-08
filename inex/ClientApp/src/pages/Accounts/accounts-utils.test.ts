@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import {
   buildDisplayAccounts,
+  getAccountDisplayDescription,
   getBaseCurrency,
   makeCurrencyGroups,
   sortAccountsByBaseValue,
@@ -121,5 +122,12 @@ describe("accounts value helpers", () => {
     expect(groups.find((group) => group.currency === "PLN")?.baseSubtotal).toBe(200);
     expect(groups.find((group) => group.currency === "PLN")?.share).toBeNull();
     expect(groups.find((group) => group.currency === "EUR")?.share).toBeNull();
+  });
+
+  it("suppresses blank and duplicate descriptions for display only", () => {
+    expect(getAccountDisplayDescription("Cash wallet", null)).toBeNull();
+    expect(getAccountDisplayDescription("Cash wallet", "   ")).toBeNull();
+    expect(getAccountDisplayDescription("Cash wallet", " cash WALLET ")).toBeNull();
+    expect(getAccountDisplayDescription("Cash wallet", "Daily spending")).toBe("Daily spending");
   });
 });

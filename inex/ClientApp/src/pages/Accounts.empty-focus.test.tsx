@@ -18,7 +18,25 @@ vi.mock("../utils/apiClient", () => ({
 vi.mock("react-i18next", async (importOriginal) => ({
     ...await importOriginal<typeof import("react-i18next")>(),
     useTranslation: () => ({
-        t: (key: string) => key,
+        t: (key: string, options?: Record<string, unknown>) => {
+            const translations: Record<string, string> = {
+                "accounts.workspaceTitle": "Accounts",
+                "accounts.searchPlaceholder": "Search accounts...",
+                "accounts.toolbar.statusLabel": "STATUS",
+                "accounts.toolbar.viewLabel": "VIEW",
+                "accounts.headers.account": "ACCOUNT",
+                "accounts.headers.currency": "CURRENCY",
+                "accounts.headers.share": "SHARE",
+                "accounts.headers.balance": "BALANCE",
+                "accounts.inventory.summary": `${String(options?.visible)} / ${String(options?.total)}`,
+                "accounts.group.accountCountOne": `${String(options?.count)} account`,
+                "accounts.group.accountCountOther": `${String(options?.count)} accounts`,
+                "accounts.hero.momDeltaPercent": `${String(options?.value)} MoM`,
+                "accounts.hero.momComparisonPeriod": "vs previous month",
+            };
+
+            return translations[key] ?? key;
+        },
     }),
 }));
 
@@ -55,6 +73,42 @@ const makeStore = () =>
             },
         },
     });
+
+const populatedAccounts = [
+    {
+        id: 1,
+        key: "cash",
+        name: "Cash wallet",
+        description: "cash WALLET",
+        isEnabled: true,
+        currencyId: 1,
+        currency: "USD",
+    },
+    {
+        id: 2,
+        key: "card",
+        name: "Card",
+        description: "Daily card",
+        isEnabled: true,
+        currencyId: 1,
+        currency: "USD",
+    },
+    {
+        id: 3,
+        key: "archive",
+        name: "Archive",
+        description: "Closed",
+        isEnabled: false,
+        currencyId: 1,
+        currency: "USD",
+    },
+];
+
+const populatedSummaries = [
+    { ...populatedAccounts[0], value: 100, thisMonthNet: 10 },
+    { ...populatedAccounts[1], value: 50, thisMonthNet: 5 },
+    { ...populatedAccounts[2], value: 25, thisMonthNet: 2 },
+];
 
 describe("Accounts empty-state create focus", () => {
     beforeEach(() => {
@@ -102,5 +156,40 @@ describe("Accounts empty-state create focus", () => {
             expect(document.activeElement).toHaveTextContent("accounts.addAccount");
         });
         expect(screen.getByText("Cash wallet")).toBeInTheDocument();
+    });
+
+    it("renders audit toolbar labels, desktop headers, and active-scope counts", async () => {
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/accounts?mode=ALL") {
+                return { data: { data: populatedAccounts } };
+            }
+            if (url.startsWith("/accounts/details?mode=active")) {
+                return { data: { data: populatedSummaries } };
+            }
+            return { data: null };
+        });
+        const store = makeStore();
+
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Accounts />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        expect(await screen.findByRole("heading", { name: "Accounts" })).toBeInTheDocument();
+        expect(screen.getByRole("group", { name: "STATUS" })).toBeInTheDocument();
+        expect(screen.getByRole("group", { name: "VIEW" })).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Search accounts...")).toBeInTheDocument();
+
+        expect(screen.getByText("ACCOUNT")).toBeVisible();
+        expect(screen.getByText("CURRENCY")).toBeVisible();
+        expect(screen.getByText("SHARE")).toBeVisible();
+        expect(screen.getByText("BALANCE")).toBeVisible();
+        expect(screen.getByText("2 / 2")).toBeVisible();
+        expect(screen.queryByText("2 / 3")).not.toBeInTheDocument();
+        expect(screen.queryByText("cash WALLET")).not.toBeInTheDocument();
+        expect(screen.getByText("Daily card")).toBeVisible();
     });
 });
