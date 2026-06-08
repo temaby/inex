@@ -181,7 +181,8 @@ describe("Accounts empty-state create focus", () => {
         expect(await screen.findByRole("heading", { name: "Accounts" })).toBeInTheDocument();
         expect(screen.getByRole("group", { name: "STATUS" })).toBeInTheDocument();
         expect(screen.getByRole("group", { name: "VIEW" })).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("Search accounts...")).toBeInTheDocument();
+        const searchbox = screen.getByRole("searchbox", { name: "accounts.searchLabel" });
+        expect(searchbox).toHaveAttribute("placeholder", "Search accounts...");
 
         expect(screen.getByText("ACCOUNT")).toBeVisible();
         expect(screen.getByText("CURRENCY")).toBeVisible();

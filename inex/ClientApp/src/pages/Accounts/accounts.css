@@ -238,36 +238,11 @@
     min-width: 0;
 }
 
-.accounts-search {
-    align-items: center;
-    border: 1px solid var(--border-2);
-    border-radius: var(--radius-2);
-    color: var(--fg-4);
-    display: inline-flex;
-    flex: 1 1 220px;
-    gap: 8px;
-    max-width: 320px;
-    min-width: 180px;
-    padding: 0 11px;
-}
-
-.accounts-search:focus-within,
 .accounts-filter-strip button:focus-visible,
 .accounts-inline-retry button:focus-visible,
 .accounts-row:focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
-}
-
-.accounts-search input {
-    background: transparent;
-    border: 0;
-    color: var(--fg-1);
-    flex: 1;
-    font: 14px var(--font-sans);
-    min-width: 0;
-    outline: 0;
-    padding: 9px 0;
 }
 
 .accounts-inline-retry,
@@ -623,16 +598,6 @@
     color: var(--brand-ink);
 }
 
-.sr-only {
-    clip: rect(0, 0, 0, 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-}
-
 @keyframes accounts-pulse {
     0%,
     100% {
@@ -712,13 +677,6 @@
     .accounts-toolbar__controls [role="tablist"] {
         max-width: 100%;
         overflow-x: auto;
-    }
-
-    .accounts-search {
-        flex-basis: auto;
-        max-width: none;
-        min-width: 0;
-        width: 100%;
     }
 
     .accounts-groups,

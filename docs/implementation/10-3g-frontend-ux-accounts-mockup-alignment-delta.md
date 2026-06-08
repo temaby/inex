@@ -246,6 +246,10 @@ GPT-5 Codex
 - 2026-06-08: `npm run lint` passed from `inex/ClientApp`.
 - 2026-06-08: `npm run test` passed from `inex/ClientApp` with 18 files and 83 tests.
 - 2026-06-08: `git diff -U0 -- ... | Select-String -Pattern '^\\+.*\\bany\\b'` found no added `any` in touched TypeScript files.
+- 2026-06-08: Addressed PR #183 P2 review finding in isolated worktree `D:\work\inex-10-3g-pr183`; main checkout had unrelated dirty changes and was left untouched.
+- 2026-06-08: Replaced Accounts page-local raw search input with shared `Input variant="search"` and removed obsolete `.accounts-search`/`.sr-only` CSS.
+- 2026-06-08: PR follow-up verification passed from `inex/ClientApp`: `npm run test -- Accounts.empty-focus.test.tsx accounts-utils.test.ts`, `npm run lint`, `npm run build`, and `rg "\\bany\\b" src\\pages\\Accounts.tsx src\\pages\\Accounts.empty-focus.test.tsx` found no matches.
+- 2026-06-08: PR follow-up full regression `npm run test` passed from `inex/ClientApp` with 17 files and 78 tests.
 
 ### Completion Notes List
 
@@ -259,6 +263,7 @@ GPT-5 Codex
 - Tightened Accounts group punctuation and row/group padding while preserving collapse affordances, base equivalents, share values, focus outlines, and tap targets.
 - Added focused Accounts regression coverage for audit labels, headers, active-scope count semantics, and duplicate description suppression.
 - Refreshed controlled fixture visual QA for populated grouped/flat, 390/360 mobile, filter-empty, first-use empty, drawer-open, expanded-row, loading, load-error, and partial-error states.
+- PR #183 follow-up now consumes the 10.1e shared search primitive for Accounts search while preserving the localized accessible label, placeholder, controlled search behavior, and focused regression coverage.
 
 ### File List
 
@@ -289,3 +294,4 @@ GPT-5 Codex
 ### Change Log
 
 - 2026-06-08: Implemented Accounts mockup-alignment delta, added focused tests, refreshed controlled fixture visual QA evidence, passed build/lint/full frontend tests, and marked story ready for review.
+- 2026-06-08: Addressed PR #183 requested change by switching Accounts search to shared `Input variant="search"`, removing duplicate search CSS, and rerunning focused verification.

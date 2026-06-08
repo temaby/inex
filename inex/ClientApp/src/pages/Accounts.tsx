@@ -8,7 +8,6 @@ import {
     ChevronUp,
     Plus,
     RefreshCw,
-    Search,
     Wallet,
 } from "lucide-react";
 
@@ -17,6 +16,7 @@ import {
     FilterEmpty,
     InExButton,
     InExDrawer,
+    Input,
     Num,
     SegmentedControl,
     Tag as InExTag,
@@ -742,15 +742,13 @@ const Accounts = () => {
                                         { key: "flat", label: t("accounts.view.flat") },
                                     ]}
                                 />
-                                <label className="accounts-search">
-                                    <Search aria-hidden="true" size={16} />
-                                    <span className="sr-only">{t("accounts.searchLabel")}</span>
-                                    <input
-                                        value={search}
-                                        onChange={(event) => setSearch(event.target.value)}
-                                        placeholder={t("accounts.searchPlaceholder")}
-                                    />
-                                </label>
+                                <Input
+                                    aria-label={t("accounts.searchLabel")}
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    placeholder={t("accounts.searchPlaceholder")}
+                                    variant="search"
+                                />
                             </div>
                         </div>
                         {hasPartialError && (
