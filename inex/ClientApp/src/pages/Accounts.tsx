@@ -8,7 +8,6 @@ import {
     ChevronUp,
     Plus,
     RefreshCw,
-    Search,
     Wallet,
 } from "lucide-react";
 
@@ -17,6 +16,7 @@ import {
     FilterEmpty,
     InExButton,
     InExDrawer,
+    Input,
     Num,
     SegmentedControl,
     Tag as InExTag,
@@ -33,6 +33,7 @@ import AccountEditForm from "./Accounts/AccountEditForm";
 import {
     AccountDisplay,
     buildDisplayAccounts,
+    getAccountDisplayDescription,
     getBaseCurrency,
     getTotalAbsBaseValue,
     getTotalBaseValue,
@@ -185,6 +186,7 @@ const Accounts = () => {
     );
 
     const activeCount = displayAccounts.filter((account) => account.isEnabled).length;
+    const scopedCount = scopedAccounts.length;
     const currencyCount = new Set(displayAccounts.map((account) => account.currency)).size;
     const hasSearch = normalizeAccountSearch(search).length > 0;
     const isInitialLoading = accountsQuery.isLoading && accounts.length === 0;
@@ -198,6 +200,7 @@ const Accounts = () => {
     const momPercent = hasCompleteScopedBaseValues && hasMonthNetValues && lastMonthBase !== 0
         ? (thisMonthNet / Math.abs(lastMonthBase)) * 100
         : null;
+    const canRenderHeroDelta = Boolean(baseCurrency) && momPercent !== null;
 
     const clearFilters = () => {
         setSearch("");
@@ -326,6 +329,33 @@ const Accounts = () => {
         </div>
     );
 
+    const renderHeroDelta = () => {
+        if (!canRenderHeroDelta) {
+            return t("accounts.hero.momUnavailable");
+        }
+
+        return (
+            <React.Fragment>
+                <span className="accounts-hero__delta-main">
+                    <Num
+                        currency={baseCurrency ?? undefined}
+                        kind={thisMonthNet < 0 ? "expense" : "income"}
+                        signage="signed"
+                        value={toFixedMoney(thisMonthNet)}
+                    />
+                    <span>
+                        {t("accounts.hero.momDeltaPercent", {
+                            value: `${momPercent >= 0 ? "+" : ""}${momPercent.toFixed(1)}%`,
+                        })}
+                    </span>
+                </span>
+                <span className="accounts-hero__delta-helper">
+                    {t("accounts.hero.momComparisonPeriod")}
+                </span>
+            </React.Fragment>
+        );
+    };
+
     const renderAccountSnapshot = (account: AccountDisplay) => {
         const rateToBase = getRateToBaseLabel(account);
         const baseEquivalentLabel = baseCurrency
@@ -368,6 +398,7 @@ const Accounts = () => {
         const expanded = expandedId === account.id;
         const accountValue = account.value;
         const balanceUnavailable = accountValue === undefined;
+        const displayDescription = getAccountDisplayDescription(account.name, account.description);
 
         return (
             <div className="accounts-row-wrap" key={account.id}>
@@ -380,7 +411,7 @@ const Accounts = () => {
                     <span className="accounts-row__main">
                         <span className="accounts-row__name">{account.name}</span>
                         <span className="accounts-row__meta">
-                            <span>{account.description || t("accounts.noDescription")}</span>
+                            {displayDescription && <span>{displayDescription}</span>}
                             {!account.isEnabled && (
                                 <InExTag kind="neutral">{t("accounts.disabled")}</InExTag>
                             )}
@@ -431,6 +462,20 @@ const Accounts = () => {
                         </div>
                     </div>
                 )}
+            </div>
+        );
+    };
+
+    const renderInventoryHeader = () => {
+        if (isInitialLoading || hasLoadError || searchedAccounts.length === 0) return null;
+
+        return (
+            <div className="accounts-list-header">
+                <span>{t("accounts.headers.account")}</span>
+                <span>{t("accounts.headers.currency")}</span>
+                <span>{t("accounts.headers.share")}</span>
+                <span>{t("accounts.headers.balance")}</span>
+                <span aria-hidden="true" />
             </div>
         );
     };
@@ -506,7 +551,7 @@ const Accounts = () => {
                                     <span className={`accounts-currency-badge is-${currencyToneClass(group.currency)}`}>
                                         {group.currency}
                                     </span>
-                                    <span>{formatGroupCount(group.accounts.length)}</span>
+                                    <span className="accounts-group__count">- {formatGroupCount(group.accounts.length)}</span>
                                 </span>
                                 <span className="accounts-group__metrics">
                                     <span className="accounts-group__share">{groupShare}</span>
@@ -601,11 +646,7 @@ const Accounts = () => {
                                     : <span>{t("accounts.hero.balanceUnavailable")}</span>}
                             </div>
                             <div className="accounts-hero__delta">
-                                {momPercent === null
-                                    ? t("accounts.hero.momUnavailable")
-                                    : t("accounts.hero.momDelta", {
-                                        value: `${momPercent >= 0 ? "+" : ""}${momPercent.toFixed(1)}%`,
-                                    })}
+                                {renderHeroDelta()}
                             </div>
                             <div className="accounts-hero__stats">
                                 <span>{t("accounts.hero.activeAccounts", { count: activeCount })}</span>
@@ -664,7 +705,7 @@ const Accounts = () => {
                                     <span>
                                         {t("accounts.inventory.summary", {
                                             visible: searchedAccounts.length,
-                                            total: displayAccounts.length,
+                                            total: scopedCount,
                                         })}
                                     </span>
                                     <span>
@@ -682,6 +723,8 @@ const Accounts = () => {
                             </div>
                             <div className="accounts-toolbar__controls">
                                 <SegmentedControl
+                                    label={t("accounts.toolbar.statusLabel")}
+                                    size="compact"
                                     value={scope}
                                     onChange={(key) => setScope(key as AccountScope)}
                                     options={[
@@ -690,6 +733,8 @@ const Accounts = () => {
                                     ]}
                                 />
                                 <SegmentedControl
+                                    label={t("accounts.toolbar.viewLabel")}
+                                    size="compact"
                                     value={viewMode}
                                     onChange={(key) => setViewMode(key as AccountViewMode)}
                                     options={[
@@ -697,15 +742,13 @@ const Accounts = () => {
                                         { key: "flat", label: t("accounts.view.flat") },
                                     ]}
                                 />
-                                <label className="accounts-search">
-                                    <Search aria-hidden="true" size={16} />
-                                    <span className="sr-only">{t("accounts.searchLabel")}</span>
-                                    <input
-                                        value={search}
-                                        onChange={(event) => setSearch(event.target.value)}
-                                        placeholder={t("accounts.searchPlaceholder")}
-                                    />
-                                </label>
+                                <Input
+                                    aria-label={t("accounts.searchLabel")}
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    placeholder={t("accounts.searchPlaceholder")}
+                                    variant="search"
+                                />
                             </div>
                         </div>
                         {hasPartialError && (
@@ -726,6 +769,7 @@ const Accounts = () => {
                                 </button>
                             </div>
                         )}
+                        {renderInventoryHeader()}
                         {renderAccountList()}
                     </section>
                 </div>

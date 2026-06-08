@@ -1,6 +1,6 @@
 # Story 10.3g: Frontend UX - Accounts Mockup Alignment Delta
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -39,43 +39,43 @@ Out of scope:
 
 ## Tasks / Subtasks
 
-- [ ] Confirm starting state and protect completed story history. (AC: 1-10)
-  - [ ] Read this story, `10-3a-frontend-ux-accounts-management-redesign.md`, and `10-3d-frontend-ux-accounts-design-gap-remediation.md` before editing.
-  - [ ] Do not edit old Dev Agent Records in completed/review stories.
-  - [ ] Check `git status --short` before editing and preserve unrelated agent/user changes.
-- [ ] Align Accounts copy and toolbar controls to the audit baseline. (AC: 1, 2)
-  - [ ] Change `accounts.workspaceTitle` and related list title rendering to match the accepted mockup wording.
-  - [ ] Change `accounts.searchPlaceholder` to `Search accounts...` in EN and add matching RU copy.
-  - [ ] Add visible toolbar labels for the scope and view segmented controls.
-  - [ ] Prefer a local compact label wrapper unless extending `SegmentedControl` is clearly reusable and does not disrupt Categories/Budgets.
-- [ ] Add desktop inventory headers without damaging mobile rows. (AC: 3)
-  - [ ] Add a desktop-only header row above grouped and flat rows: `ACCOUNT`, `CURRENCY`, `SHARE`, `BALANCE`.
-  - [ ] Keep the header hidden or visually replaced by stacked labels on mobile.
-  - [ ] Ensure the header grid aligns with `.accounts-row` desktop columns.
-- [ ] Fix inventory denominator semantics. (AC: 4)
-  - [ ] Derive `visible` from searched accounts and `total` from the selected scope, not from all accounts.
-  - [ ] Keep the all-account count available only in all-scope copy or explicit secondary context.
-  - [ ] Add/update EN/RU keys so the count reads naturally in active and all scopes.
-- [ ] Resolve hero delta truthfulness and copy. (AC: 5)
-  - [ ] Audit whether `AccountSummary.thisMonthNet` plus current total can support the mockup's previous-month comparison claim.
-  - [ ] If trustworthy, render signed base-currency delta, percent, and comparison helper text using existing `Num` and localized copy.
-  - [ ] If not trustworthy, show `MoM delta unavailable` or equivalent localized copy; do not show percent-only copy that implies unavailable data is complete.
-- [ ] Suppress duplicate descriptions while preserving search. (AC: 6)
-  - [ ] Add a small helper that treats blank descriptions and descriptions equal to account name as absent for display.
-  - [ ] Keep search matching both `name` and raw `description`, including duplicate descriptions, so filtering behavior does not unexpectedly narrow.
-- [ ] Tighten group and mobile density against the audit target. (AC: 7, 8)
-  - [ ] Adjust group header punctuation toward compact `CURRENCY - n accounts` style while keeping current base equivalent/share values from Story 10.3d.
-  - [ ] Reduce padding only where screenshots show excess height; do not remove readable tap targets or focus outlines.
-  - [ ] Verify mobile row heights with populated long-name/long-amount examples at 390px and 360px.
-- [ ] Refresh controlled Accounts visual QA. (AC: 8, 9)
-  - [ ] Capture or update QA evidence for grouped 1440, flat 1024, populated 390/360, filter-empty 390, first-use empty 390, drawer-open 390/360, and expanded-row 1440/390.
-  - [ ] Verify loading, load-error, partial-error, and filter-empty through fixtures/network interception if live data cannot trigger them.
-  - [ ] Record screenshot paths and state notes in this story's Dev Agent Record.
-- [ ] Run verification. (AC: 10)
-  - [ ] Run `npm run build` from `inex/ClientApp`.
-  - [ ] Run `npm run lint` from `inex/ClientApp`.
-  - [ ] Run existing Accounts-focused tests, including `accounts-utils.test.ts` and `Accounts.empty-focus.test.tsx` if present.
-  - [ ] Search touched TypeScript files for added `any`.
+- [x] Confirm starting state and protect completed story history. (AC: 1-10)
+  - [x] Read this story, `10-3a-frontend-ux-accounts-management-redesign.md`, and `10-3d-frontend-ux-accounts-design-gap-remediation.md` before editing.
+  - [x] Do not edit old Dev Agent Records in completed/review stories.
+  - [x] Check `git status --short` before editing and preserve unrelated agent/user changes.
+- [x] Align Accounts copy and toolbar controls to the audit baseline. (AC: 1, 2)
+  - [x] Change `accounts.workspaceTitle` and related list title rendering to match the accepted mockup wording.
+  - [x] Change `accounts.searchPlaceholder` to `Search accounts...` in EN and add matching RU copy.
+  - [x] Add visible toolbar labels for the scope and view segmented controls.
+  - [x] Prefer a local compact label wrapper unless extending `SegmentedControl` is clearly reusable and does not disrupt Categories/Budgets.
+- [x] Add desktop inventory headers without damaging mobile rows. (AC: 3)
+  - [x] Add a desktop-only header row above grouped and flat rows: `ACCOUNT`, `CURRENCY`, `SHARE`, `BALANCE`.
+  - [x] Keep the header hidden or visually replaced by stacked labels on mobile.
+  - [x] Ensure the header grid aligns with `.accounts-row` desktop columns.
+- [x] Fix inventory denominator semantics. (AC: 4)
+  - [x] Derive `visible` from searched accounts and `total` from the selected scope, not from all accounts.
+  - [x] Keep the all-account count available only in all-scope copy or explicit secondary context.
+  - [x] Add/update EN/RU keys so the count reads naturally in active and all scopes.
+- [x] Resolve hero delta truthfulness and copy. (AC: 5)
+  - [x] Audit whether `AccountSummary.thisMonthNet` plus current total can support the mockup's previous-month comparison claim.
+  - [x] If trustworthy, render signed base-currency delta, percent, and comparison helper text using existing `Num` and localized copy.
+  - [x] If not trustworthy, show `MoM delta unavailable` or equivalent localized copy; do not show percent-only copy that implies unavailable data is complete.
+- [x] Suppress duplicate descriptions while preserving search. (AC: 6)
+  - [x] Add a small helper that treats blank descriptions and descriptions equal to account name as absent for display.
+  - [x] Keep search matching both `name` and raw `description`, including duplicate descriptions, so filtering behavior does not unexpectedly narrow.
+- [x] Tighten group and mobile density against the audit target. (AC: 7, 8)
+  - [x] Adjust group header punctuation toward compact `CURRENCY - n accounts` style while keeping current base equivalent/share values from Story 10.3d.
+  - [x] Reduce padding only where screenshots show excess height; do not remove readable tap targets or focus outlines.
+  - [x] Verify mobile row heights with populated long-name/long-amount examples at 390px and 360px.
+- [x] Refresh controlled Accounts visual QA. (AC: 8, 9)
+  - [x] Capture or update QA evidence for grouped 1440, flat 1024, populated 390/360, filter-empty 390, first-use empty 390, drawer-open 390/360, and expanded-row 1440/390.
+  - [x] Verify loading, load-error, partial-error, and filter-empty through fixtures/network interception if live data cannot trigger them.
+  - [x] Record screenshot paths and state notes in this story's Dev Agent Record.
+- [x] Run verification. (AC: 10)
+  - [x] Run `npm run build` from `inex/ClientApp`.
+  - [x] Run `npm run lint` from `inex/ClientApp`.
+  - [x] Run existing Accounts-focused tests, including `accounts-utils.test.ts` and `Accounts.empty-focus.test.tsx` if present.
+  - [x] Search touched TypeScript files for added `any`.
 
 ## Dev Notes
 
@@ -237,12 +237,61 @@ GPT-5 Codex
 ### Debug Log References
 
 - 2026-06-07: Created story from BMad create-story workflow using the Accounts audit, roadmap section 3.2, existing Epic 10 stories, sprint status, epics, architecture, UX planning, project context, and current Accounts source.
+- 2026-06-08: Followed bmad-dev-story workflow on branch `feature/10-3g-accounts-alignment`; `AGENTS.md` was not present on disk, so the prompt-provided repository instructions were used.
+- 2026-06-08: Read this story plus completed Stories 10.3a and 10.3d before editing; did not edit old Dev Agent Records.
+- 2026-06-08: Confirmed red phase with failing Accounts-focused tests for duplicate description suppression and missing audit toolbar/header/count behavior.
+- 2026-06-08: `npm run test -- Accounts.empty-focus.test.tsx accounts-utils.test.ts` passed after implementation.
+- 2026-06-08: Controlled fixture visual QA captured 13 Accounts states under `docs/implementation/visual-qa/10-3g/`; summary reports zero overflow, drawer, denominator, duplicate-description, or controlled-state failures.
+- 2026-06-08: `npm run build` passed from `inex/ClientApp`; Vite reported the existing large vendor chunk warning.
+- 2026-06-08: `npm run lint` passed from `inex/ClientApp`.
+- 2026-06-08: `npm run test` passed from `inex/ClientApp` with 18 files and 83 tests.
+- 2026-06-08: `git diff -U0 -- ... | Select-String -Pattern '^\\+.*\\bany\\b'` found no added `any` in touched TypeScript files.
+- 2026-06-08: Addressed PR #183 P2 review finding in isolated worktree `D:\work\inex-10-3g-pr183`; main checkout had unrelated dirty changes and was left untouched.
+- 2026-06-08: Replaced Accounts page-local raw search input with shared `Input variant="search"` and removed obsolete `.accounts-search`/`.sr-only` CSS.
+- 2026-06-08: PR follow-up verification passed from `inex/ClientApp`: `npm run test -- Accounts.empty-focus.test.tsx accounts-utils.test.ts`, `npm run lint`, `npm run build`, and `rg "\\bany\\b" src\\pages\\Accounts.tsx src\\pages\\Accounts.empty-focus.test.tsx` found no matches.
+- 2026-06-08: PR follow-up full regression `npm run test` passed from `inex/ClientApp` with 17 files and 78 tests.
 
 ### Completion Notes List
 
 - Story context created for unresolved Accounts mockup-alignment delta after completed 10.3a and 10.3d work.
 - Shared planning/status updates were integrated by the orchestrator after story creation.
+- Aligned Accounts inventory copy to the mockup baseline: list title now reads `Accounts`, EN placeholder is `Search accounts...`, RU placeholder was updated, and visible compact `STATUS`/`VIEW` segmented labels use the existing 10.1e primitive contract.
+- Added desktop-only inventory headers aligned to the Accounts row grid and hidden on mobile to preserve stacked row layouts.
+- Fixed active-scope inventory count semantics so the denominator comes from the selected scope rather than all accounts.
+- Rendered hero delta as signed base-currency movement plus percent and comparison-period helper only when complete summary/base data supports it; otherwise the localized unavailable state remains.
+- Added display-only duplicate description suppression while preserving raw name/description/currency search matching.
+- Tightened Accounts group punctuation and row/group padding while preserving collapse affordances, base equivalents, share values, focus outlines, and tap targets.
+- Added focused Accounts regression coverage for audit labels, headers, active-scope count semantics, and duplicate description suppression.
+- Refreshed controlled fixture visual QA for populated grouped/flat, 390/360 mobile, filter-empty, first-use empty, drawer-open, expanded-row, loading, load-error, and partial-error states.
+- PR #183 follow-up now consumes the 10.1e shared search primitive for Accounts search while preserving the localized accessible label, placeholder, controlled search behavior, and focused regression coverage.
 
 ### File List
 
 - `docs/implementation/10-3g-frontend-ux-accounts-mockup-alignment-delta.md`
+- `docs/implementation/sprint-status.yaml`
+- `docs/implementation/visual-qa/10-3g/drawer-open-360.png`
+- `docs/implementation/visual-qa/10-3g/drawer-open-390.png`
+- `docs/implementation/visual-qa/10-3g/empty-390.png`
+- `docs/implementation/visual-qa/10-3g/expanded-row-1440.png`
+- `docs/implementation/visual-qa/10-3g/expanded-row-390.png`
+- `docs/implementation/visual-qa/10-3g/filter-empty-390.png`
+- `docs/implementation/visual-qa/10-3g/flat-1024.png`
+- `docs/implementation/visual-qa/10-3g/grouped-1440.png`
+- `docs/implementation/visual-qa/10-3g/load-error-390.png`
+- `docs/implementation/visual-qa/10-3g/loading-390.png`
+- `docs/implementation/visual-qa/10-3g/mobile-360.png`
+- `docs/implementation/visual-qa/10-3g/mobile-390.png`
+- `docs/implementation/visual-qa/10-3g/partial-error-390.png`
+- `docs/implementation/visual-qa/10-3g/qa-summary.json`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/pages/Accounts.empty-focus.test.tsx`
+- `inex/ClientApp/src/pages/Accounts.tsx`
+- `inex/ClientApp/src/pages/Accounts/accounts.css`
+- `inex/ClientApp/src/pages/Accounts/accounts-utils.test.ts`
+- `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`
+
+### Change Log
+
+- 2026-06-08: Implemented Accounts mockup-alignment delta, added focused tests, refreshed controlled fixture visual QA evidence, passed build/lint/full frontend tests, and marked story ready for review.
+- 2026-06-08: Addressed PR #183 requested change by switching Accounts search to shared `Input variant="search"`, removing duplicate search CSS, and rerunning focused verification.
