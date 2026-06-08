@@ -8,7 +8,10 @@ export interface InExDrawerProps {
     title: string;
     subtitle?: string;
     width?: number;
+    bodyPadding?: React.CSSProperties["padding"];
     children: React.ReactNode;
+    footer?: React.ReactNode;
+    footerAlign?: "start" | "end" | "between";
 }
 
 export const InExDrawer: React.FC<InExDrawerProps> = ({
@@ -17,9 +20,17 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
     title,
     subtitle,
     width = 440,
+    bodyPadding = 24,
     children,
+    footer,
+    footerAlign = "end",
 }) => {
     const drawerWidth = `min(${width}px, 100vw)`;
+    const footerJustifyContent: Record<NonNullable<InExDrawerProps["footerAlign"]>, React.CSSProperties["justifyContent"]> = {
+        start: "flex-start",
+        end: "flex-end",
+        between: "space-between",
+    };
 
     const titleNode = (
         <div>
@@ -46,8 +57,18 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
             closeIcon={<X color="var(--fg-3)" size={20} />}
             onClose={onClose}
             open={open}
+            footer={footer}
             styles={{
-                body: { padding: 24 },
+                body: { padding: bodyPadding },
+                footer: {
+                    alignItems: "center",
+                    borderTop: "1px solid var(--border-1)",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 10,
+                    justifyContent: footerJustifyContent[footerAlign],
+                    padding: "14px 24px",
+                },
                 header: { borderBottom: "1px solid var(--border-1)", padding: "20px 24px" },
             }}
             title={titleNode}

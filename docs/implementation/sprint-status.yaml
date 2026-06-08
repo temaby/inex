@@ -1,5 +1,5 @@
 # generated: 2026-05-26T16:11:20.6477763+02:00
-# last_updated: 2026-06-07T23:40:37+02:00
+# last_updated: 2026-06-08T00:07:18+02:00
 # project: inex
 # project_key: NOKEY
 # tracking_system: file-system
@@ -36,7 +36,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-07T23:40:37+02:00
+last_updated: 2026-06-08T00:07:18+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -105,7 +105,7 @@ development_status:
   10-1b-frontend-ux-shared-primitives: done
   10-1c-frontend-ux-app-shell-and-navigation: done
   10-1d-frontend-ux-shell-locale-fixture-and-visual-qa-policy: done
-  10-1e-frontend-ux-shared-mockup-alignment-primitives: ready-for-dev
+  10-1e-frontend-ux-shared-mockup-alignment-primitives: review
   10-2-frontend-ux-transactions-ledger-redesign: done
   10-2a-frontend-ux-transactions-design-gap-remediation: done
   10-2b-frontend-ux-transactions-mockup-alignment-delta: ready-for-dev

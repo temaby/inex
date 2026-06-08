@@ -115,6 +115,7 @@ so that the Transactions workspace matches the audited design contract before th
 
 - Story 10.1a must remain done because this story consumes design tokens. [Source: `docs/implementation/10-1a-frontend-ux-design-tokens-and-theme-bridge.md`]
 - Story 10.1b must remain done because this story consumes shared `Num`, buttons, drawer, segmented control, inputs/selects, and empty-state primitives. [Source: `docs/implementation/10-1b-frontend-ux-shared-primitives.md`]
+- Story 10.1e must remain review/done because this story consumes shared mockup-alignment contracts for labeled compact segmented controls, 220px search, compact currency suffixes, drawer footers, continuous list panels, and simple no-match rows. [Source: `docs/implementation/10-1e-shared-mockup-alignment-primitives-contract.md`]
 - Story 10.1c must remain done/reviewed because mobile CTA behavior and bottom-nav clearance depend on `AppShell`. [Source: `docs/implementation/10-1c-frontend-ux-app-shell-and-navigation.md`]
 - Story 10.2 and Story 10.2a must remain done because this story is a delta on top of their Transactions implementation. [Source: `docs/implementation/10-2-frontend-ux-transactions-ledger-redesign.md`; `docs/implementation/10-2a-frontend-ux-transactions-design-gap-remediation.md`]
 - Story 10.6 should remain blocked until this 10.2b delta is either completed or explicitly accepted as a deferred exception by the orchestrator. [Source: `docs/implementation/10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist.md`]
@@ -168,6 +169,7 @@ so that the Transactions workspace matches the audited design contract before th
 - `docs/implementation/10-2a-frontend-ux-transactions-design-gap-remediation.md` - completed Transactions remediation history and Dev Agent Record.
 - `docs/implementation/10-2-transactions-design-implementation-gap-review.md` - historical gap review; most P1 items closed by 10.2a, useful for regression context.
 - `docs/implementation/10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist.md` - final visual QA gate and failure criteria.
+- `docs/implementation/10-1e-shared-mockup-alignment-primitives-contract.md` - shared mockup-alignment primitive contracts consumed by this page-local delta.
 
 ## BMad Checklist Validation
 

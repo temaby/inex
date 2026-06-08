@@ -109,6 +109,7 @@ Do not change unless orchestrator explicitly broadens scope:
 
 - 10.1a design tokens and Ant Design theme bridge must remain in place.
 - 10.1b primitives must remain the source for `InExButton`, `SegmentedControl`, `InExDrawer`, `Num`, and empty/filter-empty patterns.
+- 10.1e shared mockup-alignment contracts must remain available for labeled compact controls, 220px search, list panels, compact currency suffixes, drawer footers, desktop headers, and simple no-match rows.
 - 10.1c/10.4 shell and dashboard route decisions are already present in the current source. This story should not remove Dashboard or change root routing.
 - 10.3c and 10.3f implementation history must be preserved; do not edit their Dev Agent Records.
 - 10.6 final visual QA is blocked until this Budgets delta and 10.5a/10.5b are complete.
@@ -156,6 +157,7 @@ Do not change unless orchestrator explicitly broadens scope:
 - `docs/implementation/10-3f-frontend-ux-budgets-burn-rate-and-planning-detail.md`
 - `docs/implementation/10-1a-frontend-ux-design-tokens-and-theme-bridge.md`
 - `docs/implementation/10-1b-frontend-ux-shared-primitives.md`
+- `docs/implementation/10-1e-shared-mockup-alignment-primitives-contract.md`
 - `docs/implementation/10-1c-frontend-ux-app-shell-and-navigation.md`
 - `docs/implementation/10-5a-frontend-ux-profile-and-settings-redesign.md`
 - `docs/implementation/10-5b-frontend-ux-login-and-registration-redesign.md`

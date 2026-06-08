@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Search } from "lucide-react";
 
 export interface InputProps {
     value?: string | number;
@@ -11,6 +12,12 @@ export interface InputProps {
     disabled?: boolean;
     name?: string;
     id?: string;
+    variant?: "default" | "search";
+    size?: "default" | "compact";
+    width?: React.CSSProperties["width"];
+    className?: string;
+    style?: React.CSSProperties;
+    "aria-label"?: string;
 }
 
 const addonStyle: React.CSSProperties = {
@@ -35,8 +42,18 @@ export const Input: React.FC<InputProps> = ({
     disabled = false,
     name,
     id,
+    variant = "default",
+    size = "default",
+    width,
+    className,
+    style,
+    "aria-label": ariaLabel,
 }) => {
     const [focused, setFocused] = React.useState(false);
+    const compact = size === "compact" || variant === "search";
+    const resolvedWidth = width ?? (variant === "search" ? 220 : undefined);
+    const resolvedPrefix = prefix ?? (variant === "search" ? <Search size={15} aria-hidden="true" /> : undefined);
+
     const wrapperStyle: React.CSSProperties = {
         alignItems: "stretch",
         background: disabled ? "var(--bg-muted)" : "#fff",
@@ -44,9 +61,14 @@ export const Input: React.FC<InputProps> = ({
         borderRadius: "var(--radius-2)",
         boxShadow: focused ? "var(--focus-ring)" : undefined,
         display: "flex",
-        minWidth: 0,
+        flex: variant === "search" ? "1 1 220px" : undefined,
+        flexBasis: variant === "search" ? "220px" : undefined,
+        maxWidth: "100%",
+        minWidth: "0px",
         overflow: "hidden",
         transition: "border-color var(--dur-1) var(--ease-standard), box-shadow var(--dur-1) var(--ease-standard)",
+        width: resolvedWidth,
+        ...style,
     };
 
     const inputStyle: React.CSSProperties = {
@@ -55,16 +77,17 @@ export const Input: React.FC<InputProps> = ({
         color: "var(--fg-1)",
         flex: 1,
         fontFamily: "var(--font-sans)",
-        fontSize: 14,
+        fontSize: compact ? 13 : 14,
         minWidth: 0,
         outline: "1px solid transparent",
-        padding: "9px 11px",
+        padding: compact ? "7px 9px" : "9px 11px",
     };
 
     return (
-        <span style={wrapperStyle}>
-            {prefix && <span style={addonStyle}>{prefix}</span>}
+        <span className={className} style={wrapperStyle}>
+            {resolvedPrefix && <span style={addonStyle}>{resolvedPrefix}</span>}
             <input
+                aria-label={ariaLabel}
                 autoFocus={autoFocus}
                 disabled={disabled}
                 id={id}
@@ -74,7 +97,7 @@ export const Input: React.FC<InputProps> = ({
                 onFocus={() => setFocused(true)}
                 placeholder={placeholder}
                 style={inputStyle}
-                type={type}
+                type={variant === "search" ? "search" : type}
                 value={value}
             />
             {suffix && <span style={addonStyle}>{suffix}</span>}
