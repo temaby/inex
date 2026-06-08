@@ -560,6 +560,7 @@
       "title": "No budgets match this search",
       "description": "Clear the search or try a category name from this month."
     },
+    "noMatch": "No budgets match this search",
     "loading": {
       "creating": "Creating...",
       "saving": "Saving...",

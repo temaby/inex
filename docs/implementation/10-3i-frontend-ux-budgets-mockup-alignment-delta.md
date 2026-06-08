@@ -59,6 +59,10 @@ so that month planning is compact, scannable, and ready for the Epic 10 visual Q
   - [x] Run Budgets-focused frontend tests if present, especially `budget-planning-utils` coverage after sort/status changes.
   - [x] Capture or update Budgets visual QA evidence for 1440px, 1024px, 390px, and 360px populated states.
   - [x] Capture Budgets empty, filter-empty, drawer-open, expanded-row, over-budget, exact-limit, long amount, and RU-label states.
+- [x] Review Follow-ups (AI).
+  - [x] Guard previous/next/month-chip period controls against unsupported 2020-2030 boundary selections.
+  - [x] Consume 10.1e shared primitives/contracts for Budgets list panel, header, compact search, desktop headers, drawer footer actions, and simple no-match rows.
+  - [x] Commit auditable visual QA evidence under `docs/implementation/visual-qa/10-3i/` with `dataMode: fixture`.
 
 ## Dev Notes
 
@@ -203,6 +207,11 @@ GPT-5 Codex
 - 2026-06-08: Added-`any` scan over touched Budgets TypeScript diffs returned no matches.
 - 2026-06-08: Browser visual QA evidence captured with `dataMode: fixture` via isolated local fixture proxy: populated 1440/1024/390/360 had no horizontal overflow; 1440 showed header Copy/Add, compact hero, list title/count, toolbar, five desktop columns, no Spent/Budgeted headers, no hero metric cards, over-budget rail, exact-limit rows, long amount row, and caret affordance.
 - 2026-06-08: Browser visual QA evidence captured with `dataMode: fixture`: filter-empty 390 retained list header and no overflow; expanded-row 1440 had `aria-expanded=true`, caret state, edit detail, and no collapsed description; drawer-open 390 had no overflow; empty 390 kept full-width header actions; bottom-nav 360 left final row above fixed nav; RU-label 360 had localized labels and no overflow.
+- 2026-06-08: Review continuation for PR #185: added guarded period selection helpers and tests so previous/next/month chips cannot select unsupported years or push unsupported periods into the URL.
+- 2026-06-08: Review continuation for PR #185: switched Budgets list/search/no-match/drawer actions to the 10.1e `ListPanel`, `Input variant="search"`, `ListPanelColumnHeader`, `ListPanelNoMatchRow`, and `InExDrawer.footer` contracts.
+- 2026-06-08: Review continuation verification passed from the isolated PR worktree: focused Budgets utility tests, `npm run lint`, and `npm run build`.
+- 2026-06-08: Browser QA rerun with `dataMode: fixture` via local fixture proxy: 1440 desktop, 1024 tablet, 390/360 mobile, drawer-open, 2020-min boundary, and 2030-max boundary passed no-horizontal-overflow and primitive/boundary checks; mobile bottom-nav clearance initially failed and was fixed with Budgets-owned mobile bottom padding.
+- 2026-06-08: Browser screenshot capture timed out and Browser text entry was blocked by missing virtual clipboard; committed `qa-summary.json` records completed checks plus these tool limitations.
 
 ### Completion Notes List
 
@@ -215,11 +224,15 @@ GPT-5 Codex
 - Aligned rows to Budget/Categories/Progress/Daily pace/Remaining, folded spent/budgeted into Progress, rendered compact category overflow, hid collapsed descriptions, added caret affordance, and changed over/at-limit styling to narrow rails with non-color text.
 - Kept `At limit` taxonomy because 10.3f already established exact-limit classification and this story explicitly allowed retaining it when documented.
 - Localized new Budgets copy in EN/RU only under `budgets.*`; no shared primitive changes were needed.
+- Review follow-ups consumed the 10.1e shared list/search/drawer/no-match primitives without changing shared primitive implementations.
+- Period navigation now filters unsupported chips and disables boundary arrows at January 2020 and December 2030.
+- Added committed `dataMode: fixture` QA summary evidence for PR #185 review follow-ups; screenshot capture was unavailable due Browser backend timeout.
 
 ### File List
 
 - `docs/implementation/10-3i-frontend-ux-budgets-mockup-alignment-delta.md`
 - `docs/implementation/sprint-status.yaml`
+- `docs/implementation/visual-qa/10-3i/qa-summary.json`
 - `inex/ClientApp/public/locales/en/translation.json`
 - `inex/ClientApp/public/locales/ru/translation.json`
 - `inex/ClientApp/src/pages/Budgets.tsx`
@@ -230,3 +243,4 @@ GPT-5 Codex
 ### Change Log
 
 - 2026-06-08: Completed Story 10.3i Budgets mockup-alignment delta and moved story to review.
+- 2026-06-08: Addressed PR #185 requested changes for period boundaries, 10.1e primitive consumption, and committed QA evidence.

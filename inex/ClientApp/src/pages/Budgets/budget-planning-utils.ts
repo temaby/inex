@@ -45,6 +45,12 @@ export interface BudgetEditSnapshot {
     dailyAverageLeft: number;
 }
 
+export interface BudgetPeriodOption {
+    key: string;
+    label: string;
+    period: Dayjs;
+}
+
 const MONEY_EPSILON = 0.005;
 const PERCENT_EPSILON = 0.001;
 
@@ -252,12 +258,49 @@ export const getPeriodPayload = (period: Dayjs) => ({
 export const isBudgetPeriodDisabled = (period: Dayjs) =>
     period.year() < BUDGET_MIN_YEAR || period.year() > BUDGET_MAX_YEAR;
 
+export const getSupportedBudgetMonth = (period: Dayjs) => {
+    const normalizedPeriod = period.date(1).startOf("day");
+
+    if (normalizedPeriod.year() < BUDGET_MIN_YEAR) {
+        return normalizedPeriod.year(BUDGET_MIN_YEAR).month(0);
+    }
+    if (normalizedPeriod.year() > BUDGET_MAX_YEAR) {
+        return normalizedPeriod.year(BUDGET_MAX_YEAR).month(11);
+    }
+
+    return normalizedPeriod;
+};
+
+export const getBudgetPeriodSelection = (
+    period: Dayjs | null,
+    fallback: Dayjs,
+) => {
+    const fallbackMonth = getSupportedBudgetMonth(fallback);
+    if (!period) return fallbackMonth;
+
+    const candidateMonth = period.date(1).startOf("day");
+    return isBudgetPeriodDisabled(candidateMonth) ? fallbackMonth : candidateMonth;
+};
+
+export const getSupportedBudgetPeriodWindow = (
+    selectedMonth: Dayjs,
+    offsets = [-2, -1, 0, 1, 2],
+): BudgetPeriodOption[] =>
+    offsets
+        .map((offset) => selectedMonth.add(offset, "month").date(1).startOf("day"))
+        .filter((period) => !isBudgetPeriodDisabled(period))
+        .map((period) => ({
+            key: period.format("YYYY-MM"),
+            label: period.format("MMM YYYY"),
+            period,
+        }));
+
 export const getSupportedBudgetMonthFromParams = (
     yearParam: string | null,
     monthParam: string | null,
     fallback: Dayjs,
 ) => {
-    const fallbackMonth = fallback.date(1).startOf("day");
+    const fallbackMonth = getSupportedBudgetMonth(fallback);
     const year = Number(yearParam);
     const month = Number(monthParam);
 

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, DatePicker, Form, Input, message } from "antd";
 import type { MenuProps } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import { ChevronDown, ChevronLeft, ChevronRight, Copy, FilterX, Plus, RefreshCw, Search, Target, WalletCards } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Copy, FilterX, Plus, RefreshCw, Target, WalletCards } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
@@ -15,7 +15,19 @@ import { CategoryDetails, getCategoriesTree } from "../model/Category/CategoryDe
 import { BudgetComparisonDTO } from "../model/Report/BudgetReport";
 import Dropdown from "../components/Dropdown";
 import ExpressionInputNumber from "../components/ExpressionInputNumber";
-import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, SegmentedControl } from "../components/primitives";
+import {
+    EmptyState,
+    InExButton,
+    InExDrawer,
+    Input as InExInput,
+    ListPanel,
+    ListPanelColumnHeader,
+    ListPanelFilterBar,
+    ListPanelHeader,
+    ListPanelNoMatchRow,
+    Num,
+    SegmentedControl,
+} from "../components/primitives";
 import apiClient from "../utils/apiClient";
 import { parseAxiosError } from "../utils/parseAxiosError";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
@@ -29,10 +41,12 @@ import { useGetBudgetReportQuery } from "../store/budgetReport/budgetReport-api"
 import BudgetEditForm from "./Budgets/BudgetEditForm";
 import {
     getBudgetEditSnapshot,
+    getBudgetPeriodSelection,
     getBudgetPaceMetrics,
     getBudgetReportCurrency,
     getBudgetReportForBudget,
     getSortedBudgets,
+    getSupportedBudgetPeriodWindow,
     getBudgetUsageStatus,
     getPeriodPayload,
     getReportMetricsState,
@@ -97,20 +111,9 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
     );
 };
 
-const formatMonthLabel = (month: Dayjs) => month.format("MMM YYYY");
-
 const formatMonthScopeLabel = (month: Dayjs) => month.format("MMMM YYYY");
 
 const getDefaultBudgetMonth = () => dayjs().date(1).startOf("day");
-
-const getMonthOptions = (selectedMonth: Dayjs) =>
-    [-2, -1, 0, 1, 2].map((offset) => {
-        const value = selectedMonth.add(offset, "month");
-        return {
-            key: value.format("YYYY-MM"),
-            label: formatMonthLabel(value),
-        };
-    });
 
 const getReportMetric = (
     reportItem: BudgetComparisonDTO | undefined,
@@ -243,7 +246,7 @@ const Budgets = () => {
         hasError: Boolean(reportError) || hasCurrencyResolutionError || currencyLoadError,
     });
     const isReportReady = reportMetricsState === "ready";
-    const monthOptions = getMonthOptions(selectedMonth);
+    const monthOptions = getSupportedBudgetPeriodWindow(selectedMonth);
     const selectedMonthKey = selectedMonth.format("YYYY-MM");
     const normalizedSearch = searchText.trim().toLocaleLowerCase();
     const filteredBudgets = useMemo(() => {
@@ -275,6 +278,8 @@ const Budgets = () => {
     const showFirstUseEmpty = !isBudgetDataLoading && !hasInitialBudgetError && !hasBudgets;
     const previousMonth = selectedMonth.subtract(1, "month");
     const nextMonth = selectedMonth.add(1, "month");
+    const previousMonthDisabled = isBudgetPeriodDisabled(previousMonth);
+    const nextMonthDisabled = isBudgetPeriodDisabled(nextMonth);
     const metricStateLabel = getMetricStateLabel(reportMetricsState, t);
     const today = dayjs();
     const heroPace = isReportReady
@@ -377,11 +382,16 @@ const Budgets = () => {
         setDrawerOpen(true);
     };
 
+    const selectBudgetMonth = (period: Dayjs | null) => {
+        setSelectedMonth((currentMonth) => getBudgetPeriodSelection(period, currentMonth));
+    };
+
     const handleDrawerPeriodChange = (period: Dayjs | null) => {
         if (!period) return;
+        const supportedPeriod = getBudgetPeriodSelection(period, selectedMonth);
         form.setFieldsValue({
-            period,
-            ...getPeriodPayload(period),
+            period: supportedPeriod,
+            ...getPeriodPayload(supportedPeriod),
         });
     };
 
@@ -406,6 +416,8 @@ const Budgets = () => {
     };
 
     const handleCopyFromPrevious = async () => {
+        if (previousMonthDisabled) return;
+
         setCopyError(null);
         try {
             await copyBudgets({
@@ -436,11 +448,11 @@ const Budgets = () => {
                 icon={<Copy size={16} />}
                 kind="ghost"
                 onClick={handleCopyFromPrevious}
-                disabled={isCopyLoading}
+                disabled={isCopyLoading || previousMonthDisabled}
             >
                 {isCopyLoading
                     ? t("budgets.loading.copying")
-                    : t("budgets.copyFromMonth", { month: formatMonthLabel(previousMonth) })}
+                    : t("budgets.copyFromMonth", { month: previousMonth.format("MMM YYYY") })}
             </InExButton>
             <InExButton icon={<Plus size={16} />} kind="primary" onClick={openDrawer}>
                 {t("budgets.addBudget")}
@@ -455,6 +467,17 @@ const Budgets = () => {
         { key: "name", label: t("budgets.sort.name") },
     ];
 
+    const drawerFooter = (
+        <>
+            <InExButton kind="ghost" onClick={() => closeDrawer()}>
+                {t("budgets.cancel")}
+            </InExButton>
+            <InExButton kind="primary" onClick={() => form.submit()} disabled={isCreateLoading}>
+                {isCreateLoading ? t("budgets.loading.creating") : t("budgets.create")}
+            </InExButton>
+        </>
+    );
+
     return (
         <>
             <InExDrawer
@@ -462,9 +485,11 @@ const Budgets = () => {
                 onClose={closeDrawer}
                 title={t("budgets.addDrawerTitle")}
                 subtitle={t("budgets.drawerSubtitle", {
-                    month: formatMonthLabel(selectedMonth),
+                    month: selectedMonth.format("MMM YYYY"),
                 })}
                 width={520}
+                footer={drawerFooter}
+                footerAlign="end"
             >
                 <Form
                     form={form}
@@ -538,14 +563,6 @@ const Budgets = () => {
                             placeholder={t("budgets.period")}
                         />
                     </Form.Item>
-                    <div className="budgets-drawer__actions">
-                        <InExButton kind="ghost" onClick={() => closeDrawer()}>
-                            {t("budgets.cancel")}
-                        </InExButton>
-                        <InExButton kind="primary" type="submit" disabled={isCreateLoading}>
-                            {isCreateLoading ? t("budgets.loading.creating") : t("budgets.create")}
-                        </InExButton>
-                    </div>
                 </Form>
             </InExDrawer>
 
@@ -555,7 +572,7 @@ const Budgets = () => {
                     <section className="budgets-hero">
                         <div className="budgets-hero__summary">
                             <div className="budgets-eyebrow">{t("budgets.heroLabel")}</div>
-                            <h2>{t("budgets.heroTitle", { month: formatMonthLabel(selectedMonth) })}</h2>
+                            <h2>{t("budgets.heroTitle", { month: selectedMonth.format("MMM YYYY") })}</h2>
                             <p>{t("budgets.heroDescription")}</p>
                             <div className="budgets-hero__rollup" aria-label={t("budgets.summaryLabel")}>
                                 {isReportReady ? (
@@ -731,33 +748,32 @@ const Budgets = () => {
                                                 icon={<Copy size={16} />}
                                                 kind="ghost"
                                                 onClick={handleCopyFromPrevious}
-                                                disabled={isCopyLoading}
+                                                disabled={isCopyLoading || previousMonthDisabled}
                                             >
-                                                {t("budgets.copyFromMonth", { month: formatMonthLabel(previousMonth) })}
+                                                {t("budgets.copyFromMonth", { month: previousMonth.format("MMM YYYY") })}
                                             </InExButton>
                                         </>
                                     }
                                 />
                             ) : (
-                                <section className="budgets-list" aria-label={t("budgets.listLabel")}>
-                                    <div className="budgets-list__header">
-                                        <div className="budgets-list__title-block">
-                                            <h2>{t("budgets.listTitle")}</h2>
-                                            <p>
-                                                {t("budgets.listScope", {
-                                                    count: budgets.length,
-                                                    visible: sortedFilteredBudgets.length,
-                                                    total: budgets.length,
-                                                    month: formatMonthScopeLabel(selectedMonth),
-                                                })}
-                                            </p>
-                                        </div>
+                                <ListPanel className="budgets-list" ariaLabel={t("budgets.listLabel")}>
+                                    <ListPanelHeader
+                                        title={t("budgets.listTitle")}
+                                        count={t("budgets.listScope", {
+                                            count: budgets.length,
+                                            visible: sortedFilteredBudgets.length,
+                                            total: budgets.length,
+                                            month: formatMonthScopeLabel(selectedMonth),
+                                        })}
+                                    />
+                                    <ListPanelFilterBar>
                                         <div className="budgets-list__tools" aria-label={t("budgets.toolbarLabel")}>
                                             <div className="budgets-period-controls">
                                                 <button
                                                     type="button"
                                                     className="budgets-period-button"
-                                                    onClick={() => setSelectedMonth(previousMonth)}
+                                                    onClick={() => selectBudgetMonth(previousMonth)}
+                                                    disabled={previousMonthDisabled}
                                                     aria-label={t("budgets.previousMonth")}
                                                 >
                                                     <ChevronLeft size={16} aria-hidden="true" />
@@ -767,13 +783,14 @@ const Budgets = () => {
                                                         size="compact"
                                                         options={monthOptions}
                                                         value={selectedMonthKey}
-                                                        onChange={(key) => setSelectedMonth(dayjs(`${key}-01`, "YYYY-MM-DD"))}
+                                                        onChange={(key) => selectBudgetMonth(dayjs(`${key}-01`, "YYYY-MM-DD"))}
                                                     />
                                                 </div>
                                                 <button
                                                     type="button"
                                                     className="budgets-period-button"
-                                                    onClick={() => setSelectedMonth(nextMonth)}
+                                                    onClick={() => selectBudgetMonth(nextMonth)}
+                                                    disabled={nextMonthDisabled}
                                                     aria-label={t("budgets.nextMonth")}
                                                 >
                                                     <ChevronRight size={16} aria-hidden="true" />
@@ -782,21 +799,20 @@ const Budgets = () => {
                                             <DatePicker
                                                 picker="month"
                                                 value={selectedMonth}
-                                                onChange={(value) => value && setSelectedMonth(value)}
+                                                onChange={(value) => selectBudgetMonth(value)}
                                                 allowClear={false}
                                                 disabledDate={isBudgetPeriodDisabled}
                                                 className="budgets-toolbar__picker"
                                                 aria-label={t("budgets.jumpToMonth")}
                                             />
-                                            <label className="budgets-search">
-                                                <Search aria-hidden="true" size={16} />
-                                                <span className="budgets-sr-only">{t("budgets.searchLabel")}</span>
-                                                <input
-                                                    value={searchText}
-                                                    onChange={(event) => setSearchText(event.target.value)}
-                                                    placeholder={t("budgets.searchPlaceholder")}
-                                                />
-                                            </label>
+                                            <InExInput
+                                                aria-label={t("budgets.searchLabel")}
+                                                className="budgets-search"
+                                                value={searchText}
+                                                onChange={(event) => setSearchText(event.target.value)}
+                                                placeholder={t("budgets.searchPlaceholder")}
+                                                variant="search"
+                                            />
                                             <SegmentedControl
                                                 label={t("budgets.sortLabel")}
                                                 size="compact"
@@ -805,22 +821,25 @@ const Budgets = () => {
                                                 onChange={(key) => setSortMode(key as BudgetSortMode)}
                                             />
                                         </div>
-                                    </div>
-                                    <div className="budgets-list__head" aria-hidden="true">
-                                        <span>{t("budgets.budget")}</span>
-                                        <span>{t("budgets.categories")}</span>
-                                        <span>{t("budgets.progress")}</span>
-                                        <span>{t("budgets.dailyPace")}</span>
-                                        <span>{t("budgets.remaining")}</span>
-                                    </div>
+                                    </ListPanelFilterBar>
+                                    <ListPanelColumnHeader
+                                        columns={[
+                                            t("budgets.budget"),
+                                            t("budgets.categories"),
+                                            t("budgets.progress"),
+                                            t("budgets.dailyPace"),
+                                            t("budgets.remaining"),
+                                        ]}
+                                    />
                                     {isFilteredEmpty ? (
-                                        <div className="budgets-list__empty">
-                                            <FilterEmpty
-                                                title={t("budgets.filterEmpty.title")}
-                                                description={t("budgets.filterEmpty.description")}
-                                                onClear={() => setSearchText("")}
-                                            />
-                                        </div>
+                                        <ListPanelNoMatchRow
+                                            message={t("budgets.noMatch")}
+                                            action={(
+                                                <InExButton kind="link" size="sm" onClick={() => setSearchText("")}>
+                                                    {t("budgets.clearSearch")}
+                                                </InExButton>
+                                            )}
+                                        />
                                     ) : sortedFilteredBudgets.map((budget) => {
                                         const reportItem = getBudgetReportForBudget(budget, reportItems);
                                         const spentAmount = getReportMetric(reportItem, "spentAmount");
@@ -960,7 +979,7 @@ const Budgets = () => {
                                             </article>
                                         );
                                     })}
-                                </section>
+                                </ListPanel>
                             )}
                             {searchText && !isFilteredEmpty && (
                                 <button className="budgets-clear-filter" type="button" onClick={() => setSearchText("")}>
