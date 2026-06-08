@@ -378,7 +378,8 @@
       "systemNotice": "This is a system category. It can't be renamed, disabled, or deleted.",
       "viewTransactions": "View transactions",
       "setBudget": "Set budget",
-      "reparentNotSupported": "Reparenting is not supported yet"
+      "reparentNotSupported": "Reparenting is not supported yet",
+      "noParent": "Top-level category"
     },
     "snapshot": {
       "spend": "Spend",
@@ -395,7 +396,8 @@
     },
     "filterEmpty": {
       "title": "No categories match these filters",
-      "description": "Try clearing the search or showing inactive categories."
+      "description": "Try clearing the search or showing inactive categories.",
+      "clear": "Clear filters"
     },
     "loading": {
       "initial": "Loading categories",
@@ -412,6 +414,11 @@
       "updateFailed": "Could not update the category",
       "deleteFailed": "Could not delete the category",
       "deleteHasChildren": "Move or delete child categories before deleting this parent category"
+    },
+    "addCategory": "Add category",
+    "controlLabels": {
+      "status": "Status",
+      "view": "View"
     }
   },
   "budgets": {

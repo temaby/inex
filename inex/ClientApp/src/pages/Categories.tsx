@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 
 import {
     EmptyState,
-    FilterEmpty,
     InExButton,
     InExDrawer,
 } from "../components/primitives";
@@ -355,6 +354,17 @@ const Categories = () => {
         setActiveOnly(false);
     };
 
+    const pageExtra = (
+        <InExButton
+            kind="primary"
+            icon={<Plus size={16} aria-hidden="true" />}
+            onClick={openAddDrawer}
+            style={{ width: "100%" }}
+        >
+            {t("categories.addCategory")}
+        </InExButton>
+    );
+
     const renderRows = (items: typeof rows) =>
         items.map(({ category, depth, hasChildren }) => {
             const expanded = expandedId === category.id;
@@ -406,6 +416,7 @@ const Categories = () => {
                     />
                 ) : null}
                 <CategoryCreateForm
+                    onCancel={() => closeAddDrawer()}
                     onCreated={() => closeAddDrawer(true)}
                     onError={() => setCreateError(t("categories.formErrors.createFailed"))}
                 />
@@ -413,6 +424,7 @@ const Categories = () => {
             <BasicPage
                 title={t("categories.title")}
                 subtitle={t("categories.subtitle")}
+                extra={pageExtra}
             >
                 <div className="categories-workspace">
                     {!showFirstUseEmpty && !showFullError ? (
@@ -422,18 +434,6 @@ const Categories = () => {
                                 loading={showInitialLoading}
                                 periodLabel={periodLabel}
                                 stats={categoryStats}
-                            />
-                            <CategoriesToolbar
-                                total={categories.length}
-                                visible={filteredCategories.length}
-                                activeOnly={activeOnly}
-                                view={view}
-                                search={search}
-                                refreshing={isFetching && categories.length > 0}
-                                onActiveOnlyChange={setActiveOnly}
-                                onViewChange={setView}
-                                onSearchChange={setSearch}
-                                onAdd={openAddDrawer}
                             />
                         </React.Fragment>
                     ) : null}
@@ -480,6 +480,17 @@ const Categories = () => {
                     ) : null}
                     {!showFullError && !showFirstUseEmpty ? (
                         <section className="categories-list">
+                            <CategoriesToolbar
+                                total={categories.length}
+                                visible={filteredCategories.length}
+                                activeOnly={activeOnly}
+                                view={view}
+                                search={search}
+                                refreshing={isFetching && categories.length > 0}
+                                onActiveOnlyChange={setActiveOnly}
+                                onViewChange={setView}
+                                onSearchChange={setSearch}
+                            />
                             <div className="categories-list__header">
                                 <span>{t("categories.category")}</span>
                                 <span>{t("categories.activity.title")}</span>
@@ -498,11 +509,12 @@ const Categories = () => {
                                 </div>
                             ) : null}
                             {showFilterEmpty || showRowsEmpty ? (
-                                <FilterEmpty
-                                    title={t("categories.filterEmpty.title")}
-                                    description={t("categories.filterEmpty.description")}
-                                    onClear={clearFilters}
-                                />
+                                <div className="categories-list__no-match" role="status">
+                                    <span>{t("categories.filterEmpty.title")}</span>
+                                    <InExButton kind="ghost" size="sm" onClick={clearFilters}>
+                                        {t("categories.filterEmpty.clear")}
+                                    </InExButton>
+                                </div>
                             ) : null}
                             {!showInitialLoading && !showFilterEmpty && !showRowsEmpty ? renderRows(rows) : null}
                         </section>

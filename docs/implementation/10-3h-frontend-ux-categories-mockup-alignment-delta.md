@@ -1,6 +1,6 @@
 # Story 10.3h: Frontend UX - Categories Mockup Alignment Delta
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -45,50 +45,50 @@ It is a Categories alignment story after Story 10.3b and Story 10.3e. Do not red
 
 ## Tasks / Subtasks
 
-- [ ] Move Add category into the page-head action contract. (AC: 1, 10)
-  - [ ] Pass a translated `InExButton` through `BasicPage`/`AppShell` `extra`.
-  - [ ] Preserve focus recovery after drawer close, including the empty-state create path from Story 10.3e.
-  - [ ] Keep a toolbar add action only if product accepts a duplicate affordance; otherwise remove it from `CategoriesToolbar`.
+- [x] Move Add category into the page-head action contract. (AC: 1, 10)
+  - [x] Pass a translated `InExButton` through `BasicPage`/`AppShell` `extra`.
+  - [x] Preserve focus recovery after drawer close, including the empty-state create path from Story 10.3e.
+  - [x] Keep a toolbar add action only if product accepts a duplicate affordance; otherwise remove it from `CategoriesToolbar`.
 
-- [ ] Recompose toolbar and list into one continuous list panel. (AC: 2, 3, 4, 7)
-  - [ ] Collapse the current separate `categories-toolbar` and `categories-list` card surfaces into one panel.
-  - [ ] Add localized labels for status and view controls.
-  - [ ] Place search with view controls in the same filter row.
-  - [ ] Keep table headers visible on desktop and preserve mobile stacked row behavior.
+- [x] Recompose toolbar and list into one continuous list panel. (AC: 2, 3, 4, 7)
+  - [x] Collapse the current separate `categories-toolbar` and `categories-list` card surfaces into one panel.
+  - [x] Add localized labels for status and view controls.
+  - [x] Place search with view controls in the same filter row.
+  - [x] Keep table headers visible on desktop and preserve mobile stacked row behavior.
 
-- [ ] Align row text, density, and hierarchy styling. (AC: 5, 6)
-  - [ ] Suppress duplicate descriptions where `description === name`.
-  - [ ] Tighten row heights/padding to the audited compact density without clipping long names, amounts, or RU labels.
-  - [ ] Add first selected/expanded parent left accent if accepted by the visual baseline.
-  - [ ] Ensure by-spend rows remain leaf-only and do not inherit parent-row styling when rendered at depth 0.
+- [x] Align row text, density, and hierarchy styling. (AC: 5, 6)
+  - [x] Suppress duplicate descriptions where `description === name`.
+  - [x] Tighten row heights/padding to the audited compact density without clipping long names, amounts, or RU labels.
+  - [x] Add first selected/expanded parent left accent if accepted by the visual baseline.
+  - [x] Ensure by-spend rows remain leaf-only and do not inherit parent-row styling when rendered at depth 0.
 
-- [ ] Replace filter-empty list presentation. (AC: 7)
-  - [ ] Use a simple row/message inside the list panel for no-match filters.
-  - [ ] Keep rich first-use empty and full-error states separate from filter-empty state.
-  - [ ] Preserve accessible clear-filter behavior if an action remains.
+- [x] Replace filter-empty list presentation. (AC: 7)
+  - [x] Use a simple row/message inside the list panel for no-match filters.
+  - [x] Keep rich first-use empty and full-error states separate from filter-empty state.
+  - [x] Preserve accessible clear-filter behavior if an action remains.
 
-- [ ] Align Add category drawer and create form. (AC: 8)
-  - [ ] Reorder fields to `Name`, `Parent category`, `Description`, `Active`.
-  - [ ] Replace radio-button status with active checkbox/toggle if the mockup remains authoritative.
-  - [ ] Add localized `Cancel` and `Create` footer actions.
-  - [ ] Preserve `useCreateCategoryMutation`, parent filtering, generated key fallback, error handling, and form reset behavior.
+- [x] Align Add category drawer and create form. (AC: 8)
+  - [x] Reorder fields to `Name`, `Parent category`, `Description`, `Active`.
+  - [x] Replace radio-button status with active checkbox/toggle if the mockup remains authoritative.
+  - [x] Add localized `Cancel` and `Create` footer actions.
+  - [x] Preserve `useCreateCategoryMutation`, parent filtering, generated key fallback, error handling, and form reset behavior.
 
-- [ ] Align expanded row edit details. (AC: 9)
-  - [ ] Remove the disabled parent selector or convert it to read-only parent text with localized rationale.
-  - [ ] Decide whether `View transactions` and `Set budget` can be wired using existing routes.
-  - [ ] If wired, use existing routes and query/filter contracts only; do not add backend endpoints.
-  - [ ] If not wired, omit the actions and list the accepted deviation in verification notes.
+- [x] Align expanded row edit details. (AC: 9)
+  - [x] Remove the disabled parent selector or convert it to read-only parent text with localized rationale.
+  - [x] Decide whether `View transactions` and `Set budget` can be wired using existing routes.
+  - [x] If wired, use existing routes and query/filter contracts only; do not add backend endpoints.
+  - [x] If not wired, omit the actions and list the accepted deviation in verification notes.
 
-- [ ] Mobile and responsive pass. (AC: 3, 10, 12)
-  - [ ] Verify `390x844` and `360x800` no horizontal overflow.
-  - [ ] Verify bottom nav does not cover toolbar, rows, empty-state actions, drawer footer, or inline edit actions.
-  - [ ] Verify long translated labels and five-digit amounts do not force page-level overflow.
+- [x] Mobile and responsive pass. (AC: 3, 10, 12)
+  - [x] Verify `390x844` and `360x800` no horizontal overflow.
+  - [x] Verify bottom nav does not cover toolbar, rows, empty-state actions, drawer footer, or inline edit actions.
+  - [x] Verify long translated labels and five-digit amounts do not force page-level overflow.
 
-- [ ] Validation and evidence. (AC: 12)
-  - [ ] Run `npm run build` from `inex/ClientApp`.
-  - [ ] Run `npm run lint` from `inex/ClientApp`.
-  - [ ] Run focused Categories tests if touched helpers/components have existing Vitest coverage.
-  - [ ] Capture/update visual QA evidence for desktop default, by-spend, filter-empty, add drawer, expanded row, mobile 390px, and mobile 360px.
+- [x] Validation and evidence. (AC: 12)
+  - [x] Run `npm run build` from `inex/ClientApp`.
+  - [x] Run `npm run lint` from `inex/ClientApp`.
+  - [x] Run focused Categories tests if touched helpers/components have existing Vitest coverage.
+  - [x] Capture/update visual QA evidence for desktop default, by-spend, filter-empty, add drawer, expanded row, mobile 390px, and mobile 360px.
 
 ## Likely Impacted Source Files
 
@@ -229,14 +229,50 @@ These decisions should be resolved by the orchestrator before implementation or 
 
 ### Agent Model Used
 
+GPT-5 Codex
+
 ### Debug Log References
 
+- `npm run test -- src/pages/Categories/categories.components.test.tsx` initially failed as expected before implementation, then passed after toolbar/row changes.
+- `npm run test -- src/pages/Categories/categories.components.test.tsx src/pages/Categories/categories.utils.test.ts src/pages/Categories.transaction-source.test.tsx` passed: 3 files, 12 tests.
+- `npm run test` passed: 18 files, 81 tests. Existing stderr warnings from React Router future flags, jsdom `getComputedStyle`, and Ant Design deprecated `addonAfter` did not fail the suite.
+- `npm run build` passed after final changes. Vite reported the existing large `vendor-antd` chunk warning.
+- `npm run lint` passed.
+- Fixture-mode Playwright visual QA captured `dataMode: fixture` evidence in `docs/implementation/visual-qa/10-3h/qa-summary.json`; every recorded state reported `hasHorizontalOverflow: false`.
+
 ### Completion Notes List
+
+- Moved `Add category` into the `BasicPage` page-head `extra` action and removed the duplicate toolbar add affordance while preserving drawer close/focus recovery paths.
+- Rebuilt the Categories list as one continuous panel with title/count, labeled compact status/view segmented controls, search on the view row, table headers, rows, and a simple filter-empty row with clear action.
+- Suppressed duplicate descriptions, tightened row padding, added expanded-row left accent styling, and changed root leaf rows to `category-row--leaf` so by-spend rows do not inherit parent styling.
+- Reordered the create drawer fields to `Name`, `Parent category`, `Description`, `Active`, replaced status radios with an active checkbox, and added Cancel/Create footer actions.
+- Converted the inline edit parent selector into read-only parent text with localized rationale. `View transactions` and `Set budget` actions remain intentionally absent because this story does not own a reliable route/query contract for those actions and forbids inert enabled controls.
+- Kept Dashboard nav, `/dashboard` default behavior, profile/sign-out controls, current-period live production code, and 10.3e spend/budget calculations unchanged.
 
 ### File List
 
 - `docs/implementation/10-3h-frontend-ux-categories-mockup-alignment-delta.md`
+- `docs/implementation/sprint-status.yaml`
+- `docs/implementation/visual-qa/10-3h/add-drawer-1440.png`
+- `docs/implementation/visual-qa/10-3h/desktop-by-spend-1440.png`
+- `docs/implementation/visual-qa/10-3h/desktop-default-1440.png`
+- `docs/implementation/visual-qa/10-3h/desktop-filter-empty-1440.png`
+- `docs/implementation/visual-qa/10-3h/expanded-row-1440.png`
+- `docs/implementation/visual-qa/10-3h/mobile-no-spend-390.png`
+- `docs/implementation/visual-qa/10-3h/mobile-populated-360.png`
+- `docs/implementation/visual-qa/10-3h/mobile-populated-390.png`
+- `docs/implementation/visual-qa/10-3h/qa-summary.json`
+- `inex/ClientApp/public/locales/en/translation.json`
+- `inex/ClientApp/public/locales/ru/translation.json`
+- `inex/ClientApp/src/pages/Categories.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryCreateForm.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx`
+- `inex/ClientApp/src/pages/Categories/CategoryRow.tsx`
+- `inex/ClientApp/src/pages/Categories/categories.components.test.tsx`
+- `inex/ClientApp/src/pages/Categories/categories.css`
 
 ### Change Log
 
 - 2026-06-07: Created ready-for-dev Categories mockup alignment delta story from roadmap section 3.3 and Categories audit C01-C20.
+- 2026-06-08: Implemented Categories mockup alignment delta, added focused component tests, captured fixture-mode visual QA evidence, and moved story to review.

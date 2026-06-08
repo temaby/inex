@@ -6,7 +6,6 @@
 }
 
 .categories-hero,
-.categories-toolbar,
 .categories-list {
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
@@ -215,7 +214,8 @@
 }
 
 .categories-toolbar {
-    padding: 18px;
+    border-bottom: 1px solid var(--border-1);
+    padding: 18px 20px 14px;
 }
 
 .categories-toolbar__top,
@@ -229,7 +229,7 @@
 }
 
 .categories-toolbar__top {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .categories-toolbar h2 {
@@ -246,7 +246,9 @@
 }
 
 .categories-search {
-    min-width: min(280px, 100%);
+    flex: 1 1 220px;
+    max-width: 260px;
+    min-width: min(220px, 100%);
 }
 
 .categories-list {
@@ -278,6 +280,7 @@
     font-family: var(--font-sans);
     grid-template-columns: minmax(260px, 1fr) 150px 130px 34px;
     padding: 0;
+    position: relative;
     text-align: left;
     width: 100%;
 }
@@ -285,6 +288,16 @@
 .category-row:hover,
 .category-row.is-expanded {
     background: var(--bg-stripe);
+}
+
+.category-row.is-expanded::before {
+    background: var(--income-500);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 3px;
 }
 
 .category-row.is-disabled:not(.is-expanded) {
@@ -298,7 +311,7 @@
     align-items: center;
     display: flex;
     min-width: 0;
-    padding: 14px 16px;
+    padding: 11px 16px;
 }
 
 .category-row__name {
@@ -333,6 +346,11 @@
 }
 
 .category-row--child .category-row__title strong {
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.category-row--leaf .category-row__title strong {
     font-size: 13.5px;
     font-weight: 500;
 }
@@ -430,6 +448,58 @@
     justify-content: flex-end;
 }
 
+.category-parent-readonly {
+    background: var(--bg-muted);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-2);
+    color: var(--fg-2);
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+}
+
+.category-parent-readonly strong {
+    color: var(--fg-1);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.category-parent-readonly span {
+    color: var(--fg-4);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.category-create-form__active {
+    margin-bottom: 10px;
+}
+
+.category-create-form__footer {
+    border-top: 1px solid var(--border-1);
+    margin: 18px -24px -24px;
+    padding: 14px 24px 0;
+}
+
+.category-create-form__footer .ant-form-item-control-input-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.categories-list__no-match {
+    align-items: center;
+    color: var(--fg-3);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 13px;
+    gap: 10px;
+    justify-content: center;
+    min-height: 72px;
+    padding: 18px 20px;
+    text-align: center;
+}
+
 .category-inline-edit__snapshot-actions {
     justify-content: flex-start;
     margin-top: 14px;
@@ -470,7 +540,6 @@
     }
 
     .categories-hero,
-    .categories-toolbar,
     .categories-list {
         border-left: 0;
         border-radius: 0;
@@ -478,8 +547,13 @@
     }
 
     .categories-hero {
+        gap: 16px;
         grid-template-columns: 1fr;
         padding: 18px 16px;
+    }
+
+    .categories-hero__details {
+        gap: 12px;
     }
 
     .categories-hero__metric-grid,
@@ -488,19 +562,17 @@
     }
 
     .categories-toolbar__top,
-    .categories-toolbar__bottom,
-    .categories-toolbar__actions {
+    .categories-toolbar__bottom {
         align-items: stretch;
         flex-wrap: wrap;
     }
 
     .categories-toolbar__bottom {
-        overflow-x: auto;
-        padding-bottom: 2px;
+        gap: 10px;
     }
 
-    .categories-toolbar__actions,
     .categories-search {
+        max-width: none;
         width: 100%;
     }
 
@@ -522,22 +594,15 @@
     }
 
     .category-row__spent {
-        padding: 12px 8px;
+        padding: 10px 8px;
     }
 
     .category-row__icon {
-        padding: 12px 8px 12px 0;
+        padding: 10px 8px 10px 0;
     }
 
     .category-inline-edit {
         grid-template-columns: 1fr;
         padding: 12px;
-    }
-}
-
-@media (max-width: 390px) {
-    .categories-hero__metric-grid,
-    .category-snapshot-grid {
-        grid-template-columns: 1fr;
     }
 }

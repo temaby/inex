@@ -45,13 +45,22 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     const locked = isSystemCategory(category);
     const hasActivity = statsAvailable && (stats?.transactionCount ?? 0) > 0;
     const spend = stats?.totalSpend ?? 0;
+    const description = category.description?.trim() ?? "";
+    const showDescription =
+        description.length > 0 &&
+        description.localeCompare(category.name.trim(), undefined, { sensitivity: "accent" }) !== 0;
     const noActivityLabel = statsAvailable
         ? t("categories.activity.noTransactions")
         : t("categories.activity.unavailable");
+    const rowKindClass = hasChildren
+        ? "category-row--parent"
+        : depth > 0
+            ? "category-row--child"
+            : "category-row--leaf";
     const rowClassName = [
         "category-row",
         "r-category-row",
-        depth === 0 ? "category-row--parent" : "category-row--child",
+        rowKindClass,
         expanded ? "is-expanded" : "",
         !category.isEnabled ? "is-disabled" : "",
     ]
@@ -79,7 +88,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 />
                 <span className="category-row__title">
                     <strong>{category.name}</strong>
-                    {category.description ? <small>{category.description}</small> : null}
+                    {showDescription ? <small>{description}</small> : null}
                 </span>
                 {locked ? (
                     <Lock
