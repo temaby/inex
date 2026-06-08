@@ -1,0 +1,448 @@
+[
+  {
+    "name": "grouped-1440",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/grouped-1440.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": false,
+    "clientWidth": 1425,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 72,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 1425,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts ACCOUNT CURRENCY SHARE BALANCE PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD EUR - 1 account 9.8% of net worth 150.00 EUR approx 163.04 USD Reserve EUR Emergency reserve EUR 9.8% of net wor",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ]
+  },
+  {
+    "name": "expanded-row-1440",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/expanded-row-1440.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": false,
+    "clientWidth": 1425,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 72,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 1425,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts ACCOUNT CURRENCY SHARE BALANCE PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD Name Description Currency PLN - undefined Active Disabled Delete Update SNAPSHOT Current balance 4,000.00 PLN USD equivalent 1,000.00 USD Rate to base 0.2500 USD / PLN Account ID #1 USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash ",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "interaction": "first account row expanded"
+  },
+  {
+    "name": "flat-1024",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/flat-1024.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": false,
+    "clientWidth": 1024,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 72,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 1024,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts ACCOUNT CURRENCY SHARE BALANCE Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD Reserve EUR Emergency reserve EUR 9.8% of net worth 163.04 USD 150.00 EUR approx 163.04 USD",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "interaction": "flat view selected"
+  },
+  {
+    "name": "mobile-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/mobile-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 375,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 231,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 375,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD EUR - 1 account 9.8% of net worth 150.00 EUR approx 163.04 USD Reserve EUR Emergency reserve EUR 9.8% of net worth 163.04 USD 150.00 EUR approx 163.04 USD Dashboard Transactions Accounts Categories Budgets",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ]
+  },
+  {
+    "name": "expanded-row-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/expanded-row-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 375,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 231,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 375,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD Name Description Currency PLN - undefined Active Disabled Delete Update SNAPSHOT Current balance 4,000.00 PLN USD equivalent 1,000.00 USD Rate to base 0.2500 USD / PLN Account ID #1 USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD EUR - 1 account 9.8% of",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "interaction": "first account row expanded"
+  },
+  {
+    "name": "mobile-360",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 360,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/mobile-360.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 345,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 231,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 345,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD EUR - 1 account 9.8% of net worth 150.00 EUR approx 163.04 USD Reserve EUR Emergency reserve EUR 9.8% of net worth 163.04 USD 150.00 EUR approx 163.04 USD Dashboard Transactions Accounts Categories Budgets",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ]
+  },
+  {
+    "name": "filter-empty-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/filter-empty-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 375,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": null,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 375,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 0 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts Filtering by \"zzzz\" Clear search No accounts match Try clearing search or showing all accounts. Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "interaction": "search zzzz"
+  },
+  {
+    "name": "empty-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/empty-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 390,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": null,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": false,
+    "scrollWidth": 390,
+    "searchPlaceholder": null,
+    "textSample": "I InEx QA MANAGE Accounts Add account No accounts yet Add your first cash, bank, or card account so balances and currencies can be tracked here. Add account Dashboard Transactions Accounts Categories Budgets Reports",
+    "title": "InEx",
+    "toolbarLabels": []
+  },
+  {
+    "name": "drawer-open-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/drawer-open-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 390,
+    "drawerBounds": {
+      "left": 0,
+      "right": 390,
+      "width": 390
+    },
+    "drawerWithinViewport": true,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 231,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 390,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD EUR - 1 account 9.8% of net worth 150.00 EUR approx 163.04 USD Reserve EUR Emergency reserve EUR 9.8% of net worth 163.04 USD 150.00 EUR approx 163.04 USD Dashboard Transactions Accounts Categories Budgets",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "interaction": "add account drawer opened"
+  },
+  {
+    "name": "drawer-open-360",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 360,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/drawer-open-360.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 360,
+    "drawerBounds": {
+      "left": 0,
+      "right": 360,
+      "width": 360
+    },
+    "drawerWithinViewport": true,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 231,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 360,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH 1,663.04 USD +44.13 USD +2.7% MoM vs previous month 3 active 3 currencies CURRENCY DISTRIBUTION By current balance PLN 60.1% 1,000.00 USD USD 30.1% 500.00 USD EUR 9.8% 163.04 USD Accounts Visible accounts: 3 / 3 in scope active only: 3 active STATUS Active All VIEW By currency Flat list Search accounts PLN - 1 account 60.1% of net worth 4,000.00 PLN approx 1,000.00 USD Bank PLN Operating Account With Long Payroll Name Salary and bills PLN 60.1% of net worth 1,000.00 USD 4,000.00 PLN approx 1,000.00 USD USD - 1 account 30.1% of net worth 500.00 USD approx 500.00 USD Cash wallet USD 30.1% of net worth 500.00 USD 500.00 USD approx 500.00 USD EUR - 1 account 9.8% of net worth 150.00 EUR approx 163.04 USD Reserve EUR Emergency reserve EUR 9.8% of net worth 163.04 USD 150.00 EUR approx 163.04 USD Dashboard Transactions Accounts Categories Budgets",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "interaction": "add account drawer opened"
+  },
+  {
+    "name": "loading-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/loading-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 375,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [],
+    "loadErrorVisible": false,
+    "loadingStateVisible": true,
+    "maxRowHeight": null,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": false,
+    "scrollWidth": 375,
+    "searchPlaceholder": null,
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH Balance unavailable MoM delta unavailable 0 active 0 currencies CURRENCY DISTRIBUTION By account count No currencies to display Accounts Visible accounts: 0 / 0 in scope active only: 0 active STATUS Active All VIEW By currency Flat list Search accounts Dashboard Transactions Accounts Categories Budgets Reports",
+    "title": "InEx",
+    "toolbarLabels": [],
+    "controlledState": "accounts request delayed by fixture server"
+  },
+  {
+    "name": "load-error-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/load-error-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 375,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [],
+    "loadErrorVisible": true,
+    "loadingStateVisible": false,
+    "maxRowHeight": null,
+    "partialErrorVisible": false,
+    "scopedCountTextPresent": false,
+    "scrollWidth": 375,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH Balance unavailable MoM delta unavailable 0 active 0 currencies CURRENCY DISTRIBUTION By account count No currencies to display Accounts Visible accounts: 0 / 0 in scope active only: 0 active STATUS Active All VIEW By currency Flat list Search accounts Accounts could not be loaded Retry the request. Existing account data and API contracts were not changed. Retry fixture load failure Dashboard Transactions Accounts Categories Budgets Reports",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "controlledState": "accounts request returns 500"
+  },
+  {
+    "name": "partial-error-390",
+    "dataMode": "fixture",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "filePath": "docs/implementation/visual-qa/10-3g/partial-error-390.png",
+    "allAccountDenominatorLeak": false,
+    "bottomNavVisible": true,
+    "clientWidth": 375,
+    "drawerBounds": null,
+    "drawerWithinViewport": null,
+    "duplicateDescriptionVisible": false,
+    "hasHorizontalOverflow": false,
+    "headers": [
+      "ACCOUNT",
+      "CURRENCY",
+      "SHARE",
+      "BALANCE"
+    ],
+    "loadErrorVisible": false,
+    "loadingStateVisible": false,
+    "maxRowHeight": 184,
+    "partialErrorVisible": true,
+    "scopedCountTextPresent": true,
+    "scrollWidth": 375,
+    "searchPlaceholder": "Search accounts...",
+    "textSample": "I InEx QA MANAGE Accounts Add account NET WORTH Balance unavailable MoM delta unavailable 3 active 3 currencies CURRENCY DISTRIBUTION By account count EUR Equivalent unavailable Equivalent unavailable PLN Equivalent unavailable Equivalent unavailable USD Equivalent unavailable Equivalent unavailable Accounts Visible accounts: 3 / 3 in scope active only: 3 active Could not refresh accounts Retry STATUS Active All VIEW By currency Flat list Search accounts Showing the last loaded accounts while the refresh is retried. Retry EUR - 1 account Equivalent unavailable Balance unavailable Equivalent unavailable Reserve EUR Emergency reserve EUR Equivalent unavailable Balance unavailable PLN - 1 account Equivalent unavailable Balance unavailable Equivalent unavailable Bank PLN Operating Account With Long Payroll Name Salary and bills PLN Equivalent unavailable Balance unavailable USD - 1 account E",
+    "title": "InEx",
+    "toolbarLabels": [
+      "STATUS",
+      "VIEW"
+    ],
+    "controlledState": "summary request returns 500 while accounts render"
+  }
+]

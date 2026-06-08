@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pagination } from "antd";
-import { CalendarDays, ChevronRight, Inbox, Plus, RotateCw } from "lucide-react";
+import { Inbox, Plus, RotateCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { AccountResponse } from "../../store/accounts/accounts-api";
@@ -11,7 +11,7 @@ import { CategoryResponse } from "../../store/categories/categories-api";
 import { useAppSelector } from "../../store/hooks";
 import { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import { useGetTransactionsQuery, type TransactionFilterParams } from "../../store/transactions/transactions-api";
-import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, type MoneyKind } from "../../components/primitives";
+import { EmptyState, FilterEmpty, InExButton, InExDrawer, ListPanelNoMatchRow, Num, type MoneyKind } from "../../components/primitives";
 import TransactionEditForm from "./TransactionEditForm";
 import { buildSingleTagOrRefFilterSearch } from "./transaction-filter-url";
 import {
@@ -350,19 +350,12 @@ const TransactionList = ({
             </div>
 
             {visibleTransactions.length === 0 ? (
-                <div className="transactions-empty-wrap">
-                    <FilterEmpty
-                        description={t("transactions.filterEmptyDescription")}
-                        onClear={onClearFilters}
-                        title={t("transactions.filterEmptyTitle")}
-                    />
-                </div>
+                <ListPanelNoMatchRow message={t("transactions.noMatch")} />
             ) : (
                 groups.map(group => (
                     <section className="transactions-day-group" key={group.dateKey}>
                         <header className="transactions-day-header">
                             <div className="transactions-day-header__date">
-                                <CalendarDays aria-hidden="true" size={14} />
                                 {group.label}
                                 <span>{t("transactions.itemCount", { count: group.items.length })}</span>
                             </div>
@@ -454,7 +447,6 @@ const TransactionList = ({
                                             </span>
                                         )}
                                     </div>
-                                    <ChevronRight aria-hidden="true" className="transactions-row-chevron" size={16} />
                                 </div>
                             );
                         })}
