@@ -1,8 +1,13 @@
 import * as React from "react";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { InExButton, Input, SegmentedControl } from "../../components/primitives";
+import {
+    Input,
+    ListPanelFilterBar,
+    ListPanelHeader,
+    SegmentedControl,
+} from "../../components/primitives";
 
 export type CategoriesViewMode = "tree" | "spend";
 
@@ -16,7 +21,6 @@ interface CategoriesToolbarProps {
     onActiveOnlyChange: (activeOnly: boolean) => void;
     onViewChange: (view: CategoriesViewMode) => void;
     onSearchChange: (search: string) => void;
-    onAdd: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({
@@ -29,46 +33,40 @@ export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({
     onActiveOnlyChange,
     onViewChange,
     onSearchChange,
-    onAdd,
 }) => {
     const { t } = useTranslation();
+    const countSummary = t("categories.countSummary", {
+        visible,
+        total,
+        scope: activeOnly
+            ? t("categories.scope.active").toLowerCase()
+            : t("categories.scope.all").toLowerCase(),
+    });
 
     return (
-        <section className="categories-toolbar">
-            <div className="categories-toolbar__top r-category-toolbar">
-                <div>
-                    <h2>{t("categories.listTitle")}</h2>
-                    <p>
-                        {t("categories.countSummary", {
-                            visible,
-                            total,
-                            scope: activeOnly
-                                ? t("categories.scope.active").toLowerCase()
-                                : t("categories.scope.all").toLowerCase(),
-                        })}
-                        {refreshing ? ` · ${t("categories.loading.refreshing")}` : ""}
-                    </p>
-                </div>
-                <div className="categories-toolbar__actions">
-                    <SegmentedControl
-                        options={[
-                            { key: "active", label: t("categories.scope.active") },
-                            { key: "all", label: t("categories.scope.all") },
-                        ]}
-                        value={activeOnly ? "active" : "all"}
-                        onChange={(key) => onActiveOnlyChange(key === "active")}
-                    />
-                    <InExButton
-                        kind="primary"
-                        icon={<Plus size={16} aria-hidden="true" />}
-                        onClick={onAdd}
-                    >
-                        {t("common.add")}
-                    </InExButton>
-                </div>
-            </div>
-            <div className="categories-toolbar__bottom r-category-filterbar">
+        <React.Fragment>
+            <ListPanelHeader
+                title={t("categories.listTitle")}
+                count={refreshing ? `${countSummary} · ${t("categories.loading.refreshing")}` : countSummary}
+                actions={
+                    <div className="r-category-toolbar">
+                        <SegmentedControl
+                            label={t("categories.controlLabels.status")}
+                            size="compact"
+                            options={[
+                                { key: "active", label: t("categories.scope.active") },
+                                { key: "all", label: t("categories.scope.all") },
+                            ]}
+                            value={activeOnly ? "active" : "all"}
+                            onChange={(key) => onActiveOnlyChange(key === "active")}
+                        />
+                    </div>
+                }
+            />
+            <ListPanelFilterBar>
                 <SegmentedControl
+                    label={t("categories.controlLabels.view")}
+                    size="compact"
                     options={[
                         { key: "tree", label: t("categories.view.tree") },
                         { key: "spend", label: t("categories.view.bySpend") },
@@ -78,14 +76,15 @@ export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({
                 />
                 <div className="categories-search">
                     <Input
+                        aria-label={t("categories.search.label")}
                         value={search}
                         onChange={(event) => onSearchChange(event.target.value)}
                         placeholder={t("categories.search.placeholder")}
                         prefix={<Search size={15} aria-hidden="true" />}
+                        variant="search"
                     />
                 </div>
-            </div>
-        </section>
+            </ListPanelFilterBar>
+        </React.Fragment>
     );
 };
-

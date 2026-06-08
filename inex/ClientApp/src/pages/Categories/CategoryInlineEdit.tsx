@@ -7,7 +7,6 @@ import {
     InExButton,
     Input,
     Num,
-    Select,
 } from "../../components/primitives";
 import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { CategoryResponse } from "../../store/categories/categories-api";
@@ -117,22 +116,11 @@ export const CategoryInlineEdit: React.FC<CategoryInlineEditProps> = ({
                         onChange={(event) => setDescription(event.target.value)}
                     />
                 </Field>
-                <Field
-                    label={t("categories.parentCategory")}
-                    hint={t("categories.inlineEdit.reparentNotSupported")}
-                >
-                    <Select value={parent?.id.toString() ?? ""} disabled>
-                        <option value="">
-                            {t("categories.parentCategoryPlaceholder")}
-                        </option>
-                        {allCategories
-                            .filter((item) => item.parentId == null && !isSystemCategory(item))
-                            .map((item) => (
-                                <option value={item.id.toString()} key={item.id}>
-                                    {item.name}
-                                </option>
-                            ))}
-                    </Select>
+                <Field label={t("categories.parentCategory")}>
+                    <div className="category-parent-readonly">
+                        <strong>{parent?.name ?? t("categories.inlineEdit.noParent")}</strong>
+                        <span>{t("categories.inlineEdit.reparentNotSupported")}</span>
+                    </div>
                 </Field>
                 {!locked ? (
                     <label className="category-toggle">

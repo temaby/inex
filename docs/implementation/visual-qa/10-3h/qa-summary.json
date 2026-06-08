@@ -1,0 +1,179 @@
+{
+  "story": "10.3h",
+  "dataMode": "fixture",
+  "localeBaseline": "en",
+  "screenshotMode": "fullPage",
+  "viewportAuditNote": "The viewport object records the browser viewport used for overflow and bottom-nav checks; pngDimensions records the committed full-page screenshot dimensions.",
+  "ruStressTest": "Locale key parity verified by build/lint; mobile overflow checks use the English visual baseline per Story 10.1d policy.",
+  "requestLog": [
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /categories?mode=ALL",
+    "GET /budgets?year=2026&month=6",
+    "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-06-01T00:00:00&endDate=2026-06-30T23:59:59",
+    "GET /currencies",
+    "GET /exchange/rates/2026-06-08"
+  ],
+  "states": [
+    {
+      "name": "desktop-default-1440",
+      "dataMode": "fixture",
+      "screenshot": "desktop-default-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1038
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 8 categories · active Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Home Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Rent Monthly rent Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Food Food and dining Budgeted 2 txns last 4 Jun 310.00 USD USD · June 2026 Groceries Budgeted 1 txn last 3 Jun 250.00 USD USD · June 2026 Dining Restaurants Budgeted 1 txn last 4 Jun 60.00 USD USD · June 2026 T"
+    },
+    {
+      "name": "desktop-by-spend-1440",
+      "dataMode": "fixture",
+      "screenshot": "desktop-by-spend-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 8 categories · active Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Rent Monthly rent Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Groceries Budgeted 1 txn last 3 Jun 250.00 USD USD · June 2026 Tickets Flights and rail Budgeted 1 txn last 5 Jun 225.00 USD USD · June 2026 Dining Restaurants Budgeted 1 txn last 4 Jun 60.00 USD USD · June 2026"
+    },
+    {
+      "name": "desktop-filter-empty-1440",
+      "dataMode": "fixture",
+      "screenshot": "desktop-filter-empty-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 0 of 8 categories · active Status Active All View Tree By spend CATEGORY ACTIVITY SPEND No categories match these filters Clear filters"
+    },
+    {
+      "name": "add-drawer-1440",
+      "dataMode": "fixture",
+      "screenshot": "add-drawer-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 8 of 8 categories · all Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Rent Monthly rent Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Groceries Budgeted 1 txn last 3 Jun 250.00 USD USD · June 2026 Tickets Flights and rail Budgeted 1 txn last 5 Jun 225.00 USD USD · June 2026 Dining Restaurants Budgeted 1 txn last 4 Jun 60.00 USD USD · June 2026 Archived Inactive old category Disabled - No activity - USD e"
+    },
+    {
+      "name": "expanded-row-1440",
+      "dataMode": "fixture",
+      "screenshot": "expanded-row-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1468
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "textSample": "I InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 8 categories · active Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Home Budgeted 1 txn last 2 Jun 1,000.00 USD USD · June 2026 Edit category Name * Description Parent Category Top-level category Reparenting is not supported yet Active Cancel Delete Save Snapshot · June 2026 Spend 1,000.00 USD Transactions 1 Budget Budgeted Home cap 1,200.00 USD Category ID #1 Rent Monthly rent Budgeted 1 txn last 2 Jun 1,00"
+    },
+    {
+      "name": "mobile-populated-390",
+      "dataMode": "fixture",
+      "screenshot": "mobile-populated-390.png",
+      "pngDimensions": {
+        "width": 390,
+        "height": 1278
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "title": "InEx",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "textSample": "I InEx QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 8 categories · active Status Active All View Tree By spend Home Budgeted 1,000.00 USD USD · June 2026 Rent Monthly rent Budgeted 1,000.00 USD USD · June 2026 Food Food and dining Budgeted 310.00 USD USD · June 2026 Groceries Budgeted 250.00 USD USD · June 2026 Dining Restaurants Budgeted 60.00 USD USD · June 2026 Travel 225.00 USD USD · June 2026 Tickets Flights and rail Budgeted 225.00 USD USD · June 2026 Dashboard Transactions Accounts Categories Budgets Reports"
+    },
+    {
+      "name": "mobile-populated-360",
+      "dataMode": "fixture",
+      "screenshot": "mobile-populated-360.png",
+      "pngDimensions": {
+        "width": 360,
+        "height": 1304
+      },
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "title": "InEx",
+      "scrollWidth": 360,
+      "clientWidth": 360,
+      "bodyScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "textSample": "I InEx QA MANAGE Categories Add category JUNE 2026 SPEND 1,535.00 USD Most spent in Home 1,000.00 USD Active 7 Parents 3 Children 4 By category USD equivalent Home 65% Food 20% Travel 15% Category structure 7 of 8 categories · active Status Active All View Tree By spend Home Budgeted 1,000.00 USD USD · June 2026 Rent Monthly rent Budgeted 1,000.00 USD USD · June 2026 Food Food and dining Budgeted 310.00 USD USD · June 2026 Groceries Budgeted 250.00 USD USD · June 2026 Dining Restaurants Budgeted 60.00 USD USD · June 2026 Travel 225.00 USD USD · June 2026 Tickets Flights and rail Budgeted 225.00 USD USD · June 2026 Dashboard Transactions Accounts Categories Budgets Reports"
+    },
+    {
+      "name": "mobile-no-spend-390",
+      "dataMode": "fixture",
+      "screenshot": "mobile-no-spend-390.png",
+      "pngDimensions": {
+        "width": 390,
+        "height": 1250
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "title": "InEx",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "textSample": "I InEx QA MANAGE Categories Add category JUNE 2026 SPEND - No spend recorded Active 7 Parents 3 Children 4 No spend recorded Spend signals appear here after matching transaction data is available. Category structure 7 of 8 categories · active Status Active All View Tree By spend Home Budgeted - USD equivalent Rent Monthly rent Budgeted - USD equivalent Food Food and dining Budgeted - USD equivalent Groceries Budgeted - USD equivalent Dining Restaurants Budgeted - USD equivalent Travel - USD equivalent Tickets Flights and rail Budgeted - USD equivalent Dashboard Transactions Accounts Categories Budgets Reports"
+    }
+  ]
+}

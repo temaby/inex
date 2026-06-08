@@ -5,9 +5,7 @@
     min-width: 0;
 }
 
-.categories-hero,
-.categories-toolbar,
-.categories-list {
+.categories-hero {
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-3);
@@ -214,57 +212,20 @@
     min-height: 96px;
 }
 
-.categories-toolbar {
-    padding: 18px;
-}
-
-.categories-toolbar__top,
-.categories-toolbar__bottom,
-.categories-toolbar__actions {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-    min-width: 0;
-}
-
-.categories-toolbar__top {
-    margin-bottom: 14px;
-}
-
-.categories-toolbar h2 {
-    color: var(--fg-1);
-    font-size: 18px;
-    line-height: 1.2;
-    margin: 0 0 4px;
-}
-
-.categories-toolbar p {
-    color: var(--fg-3);
-    font-size: 12px;
-    margin: 0;
-}
-
 .categories-search {
-    min-width: min(280px, 100%);
+    flex: 1 1 220px;
+    max-width: 260px;
+    min-width: min(220px, 100%);
 }
 
 .categories-list {
+    --categories-list-columns: minmax(260px, 1fr) 150px 130px 34px;
     overflow: hidden;
 }
 
-.categories-list__header {
-    align-items: center;
-    background: var(--bg-muted);
-    border-bottom: 1px solid var(--border-1);
-    color: var(--fg-3);
-    display: grid;
-    font-size: 11px;
-    font-weight: 700;
-    grid-template-columns: minmax(260px, 1fr) 150px 130px 34px;
-    letter-spacing: 0.06em;
+.categories-list .inex-list-panel__columns {
+    grid-template-columns: var(--categories-list-columns);
     padding: 10px 16px;
-    text-transform: uppercase;
 }
 
 .category-row {
@@ -276,8 +237,9 @@
     cursor: pointer;
     display: grid;
     font-family: var(--font-sans);
-    grid-template-columns: minmax(260px, 1fr) 150px 130px 34px;
+    grid-template-columns: var(--categories-list-columns);
     padding: 0;
+    position: relative;
     text-align: left;
     width: 100%;
 }
@@ -285,6 +247,16 @@
 .category-row:hover,
 .category-row.is-expanded {
     background: var(--bg-stripe);
+}
+
+.category-row.is-expanded::before {
+    background: var(--income-500);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 3px;
 }
 
 .category-row.is-disabled:not(.is-expanded) {
@@ -298,7 +270,7 @@
     align-items: center;
     display: flex;
     min-width: 0;
-    padding: 14px 16px;
+    padding: 11px 16px;
 }
 
 .category-row__name {
@@ -333,6 +305,11 @@
 }
 
 .category-row--child .category-row__title strong {
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.category-row--leaf .category-row__title strong {
     font-size: 13.5px;
     font-weight: 500;
 }
@@ -430,6 +407,32 @@
     justify-content: flex-end;
 }
 
+.category-parent-readonly {
+    background: var(--bg-muted);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-2);
+    color: var(--fg-2);
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+}
+
+.category-parent-readonly strong {
+    color: var(--fg-1);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.category-parent-readonly span {
+    color: var(--fg-4);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.category-create-form__active {
+    margin-bottom: 10px;
+}
+
 .category-inline-edit__snapshot-actions {
     justify-content: flex-start;
     margin-top: 14px;
@@ -470,16 +473,20 @@
     }
 
     .categories-hero,
-    .categories-toolbar,
-    .categories-list {
+    .categories-list.inex-list-panel {
         border-left: 0;
         border-radius: 0;
         border-right: 0;
     }
 
     .categories-hero {
+        gap: 16px;
         grid-template-columns: 1fr;
         padding: 18px 16px;
+    }
+
+    .categories-hero__details {
+        gap: 12px;
     }
 
     .categories-hero__metric-grid,
@@ -487,25 +494,9 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .categories-toolbar__top,
-    .categories-toolbar__bottom,
-    .categories-toolbar__actions {
-        align-items: stretch;
-        flex-wrap: wrap;
-    }
-
-    .categories-toolbar__bottom {
-        overflow-x: auto;
-        padding-bottom: 2px;
-    }
-
-    .categories-toolbar__actions,
     .categories-search {
+        max-width: none;
         width: 100%;
-    }
-
-    .categories-list__header {
-        display: none;
     }
 
     .category-row {
@@ -522,22 +513,15 @@
     }
 
     .category-row__spent {
-        padding: 12px 8px;
+        padding: 10px 8px;
     }
 
     .category-row__icon {
-        padding: 12px 8px 12px 0;
+        padding: 10px 8px 10px 0;
     }
 
     .category-inline-edit {
         grid-template-columns: 1fr;
         padding: 12px;
-    }
-}
-
-@media (max-width: 390px) {
-    .categories-hero__metric-grid,
-    .category-snapshot-grid {
-        grid-template-columns: 1fr;
     }
 }
