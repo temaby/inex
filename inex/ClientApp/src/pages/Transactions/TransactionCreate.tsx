@@ -1,222 +1,300 @@
-import * as React from 'react';
-import { useReducer, useMemo } from "react";
+import * as React from "react";
+import { useMemo, useReducer } from "react";
+import type { MenuProps } from "antd";
+import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
-import { Tabs, Space, Button } from 'antd';
-import { useAppDispatch } from '../../store/hooks';
 
-import TransactionCreateExpenseForm from './TransactionCreateExpenseForm';
-import TransactionCreateIncomeForm from './TransactionCreateIncomeForm';
-import TransactionCreateTransferForm from './TransactionCreateTransferForm';
+import { InExButton, SegmentedControl } from "../../components/primitives";
+import { AccountDetails } from "../../model/Account/AccountDetails";
+import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
+import { TransactionSetState } from "../../model/Transaction/TransactionSetState";
+import { TransactionType } from "../../model/Transaction/TransactionType";
+import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { CategoryResponse } from "../../store/categories/categories-api";
+import { transactionsActions } from "../../store/transactions/transactions-slice";
+import { useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
+import { useAppDispatch } from "../../store/hooks";
+import { mergeCommentWithTags } from "./transaction-ledger-utils";
+import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
+import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
+import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
 
-import { CategoryDetails, getCategoriesTree } from '../../model/Category/CategoryDetails';
+type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
-import { TransactionSetState } from '../../model/Transaction/TransactionSetState';
-import { TransactionType } from '../../model/Transaction/TransactionType';
-import type { Dayjs } from 'dayjs';
-import { transactionsActions } from '../../store/transactions/transactions-slice';
-import { useCreateTransactionMutation, useCreateTransferMutation } from '../../store/transactions/transactions-api';
+interface TransactionCreateProps {
+    accounts: AccountResponse[];
+    categories: CategoryResponse[];
+    onCancel: () => void;
+    onSubmit: () => void;
+}
 
-const defaultState: TransactionSetState = new TransactionSetState();
+interface TransactionCreateState extends TransactionSetState {
+    tagsInput: string;
+}
 
-const reducer = (state: TransactionSetState, action: any) => {
-  if (action.type === "SET_MODE") {
-    return { ...defaultState, mode: action.value };
-  } else if (action.type === "SET_AMOUNT_FROM") {
-    return { ...state, fromAmount: action.value };
-  } else if (action.type === "SET_AMOUNT_TO") {
-    return { ...state, toAmount: action.value };
-  } else if (action.type === "SET_ACCOUNT_FROM") {
-    return { ...state, fromAccount: action.value };
-  } else if (action.type === "SET_ACCOUNT_TO") {
-    return { ...state, toAccount: action.value };
-  } else if (action.type === "SET_CATEGORY") {
-    return { ...state, category: action.value };
-  } else if (action.type === "SET_DATE") {
-    return { ...state, date: action.value };
-  } else if (action.type === "SET_COMMENT") {
-    return { ...state, comment: action.value };
-  }
-  return defaultState;
+type TransactionCreateAction =
+    | { type: "SET_MODE"; value: TransactionType }
+    | { type: "SET_AMOUNT_FROM"; value: number }
+    | { type: "SET_AMOUNT_TO"; value: number }
+    | { type: "SET_ACCOUNT_FROM"; value: AccountDetails }
+    | { type: "SET_ACCOUNT_TO"; value: AccountDetails }
+    | { type: "SET_CATEGORY"; value: CategoryDetails }
+    | { type: "SET_DATE"; value: Dayjs }
+    | { type: "SET_COMMENT"; value: string }
+    | { type: "SET_TAGS"; value: string }
+    | { type: "RESET" };
+
+const createDefaultState = (): TransactionCreateState => ({
+    ...new TransactionSetState(),
+    tagsInput: "",
+});
+
+const reducer = (state: TransactionCreateState, action: TransactionCreateAction): TransactionCreateState => {
+    switch (action.type) {
+        case "SET_MODE":
+            return { ...createDefaultState(), mode: action.value };
+        case "SET_AMOUNT_FROM":
+            return { ...state, fromAmount: action.value };
+        case "SET_AMOUNT_TO":
+            return { ...state, toAmount: action.value };
+        case "SET_ACCOUNT_FROM":
+            return { ...state, fromAccount: action.value };
+        case "SET_ACCOUNT_TO":
+            return { ...state, toAccount: action.value };
+        case "SET_CATEGORY":
+            return { ...state, category: action.value };
+        case "SET_DATE":
+            return { ...state, date: action.value };
+        case "SET_COMMENT":
+            return { ...state, comment: action.value };
+        case "SET_TAGS":
+            return { ...state, tagsInput: action.value };
+        case "RESET":
+            return createDefaultState();
+    }
 };
 
-const TransactionCreate = (props: any) => {
+const toAccountDetails = (account: AccountResponse): AccountDetails =>
+    Object.assign(new AccountDetails(), {
+        id: account.id,
+        key: account.key,
+        name: account.name,
+        description: account.description ?? "",
+        currency: account.currency,
+    });
+
+const toCategoryDetails = (category: CategoryResponse): CategoryDetails =>
+    createCategoryDetails({
+        id: category.id,
+        key: category.key,
+        name: category.name,
+        description: category.description ?? "",
+        parentId: category.parentId ?? undefined,
+        isEnabled: category.isEnabled,
+        isSystem: category.isSystem,
+        systemCode: category.systemCode ?? "",
+        children: [],
+    });
+
+const findCategoryById = (categories: CategoryDetails[], id: number): CategoryDetails | undefined => {
+    for (const category of categories) {
+        if (category.id === id) return category;
+        const nested = category.children ? findCategoryById(category.children, id) : undefined;
+        if (nested) return nested;
+    }
+
+    return undefined;
+};
+
+const TransactionCreate: React.FC<TransactionCreateProps> = ({
+    accounts,
+    categories,
+    onCancel,
+    onSubmit,
+}) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-
+    const [state, dispatchTransactionAction] = useReducer(reducer, undefined, createDefaultState);
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
 
-    const { categories } = props;
+    const categoryTree = useMemo(
+        () => getCategoriesTree(categories.map(toCategoryDetails), false, t("categories.systemGroup")) as CategoryDetails[],
+        [categories, t],
+    );
 
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
-
-    const [state, dispatchTransactionAction] = useReducer(reducer, defaultState);
-
-    const setModeHandler = (item: string) => {
-      dispatchTransactionAction({ type: "SET_MODE", value: item });
+    const setModeHandler = (mode: string) => {
+        dispatchTransactionAction({ type: "SET_MODE", value: mode as TransactionType });
     };
 
-    const setFromAmountHandler = (item: number) => {
-      dispatchTransactionAction({ type: "SET_AMOUNT_FROM", value: item });
+    const setFromAmountHandler = (value: number | null) => {
+        dispatchTransactionAction({ type: "SET_AMOUNT_FROM", value: value ?? 0 });
     };
 
-    const setToAmountHandler = (item: number) => {
-      dispatchTransactionAction({ type: "SET_AMOUNT_TO", value: item });
+    const setToAmountHandler = (value: number | null) => {
+        dispatchTransactionAction({ type: "SET_AMOUNT_TO", value: value ?? 0 });
     };
 
-    const setFromAccountHandler = (item: any) => {
-      const account = props.accounts.find((i: any) => i.id === +item.key);
-      if (account) {
-        dispatchTransactionAction({ type: "SET_ACCOUNT_FROM", value: account });
-      }
+    const setFromAccountHandler = (item: DropdownSelectInfo) => {
+        const account = accounts.find((candidate) => candidate.id === Number(item.key));
+        if (account) dispatchTransactionAction({ type: "SET_ACCOUNT_FROM", value: toAccountDetails(account) });
     };
 
-    const setToAccountHandler = (item: any) => {
-      const account = props.accounts.find((i: any) => i.id === +item.key);
-      if (account) {
-        dispatchTransactionAction({ type: "SET_ACCOUNT_TO", value: account });
-      }
+    const setToAccountHandler = (item: DropdownSelectInfo) => {
+        const account = accounts.find((candidate) => candidate.id === Number(item.key));
+        if (account) dispatchTransactionAction({ type: "SET_ACCOUNT_TO", value: toAccountDetails(account) });
     };
 
-    const setCategoryHandler = (item: any) => {
-      const category = categoryTree.find((i: any) => i.id === +item.keyPath[item.keyPath.length - 2]);
-      if (category && category.children) {
-        const subcategories = category.children;
-        const subcategory = subcategories.find((j: any) => j.id === +item.key);
-        if (subcategory) {
-          dispatchTransactionAction({ type: "SET_CATEGORY", value: subcategory });
-        }
-      }
+    const setCategoryHandler = (item: DropdownSelectInfo) => {
+        const category = findCategoryById(categoryTree, Number(item.key));
+        if (category) dispatchTransactionAction({ type: "SET_CATEGORY", value: category });
     };
 
-    const setDateHandler = (item: Dayjs) => {
-      dispatchTransactionAction({ type: "SET_DATE", value: item });
+    const setDateHandler = (value: Dayjs) => {
+        dispatchTransactionAction({ type: "SET_DATE", value });
     };
 
-    const setCommentHandler = (item: any) => {
-      dispatchTransactionAction({ type: "SET_COMMENT", value: item.target.value });
+    const setCommentHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatchTransactionAction({ type: "SET_COMMENT", value: event.target.value });
+    };
+
+    const setTagsHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatchTransactionAction({ type: "SET_TAGS", value: event.target.value });
+    };
+
+    const resetAndClose = (close: () => void) => {
+        dispatchTransactionAction({ type: "RESET" });
+        dispatch(transactionsActions.setError({ error: null }));
+        close();
     };
 
     const saveTransactionHandler = async () => {
-      try {
-        if (state.mode === TransactionType.EXPENSE) {
-          await createTransactionMutation({
-            accountId: +state.fromAccount.id,
-            categoryId: +state.category.id,
-            amount: 0 - state.fromAmount,
-            comment: state.comment,
-            created: state.date.format("YYYY-MM-DD"),
-          }).unwrap();
-        } else if (state.mode === TransactionType.INCOME) {
-          await createTransactionMutation({
-            accountId: +state.toAccount.id,
-            categoryId: +state.category.id,
-            amount: +state.toAmount,
-            comment: state.comment,
-            created: state.date.format("YYYY-MM-DD"),
-          }).unwrap();
-        } else if (state.mode === TransactionType.TRANSFER) {
-          await createTransferMutation({
-            accountFromId: +state.fromAccount.id,
-            accountToId: +state.toAccount.id,
-            amountFrom: +state.fromAmount,
-            amountTo: +state.toAmount,
-            comment: state.comment,
-            created: state.date.format("YYYY-MM-DD"),
-          }).unwrap();
-        }
-      } catch {
-        dispatch(transactionsActions.setError({
-          error: state.mode === TransactionType.TRANSFER
-            ? t("transactions.formErrors.transferFailure")
-            : t("transactions.formErrors.createFailure"),
-        }));
-        return;
-      }
+        const comment = mergeCommentWithTags(state.comment, state.tagsInput);
 
-        setModeHandler(TransactionType.EXPENSE);
-        dispatch(transactionsActions.setError({ error: null }));
-        props.onSubmit();
+        try {
+            if (state.mode === TransactionType.EXPENSE) {
+                await createTransactionMutation({
+                    accountId: state.fromAccount.id,
+                    categoryId: state.category.id,
+                    amount: 0 - state.fromAmount,
+                    comment,
+                    created: state.date.format("YYYY-MM-DD"),
+                }).unwrap();
+            } else if (state.mode === TransactionType.INCOME) {
+                await createTransactionMutation({
+                    accountId: state.toAccount.id,
+                    categoryId: state.category.id,
+                    amount: state.toAmount,
+                    comment,
+                    created: state.date.format("YYYY-MM-DD"),
+                }).unwrap();
+            } else if (state.mode === TransactionType.TRANSFER) {
+                await createTransferMutation({
+                    accountFromId: state.fromAccount.id,
+                    accountToId: state.toAccount.id,
+                    amountFrom: state.fromAmount,
+                    amountTo: state.toAmount,
+                    comment,
+                    created: state.date.format("YYYY-MM-DD"),
+                }).unwrap();
+            }
+        } catch {
+            dispatch(transactionsActions.setError({
+                error: state.mode === TransactionType.TRANSFER
+                    ? t("transactions.formErrors.transferFailure")
+                    : t("transactions.formErrors.createFailure"),
+            }));
+            return;
+        }
+
+        resetAndClose(onSubmit);
     };
 
-    const tabItems = [
-        {
-            key: TransactionType.EXPENSE,
-            label: t("transactions.expense"),
-            children: (
-                <TransactionCreateExpenseForm
-                    accounts={props.accounts}
-                    fromAccount={state.fromAccount}
-                    onSetFromAccount={setFromAccountHandler}
-                    categories={categoryTree}
-                    category={state.category}
-                    onSetCategory={setCategoryHandler}
-                    fromAmount={state.fromAmount}
-                    onSetFromAmount={setFromAmountHandler}
-                    date={state.date}
-                    onSetDate={setDateHandler}
-                    comment={state.comment}
-                    onSetComment={setCommentHandler}
-                />
-            ),
-        },
-        {
-            key: TransactionType.INCOME,
-            label: t("transactions.income"),
-            children: (
-                <TransactionCreateIncomeForm
-                    accounts={props.accounts}
-                    toAccount={state.toAccount}
-                    onSetToAccount={setToAccountHandler}
-                    categories={categoryTree}
-                    category={state.category}
-                    onSetCategory={setCategoryHandler}
-                    toAmount={state.toAmount}
-                    onSetToAmount={setToAmountHandler}
-                    date={state.date}
-                    onSetDate={setDateHandler}
-                    comment={state.comment}
-                    onSetComment={setCommentHandler}
-                />
-            ),
-        },
-        {
-            key: TransactionType.TRANSFER,
-            label: t("transactions.transfer"),
-            children: (
-                <TransactionCreateTransferForm
-                    accounts={props.accounts}
-                    fromAccount={state.fromAccount}
-                    onSetFromAccount={setFromAccountHandler}
-                    toAccount={state.toAccount}
-                    onSetToAccount={setToAccountHandler}
-                    fromAmount={state.fromAmount}
-                    onSetFromAmount={setFromAmountHandler}
-                    toAmount={state.toAmount}
-                    onSetToAmount={setToAmountHandler}
-                    date={state.date}
-                    onSetDate={setDateHandler}
-                    comment={state.comment}
-                    onSetComment={setCommentHandler}
-                />
-            ),
-        },
-    ];
+    const saveLabel = {
+        [TransactionType.EXPENSE]: t("transactions.saveExpense"),
+        [TransactionType.INCOME]: t("transactions.saveIncome"),
+        [TransactionType.TRANSFER]: t("transactions.saveTransfer"),
+    }[state.mode];
+    const isSaving = isCreating || isCreatingTransfer;
 
     return (
-      <React.Fragment>
-        <Tabs
-          onChange={setModeHandler}
-          activeKey={state.mode.toString()}
-          type="card"
-          items={tabItems}
-        />
-        <Space>
-          <Button loading={isCreating || isCreatingTransfer} onClick={saveTransactionHandler} type="primary">
-            {t("transactions.save")}
-          </Button>
-        </Space>
-      </React.Fragment>
+        <div className="transactions-create-form">
+            <SegmentedControl
+                onChange={setModeHandler}
+                options={[
+                    { key: TransactionType.EXPENSE, label: t("transactions.expense") },
+                    { key: TransactionType.INCOME, label: t("transactions.income") },
+                    { key: TransactionType.TRANSFER, label: t("transactions.transfer") },
+                ]}
+                size="compact"
+                value={state.mode}
+            />
+
+            {state.mode === TransactionType.EXPENSE && (
+                <TransactionCreateExpenseForm
+                    accounts={accounts}
+                    category={state.category}
+                    categories={categoryTree}
+                    comment={state.comment}
+                    date={state.date}
+                    fromAccount={state.fromAccount}
+                    fromAmount={state.fromAmount}
+                    onSetCategory={setCategoryHandler}
+                    onSetComment={setCommentHandler}
+                    onSetDate={setDateHandler}
+                    onSetFromAccount={setFromAccountHandler}
+                    onSetFromAmount={setFromAmountHandler}
+                    onSetTags={setTagsHandler}
+                    tags={state.tagsInput}
+                />
+            )}
+
+            {state.mode === TransactionType.INCOME && (
+                <TransactionCreateIncomeForm
+                    accounts={accounts}
+                    category={state.category}
+                    categories={categoryTree}
+                    comment={state.comment}
+                    date={state.date}
+                    onSetCategory={setCategoryHandler}
+                    onSetComment={setCommentHandler}
+                    onSetDate={setDateHandler}
+                    onSetTags={setTagsHandler}
+                    onSetToAccount={setToAccountHandler}
+                    onSetToAmount={setToAmountHandler}
+                    tags={state.tagsInput}
+                    toAccount={state.toAccount}
+                    toAmount={state.toAmount}
+                />
+            )}
+
+            {state.mode === TransactionType.TRANSFER && (
+                <TransactionCreateTransferForm
+                    accounts={accounts}
+                    comment={state.comment}
+                    date={state.date}
+                    fromAccount={state.fromAccount}
+                    fromAmount={state.fromAmount}
+                    onSetComment={setCommentHandler}
+                    onSetDate={setDateHandler}
+                    onSetFromAccount={setFromAccountHandler}
+                    onSetFromAmount={setFromAmountHandler}
+                    onSetToAccount={setToAccountHandler}
+                    onSetToAmount={setToAmountHandler}
+                    toAccount={state.toAccount}
+                    toAmount={state.toAmount}
+                />
+            )}
+
+            <div className="transactions-drawer-actions">
+                <InExButton kind="default" onClick={() => resetAndClose(onCancel)}>
+                    {t("transactions.cancel")}
+                </InExButton>
+                <InExButton disabled={isSaving} kind="primary" onClick={saveTransactionHandler}>
+                    {isSaving ? t("transactions.saving") : saveLabel}
+                </InExButton>
+            </div>
+        </div>
     );
 };
 

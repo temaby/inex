@@ -7,6 +7,7 @@ import {
   getCategoryPathLabel,
   getFriendlyTransactionDayLabel,
   getLedgerTypeCounts,
+  mergeCommentWithTags,
   toBaseCurrencyAmount,
 } from "./transaction-ledger-utils";
 
@@ -96,5 +97,11 @@ describe("transaction ledger helpers", () => {
       expense: 1,
       transfer: 1,
     });
+  });
+
+  it("merges tag input into comment tokens without changing the backend contract", () => {
+    expect(mergeCommentWithTags("Lunch #food", "food family ALINA_SHAPOVA")).toBe("Lunch #food #family #ALINA_SHAPOVA");
+    expect(mergeCommentWithTags("", "#groceries, BIEDRONKA")).toBe("#groceries #BIEDRONKA");
+    expect(mergeCommentWithTags("Plain comment", "   ")).toBe("Plain comment");
   });
 });
