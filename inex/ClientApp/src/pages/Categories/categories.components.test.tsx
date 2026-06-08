@@ -63,7 +63,10 @@ describe("Categories toolbar", () => {
 
         expect(screen.getByText("categories.controlLabels.status")).toBeInTheDocument();
         expect(screen.getByText("categories.controlLabels.view")).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("categories.search.placeholder")).toBeInTheDocument();
+        expect(screen.getByRole("searchbox", { name: "categories.search.label" })).toHaveAttribute(
+            "placeholder",
+            "categories.search.placeholder",
+        );
         expect(screen.queryByText("common.add")).not.toBeInTheDocument();
     });
 });

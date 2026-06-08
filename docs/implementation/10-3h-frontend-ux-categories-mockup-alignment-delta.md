@@ -90,6 +90,14 @@ It is a Categories alignment story after Story 10.3b and Story 10.3e. Do not red
   - [x] Run focused Categories tests if touched helpers/components have existing Vitest coverage.
   - [x] Capture/update visual QA evidence for desktop default, by-spend, filter-empty, add drawer, expanded row, mobile 390px, and mobile 360px.
 
+- [x] Review Follow-ups (AI)
+  - [x] [AI-Review][P2] Preserve focus recovery for the first-use empty create path after the toolbar Add button removal.
+  - [x] [AI-Review][P2] Add a localized accessible label to the Categories search input.
+  - [x] [AI-Review][P2] Route Add category drawer Cancel/Create actions through the shared `InExDrawer` footer contract.
+  - [x] [AI-Review][P3] Consume 10.1e continuous list/no-match primitives where practical for the Categories list.
+  - [x] [AI-Review][P3] Make mobile visual QA evidence dimensions auditable for full-page screenshots versus viewport checks.
+  - [x] [AI-Review][P3] Keep sprint-status comment and machine-readable `last_updated` timestamps in sync.
+
 ## Likely Impacted Source Files
 
 Category-local files likely to change:
@@ -239,6 +247,8 @@ GPT-5 Codex
 - `npm run build` passed after final changes. Vite reported the existing large `vendor-antd` chunk warning.
 - `npm run lint` passed.
 - Fixture-mode Playwright visual QA captured `dataMode: fixture` evidence in `docs/implementation/visual-qa/10-3h/qa-summary.json`; every recorded state reported `hasHorizontalOverflow: false`.
+- Review follow-up verification: `npm run test -- src/pages/Categories/categories.components.test.tsx src/pages/Categories.empty-focus.test.tsx src/pages/Categories/categories.utils.test.ts src/pages/Categories.transaction-source.test.tsx` passed: 4 files, 13 tests.
+- Review follow-up verification: `npm run lint`, `npm run build`, and `npm run test` passed. Full Vitest result: 20 files, 85 tests. Existing stderr warnings from React Router future flags, jsdom `getComputedStyle`, Ant Design deprecated `addonAfter`, Vite CJS deprecation, and large Vite chunks did not fail verification.
 
 ### Completion Notes List
 
@@ -248,6 +258,12 @@ GPT-5 Codex
 - Reordered the create drawer fields to `Name`, `Parent category`, `Description`, `Active`, replaced status radios with an active checkbox, and added Cancel/Create footer actions.
 - Converted the inline edit parent selector into read-only parent text with localized rationale. `View transactions` and `Set budget` actions remain intentionally absent because this story does not own a reliable route/query contract for those actions and forbids inert enabled controls.
 - Kept Dashboard nav, `/dashboard` default behavior, profile/sign-out controls, current-period live production code, and 10.3e spend/budget calculations unchanged.
+- Resolved review finding [P2]: first-use empty create now restores focus to the surviving page-head `Add category` action after the empty action unmounts.
+- Resolved review finding [P2]: Categories search now has localized accessible labels in EN/RU and focused component coverage.
+- Resolved review finding [P2]: Add category drawer actions now use the `InExDrawer` footer contract while preserving submit, cancel, loading, error, and reset behavior.
+- Resolved review finding [P3]: Categories list now composes the 10.1e `ListPanel`, `ListPanelHeader`, `ListPanelFilterBar`, `ListPanelColumnHeader`, and `ListPanelNoMatchRow` primitives where practical.
+- Resolved review finding [P3]: Visual QA summary now records `screenshotMode: fullPage`, actual PNG dimensions, and viewport audit notes for mobile evidence.
+- Resolved review finding [P3]: `sprint-status.yaml` now keeps comment and machine-readable `last_updated` timestamps synchronized.
 
 ### File List
 
@@ -265,6 +281,7 @@ GPT-5 Codex
 - `inex/ClientApp/public/locales/en/translation.json`
 - `inex/ClientApp/public/locales/ru/translation.json`
 - `inex/ClientApp/src/pages/Categories.tsx`
+- `inex/ClientApp/src/pages/Categories.empty-focus.test.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoriesToolbar.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoryCreateForm.tsx`
 - `inex/ClientApp/src/pages/Categories/CategoryInlineEdit.tsx`
@@ -276,3 +293,4 @@ GPT-5 Codex
 
 - 2026-06-07: Created ready-for-dev Categories mockup alignment delta story from roadmap section 3.3 and Categories audit C01-C20.
 - 2026-06-08: Implemented Categories mockup alignment delta, added focused component tests, captured fixture-mode visual QA evidence, and moved story to review.
+- 2026-06-08: Addressed PR #186 review findings, added first-use focus regression coverage, routed drawer actions through the shared footer contract, consumed 10.1e list/no-match primitives, and clarified visual QA dimensions.

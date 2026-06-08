@@ -5,8 +5,7 @@
     min-width: 0;
 }
 
-.categories-hero,
-.categories-list {
+.categories-hero {
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-3);
@@ -213,38 +212,6 @@
     min-height: 96px;
 }
 
-.categories-toolbar {
-    border-bottom: 1px solid var(--border-1);
-    padding: 18px 20px 14px;
-}
-
-.categories-toolbar__top,
-.categories-toolbar__bottom,
-.categories-toolbar__actions {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-    min-width: 0;
-}
-
-.categories-toolbar__top {
-    margin-bottom: 12px;
-}
-
-.categories-toolbar h2 {
-    color: var(--fg-1);
-    font-size: 18px;
-    line-height: 1.2;
-    margin: 0 0 4px;
-}
-
-.categories-toolbar p {
-    color: var(--fg-3);
-    font-size: 12px;
-    margin: 0;
-}
-
 .categories-search {
     flex: 1 1 220px;
     max-width: 260px;
@@ -252,21 +219,13 @@
 }
 
 .categories-list {
+    --categories-list-columns: minmax(260px, 1fr) 150px 130px 34px;
     overflow: hidden;
 }
 
-.categories-list__header {
-    align-items: center;
-    background: var(--bg-muted);
-    border-bottom: 1px solid var(--border-1);
-    color: var(--fg-3);
-    display: grid;
-    font-size: 11px;
-    font-weight: 700;
-    grid-template-columns: minmax(260px, 1fr) 150px 130px 34px;
-    letter-spacing: 0.06em;
+.categories-list .inex-list-panel__columns {
+    grid-template-columns: var(--categories-list-columns);
     padding: 10px 16px;
-    text-transform: uppercase;
 }
 
 .category-row {
@@ -278,7 +237,7 @@
     cursor: pointer;
     display: grid;
     font-family: var(--font-sans);
-    grid-template-columns: minmax(260px, 1fr) 150px 130px 34px;
+    grid-template-columns: var(--categories-list-columns);
     padding: 0;
     position: relative;
     text-align: left;
@@ -474,32 +433,6 @@
     margin-bottom: 10px;
 }
 
-.category-create-form__footer {
-    border-top: 1px solid var(--border-1);
-    margin: 18px -24px -24px;
-    padding: 14px 24px 0;
-}
-
-.category-create-form__footer .ant-form-item-control-input-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.categories-list__no-match {
-    align-items: center;
-    color: var(--fg-3);
-    display: flex;
-    flex-wrap: wrap;
-    font-size: 13px;
-    gap: 10px;
-    justify-content: center;
-    min-height: 72px;
-    padding: 18px 20px;
-    text-align: center;
-}
-
 .category-inline-edit__snapshot-actions {
     justify-content: flex-start;
     margin-top: 14px;
@@ -540,7 +473,7 @@
     }
 
     .categories-hero,
-    .categories-list {
+    .categories-list.inex-list-panel {
         border-left: 0;
         border-radius: 0;
         border-right: 0;
@@ -561,23 +494,9 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .categories-toolbar__top,
-    .categories-toolbar__bottom {
-        align-items: stretch;
-        flex-wrap: wrap;
-    }
-
-    .categories-toolbar__bottom {
-        gap: 10px;
-    }
-
     .categories-search {
         max-width: none;
         width: 100%;
-    }
-
-    .categories-list__header {
-        display: none;
     }
 
     .category-row {

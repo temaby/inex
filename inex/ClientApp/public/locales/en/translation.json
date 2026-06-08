@@ -370,7 +370,8 @@
     },
     "search": {
       "placeholder": "Search categories...",
-      "noResults": "No categories match these filters"
+      "noResults": "No categories match these filters",
+      "label": "Search categories"
     },
     "inlineEdit": {
       "editSection": "Edit category",

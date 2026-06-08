@@ -2,6 +2,8 @@
   "story": "10.3h",
   "dataMode": "fixture",
   "localeBaseline": "en",
+  "screenshotMode": "fullPage",
+  "viewportAuditNote": "The viewport object records the browser viewport used for overflow and bottom-nav checks; pngDimensions records the committed full-page screenshot dimensions.",
   "ruStressTest": "Locale key parity verified by build/lint; mobile overflow checks use the English visual baseline per Story 10.1d policy.",
   "requestLog": [
     "POST /auth/refresh",
@@ -17,6 +19,10 @@
       "name": "desktop-default-1440",
       "dataMode": "fixture",
       "screenshot": "desktop-default-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1038
+      },
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -33,6 +39,10 @@
       "name": "desktop-by-spend-1440",
       "dataMode": "fixture",
       "screenshot": "desktop-by-spend-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000
+      },
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -49,6 +59,10 @@
       "name": "desktop-filter-empty-1440",
       "dataMode": "fixture",
       "screenshot": "desktop-filter-empty-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000
+      },
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -65,6 +79,10 @@
       "name": "add-drawer-1440",
       "dataMode": "fixture",
       "screenshot": "add-drawer-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000
+      },
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -81,6 +99,10 @@
       "name": "expanded-row-1440",
       "dataMode": "fixture",
       "screenshot": "expanded-row-1440.png",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1468
+      },
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -97,6 +119,10 @@
       "name": "mobile-populated-390",
       "dataMode": "fixture",
       "screenshot": "mobile-populated-390.png",
+      "pngDimensions": {
+        "width": 390,
+        "height": 1278
+      },
       "viewport": {
         "width": 390,
         "height": 844
@@ -113,6 +139,10 @@
       "name": "mobile-populated-360",
       "dataMode": "fixture",
       "screenshot": "mobile-populated-360.png",
+      "pngDimensions": {
+        "width": 360,
+        "height": 1304
+      },
       "viewport": {
         "width": 360,
         "height": 800
@@ -129,6 +159,10 @@
       "name": "mobile-no-spend-390",
       "dataMode": "fixture",
       "screenshot": "mobile-no-spend-390.png",
+      "pngDimensions": {
+        "width": 390,
+        "height": 1250
+      },
       "viewport": {
         "width": 390,
         "height": 844

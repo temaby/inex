@@ -1,21 +1,31 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Checkbox, Form, Input, Select } from "antd";
+import { Checkbox, Form, Input, Select } from "antd";
 import { CategoryResponse, useCreateCategoryMutation, useGetCategoriesQuery } from "../../store/categories/categories-api";
 import { isSystemCategory } from "./categories.utils";
 
 interface CategoryCreateFormProps {
-    onCancel: () => void;
+    formId: string;
     onCreated: () => void;
     onError?: () => void;
+    onSubmittingChange?: (submitting: boolean) => void;
 }
 
-const CategoryCreateForm = ({ onCancel, onCreated, onError }: CategoryCreateFormProps) => {
+const CategoryCreateForm = ({
+    formId,
+    onCreated,
+    onError,
+    onSubmittingChange,
+}: CategoryCreateFormProps) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
     const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+
+    React.useEffect(() => {
+        onSubmittingChange?.(isCreating);
+    }, [isCreating, onSubmittingChange]);
 
     // Only active, non-system, root-level categories can be parents (1 level of nesting)
     const parentOptions = useMemo(() =>
@@ -51,6 +61,7 @@ const CategoryCreateForm = ({ onCancel, onCreated, onError }: CategoryCreateForm
 
     return (
         <Form
+            id={formId}
             form={form}
             layout="vertical"
             className="category-create-form"
@@ -75,22 +86,6 @@ const CategoryCreateForm = ({ onCancel, onCreated, onError }: CategoryCreateForm
             </Form.Item>
             <Form.Item name="isEnabled" valuePropName="checked" className="category-create-form__active">
                 <Checkbox>{t("categories.active")}</Checkbox>
-            </Form.Item>
-            <Form.Item className="category-create-form__footer">
-                <Button
-                    size="large"
-                    onClick={onCancel}
-                    disabled={isCreating}
-                >
-                    {t("common.cancel")}
-                </Button>
-                <Button
-                    type="primary"
-                    htmlType="submit"
-                    size="large"
-                    loading={isCreating}>
-                    {t("common.create")}
-                </Button>
             </Form.Item>
         </Form>
     );

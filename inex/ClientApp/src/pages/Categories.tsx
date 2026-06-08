@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Alert } from "antd";
+import { Alert, Button } from "antd";
 import { FolderTree, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +7,9 @@ import {
     EmptyState,
     InExButton,
     InExDrawer,
+    ListPanel,
+    ListPanelColumnHeader,
+    ListPanelNoMatchRow,
 } from "../components/primitives";
 import BasicPage from "../layouts/BasicPage";
 import type { BudgetDetails } from "../model/Budget/BudgetDetails";
@@ -166,6 +169,7 @@ const Categories = () => {
     const [view, setView] = React.useState<CategoriesViewMode>("tree");
     const [expandedId, setExpandedId] = React.useState<number | null>(null);
     const [createError, setCreateError] = React.useState<string | null>(null);
+    const [createSubmitting, setCreateSubmitting] = React.useState(false);
     const [currencies, setCurrencies] = React.useState<CurrencyOption[]>([]);
     const addDrawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const period = useCurrentPeriod();
@@ -202,26 +206,26 @@ const Categories = () => {
     const budgetsForPeriod = currentMonthBudgets ?? cachedBudgets;
     const currentPeriodTransactions = periodTransactions;
 
-    const focusAddTrigger = React.useCallback((preferToolbarFallback = false) => {
+    const focusAddTrigger = React.useCallback((preferPageHeadFallback = false) => {
         const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
         const findEnabledButton = (label: string) =>
             buttons.find((button) => !button.disabled && button.textContent?.trim() === label) ?? null;
         const originalTrigger = addDrawerTriggerRef.current;
         const connectedOriginalTrigger = originalTrigger?.isConnected ? originalTrigger : null;
-        const toolbarAddButton = findEnabledButton(t("common.add"));
+        const pageHeadAddButton = findEnabledButton(t("categories.addCategory"));
         const emptyAddButton = findEnabledButton(t("categories.emptyState.addManually"));
-        const focusTarget = preferToolbarFallback
-            ? toolbarAddButton ?? connectedOriginalTrigger ?? emptyAddButton
-            : connectedOriginalTrigger ?? toolbarAddButton ?? emptyAddButton;
+        const focusTarget = preferPageHeadFallback
+            ? pageHeadAddButton ?? connectedOriginalTrigger ?? emptyAddButton
+            : connectedOriginalTrigger ?? pageHeadAddButton ?? emptyAddButton;
 
         focusTarget?.focus();
     }, [t]);
 
-    const closeAddDrawer = React.useCallback((preferToolbarFallback = false) => {
+    const closeAddDrawer = React.useCallback((preferPageHeadFallback = false) => {
         setAddOpen(false);
         setCreateError(null);
-        window.setTimeout(() => focusAddTrigger(preferToolbarFallback), 0);
-        if (preferToolbarFallback) {
+        window.setTimeout(() => focusAddTrigger(preferPageHeadFallback), 0);
+        if (preferPageHeadFallback) {
             window.setTimeout(() => focusAddTrigger(true), 250);
         }
     }, [focusAddTrigger]);
@@ -354,6 +358,29 @@ const Categories = () => {
         setActiveOnly(false);
     };
 
+    const createFormId = "category-create-form";
+
+    const createDrawerFooter = (
+        <React.Fragment>
+            <Button
+                size="large"
+                onClick={() => closeAddDrawer()}
+                disabled={createSubmitting}
+            >
+                {t("common.cancel")}
+            </Button>
+            <Button
+                type="primary"
+                htmlType="submit"
+                form={createFormId}
+                size="large"
+                loading={createSubmitting}
+            >
+                {t("common.create")}
+            </Button>
+        </React.Fragment>
+    );
+
     const pageExtra = (
         <InExButton
             kind="primary"
@@ -406,6 +433,7 @@ const Categories = () => {
                 subtitle={t("categories.addDrawerSubtitle")}
                 open={addOpen}
                 onClose={closeAddDrawer}
+                footer={createDrawerFooter}
             >
                 {createError ? (
                     <Alert
@@ -416,9 +444,10 @@ const Categories = () => {
                     />
                 ) : null}
                 <CategoryCreateForm
-                    onCancel={() => closeAddDrawer()}
+                    formId={createFormId}
                     onCreated={() => closeAddDrawer(true)}
                     onError={() => setCreateError(t("categories.formErrors.createFailed"))}
+                    onSubmittingChange={setCreateSubmitting}
                 />
             </InExDrawer>
             <BasicPage
@@ -479,7 +508,10 @@ const Categories = () => {
                         />
                     ) : null}
                     {!showFullError && !showFirstUseEmpty ? (
-                        <section className="categories-list">
+                        <ListPanel
+                            ariaLabel={t("categories.listTitle")}
+                            className="categories-list"
+                        >
                             <CategoriesToolbar
                                 total={categories.length}
                                 visible={filteredCategories.length}
@@ -491,12 +523,14 @@ const Categories = () => {
                                 onViewChange={setView}
                                 onSearchChange={setSearch}
                             />
-                            <div className="categories-list__header">
-                                <span>{t("categories.category")}</span>
-                                <span>{t("categories.activity.title")}</span>
-                                <span>{t("categories.snapshot.spend")}</span>
-                                <span />
-                            </div>
+                            <ListPanelColumnHeader
+                                columns={[
+                                    t("categories.category"),
+                                    t("categories.activity.title"),
+                                    t("categories.snapshot.spend"),
+                                    "",
+                                ]}
+                            />
                             {showInitialLoading ? (
                                 <div
                                     className="categories-loading"
@@ -509,15 +543,17 @@ const Categories = () => {
                                 </div>
                             ) : null}
                             {showFilterEmpty || showRowsEmpty ? (
-                                <div className="categories-list__no-match" role="status">
-                                    <span>{t("categories.filterEmpty.title")}</span>
-                                    <InExButton kind="ghost" size="sm" onClick={clearFilters}>
-                                        {t("categories.filterEmpty.clear")}
-                                    </InExButton>
-                                </div>
+                                <ListPanelNoMatchRow
+                                    message={t("categories.filterEmpty.title")}
+                                    action={
+                                        <InExButton kind="ghost" size="sm" onClick={clearFilters}>
+                                            {t("categories.filterEmpty.clear")}
+                                        </InExButton>
+                                    }
+                                />
                             ) : null}
                             {!showInitialLoading && !showFilterEmpty && !showRowsEmpty ? renderRows(rows) : null}
-                        </section>
+                        </ListPanel>
                     ) : null}
                 </div>
             </BasicPage>
