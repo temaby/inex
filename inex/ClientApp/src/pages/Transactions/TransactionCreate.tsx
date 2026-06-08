@@ -215,6 +215,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         [TransactionType.INCOME]: t("transactions.saveIncome"),
         [TransactionType.TRANSFER]: t("transactions.saveTransfer"),
     }[state.mode];
+    const isSaving = isCreating || isCreatingTransfer;
 
     return (
         <div className="transactions-create-form">
@@ -289,8 +290,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                 <InExButton kind="default" onClick={() => resetAndClose(onCancel)}>
                     {t("transactions.cancel")}
                 </InExButton>
-                <InExButton kind="primary" onClick={saveTransactionHandler}>
-                    {isCreating || isCreatingTransfer ? t("transactions.saving") : saveLabel}
+                <InExButton disabled={isSaving} kind="primary" onClick={saveTransactionHandler}>
+                    {isSaving ? t("transactions.saving") : saveLabel}
                 </InExButton>
             </div>
         </div>

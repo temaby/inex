@@ -191,6 +191,7 @@ GPT-5 Codex
 - 2026-06-08: In-app Browser could not open localhost/127.0.0.1 Vite URLs due `ERR_BLOCKED_BY_CLIENT`; visual QA was completed with installed Playwright in `dataMode: fixture`.
 - 2026-06-08: Vite/Playwright commands required escalation for Windows process spawn; screenshots were saved under `%TEMP%\inex-10-2b-visual-qa` and not committed.
 - 2026-06-08: Verification commands run from `inex/ClientApp`: `npm test -- src/pages/Transactions/transaction-ledger-utils.test.ts`, `npm run build`, `npm run lint`, `npm test`, targeted `rg "\bany\b"` search on touched Transactions TypeScript files, and Playwright fixture visual QA.
+- 2026-06-08: PR #184 review verification run from `inex/ClientApp`: `npm test -- src/pages/Transactions/TransactionCreate.test.tsx`, `npm run build`, `npm run lint`, and targeted `rg "\bany\b"` search on touched TransactionCreate TypeScript files.
 
 ### Completion Notes List
 
@@ -201,6 +202,7 @@ GPT-5 Codex
 - Ledger day headers no longer render a calendar icon, mobile rows no longer render a chevron, and row click/Enter edit behavior is preserved.
 - Filter drawer now uses separate native From/To date inputs, native multi-select account/category controls, mockup keyword placeholder, one amount-equivalent Min/Max row with base-currency suffixes, and enabled safe Clear all / Apply filters actions.
 - Add drawer now uses `New transaction` / `Record a new expense`, a shared segmented mode selector, typed create-flow props/reducer/actions, reordered expense/income fields, Tags input merging into submitted comments via the existing `#tag` parsing contract, and Cancel / mode-specific save actions.
+- PR #184 P1 review finding fixed: add drawer save is disabled while transaction or transfer create mutations are in flight, preserving the `Saving...` label and enabled Cancel behavior.
 - No-match state keeps column headers, renders `No transactions match these filters`, preserves chips/clear behavior, and suppresses the redundant `Filters active` badge.
 - Visual QA fixture metrics: no horizontal overflow at 1440, 390, 360, or RU 390; mobile bottom nav visible; no day-header icons or mobile chevrons; Enter opens edit drawer on mobile.
 
@@ -211,6 +213,7 @@ GPT-5 Codex
 - inex/ClientApp/public/locales/en/translation.json
 - inex/ClientApp/public/locales/ru/translation.json
 - inex/ClientApp/src/pages/Transactions.tsx
+- inex/ClientApp/src/pages/Transactions/TransactionCreate.test.tsx
 - inex/ClientApp/src/pages/Transactions/TransactionCreate.tsx
 - inex/ClientApp/src/pages/Transactions/TransactionCreateExpenseForm.tsx
 - inex/ClientApp/src/pages/Transactions/TransactionCreateIncomeForm.tsx
@@ -226,3 +229,4 @@ GPT-5 Codex
 | Date | Version | Description | Author |
 | --- | --- | --- | --- |
 | 2026-06-08 | 1.0 | Implemented Transactions mockup-alignment delta, focused tests, visual QA, and story status update. | GPT-5 Codex |
+| 2026-06-08 | 1.1 | Addressed PR #184 duplicate-submit review finding for add-transaction save. | GPT-5 Codex |
