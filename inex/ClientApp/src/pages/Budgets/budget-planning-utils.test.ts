@@ -8,10 +8,14 @@ import {
     BUDGET_MIN_YEAR,
     BUDGET_REPORT_CURRENCY,
     getBudgetDisplayCurrency,
+    getBudgetPeriodSelection,
     getBudgetReportCurrency,
     getBudgetEditSnapshot,
     getBudgetPaceMetrics,
     getBudgetReportForBudget,
+    getSortedBudgets,
+    getSupportedBudgetMonth,
+    getSupportedBudgetPeriodWindow,
     getBudgetUsageStatus,
     getSupportedBudgetMonthFromParams,
     isBudgetPeriodDisabled,
@@ -183,6 +187,23 @@ describe("budget planning helpers", () => {
         expect(isBudgetPeriodDisabled(dayjs("2031-01-01"))).toBe(true);
     });
 
+    it("normalizes selected periods without allowing unsupported years", () => {
+        const current = dayjs("2026-04-15T12:00:00");
+
+        expect(getSupportedBudgetMonth(dayjs("2019-07-20")).format("YYYY-MM-DD")).toBe("2020-01-01");
+        expect(getSupportedBudgetMonth(dayjs("2031-07-20")).format("YYYY-MM-DD")).toBe("2030-12-01");
+        expect(getBudgetPeriodSelection(dayjs("2028-05-20"), current).format("YYYY-MM-DD")).toBe("2028-05-01");
+        expect(getBudgetPeriodSelection(dayjs("2031-01-01"), current).format("YYYY-MM-DD")).toBe("2026-04-01");
+        expect(getBudgetPeriodSelection(null, current).format("YYYY-MM-DD")).toBe("2026-04-01");
+    });
+
+    it("omits unsupported months from the period chip window", () => {
+        expect(getSupportedBudgetPeriodWindow(dayjs("2020-01-01")).map((option) => option.key))
+            .toEqual(["2020-01", "2020-02", "2020-03"]);
+        expect(getSupportedBudgetPeriodWindow(dayjs("2030-12-01")).map((option) => option.key))
+            .toEqual(["2030-10", "2030-11", "2030-12"]);
+    });
+
     it("falls back from invalid URL period params before queries are built", () => {
         const fallback = dayjs("2026-06-15T12:00:00");
 
@@ -190,5 +211,28 @@ describe("budget planning helpers", () => {
         expect(getSupportedBudgetMonthFromParams("2026", "13", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
         expect(getSupportedBudgetMonthFromParams("2031", "1", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
         expect(getSupportedBudgetMonthFromParams("abc", "6", fallback).format("YYYY-MM-DD")).toBe("2026-06-01");
+        expect(getSupportedBudgetMonthFromParams(null, null, dayjs("2031-06-15")).format("YYYY-MM-DD")).toBe("2030-12-01");
+    });
+
+    it("sorts visible budgets by mockup toolbar modes without changing API data", () => {
+        const groceries = createBudgetDetails({ id: 1, name: "Groceries", value: 500, categoryIds: [1] });
+        const rent = createBudgetDetails({ id: 2, name: "Rent", value: 1200, categoryIds: [2] });
+        const cafes = createBudgetDetails({ id: 3, name: "Cafes", value: 200, categoryIds: [3] });
+        const budgets = [groceries, rent, cafes];
+        const reportItems = [
+            reportItem({ categoryIds: [1], spentAmount: 450, remainingAmount: 50, percentageUsed: 90 }),
+            reportItem({ categoryIds: [2], spentAmount: 700, remainingAmount: 500, percentageUsed: 58.3 }),
+            reportItem({ categoryIds: [3], spentAmount: 260, remainingAmount: -60, percentageUsed: 130 }),
+        ];
+
+        expect(getSortedBudgets(budgets, reportItems, "burnRate").map((budget) => budget.name))
+            .toEqual(["Cafes", "Groceries", "Rent"]);
+        expect(getSortedBudgets(budgets, reportItems, "remaining").map((budget) => budget.name))
+            .toEqual(["Cafes", "Groceries", "Rent"]);
+        expect(getSortedBudgets(budgets, reportItems, "amount").map((budget) => budget.name))
+            .toEqual(["Rent", "Groceries", "Cafes"]);
+        expect(getSortedBudgets(budgets, reportItems, "name").map((budget) => budget.name))
+            .toEqual(["Cafes", "Groceries", "Rent"]);
+        expect(budgets.map((budget) => budget.name)).toEqual(["Groceries", "Rent", "Cafes"]);
     });
 });

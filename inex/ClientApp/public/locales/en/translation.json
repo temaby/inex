@@ -497,7 +497,7 @@
     "copyFromMonth": "Copy from {{month}}",
     "copySuccess": "Budgets copied successfully",
     "searchLabel": "Search budgets",
-    "searchPlaceholder": "Search budget or category",
+    "searchPlaceholder": "Search budgets...",
     "clearSearch": "Clear search",
     "progress": "Progress",
     "spent": "Spent",
@@ -560,6 +560,7 @@
       "title": "No budgets match this search",
       "description": "Clear the search or try a category name from this month."
     },
+    "noMatch": "No budgets match this search",
     "loading": {
       "creating": "Creating...",
       "saving": "Saving...",
@@ -580,7 +581,24 @@
       "update": "Could not update budget",
       "delete": "Could not delete budget",
       "copy": "Could not copy budgets"
-    }
+    },
+    "budget": "Budget",
+    "listTitle": "Budgets",
+    "listScope_one": "{{visible}} of {{total}} budget for {{month}}",
+    "listScope_other": "{{visible}} of {{total}} budgets for {{month}}",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "jumpToMonth": "Jump to month",
+    "sortLabel": "Sort",
+    "sort": {
+      "burnRate": "Burn rate",
+      "remaining": "Remaining",
+      "amount": "Amount",
+      "name": "Name"
+    },
+    "remainingSublabelLeft": "left · {{currency}}",
+    "remainingSublabelOver": "over · {{currency}}",
+    "categoryOverflow": "+{{count}}"
   },
   "reports": {
     "title": "Reports",

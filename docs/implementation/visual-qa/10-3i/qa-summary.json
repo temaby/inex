@@ -1,0 +1,76 @@
+{
+  "story": "10.3i",
+  "dataMode": "fixture",
+  "capturedAt": "2026-06-08T07:48:00+02:00",
+  "appUrl": "http://127.0.0.1:5187/budgets?year=2026&month=4",
+  "fixture": {
+    "budgets": 6,
+    "currency": "USD",
+    "states": ["populated", "drawer-open", "period-min", "period-max"]
+  },
+  "checks": {
+    "desktop1440": {
+      "viewport": { "width": 1440, "height": 1000 },
+      "overflowX": false,
+      "listPanel": true,
+      "filterBar": true,
+      "columnHeaders": ["Budget", "Categories", "Progress", "Daily pace", "Remaining"],
+      "searchInputType": "search",
+      "rowCount": 6,
+      "noMetricCards": true,
+      "overRows": 2,
+      "atLimitRows": 1
+    },
+    "tablet1024": {
+      "viewport": { "width": 1024, "height": 900 },
+      "overflowX": false,
+      "desktopHeadersVisible": false,
+      "rowGridTemplate": "910px"
+    },
+    "mobile390": {
+      "viewport": { "width": 390, "height": 900 },
+      "overflowX": false,
+      "bottomNavAfterScroll": {
+        "finalContentClearOfNav": true,
+        "bottomNavTop": 839,
+        "finalRowBottom": 794.515625
+      }
+    },
+    "mobile360": {
+      "viewport": { "width": 360, "height": 900 },
+      "overflowX": false,
+      "bottomNavAfterScroll": {
+        "finalContentClearOfNav": true,
+        "bottomNavTop": 839,
+        "finalRowBottom": 490.515625
+      }
+    },
+    "drawerOpen390": {
+      "viewport": { "width": 390, "height": 1400 },
+      "overflowX": false,
+      "drawerOpen": true,
+      "drawerFooterButtons": ["Cancel", "Create"],
+      "bodyActionRows": 0
+    },
+    "periodMin2020": {
+      "url": "http://127.0.0.1:5187/budgets?year=2020&month=1",
+      "previousDisabled": true,
+      "nextDisabled": false,
+      "chips": ["Jan 2020", "Feb 2020", "Mar 2020"],
+      "unsupportedChipVisible": false,
+      "overflowX": false
+    },
+    "periodMax2030": {
+      "url": "http://127.0.0.1:5187/budgets?year=2030&month=12",
+      "previousDisabled": false,
+      "nextDisabled": true,
+      "chips": ["Oct 2030", "Nov 2030", "Dec 2030"],
+      "unsupportedChipVisible": false,
+      "overflowX": false
+    }
+  },
+  "limitations": [
+    "Browser screenshot capture timed out with Page.captureScreenshot; no PNG artifacts were produced.",
+    "Browser text entry failed because the virtual clipboard is unavailable, so the populated-list no-match row was verified by committed implementation structure rather than an interactive Browser search run."
+  ]
+}
