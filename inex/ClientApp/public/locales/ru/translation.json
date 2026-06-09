@@ -463,7 +463,7 @@
     "delete": "Удалить",
     "cancel": "Отмена",
     "update": "Обновить",
-    "listTitle": "Структура категорий",
+    "listTitle": "Категории",
     "countSummary": "{{visible}} из {{total}} категорий · {{scope}}",
     "parent": "Родитель",
     "budgeted": "С бюджетом",
@@ -491,6 +491,7 @@
     },
     "scope": {
       "active": "Активные",
+      "activeOnly": "Только активные",
       "all": "Все"
     },
     "activity": {
@@ -501,6 +502,7 @@
       "lastActive": "посл. {{date}}",
       "periodCurrency": "{{currency}} · {{period}}",
       "noTransactions": "Нет активности",
+      "noSpend": "Нет расходов",
       "unavailable": "Активность недоступна",
       "spendUnavailable": "Расходы недоступны"
     },

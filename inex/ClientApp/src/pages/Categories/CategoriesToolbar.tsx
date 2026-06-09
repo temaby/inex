@@ -39,7 +39,7 @@ export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({
         visible,
         total,
         scope: activeOnly
-            ? t("categories.scope.active").toLowerCase()
+            ? t("categories.scope.activeOnly").toLowerCase()
             : t("categories.scope.all").toLowerCase(),
     });
 

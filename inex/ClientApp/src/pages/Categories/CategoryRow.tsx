@@ -52,6 +52,9 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     const noActivityLabel = statsAvailable
         ? t("categories.activity.noTransactions")
         : t("categories.activity.unavailable");
+    const noSpendLabel = statsAvailable
+        ? t("categories.activity.noSpend")
+        : t("categories.activity.spendUnavailable");
     const rowKindClass = hasChildren
         ? "category-row--parent"
         : depth > 0
@@ -75,7 +78,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
             onClick={onToggle}
             type="button"
         >
-            <span className="category-row__name" style={{ paddingLeft: indent }}>
+            <span className="category-row__name" style={{ paddingLeft: `calc(16px + ${indent}px)` }}>
                 {depth > 0 ? <span className="category-row__connector" /> : null}
                 <span
                     className="category-row__swatch"
@@ -127,10 +130,13 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                         </small>
                     </React.Fragment>
                 ) : (
-                    <React.Fragment>
-                        <strong>-</strong>
-                        <small>{noActivityLabel}</small>
-                    </React.Fragment>
+                    <strong
+                        className="category-row__placeholder"
+                        aria-label={noActivityLabel}
+                        title={noActivityLabel}
+                    >
+                        —
+                    </strong>
                 )}
             </span>
             <span className="category-row__spent">
@@ -147,14 +153,13 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                         </small>
                     </React.Fragment>
                 ) : (
-                    <React.Fragment>
-                        <strong>-</strong>
-                        <small>
-                            {statsAvailable
-                                ? t("categories.hero.baseEquivalent", { currency })
-                                : t("categories.activity.spendUnavailable")}
-                        </small>
-                    </React.Fragment>
+                    <strong
+                        className="category-row__placeholder"
+                        aria-label={noSpendLabel}
+                        title={noSpendLabel}
+                    >
+                        —
+                    </strong>
                 )}
             </span>
             <span className="category-row__icon" aria-hidden="true">

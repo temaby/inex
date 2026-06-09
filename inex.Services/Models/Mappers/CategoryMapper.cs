@@ -45,16 +45,6 @@ public static class CategoryMapper
 
     public static CategorySummary ToSummary(this CategoryResponse source)
     {
-        return new CategorySummary
-        {
-            Id = source.Id,
-            ParentId = source.ParentId,
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            IsEnabled = source.IsEnabled,
-            IsSystem = source.IsSystem,
-            SystemCode = source.SystemCode
-        };
+        return new CategorySummary(source);
     }
 }
