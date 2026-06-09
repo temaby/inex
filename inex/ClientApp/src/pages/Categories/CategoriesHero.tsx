@@ -6,7 +6,6 @@ import type { CategoryResponse } from "../../store/categories/categories-api";
 import {
     categoryPaletteColor,
     type CategorySpendStats,
-    isSystemCategory,
 } from "./categories.utils";
 
 interface CategoriesHeroProps {
@@ -23,27 +22,13 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
     stats,
 }) => {
     const { t } = useTranslation();
-    const activeUserCategories = categories.filter(
-        (category) => category.isEnabled && !isSystemCategory(category),
-    );
-    const parentCategories = activeUserCategories.filter(
-        (category) => category.parentId == null,
-    );
-    const childCount = activeUserCategories.length - parentCategories.length;
 
     if (loading) {
         return (
             <section className="categories-hero r-categories-hero" aria-label={t("categories.loading.initial")}>
                 <div className="categories-hero__summary categories-hero__skeleton" />
                 <div className="categories-hero__details">
-                    <div className="categories-hero__metric-grid">
-                        <div className="categories-hero__skeleton" />
-                        <div className="categories-hero__skeleton" />
-                        <div className="categories-hero__skeleton" />
-                    </div>
-                    <div className="categories-hero__empty">
-                        {t("categories.loading.initial")}
-                    </div>
+                    <div className="categories-hero__distribution categories-hero__skeleton" />
                 </div>
             </section>
         );
@@ -89,20 +74,6 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                 </div>
             </div>
             <div className="categories-hero__details">
-                <div className="categories-hero__metric-grid">
-                    <div>
-                        <span>{t("categories.metrics.active")}</span>
-                        <strong>{activeUserCategories.length}</strong>
-                    </div>
-                    <div>
-                        <span>{t("categories.metrics.parents")}</span>
-                        <strong>{parentCategories.length}</strong>
-                    </div>
-                    <div>
-                        <span>{t("categories.metrics.children")}</span>
-                        <strong>{Math.max(0, childCount)}</strong>
-                    </div>
-                </div>
                 {hasSpend ? (
                     <div className="categories-hero__distribution" aria-label={t("categories.hero.byCategory")}>
                         <div className="categories-hero__distribution-head">
@@ -143,9 +114,22 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
 
                                 return (
                                     <div className="categories-hero__legend-item" key={item.key}>
-                                        <span style={{ background: color }} />
-                                        <strong>{label}</strong>
-                                        <small>{Math.round(item.share * 100)}%</small>
+                                        <span className="categories-hero__legend-swatch" style={{ background: color }} />
+                                        <span className="categories-hero__legend-copy">
+                                            <strong>{label}</strong>
+                                            <small>
+                                                <Num
+                                                    value={item.value}
+                                                    currency={stats.currency}
+                                                    kind="expense"
+                                                    size={11}
+                                                    currencySize="sm"
+                                                />
+                                            </small>
+                                        </span>
+                                        <small className="categories-hero__legend-share">
+                                            {Math.round(item.share * 100)}%
+                                        </small>
                                     </div>
                                 );
                             })}

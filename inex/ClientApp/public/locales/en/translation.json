@@ -461,7 +461,7 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "update": "Update",
-    "listTitle": "Category structure",
+    "listTitle": "Categories",
     "countSummary": "{{visible}} of {{total}} categories · {{scope}}",
     "parent": "Parent",
     "budgeted": "Budgeted",
@@ -489,6 +489,7 @@
     },
     "scope": {
       "active": "Active",
+      "activeOnly": "Active only",
       "all": "All"
     },
     "activity": {
@@ -499,6 +500,7 @@
       "lastActive": "last {{date}}",
       "periodCurrency": "{{currency}} · {{period}}",
       "noTransactions": "No activity",
+      "noSpend": "No spend",
       "unavailable": "Activity unavailable",
       "spendUnavailable": "Spend unavailable"
     },

@@ -2,6 +2,7 @@ using inex.Data.Models;
 using inex.Services.Models.Mappers;
 using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Budget;
+using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Transaction;
 
 namespace inex.Services.Tests.Models.Mappers;
@@ -59,5 +60,33 @@ public class CustomMapperTests
         Assert.Equal(3, transaction.AccountId);
         Assert.Equal(-42, transaction.Value);
         Assert.Equal("move", transaction.Comment);
+    }
+
+    [Fact]
+    public void CategoryResponse_ToSummary_CopiesResponseFields()
+    {
+        var response = new CategoryResponse
+        {
+            Id = 7,
+            ParentId = 3,
+            Key = "groceries",
+            Name = "Groceries",
+            Description = "Food shopping",
+            IsEnabled = true,
+            IsSystem = false,
+            SystemCode = null
+        };
+
+        CategorySummary summary = response.ToSummary();
+
+        Assert.Equal(response.Id, summary.Id);
+        Assert.Equal(response.ParentId, summary.ParentId);
+        Assert.Equal(response.Key, summary.Key);
+        Assert.Equal(response.Name, summary.Name);
+        Assert.Equal(response.Description, summary.Description);
+        Assert.Equal(response.IsEnabled, summary.IsEnabled);
+        Assert.Equal(response.IsSystem, summary.IsSystem);
+        Assert.Equal(response.SystemCode, summary.SystemCode);
+        Assert.Equal(0, summary.Value);
     }
 }
