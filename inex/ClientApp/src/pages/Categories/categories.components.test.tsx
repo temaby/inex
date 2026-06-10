@@ -93,4 +93,22 @@ describe("Category row", () => {
         expect(getByRole("button")).toHaveClass("category-row--leaf");
         expect(getByRole("button")).not.toHaveClass("category-row--parent");
     });
+
+    it("renders activity and spend values when stats are available", () => {
+        renderRow({
+            stats: {
+                categoryId: 1,
+                transactionCount: 3,
+                totalSpend: 42.5,
+                lastActiveDate: "2026-06-08T12:00:00Z",
+            },
+            statsAvailable: true,
+        });
+
+        const row = screen.getByRole("button");
+        expect(row).toHaveTextContent("3 categories.activity.txns");
+        expect(row).toHaveTextContent("42.50 USD");
+        expect(screen.queryByLabelText("categories.activity.unavailable")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("categories.activity.spendUnavailable")).not.toBeInTheDocument();
+    });
 });

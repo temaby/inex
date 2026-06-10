@@ -326,6 +326,20 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task List_IncludesAccountCurrency()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var ids = await CreateTransactionFixtureAsync(client, "list-account-currency");
+
+        var response = await client.GetAsync("/api/transactions?pageSize=20&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var transaction = Assert.Single(body.GetProperty("data").EnumerateArray(), item => item.GetProperty("id").GetInt32() == ids.TransactionId);
+        Assert.Equal("USD", transaction.GetProperty("accountCurrency").GetString());
+    }
+
+    [Fact]
     public async Task List_WithUrlEncodedTag_ReturnsMatchingTransactions()
     {
         var client = await CreateAuthenticatedClientAsync();

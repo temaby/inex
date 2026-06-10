@@ -247,7 +247,11 @@ public class TransactionService : InExService, ITransactionService
 
     internal IQueryable<Transaction> GetTransactions(int userId, ActivityMode mode, IDictionary<string, string> filters)
     {
-        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository.Get(true, null, i => i.Account, i => i.Category).Where(i => i.UserId == userId).OrderByDescending(i => i.Created).ThenByDescending(i => i.Id), filters);
+        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository
+            .GetWithIncludePaths(true, null, "Account.Currency", "Category")
+            .Where(i => i.UserId == userId)
+            .OrderByDescending(i => i.Created)
+            .ThenByDescending(i => i.Id), filters);
 
         return mode switch
         {
@@ -260,7 +264,11 @@ public class TransactionService : InExService, ITransactionService
 
     internal IQueryable<Transaction> GetTransactions(int userId, ActivityMode mode, TransactionFilterQuery filter)
     {
-        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository.Get(true, null, i => i.Account, i => i.Category).Where(i => i.UserId == userId).OrderByDescending(i => i.Created).ThenByDescending(i => i.Id), filter);
+        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository
+            .GetWithIncludePaths(true, null, "Account.Currency", "Category")
+            .Where(i => i.UserId == userId)
+            .OrderByDescending(i => i.Created)
+            .ThenByDescending(i => i.Id), filter);
 
         return mode switch
         {
