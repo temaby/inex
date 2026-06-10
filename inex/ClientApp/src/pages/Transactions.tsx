@@ -18,6 +18,7 @@ import {
     SegmentedControl,
     type MoneyKind,
 } from "../components/primitives";
+import type { Signage } from "../components/primitives";
 import TransactionCreate from "./Transactions/TransactionCreate";
 import TransactionFilterForm from "./Transactions/TransactionFilterForm";
 import TransactionList from "./Transactions/TransactionList";
@@ -183,20 +184,23 @@ const Transactions = () => {
     const kpiItems = [
         {
             label: t("transactions.kpi.income"),
-            value: ledgerMetrics.income,
+            value: Math.abs(ledgerMetrics.income),
             kind: "income" as MoneyKind,
+            signage: "color-only" as Signage,
             sub: t("transactions.kpi.visibleRows", { count: ledgerMetrics.visibleCount, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.expenses"),
-            value: ledgerMetrics.expense,
+            value: Math.abs(ledgerMetrics.expense),
             kind: "expense" as MoneyKind,
+            signage: "color-only" as Signage,
             sub: t("transactions.kpi.visibleRows", { count: ledgerMetrics.visibleCount, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.netFlow"),
             value: ledgerMetrics.net,
             kind: ledgerMetrics.net > 0 ? "income" as MoneyKind : ledgerMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
+            signage: "signed" as Signage,
             sub: t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency }),
         },
     ];
@@ -221,7 +225,7 @@ const Transactions = () => {
                                     {ledgerInitialLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
-                                        <Num currency={baseCurrency} currencySize="sm" kind={item.kind} signage="signed" size={30} value={item.value} />
+                                        <Num currency={baseCurrency} currencySize="sm" kind={item.kind} signage={item.signage} size={34} value={item.value} />
                                     )}
                                 </div>
                                 <div className="transactions-kpi__sub">{item.sub}</div>
@@ -276,6 +280,7 @@ const Transactions = () => {
                                 className="transactions-search"
                                 onChange={(event) => setLedgerFilter(prev => ({ ...prev, search: event.target.value }))}
                                 placeholder={t("transactions.searchPlaceholder")}
+                                style={{ flex: "0 1 280px", minWidth: 220 }}
                                 value={ledgerFilter.search}
                                 variant="search"
                             />
@@ -297,7 +302,6 @@ const Transactions = () => {
 
                         <TransactionList
                             accounts={allAccounts}
-                            baseCurrency={baseCurrency}
                             categories={allCategories}
                             exchangeRates={exchangeRates}
                             ledgerFilter={ledgerFilter}

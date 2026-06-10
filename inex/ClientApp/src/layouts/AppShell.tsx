@@ -1,13 +1,17 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Dropdown } from "antd";
+import type { MenuProps } from "antd";
 import {
     ArrowLeftRight,
     BarChart3,
+    ChevronDown,
     LayoutDashboard,
     LogOut,
     Target,
     Tag,
+    UserRound,
     Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -52,7 +56,7 @@ const getInitials = (username?: string) => {
 
 const Logo = () => (
     <div className="inex-logo" aria-label="InEx">
-        <span className="inex-logo__mark" aria-hidden="true">I</span>
+        <img className="inex-logo__mark" src="/assets/mark.svg" alt="" aria-hidden="true" />
         <span className="inex-logo__wordmark">InEx</span>
     </div>
 );
@@ -72,6 +76,30 @@ const AppShell = ({ title, subtitle, extra, children }: AppShellProps) => {
 
     const handleLogout = async () => {
         await dispatch(logoutUser());
+    };
+
+    const profileMenuItems: MenuProps["items"] = [
+        {
+            key: "profile",
+            icon: <UserRound size={15} aria-hidden="true" />,
+            label: t("nav.profile"),
+        },
+        {
+            key: "logout",
+            icon: <LogOut size={15} aria-hidden="true" />,
+            label: t("nav.signOut"),
+        },
+    ];
+
+    const handleProfileMenuClick: MenuProps["onClick"] = async ({ key }) => {
+        if (key === "profile") {
+            handleNavigate("/profile");
+            return;
+        }
+
+        if (key === "logout") {
+            await handleLogout();
+        }
     };
 
     return (
@@ -102,25 +130,21 @@ const AppShell = ({ title, subtitle, extra, children }: AppShellProps) => {
                 </nav>
 
                 <div className="inex-topnav__actions r-topnav-actions">
-                    <button
-                        type="button"
-                        className="inex-user-pill r-user-pill"
-                        aria-label={t("nav.profile")}
-                        onClick={() => handleNavigate("/profile")}
+                    <Dropdown
+                        menu={{ items: profileMenuItems, onClick: handleProfileMenuClick }}
+                        placement="bottomRight"
+                        trigger={["click"]}
                     >
-                        <span className="inex-user-pill__avatar" aria-hidden="true">{initials}</span>
-                        {username && <span className="inex-user-pill__name r-user-pill-name">{username}</span>}
-                    </button>
-
-                    <button
-                        type="button"
-                        className="inex-shell-icon-button"
-                        aria-label={t("nav.signOut")}
-                        title={t("nav.signOut")}
-                        onClick={handleLogout}
-                    >
-                        <LogOut size={16} aria-hidden="true" />
-                    </button>
+                        <button
+                            type="button"
+                            className="inex-user-pill r-user-pill"
+                            aria-label={t("nav.profile")}
+                        >
+                            <span className="inex-user-pill__avatar" aria-hidden="true">{initials}</span>
+                            {username && <span className="inex-user-pill__name r-user-pill-name">{username}</span>}
+                            <ChevronDown className="inex-user-pill__chevron" size={14} strokeWidth={1.9} aria-hidden="true" />
+                        </button>
+                    </Dropdown>
                 </div>
             </header>
 
