@@ -151,6 +151,7 @@ Conditional/shared files only if the orchestrator expands scope:
 - Do not revert or rewrite the 10.3d fixes for base equivalents, group sorting, first-use empty, filter-empty context, drawer focus, or zero-share handling.
 - Do not remove Dashboard, sign-out, or `/dashboard` redirect as a page-local "fix"; record those as shared decisions unless reassigned.
 - Do not fabricate March 2026 or April 2026 fixture values in live UI.
+- For #199 and follow-up PRs, use `docs/implementation/visual-qa/accounts-fixture-baseline.md` as the Accounts fixture-mode QA contract. Fixture mode is authoritative for mockup parity; live data is smoke/regression only.
 - Do not show dead controls for unsupported starting balance, update balance, bank connect, or view-transactions actions.
 - Do not weaken account API payloads or mutate backend contracts.
 - Do not add new dependencies.
@@ -206,6 +207,7 @@ Conditional/shared files only if the orchestrator expands scope:
 - `inex/ClientApp/src/pages/Accounts/accounts.css`
 - `inex/ClientApp/src/pages/Accounts/accounts-utils.ts`
 - `inex/ClientApp/src/store/accounts/accounts-api.ts`
+- `docs/implementation/visual-qa/accounts-fixture-baseline.md`
 - `inex/ClientApp/src/components/primitives/SegmentedControl.tsx`
 - `inex/ClientApp/src/layouts/AppShell.tsx`
 - `inex/ClientApp/src/App.tsx`

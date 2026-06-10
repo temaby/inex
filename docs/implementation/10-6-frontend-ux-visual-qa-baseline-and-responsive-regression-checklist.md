@@ -74,6 +74,8 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 
 **Data mode setup:** choose either fixed April 2026 mockup fixtures or live seeded user data before a QA pass starts. Use the same mode across Transactions, Accounts, Categories, and Budgets for a comparable pass, and record the mode in every checklist row. If fixture mode is used, route/query/period/currency values must match the mockup fixture. If live-seed mode is used, account balances, transaction amounts, category totals, budget usage, and currency values may differ from the mockup, but visual structure, labels, affordances, responsive behavior, and empty/filter/drawer states must still match the accepted design contract.
 
+**Accounts fixture baseline:** Accounts mockup parity uses fixture mode as the source of truth. Follow `docs/implementation/visual-qa/accounts-fixture-baseline.md` for the Accounts fixture values, default-expanded group rule, collapsed-group state, and live-smoke limitations. Do not accept or reject Accounts value parity from a developer's live account data.
+
 ## Epic Context
 
 Epic 10 rebuilds the production React app to implement the `docs/design` visual system. Story 10.6 is the final story and acts as the acceptance gate for the entire epic. The acceptance gate is defined in `docs/planning/design-update-plan.md` (Acceptance Gate For The Design Track section):

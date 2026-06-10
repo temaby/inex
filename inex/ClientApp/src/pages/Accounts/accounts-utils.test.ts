@@ -5,10 +5,18 @@ import {
   buildDisplayAccounts,
   getAccountDisplayDescription,
   getBaseCurrency,
+  getTotalBaseValue,
   makeCurrencyGroups,
   sortAccountsByBaseValue,
+  toFixedMoney,
   toBaseCurrencyAmount,
 } from "./accounts-utils";
+import {
+  accountsVisualFixtureAccounts,
+  accountsVisualFixtureMeta,
+  accountsVisualFixtureRates,
+  accountsVisualFixtureSummaries,
+} from "../../test/fixtures/accountsVisualFixture";
 
 const accounts: AccountResponse[] = [
   {
@@ -129,5 +137,22 @@ describe("accounts value helpers", () => {
     expect(getAccountDisplayDescription("Cash wallet", "   ")).toBeNull();
     expect(getAccountDisplayDescription("Cash wallet", " cash WALLET ")).toBeNull();
     expect(getAccountDisplayDescription("Cash wallet", "Daily spending")).toBe("Daily spending");
+  });
+
+  it("keeps the Accounts visual QA fixture stable without production data fallbacks", () => {
+    const activeFixtureAccounts = accountsVisualFixtureAccounts.filter((account) => account.isEnabled);
+    const activeFixtureSummaries = accountsVisualFixtureSummaries.filter((summary) => summary.isEnabled);
+    const displayAccounts = buildDisplayAccounts(
+      activeFixtureAccounts,
+      activeFixtureSummaries,
+      accountsVisualFixtureMeta.expectedBaseCurrency,
+      accountsVisualFixtureRates,
+    );
+    const groups = makeCurrencyGroups(displayAccounts, 33968.12);
+
+    expect(toFixedMoney(getTotalBaseValue(displayAccounts))).toBe(accountsVisualFixtureMeta.expectedNetWorth);
+    expect(groups.map((group) => group.currency)).toEqual(accountsVisualFixtureMeta.expectedDistributionOrder);
+    expect(accountsVisualFixtureMeta.defaultCollapsedCurrencies).toEqual([]);
+    expect(accountsVisualFixtureMeta.comparisonPeriodLabel).toBe("Mar 2026");
   });
 });

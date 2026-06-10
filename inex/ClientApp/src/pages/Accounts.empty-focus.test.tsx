@@ -8,6 +8,13 @@ import authSlice from "../store/auth/auth-slice";
 import ratesSlice from "../store/rates/rates-slice";
 import { accountsApi } from "../store/accounts/accounts-api";
 import Accounts from "./Accounts";
+import {
+    accountsVisualFixtureAccounts,
+    accountsVisualFixtureCurrencies,
+    accountsVisualFixtureMeta,
+    accountsVisualFixtureRates,
+    accountsVisualFixtureSummaries,
+} from "../test/fixtures/accountsVisualFixture";
 
 const apiClientMock = vi.hoisted(() => Object.assign(vi.fn(), { get: vi.fn() }));
 
@@ -50,7 +57,7 @@ vi.mock("./Accounts/AccountEditForm", () => ({
     default: () => <div>mock-account-edit</div>,
 }));
 
-const makeStore = () =>
+const makeStore = (rates = [] as typeof accountsVisualFixtureRates) =>
     configureStore({
         reducer: {
             auth: authSlice.reducer,
@@ -68,7 +75,7 @@ const makeStore = () =>
                 error: null,
             },
             rates: {
-                items: [],
+                items: rates,
                 error: null,
             },
         },
@@ -192,5 +199,39 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.queryByText("2 / 3")).not.toBeInTheDocument();
         expect(screen.queryByText("cash WALLET")).not.toBeInTheDocument();
         expect(screen.getByText("Daily card")).toBeVisible();
+    });
+
+    it("renders fixture currency groups expanded by default and supports collapsed-state QA", async () => {
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/accounts?mode=ALL") {
+                return { data: { data: accountsVisualFixtureAccounts } };
+            }
+            if (url.startsWith("/accounts/details?mode=active")) {
+                return { data: { data: accountsVisualFixtureSummaries } };
+            }
+            return { data: null };
+        });
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        const store = makeStore(accountsVisualFixtureRates);
+
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Accounts />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        expect(await screen.findByText("UZS main wallet")).toBeVisible();
+        const fixtureGroup = (await screen.findAllByRole("button", {
+            name: "accounts.group.collapse",
+        }))[0];
+        expect(fixtureGroup).toHaveAttribute("aria-expanded", "true");
+
+        await userEvent.setup().click(fixtureGroup);
+
+        expect(fixtureGroup).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
+        expect(accountsVisualFixtureMeta.collapsedStateCurrency).toBe("UZS");
     });
 });
