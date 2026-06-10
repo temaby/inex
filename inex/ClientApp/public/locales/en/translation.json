@@ -342,6 +342,7 @@
       "flat": "Flat list"
     },
     "toolbar": {
+      "label": "Accounts inventory controls",
       "statusLabel": "STATUS",
       "viewLabel": "VIEW"
     },

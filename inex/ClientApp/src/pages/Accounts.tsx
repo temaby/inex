@@ -717,30 +717,30 @@ const Accounts = () => {
                     </section>
 
                     <section className="accounts-card">
-                        <div className="accounts-toolbar">
-                            <div className="accounts-toolbar__title">
-                                <h2>{t("accounts.workspaceTitle")}</h2>
-                                <p className="accounts-toolbar__summary">
-                                    <span>
-                                        {t("accounts.inventory.summary", {
-                                            visible: searchedAccounts.length,
-                                            total: scopedCount,
-                                        })}
-                                    </span>
-                                    <span>
-                                        {scope === "active"
-                                            ? t("accounts.inventory.activeOnly", { count: activeCount })
-                                            : t("accounts.inventory.allScope")}
-                                    </span>
-                                </p>
-                                {hasPartialError && (
-                                    <span className="accounts-inline-retry">
-                                        {t("accounts.error.partialFailure")}
-                                        <button onClick={retryAccounts} type="button">{t("accounts.error.retry")}</button>
-                                    </span>
-                                )}
-                            </div>
-                            <div className="accounts-toolbar__controls">
+                        <div className="accounts-toolbar" aria-label={t("accounts.toolbar.label")} role="region">
+                            <div className="accounts-toolbar__primary">
+                                <div className="accounts-toolbar__title">
+                                    <h2>{t("accounts.workspaceTitle")}</h2>
+                                    <p className="accounts-toolbar__summary">
+                                        <span>
+                                            {t("accounts.inventory.summary", {
+                                                visible: searchedAccounts.length,
+                                                total: scopedCount,
+                                            })}
+                                        </span>
+                                        <span>
+                                            {scope === "active"
+                                                ? t("accounts.inventory.activeOnly", { count: activeCount })
+                                                : t("accounts.inventory.allScope")}
+                                        </span>
+                                    </p>
+                                    {hasPartialError && (
+                                        <span className="accounts-inline-retry">
+                                            {t("accounts.error.partialFailure")}
+                                            <button onClick={retryAccounts} type="button">{t("accounts.error.retry")}</button>
+                                        </span>
+                                    )}
+                                </div>
                                 <SegmentedControl
                                     label={t("accounts.toolbar.statusLabel")}
                                     size="compact"
@@ -751,6 +751,8 @@ const Accounts = () => {
                                         { key: "all", label: t("accounts.scope.all") },
                                     ]}
                                 />
+                            </div>
+                            <div className="accounts-toolbar__filters">
                                 <SegmentedControl
                                     label={t("accounts.toolbar.viewLabel")}
                                     size="compact"
@@ -763,6 +765,7 @@ const Accounts = () => {
                                 />
                                 <Input
                                     aria-label={t("accounts.searchLabel")}
+                                    className="accounts-toolbar__search"
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder={t("accounts.searchPlaceholder")}

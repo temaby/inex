@@ -29,6 +29,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
             const translations: Record<string, string> = {
                 "accounts.workspaceTitle": "Accounts",
                 "accounts.searchPlaceholder": "Search accounts...",
+                "accounts.toolbar.label": "Accounts inventory controls",
                 "accounts.toolbar.statusLabel": "STATUS",
                 "accounts.toolbar.viewLabel": "VIEW",
                 "accounts.headers.account": "ACCOUNT",
@@ -188,9 +189,15 @@ describe("Accounts empty-state create focus", () => {
         );
 
         expect(await screen.findByRole("heading", { name: "Accounts" })).toBeInTheDocument();
-        expect(screen.getByRole("group", { name: "STATUS" })).toBeInTheDocument();
-        expect(screen.getByRole("group", { name: "VIEW" })).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: "Accounts inventory controls" })).toBeInTheDocument();
+        const statusControl = screen.getByRole("group", { name: "STATUS" });
+        const viewControl = screen.getByRole("group", { name: "VIEW" });
+        expect(statusControl).toBeInTheDocument();
+        expect(viewControl).toBeInTheDocument();
+        expect(statusControl.closest(".accounts-toolbar__primary")).not.toBeNull();
+        expect(viewControl.closest(".accounts-toolbar__filters")).not.toBeNull();
         const searchbox = screen.getByRole("searchbox", { name: "accounts.searchLabel" });
+        expect(searchbox.closest(".accounts-toolbar__filters")).not.toBeNull();
         expect(searchbox).toHaveAttribute("placeholder", "Search accounts...");
 
         expect(screen.getByText("ACCOUNT")).toBeVisible();
