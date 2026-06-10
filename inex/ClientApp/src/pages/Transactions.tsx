@@ -302,7 +302,6 @@ const Transactions = () => {
 
                         <TransactionList
                             accounts={allAccounts}
-                            baseCurrency={baseCurrency}
                             categories={allCategories}
                             exchangeRates={exchangeRates}
                             ledgerFilter={ledgerFilter}

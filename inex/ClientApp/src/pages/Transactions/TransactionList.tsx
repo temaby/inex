@@ -28,7 +28,6 @@ import {
 
 interface TransactionListProps {
     accounts: AccountResponse[];
-    baseCurrency: string;
     categories: CategoryResponse[];
     exchangeRates: ExchangeRateLike[];
     ledgerFilter: LedgerUiFilter;
@@ -111,7 +110,6 @@ const groupTransactions = (
 
 const TransactionList = ({
     accounts,
-    baseCurrency,
     categories,
     exchangeRates,
     ledgerFilter,
@@ -357,11 +355,11 @@ const TransactionList = ({
                         <header className="transactions-day-header">
                             <div className="transactions-day-header__date">
                                 {group.label}
-                                <span>{t("transactions.itemCount", { count: group.items.length })}</span>
+                                <span>&middot; {t("transactions.itemCount", { count: group.items.length })}</span>
                             </div>
                             <div className="transactions-day-header__totals">
-                                {group.income > 0 && <Num value={group.income} kind="income" currency={baseCurrency} signage="signed" size={12} />}
-                                {group.expense < 0 && <Num value={group.expense} kind="expense" currency={baseCurrency} signage="signed" size={12} />}
+                                {group.income > 0 && <Num value={group.income} kind="income" signage="signed" size={12} />}
+                                {group.expense < 0 && <Num value={group.expense} kind="expense" signage="signed" size={12} />}
                             </div>
                         </header>
                         {group.items.map(transaction => {
@@ -430,18 +428,17 @@ const TransactionList = ({
                                         <Num
                                             currency={currency}
                                             kind={amountKind}
-                                            signage="signed"
                                             value={transaction.amount}
                                             size={15}
                                         />
                                         {baseEquivalent && (
                                             <span className="transactions-row-amount-equivalent">
-                                                {t("transactions.approxBaseAmount")}{" "}
+                                                {"\u2248 "}
                                                 <Num
                                                     currency={baseEquivalent.currency}
                                                     kind={amountKind}
-                                                    signage="signed"
-                                                    value={baseEquivalent.value}
+                                                    signage="color-only"
+                                                    value={Math.abs(baseEquivalent.value)}
                                                     size={12}
                                                 />
                                             </span>
