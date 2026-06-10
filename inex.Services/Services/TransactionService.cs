@@ -79,8 +79,8 @@ public class TransactionService : InExService, ITransactionService
 
         Category transferCategory = DbInEx.CategoryRepository.Get(true).First(i => i.UserId == userId && i.SystemCode!.ToLower() == "transfer");
 
-        Account accountFrom = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountFromId);
-        Account accountTo = DbInEx.AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountToId);
+        Account accountFrom = await GetTransferAccountForUserAsync(itemDTO.AccountFromId, userId, ct);
+        Account accountTo = await GetTransferAccountForUserAsync(itemDTO.AccountToId, userId, ct);
 
         TransferFromData transferFrom = itemDTO.ToTransferFromData();
         TransferToData transferTo = itemDTO.ToTransferToData();
@@ -349,6 +349,14 @@ public class TransactionService : InExService, ITransactionService
         {
             throw new ResourceNotFoundException($"Category {categoryId} was not found.", "Category", categoryId);
         }
+    }
+
+    private async Task<Account> GetTransferAccountForUserAsync(int accountId, int userId, CancellationToken ct)
+    {
+        return await DbInEx.AccountRepository
+            .Get(true, i => i.Id == accountId && i.UserId == userId)
+            .SingleOrDefaultAsync(ct)
+            ?? throw new ResourceNotFoundException($"Account {accountId} was not found.", "Account", accountId);
     }
 
     #endregion Private Methods
