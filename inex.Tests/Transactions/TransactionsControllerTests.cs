@@ -119,6 +119,48 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task CreateTransfer_WithOtherUsersSourceAccount_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int otherSourceAccountId = await CreateAccountAsync(userB, "other-transfer-source-account");
+        int ownDestinationAccountId = await CreateAccountAsync(userA, "own-transfer-destination-account");
+
+        var response = await userA.PostAsJsonAsync("/api/transactions/transfer", new
+        {
+            accountFromId = otherSourceAccountId,
+            accountToId   = ownDestinationAccountId,
+            created       = DateTime.UtcNow,
+            amountFrom    = 10m,
+            amountTo      = 10m,
+            comment       = "attempted transfer source",
+        });
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
+    public async Task CreateTransfer_WithOtherUsersDestinationAccount_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int ownSourceAccountId = await CreateAccountAsync(userA, "own-transfer-source-account");
+        int otherDestinationAccountId = await CreateAccountAsync(userB, "other-transfer-destination-account");
+
+        var response = await userA.PostAsJsonAsync("/api/transactions/transfer", new
+        {
+            accountFromId = ownSourceAccountId,
+            accountToId   = otherDestinationAccountId,
+            created       = DateTime.UtcNow,
+            amountFrom    = 10m,
+            amountTo      = 10m,
+            comment       = "attempted transfer destination",
+        });
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
     public async Task Update_WithOtherUsersAccount_Returns404Problem()
     {
         var userA = await CreateAuthenticatedClientAsync();
