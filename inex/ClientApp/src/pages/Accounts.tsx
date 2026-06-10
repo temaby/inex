@@ -424,9 +424,6 @@ const Accounts = () => {
                         {account.currency}
                     </span>
                     <span className="accounts-row__share">
-                        <span className="accounts-share-bar" aria-hidden="true">
-                            <span style={{ width: `${Math.min(100, Math.max(0, share ?? 0))}%` }} />
-                        </span>
                         <span>
                             {share === null
                                 ? t("accounts.equivalent.unavailable")
