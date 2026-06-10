@@ -27,18 +27,12 @@
 .accounts-hero__net,
 .accounts-hero__mix {
     min-width: 0;
-    padding: 24px;
+    padding: 24px 28px;
 }
 
 .accounts-hero__net {
-    background: var(--brand-ink);
-    color: var(--fg-on-dark);
-}
-
-.accounts-hero__net .accounts-eyebrow,
-.accounts-hero__net .accounts-hero__delta,
-.accounts-hero__net .accounts-hero__stats {
-    color: rgba(255, 255, 255, 0.72);
+    border-right: 1px solid var(--border-1);
+    color: var(--fg-1);
 }
 
 .accounts-eyebrow {
@@ -91,7 +85,7 @@
 }
 
 .accounts-hero__stats span {
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid var(--border-1);
     border-radius: var(--radius-pill);
     padding: 4px 9px;
 }
@@ -131,15 +125,67 @@
 
 .accounts-distribution {
     display: grid;
-    gap: 10px;
+    gap: 14px;
+}
+
+.accounts-distribution__stack {
+    background: var(--bg-muted);
+    border-radius: 6px;
+    display: flex;
+    height: 16px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.accounts-distribution__segment {
+    display: block;
+    min-width: 0;
+}
+
+.accounts-distribution__segment.is-teal {
+    background: var(--income-500);
+}
+
+.accounts-distribution__segment.is-slate {
+    background: var(--transfer-fg);
+}
+
+.accounts-distribution__segment.is-amber {
+    background: var(--warn-fg);
+}
+
+.accounts-distribution__segment.is-terracotta {
+    background: var(--expense-600);
+}
+
+.accounts-distribution__segment.is-ink {
+    background: var(--brand-ink);
+}
+
+.accounts-distribution__legend {
+    display: grid;
+    gap: 10px 28px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
 }
 
 .accounts-distribution__item {
     align-items: center;
     display: grid;
-    gap: 10px;
-    grid-template-columns: auto minmax(52px, auto) minmax(48px, max-content) minmax(120px, max-content) minmax(100px, 1fr);
+    gap: 4px 9px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     min-width: 0;
+}
+
+.accounts-distribution__currency {
+    color: var(--fg-1);
+    font-weight: 700;
+}
+
+.accounts-distribution__share {
+    color: var(--fg-3);
+    font-family: var(--font-num);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
 }
 
 .accounts-distribution__amount,
@@ -157,7 +203,8 @@
 }
 
 .accounts-distribution__amount {
-    justify-self: end;
+    grid-column: 2 / 4;
+    justify-self: start;
 }
 
 .accounts-base-equivalent__prefix {
@@ -179,12 +226,10 @@
     overflow: hidden;
 }
 
-.accounts-distribution__bar,
 .accounts-group__bar {
     height: 8px;
 }
 
-.accounts-distribution__bar span,
 .accounts-group__bar span,
 .accounts-share-bar span {
     background: var(--income-500);
@@ -625,7 +670,12 @@
 
     .accounts-hero__net,
     .accounts-hero__mix {
-        padding: 20px 16px;
+        padding: 16px;
+    }
+
+    .accounts-hero__net {
+        border-bottom: 1px solid var(--border-1);
+        border-right: 0;
     }
 
     .accounts-hero__value {
@@ -638,18 +688,8 @@
         flex-direction: column;
     }
 
-    .accounts-distribution__item {
-        align-items: start;
-        grid-template-columns: auto minmax(0, 1fr) auto;
-    }
-
-    .accounts-distribution__amount {
-        grid-column: 2 / 4;
-        justify-self: start;
-    }
-
-    .accounts-distribution__bar {
-        grid-column: 1 / -1;
+    .accounts-distribution__legend {
+        grid-template-columns: 1fr;
     }
 
     .accounts-toolbar__summary {

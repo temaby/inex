@@ -59,6 +59,9 @@ const currencyToneClass = (currency: string): string => {
     return tones[seed % tones.length];
 };
 
+const getCurrencySegmentWidth = (share: number): number =>
+    share === 0 ? 0 : Math.min(100, Math.max(1.5, share));
+
 const getErrorDetail = (error: unknown): string | null => {
     if (!error || typeof error !== "object") return null;
     if ("status" in error) {
@@ -350,7 +353,7 @@ const Accounts = () => {
                     </span>
                 </span>
                 <span className="accounts-hero__delta-helper">
-                    {t("accounts.hero.momComparisonPeriod")}
+                    {t("accounts.hero.momComparisonFallback")}
                 </span>
             </React.Fragment>
         );
@@ -657,7 +660,11 @@ const Accounts = () => {
                             <div className="accounts-hero__mix-head">
                                 <div>
                                     <div className="accounts-eyebrow">{t("accounts.hero.currencyDistribution")}</div>
-                                    <h2>{hasCompleteScopedBaseValues ? t("accounts.hero.byValue") : t("accounts.hero.byCount")}</h2>
+                                    <h2>
+                                        {hasCompleteScopedBaseValues && baseCurrency
+                                            ? t("accounts.hero.baseEquivalentLabel", { currency: baseCurrency })
+                                            : t("accounts.hero.byCount")}
+                                    </h2>
                                 </div>
                                 {isRefreshing && (
                                     <span className="accounts-refreshing">
@@ -672,25 +679,37 @@ const Accounts = () => {
                                     : t("accounts.equivalent.unavailable")}
                                 className="accounts-distribution"
                             >
-                                {distributionGroups.length > 0 ? distributionGroups.map((group) => (
-                                    <div className="accounts-distribution__item" key={group.currency}>
-                                        <span className={`accounts-currency-dot is-${currencyToneClass(group.currency)}`} />
-                                        <span>{group.currency}</span>
-                                        <span>
-                                            {group.share === null
-                                                ? t("accounts.equivalent.unavailable")
-                                                : `${group.share.toFixed(1)}%`}
-                                        </span>
-                                        {renderBaseEquivalent(group.baseSubtotal, {
-                                            className: "accounts-distribution__amount",
-                                        })}
-                                        {group.share !== null && (
-                                            <div className="accounts-distribution__bar" aria-hidden="true">
-                                                <span style={{ width: `${group.share === 0 ? 0 : Math.min(100, Math.max(4, group.share))}%` }} />
+                                {distributionGroups.length > 0 ? (
+                                    <React.Fragment>
+                                        {hasCompleteScopedBaseValues && (
+                                            <div className="accounts-distribution__stack" aria-hidden="true">
+                                                {distributionGroups.map((group) => (
+                                                    <span
+                                                        className={`accounts-distribution__segment is-${currencyToneClass(group.currency)}`}
+                                                        key={group.currency}
+                                                        style={{ width: `${getCurrencySegmentWidth(group.share ?? 0)}%` }}
+                                                    />
+                                                ))}
                                             </div>
                                         )}
-                                    </div>
-                                )) : (
+                                        <div className="accounts-distribution__legend">
+                                            {distributionGroups.map((group) => (
+                                                <div className="accounts-distribution__item" key={group.currency}>
+                                                    <span className={`accounts-currency-dot is-${currencyToneClass(group.currency)}`} />
+                                                    <span className="accounts-distribution__currency">{group.currency}</span>
+                                                    <span className="accounts-distribution__share">
+                                                        {group.share === null
+                                                            ? t("accounts.equivalent.unavailable")
+                                                            : `${group.share.toFixed(1)}%`}
+                                                    </span>
+                                                    {renderBaseEquivalent(group.baseSubtotal, {
+                                                        className: "accounts-distribution__amount",
+                                                    })}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </React.Fragment>
+                                ) : (
                                     <div className="accounts-muted-metric">{t("accounts.hero.noDistribution")}</div>
                                 )}
                             </div>

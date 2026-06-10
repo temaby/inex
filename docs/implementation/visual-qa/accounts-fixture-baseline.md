@@ -36,6 +36,16 @@ Visual QA must include both:
 - `expanded-groups`: initial fixture render, all currency groups expanded.
 - `collapsed-group`: fixture render after collapsing the `UZS` group; the group button must expose `aria-expanded="false"` and the group rows must be hidden.
 
+## Hero And Distribution Rule
+
+Source issue: #196.
+
+- The Accounts hero follows the mockup white-card composition: net-worth summary on the left and currency distribution on the right.
+- Currency distribution uses one stacked bar plus a legend. Do not render independent progress bars for every currency in the hero.
+- If complete base-currency data is available, show signed absolute movement, percentage movement, and generic comparison copy for live data.
+- Use a concrete period such as `Mar 2026` only from fixture metadata or a reliable app data source. Live Accounts data currently uses the generic previous-month label.
+- If base-currency or monthly movement data is incomplete, render the localized unavailable state instead of a partial percent-only claim.
+
 ## Required Accounts State Matrix
 
 Every Accounts mockup-alignment PR must update or cite this matrix.

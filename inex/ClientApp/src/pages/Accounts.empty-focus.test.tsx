@@ -40,6 +40,8 @@ vi.mock("react-i18next", async (importOriginal) => ({
                 "accounts.group.accountCountOther": `${String(options?.count)} accounts`,
                 "accounts.hero.momDeltaPercent": `${String(options?.value)} MoM`,
                 "accounts.hero.momComparisonPeriod": "vs previous month",
+                "accounts.hero.momComparisonFallback": "Change from previous month",
+                "accounts.hero.baseEquivalentLabel": `${String(options?.currency)} equivalent`,
             };
 
             return translations[key] ?? key;
@@ -223,6 +225,12 @@ describe("Accounts empty-state create focus", () => {
         );
 
         expect(await screen.findByText("UZS main wallet")).toBeVisible();
+        expect(screen.getByText("Change from previous month")).toBeVisible();
+        expect(document.querySelector(".accounts-distribution__stack")).toBeInTheDocument();
+        expect(document.querySelectorAll(".accounts-distribution__segment")).toHaveLength(
+            accountsVisualFixtureMeta.expectedDistributionOrder.length,
+        );
+        expect(document.querySelector(".accounts-distribution__bar")).not.toBeInTheDocument();
         const fixtureGroup = (await screen.findAllByRole("button", {
             name: "accounts.group.collapse",
         }))[0];
