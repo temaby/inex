@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60" width="100" height="60" role="img" aria-label="InEx mark">
+  <defs>
+    <linearGradient id="inexIncome" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4FA592"></stop>
+      <stop offset="55%" stop-color="#2F8F82"></stop>
+      <stop offset="100%" stop-color="#1E6154"></stop>
+    </linearGradient>
+    <linearGradient id="inexExpense" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D57766"></stop>
+      <stop offset="55%" stop-color="#C35A4A"></stop>
+      <stop offset="100%" stop-color="#8B3729"></stop>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 52 38 C 60 56, 80 52, 80 30 C 80 8, 60 4, 44 22" stroke="url(#inexIncome)"></path>
+    <path d="M 44 22 l -4 -4 M 44 22 l 5 -3" stroke="url(#inexIncome)"></path>
+    <path d="M 44 22 C 36 4, 16 8, 16 30 C 16 52, 36 56, 52 38" stroke="url(#inexExpense)"></path>
+    <path d="M 52 38 l 4 4 M 52 38 l -5 3" stroke="url(#inexExpense)"></path>
+  </g>
+</svg>
