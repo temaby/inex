@@ -15,6 +15,13 @@ Use `CLAUDE.md` and `README.md` for broader project context. This file defines a
 - Do not rewrite Dev Agent Records, Change Logs, or completed story history unless explicitly asked.
 - For small bug fixes or mechanical edits, use BMad docs only when they are directly relevant to the touched area.
 
+## Session Workflow
+
+- Before UI/browser work, run the project doctor if available; see `docs/operations/project-doctor.md`. If it fails, report setup blockers before continuing.
+- For frontend visual changes, produce or update visual QA evidence before code review. Missing visual QA tooling is a blocker for visual-parity claims.
+- When given more than 10 UI findings, classify and group them into implementation-owned issues before coding.
+- After sessions with repeated environment or tool friction, propose one durable doc, script, or skill update.
+
 ## Communication
 
 - Do not open criticism with softening preambles. State the concern directly.
@@ -29,6 +36,11 @@ Use `CLAUDE.md` and `README.md` for broader project context. This file defines a
 - Never print secrets, connection strings, tokens, `.env` contents, or credentials.
 - Preserve unrelated user changes. Do not revert files unless explicitly requested.
 - Prefer narrow, reviewable changes that match existing patterns.
+
+## Tool Priority
+
+- Use MySQL MCP for read-only DB inspection before Docker, app startup, local `mysql`, migrations, or connection-string fallbacks. See `docs/operations/codex-mcp.md`.
+- Use the GitHub connector for issue and PR operations when available; use `gh` only for connector gaps.
 
 ## GitHub Issues
 
@@ -49,11 +61,10 @@ Use `CLAUDE.md` and `README.md` for broader project context. This file defines a
 
 ## Database Access
 
-When database access is needed for inspection, validation, debugging, or data analysis, use MySQL MCP first.
+When database access is needed for inspection, validation, debugging, or data analysis, keep it read-only unless explicitly approved.
 
 - Prefer `mcp_server_mysql.mysql_query` / `mysql_query` for all read-only SQL.
 - Use read-only SQL only: `SELECT`, `SHOW`, `DESCRIBE`, `EXPLAIN`.
-- Do not use Docker, app startup, local `mysql` CLI, migrations, or direct connection strings before checking whether MySQL MCP is available.
 - If MySQL MCP is unavailable or insufficient, state that explicitly before using a fallback.
 - Do not run write SQL unless explicitly requested and separately approved.
 - EF InMemory tests do not prove MySQL translation, migrations, constraints, collation, transactions, or concurrency.
