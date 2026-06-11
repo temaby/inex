@@ -6,7 +6,7 @@ InEx is a full-stack financial management application built with .NET 8 + React 
 
 ### Project Structure
 - **`inex/`** - Main ASP.NET Core web application with React SPA
-- **`inex.Services/`** - Business logic layer with AutoMapper profiles and service contracts  
+- **`inex.Services/`** - Business logic layer with response records, static mappers, and service contracts
 - **`inex.Data/`** - Data access layer with Entity Framework and repositories
 - **`inex/ClientApp/`** - React TypeScript frontend with Redux Toolkit state management
 
@@ -18,11 +18,11 @@ public const string RoutePrefix = "api/transactions";
 public const string GetSingleRoute = "{id}";
 ```
 
-**Services**: Follow interface-based dependency injection registered in `WalletServicesExtension.cs`. All services inherit from `IInExService`. Business logic returns standardized `ResponseDTO` objects with message collections.
+**Services**: Follow interface-based dependency injection registered in `WalletServicesExtension.cs`. All services inherit from `IInExService`. Business logic returns domain `XxxResponse` records or wrappers such as `ListResponse<T>`, `PagedResponse<T,TMeta>`, and `CreatedResponse`.
 
-**Error Handling**: Uses custom `InExException` with `MessageCode` enums. Controllers call `BuildErrorMessage()` to create consistent error responses.
+**Error Handling**: Uses custom `InExException` with global RFC 7807 Problem Details handling.
 
-**Data Transfer**: Extensive use of record-based DTOs (e.g., `TransactionDetailsDTO`, `TransactionCreateDTO`) with AutoMapper profiles for entity mapping.
+**Data Transfer**: Uses record-based request/response contracts under `inex.Services/Models/Records/` with static mapper extensions under `inex.Services/Models/Mappers/`.
 
 ### Frontend Patterns
 
@@ -52,7 +52,7 @@ public const string GetSingleRoute = "{id}";
 
 **Multi-Currency**: Exchange rate service with date-based rate fetching.
 
-**AutoMapper**: All entity-DTO mappings configured in `ConfigProfiles/` directory.
+**Static Mappers**: Entity-contract mappings use static mapper extensions in `inex.Services/Models/Mappers/`.
 
 ### Database Context
 
