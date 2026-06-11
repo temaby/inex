@@ -15,6 +15,9 @@ docker/mysql/initdb/*.sql
 docker/mysql/mysql_data/
 docker/mysql/backup/
 scripts
+!/scripts/
+/scripts/*
+!/scripts/doctor.ps1
 docs/*
 !docs/brainstorming/
 !docs/brainstorming/**
