@@ -4,6 +4,9 @@ using inex.Services.Exceptions;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using inex.Services.Services;
 using inex.Services.Tests.Helpers;
+using inex.Data;
+using inex.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Linq.Expressions;
@@ -32,6 +35,7 @@ public class ExchangeRateServiceTests
         _uowMock.Setup(u => u.ExchangeRateRepository).Returns(_exchangeRateRepoMock.Object);
         _uowMock.Setup(u => u.AccountRepository).Returns(_accountRepoMock.Object);
         _uowMock.Setup(u => u.UserRepository).Returns(_userRepoMock.Object);
+        _uowMock.Setup(u => u.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     // --- Helpers ---
@@ -53,6 +57,10 @@ public class ExchangeRateServiceTests
     private static IQueryable<Account> AccountsFor(int userId, params string[] currencyCodes) =>
         currencyCodes.Select(c => new Account { UserId = userId, IsEnabled = true, Currency = new Currency { Key = c } })
                      .AsAsyncQueryable();
+
+    private static IQueryable<Account> AccountsFor(int userId, params (string CurrencyCode, bool IsEnabled)[] accounts) =>
+        accounts.Select(account => new Account { UserId = userId, IsEnabled = account.IsEnabled, Currency = new Currency { Key = account.CurrencyCode } })
+                .AsAsyncQueryable();
 
     private static IQueryable<Account> EmptyAccounts() =>
         Enumerable.Empty<Account>().AsAsyncQueryable();
@@ -591,17 +599,14 @@ public class ExchangeRateServiceTests
         _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>())) 
             .Returns(AccountsFor(1, accountCurrency));
 
-        // First call: no rates cached yet — provider will be called.
-        // Second call: rates exist — provider must NOT be called.
-        var usdRate = new ExchangeRate { FromCode = baseCurrency, ToCode = accountCurrency, Rate = 1.1m, Created = pastDate.Date, IsTemporary = false };
-        var callCount = 0;
+        // First call: no rates cached yet, so the provider will be called.
+        // CreateAsync mutates the in-memory list so the second call observes the cached row.
+        var rates = new List<ExchangeRate>();
         _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
-            .Returns(() =>
-            {
-                // On the first invocation the cache is empty; after saving we expose the persisted rate.
-                callCount++;
-                return callCount == 1 ? EmptyRates() : new[] { usdRate }.AsAsyncQueryable();
-            });
+            .Returns(() => rates.AsAsyncQueryable());
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) => rates.Add(rate))
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
 
         _fallbackClientMock
             .Setup(c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
@@ -629,5 +634,455 @@ public class ExchangeRateServiceTests
         _fallbackClientMock.Verify(
             c => c.GetRatesForRangeAsync(pastDate, pastDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()),
             Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Single(rates);
+        Assert.Equal(accountCurrency, rates.Single().ToCode);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenPastTemporaryRowsExistAndProviderOmitsDate_PromotesCarryForwardRates()
+    {
+        var priorDate = new DateTime(2026, 5, 1);
+        var requestedDate = new DateTime(2026, 5, 3);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.8m, Created = requestedDate, IsTemporary = true },
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.0m, Created = requestedDate, IsTemporary = true }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>());
+        _clientMock.Setup(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ExchangeRateResponse?)null);
+
+        var sut = CreateSut();
+
+        await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+
+        _exchangeRateRepoMock.Verify(r => r.Update(It.Is<ExchangeRate>(e => e.Created == requestedDate && e.ToCode == "EUR" && e.Rate == 0.9m && !e.IsTemporary)), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.Update(It.Is<ExchangeRate>(e => e.Created == requestedDate && e.ToCode == "BYN" && e.Rate == 3.1m && !e.IsTemporary)), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == requestedDate), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_SecondCall_WhenPastTemporaryRowsWereCarriedForward_DoesNotRetryProvider()
+    {
+        var priorDate = new DateTime(2026, 5, 1);
+        var requestedDate = new DateTime(2026, 5, 3);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.8m, Created = requestedDate, IsTemporary = true }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>());
+        _clientMock.Setup(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ExchangeRateResponse?)null);
+
+        var sut = CreateSut();
+
+        await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+        await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        Assert.False(rates.Single(r => r.Created == requestedDate && r.ToCode == "EUR").IsTemporary);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenRowCountMatchesButTargetMissing_FetchesMissingTarget()
+    {
+        var priorDate = new DateTime(2026, 5, 1);
+        var requestedDate = new DateTime(2026, 5, 2);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = requestedDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "PLN", Rate = 4.0m, Created = requestedDate, IsTemporary = false }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>());
+        _clientMock.Setup(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ExchangeRateResponse?)null);
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) => rates.Add(rate))
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
+
+        var sut = CreateSut();
+
+        await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+        await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == requestedDate && e.ToCode == "BYN" && e.Rate == 3.1m && !e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.Is<string[]>(targets => targets.SequenceEqual(new[] { "BYN" })), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenByrAccountDisabled_DoesNotRequireByrCoverage()
+    {
+        var requestedDate = new DateTime(2026, 5, 2);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = requestedDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "BYR", Rate = 2.9m, Created = requestedDate, IsTemporary = true }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, ("EUR", true), ("BYR", false)));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+
+        var sut = CreateSut();
+
+        await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenMissingDatesAreSparse_DoesNotCallCurrencyApiForCompleteInteriorDates()
+    {
+        var start = new DateTime(2026, 5, 1);
+        var end = new DateTime(2026, 5, 10);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>();
+
+        foreach (var date in Enumerable.Range(0, 10).Select(offset => start.AddDays(offset)))
+        {
+            rates.Add(new ExchangeRate { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = date, IsTemporary = false });
+            if (date != start && date != end)
+            {
+                rates.Add(new ExchangeRate { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = date, IsTemporary = false });
+            }
+        }
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((DateTime requestedStart, DateTime requestedEnd, string _, string[] _, CancellationToken _) =>
+                EnumerateDatesForTest(requestedStart, requestedEnd).ToDictionary(
+                    date => date,
+                    date => new ExchangeRateResponse
+                    {
+                        Data = new Dictionary<string, ExchangeDateData>
+                        {
+                            ["EUR"] = new() { Code = "EUR", Value = 0.9m }
+                        }
+                    }));
+        _clientMock.Setup(c => c.GetRatesAsync(It.IsAny<DateTime>(), baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((DateTime date, string _, string[] targets, CancellationToken _) => new ExchangeRateResponse
+            {
+                Data = targets.ToDictionary(target => target, target => new ExchangeDateData { Code = target, Value = 3.1m })
+            });
+
+        var sut = CreateSut();
+
+        await sut.Get(1, start, end, baseCurrency);
+
+        _clientMock.Verify(c => c.GetRatesAsync(start, baseCurrency, It.Is<string[]>(targets => targets.SequenceEqual(new[] { "BYN" })), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(end, baseCurrency, It.Is<string[]>(targets => targets.SequenceEqual(new[] { "BYN" })), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(It.Is<DateTime>(date => date > start && date < end), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenFrankfurterOmitsMissingHoliday_DoesNotCallCurrencyApiForOmittedDate()
+    {
+        var tradingDate = new DateTime(2026, 5, 1);
+        var omittedDate = new DateTime(2026, 5, 2);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>();
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) => rates.Add(rate))
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(tradingDate, omittedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
+            {
+                [tradingDate] = new()
+                {
+                    Data = new Dictionary<string, ExchangeDateData>
+                    {
+                        ["EUR"] = new() { Code = "EUR", Value = 0.9m }
+                    }
+                }
+            });
+        _clientMock.Setup(c => c.GetRatesAsync(tradingDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExchangeRateResponse
+            {
+                Data = new Dictionary<string, ExchangeDateData>
+                {
+                    ["BYN"] = new() { Code = "BYN", Value = 3.1m }
+                }
+            });
+
+        var sut = CreateSut();
+
+        await sut.Get(1, tradingDate, omittedDate, baseCurrency);
+
+        _clientMock.Verify(c => c.GetRatesAsync(tradingDate, baseCurrency, It.Is<string[]>(targets => targets.SequenceEqual(new[] { "BYN" })), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(omittedDate, It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenTodayHasPartialTemporaryCoverage_FillsMissingTargetFromLatestActual()
+    {
+        var today = _clock.UtcNow.Date;
+        var priorDate = today.AddDays(-1);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = today, IsTemporary = true }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) => rates.Add(rate))
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
+
+        var sut = CreateSut();
+
+        await sut.Get(1, today, today, baseCurrency);
+
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == today && e.ToCode == "BYN" && e.Rate == 3.1m && e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenTodayMissingTargetHasOlderPriorRate_FillsFromLatestPriorRatePerTarget()
+    {
+        var today = _clock.UtcNow.Date;
+        var yesterday = today.AddDays(-1);
+        var olderDate = today.AddDays(-3);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = yesterday, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = olderDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = today, IsTemporary = true }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => rates.AsAsyncQueryable());
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) => rates.Add(rate))
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
+
+        var sut = CreateSut();
+
+        await sut.Get(1, today, today, baseCurrency);
+
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == today && e.ToCode == "BYN" && e.Rate == 3.1m && e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Get_ConcurrentCalls_ForSameMissingRange_RechecksCacheBeforeProviderCalls()
+    {
+        var requestedDate = new DateTime(2026, 5, 2);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>();
+        var ratesGate = new object();
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() =>
+            {
+                lock (ratesGate)
+                {
+                    return rates.ToList().AsAsyncQueryable();
+                }
+            });
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) =>
+            {
+                lock (ratesGate)
+                {
+                    rates.Add(rate);
+                }
+            })
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
+        _fallbackClientMock.Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .Returns(async () =>
+            {
+                await Task.Delay(50);
+                return new Dictionary<DateTime, ExchangeRateResponse>
+                {
+                    [requestedDate] = new()
+                    {
+                        Data = new Dictionary<string, ExchangeDateData>
+                        {
+                            ["EUR"] = new() { Code = "EUR", Value = 0.9m }
+                        }
+                    }
+                };
+            });
+        _clientMock.Setup(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExchangeRateResponse
+            {
+                Data = new Dictionary<string, ExchangeDateData>
+                {
+                    ["BYN"] = new() { Code = "BYN", Value = 3.1m }
+                }
+            });
+
+        var sut = CreateSut();
+
+        await Task.WhenAll(
+            sut.Get(1, requestedDate, requestedDate, baseCurrency),
+            sut.Get(1, requestedDate, requestedDate, baseCurrency),
+            sut.Get(1, requestedDate, requestedDate, baseCurrency));
+
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        _clientMock.Verify(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        var requestedDateRates = rates
+            .Where(rate => rate.Created == requestedDate && rate.FromCode == baseCurrency)
+            .ToList();
+        Assert.Equal(new[] { "BYN", "EUR" }, requestedDateRates.Select(rate => rate.ToCode).OrderBy(code => code));
+        Assert.All(requestedDateRates, rate => Assert.False(rate.IsTemporary));
+        Assert.Equal(requestedDateRates.Count, requestedDateRates.Select(rate => rate.ToCode).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Get_WithRealUnitOfWork_WhenPastTemporaryRowsArePromoted_SecondCallDoesNotRetryProvider()
+    {
+        var priorDate = new DateTime(2026, 5, 1);
+        var requestedDate = new DateTime(2026, 5, 3);
+        var baseCurrency = "USD";
+        var databaseName = Guid.NewGuid().ToString();
+        await using (var seedDb = CreateContext(databaseName))
+        {
+            await SeedExchangeRateContext(seedDb, baseCurrency, priorDate, requestedDate);
+        }
+
+        var fallbackClient = new Mock<IExchangeRateClient>();
+        var currencyApiClient = new Mock<IExchangeRateClient>();
+        var nbrbClient = new Mock<INbrbApiClient>();
+
+        fallbackClient
+            .Setup(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>());
+        currencyApiClient
+            .Setup(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ExchangeRateResponse?)null);
+
+        await using (var firstCallDb = CreateContext(databaseName))
+        {
+            var sut = new ExchangeRateService(
+                new InExUnitOfWork(firstCallDb),
+                currencyApiClient.Object,
+                fallbackClient.Object,
+                nbrbClient.Object,
+                NullLogger<ExchangeRateService>.Instance,
+                _clock);
+            await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+        }
+
+        await using (var secondCallDb = CreateContext(databaseName))
+        {
+            var sut = new ExchangeRateService(
+                new InExUnitOfWork(secondCallDb),
+                currencyApiClient.Object,
+                fallbackClient.Object,
+                nbrbClient.Object,
+                NullLogger<ExchangeRateService>.Instance,
+                _clock);
+            await sut.Get(1, requestedDate, requestedDate, baseCurrency);
+        }
+
+        await using var assertionDb = CreateContext(databaseName);
+        var promotedRate = await assertionDb.ExchangeRates.AsNoTracking().SingleAsync(rate => rate.Created == requestedDate && rate.FromCode == baseCurrency && rate.ToCode == "EUR");
+        Assert.Equal(0.9m, promotedRate.Rate);
+        Assert.False(promotedRate.IsTemporary);
+        fallbackClient.Verify(c => c.GetRatesForRangeAsync(requestedDate, requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        currencyApiClient.Verify(c => c.GetRatesAsync(requestedDate, baseCurrency, It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private static IEnumerable<DateTime> EnumerateDatesForTest(DateTime start, DateTime end)
+    {
+        for (var date = start.Date; date <= end.Date; date = date.AddDays(1))
+        {
+            yield return date;
+        }
+    }
+
+    private static InExDbContext CreateContext() =>
+        CreateContext(Guid.NewGuid().ToString());
+
+    private static InExDbContext CreateContext(string databaseName) =>
+        new(new DbContextOptionsBuilder<InExDbContext>()
+            .UseInMemoryDatabase(databaseName)
+            .Options);
+
+    private static async Task SeedExchangeRateContext(InExDbContext db, string baseCurrency, DateTime priorDate, DateTime requestedDate)
+    {
+        var usd = new Currency { Id = 1, Key = baseCurrency, Name = baseCurrency, Created = DateTime.UtcNow, Updated = DateTime.UtcNow };
+        var eur = new Currency { Id = 2, Key = "EUR", Name = "EUR", Created = DateTime.UtcNow, Updated = DateTime.UtcNow };
+        var user = new AppUser { Id = 1, UserName = "exchange-test", CurrencyId = usd.Id, Currency = usd };
+        var account = new Account { Id = 1, UserId = user.Id, User = user, CurrencyId = eur.Id, Currency = eur, IsEnabled = true, Key = "eur", Name = "EUR" };
+
+        db.Currencies.AddRange(usd, eur);
+        db.Users.Add(user);
+        db.Accounts.Add(account);
+        db.ExchangeRates.AddRange(
+            new ExchangeRate { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = priorDate, IsTemporary = false, CreatedBy = user.Id },
+            new ExchangeRate { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.8m, Created = requestedDate, IsTemporary = true, CreatedBy = user.Id });
+        await db.SaveChangesAsync();
     }
 }

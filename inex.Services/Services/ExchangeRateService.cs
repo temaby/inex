@@ -10,6 +10,7 @@ using inex.Services.Services.Base;
 using inex.Services.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace inex.Services.Services;
 
@@ -59,59 +60,25 @@ public class ExchangeRateService : Service, IExchangeRateService
 
         baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
         IList<string> targetCurrencyCodes = await ResolveTargetCurrencyCodes(userId, baseCurrency, ct);
+        targetCurrencyCodes = targetCurrencyCodes
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(currencyCode => currencyCode, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         DateTime startDate = start.Date;
         DateTime endDate = end.Date;
         DateTime today = _clock.UtcNow.Date;
         endDate = endDate <= today ? endDate : today;
 
-        // One query to find which dates already have a full set of actual rates cached.
-        var cachedDates = (await DbInEx.ExchangeRateRepository.Get(true)
-            .Where(r => r.Created >= startDate && r.Created < today
-                     && r.FromCode == baseCurrency && !r.IsTemporary)
-            .GroupBy(r => r.Created)
-            .Select(g => new { Date = g.Key, Count = g.Count() })
-            .ToListAsync(ct))
-            .Where(x => x.Count >= targetCurrencyCodes.Count)
-            .Select(x => x.Date)
-            .ToHashSet();
-
-        var missingDates = Enumerable
-            .Range(0, (endDate - startDate).Days + 1)
-            .Select(i => startDate.AddDays(i))
-            .Where(d => d < today && !cachedDates.Contains(d))
+        var pastDates = EnumerateDates(startDate, endDate)
+            .Where(d => d < today)
             .ToList();
 
-        if (missingDates.Count > 0)
-        {
-            var rangeStart = missingDates.Min();
-            var rangeEnd   = missingDates.Max();
-            var rangeRates = await FetchRatesForRange(rangeStart, rangeEnd, baseCurrency, targetCurrencyCodes.ToArray(), ct);
-
-            bool hasChanges = false;
-            var missingDatesSet = missingDates.ToHashSet();
-            foreach (var (date, response) in rangeRates)
-            {
-                if (!missingDatesSet.Contains(date)) continue;
-                hasChanges |= await UpsertRatesForDate(userId, date, baseCurrency, response, ct);
-            }
-
-            if (hasChanges)
-                await DbInEx.SaveAsync(ct);
-
-            // Carry forward missing currencies for non-trading days or partial provider data.
-            bool hasCarryForwardChanges = false;
-            foreach (var date in missingDates.OrderBy(d => d))
-            {
-                hasCarryForwardChanges |= await CarryForwardMissingRatesFromPriorDay(userId, date, baseCurrency, targetCurrencyCodes, ct);
-            }
-
-            if (hasCarryForwardChanges)
-                await DbInEx.SaveAsync(ct);
-        }
+        if (pastDates.Count > 0 && targetCurrencyCodes.Count > 0)
+            await SynchronizeMissingRates(userId, pastDates, baseCurrency, targetCurrencyCodes, ct);
 
         if (endDate >= today)
-            await CreateTemporaryRatesForTodayIfNeeded(userId, today, baseCurrency, ct);
+            await CreateTemporaryRatesForTodayIfNeeded(userId, today, baseCurrency, targetCurrencyCodes, ct);
 
         IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true).Where(i => i.Created >= startDate && i.Created <= endDate && i.FromCode == baseCurrency);
         return BuildDataResponse<ExchangeRate, ExchangeRateResponse>(rates, ExchangeRateMapper.ToResponse);
@@ -156,6 +123,124 @@ public class ExchangeRateService : Service, IExchangeRateService
             .ToListAsync(ct);
     }
 
+    private async Task SynchronizeMissingRates(
+        int userId,
+        IReadOnlyCollection<DateTime> candidateDates,
+        string baseCurrency,
+        IList<string> targetCurrencyCodes,
+        CancellationToken ct = default)
+    {
+        var initialMissingTargetsByDate = await GetMissingTargetsByDate(candidateDates, baseCurrency, targetCurrencyCodes, ct);
+        if (initialMissingTargetsByDate.Count == 0)
+        {
+            return;
+        }
+
+        var acquiredLocks = await AcquireSyncLocks(baseCurrency, initialMissingTargetsByDate.Keys, ct);
+        try
+        {
+            // Another request may have populated the cache while this request was waiting.
+            var missingTargetsByDate = await GetMissingTargetsByDate(candidateDates, baseCurrency, targetCurrencyCodes, ct);
+            if (missingTargetsByDate.Count == 0)
+            {
+                return;
+            }
+
+            bool hasProviderChanges = false;
+            foreach (var range in GetContiguousRanges(missingTargetsByDate.Keys))
+            {
+                var rangeMissingTargetsByDate = missingTargetsByDate
+                    .Where(item => item.Key >= range.Start && item.Key <= range.End)
+                    .ToDictionary(item => item.Key, item => (IReadOnlySet<string>)item.Value);
+                var rangeTargetCodes = rangeMissingTargetsByDate.Values
+                    .SelectMany(targets => targets)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+
+                var rangeRates = await FetchRatesForRange(range.Start, range.End, baseCurrency, rangeTargetCodes, rangeMissingTargetsByDate, ct);
+
+                foreach (var (date, response) in rangeRates)
+                {
+                    if (!rangeMissingTargetsByDate.TryGetValue(date.Date, out var missingTargetCodes))
+                    {
+                        continue;
+                    }
+
+                    hasProviderChanges |= await UpsertRatesForDate(userId, date, baseCurrency, response, missingTargetCodes, ct);
+                }
+            }
+
+            if (hasProviderChanges)
+                await DbInEx.SaveAsync(ct);
+
+            // Carry forward missing currencies for non-trading days or partial provider data.
+            missingTargetsByDate = await GetMissingTargetsByDate(candidateDates, baseCurrency, targetCurrencyCodes, ct);
+            bool hasCarryForwardChanges = false;
+            foreach (var (date, missingTargetCodes) in missingTargetsByDate.OrderBy(item => item.Key))
+            {
+                hasCarryForwardChanges |= await CarryForwardMissingRatesFromPriorDay(userId, date, baseCurrency, missingTargetCodes.ToList(), ct);
+            }
+
+            if (hasCarryForwardChanges)
+                await DbInEx.SaveAsync(ct);
+        }
+        finally
+        {
+            ReleaseSyncLocks(acquiredLocks);
+        }
+    }
+
+    private async Task<Dictionary<DateTime, HashSet<string>>> GetMissingTargetsByDate(
+        IReadOnlyCollection<DateTime> dates,
+        string baseCurrency,
+        IList<string> targetCurrencyCodes,
+        CancellationToken ct = default)
+    {
+        var normalizedDates = dates
+            .Select(d => d.Date)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
+        var normalizedTargets = targetCurrencyCodes
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (normalizedDates.Count == 0 || normalizedTargets.Count == 0)
+        {
+            return new Dictionary<DateTime, HashSet<string>>();
+        }
+
+        var cachedRates = await DbInEx.ExchangeRateRepository.Get(true)
+            .Where(r => normalizedDates.Contains(r.Created)
+                     && r.FromCode == baseCurrency
+                     && !r.IsTemporary
+                     && normalizedTargets.Contains(r.ToCode))
+            .Select(r => new { r.Created, r.ToCode })
+            .ToListAsync(ct);
+
+        var cachedTargetsByDate = cachedRates
+            .GroupBy(r => r.Created.Date)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(r => r.ToCode).ToHashSet(StringComparer.OrdinalIgnoreCase));
+
+        var missingTargetsByDate = new Dictionary<DateTime, HashSet<string>>();
+        foreach (var date in normalizedDates)
+        {
+            cachedTargetsByDate.TryGetValue(date, out var cachedTargets);
+            var missingTargets = normalizedTargets
+                .Where(targetCode => cachedTargets is null || !cachedTargets.Contains(targetCode))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (missingTargets.Count > 0)
+            {
+                missingTargetsByDate[date] = missingTargets;
+            }
+        }
+
+        return missingTargetsByDate;
+    }
+
     /// <summary>
     /// Fetches exchange rates for the given date range using a two-pass merge strategy:
     /// 1. Frankfurter range call — one HTTP request, covers ECB currencies (EUR, PLN, …).
@@ -165,7 +250,12 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// If Frankfurter fails entirely, falls back to CurrencyAPI day-by-day for all currencies.
     /// </summary>
     private async Task<Dictionary<DateTime, ExchangeApiResponse>> FetchRatesForRange(
-        DateTime start, DateTime end, string baseCurrency, string[] targetCurrencies, CancellationToken ct = default)
+        DateTime start,
+        DateTime end,
+        string baseCurrency,
+        string[] targetCurrencies,
+        IReadOnlyDictionary<DateTime, IReadOnlySet<string>>? requiredTargetsByDate = null,
+        CancellationToken ct = default)
     {
         var nbrbTargetCurrencies = targetCurrencies
             .Where(targetCurrency => IsBynRubPath(baseCurrency, targetCurrency))
@@ -190,35 +280,44 @@ public class ExchangeRateService : Service, IExchangeRateService
             }
 
             // Pass 2: supplement currencies not returned by Frankfurter (e.g. BYN) via CurrencyAPI.
-            var coveredCurrencies = result.Values
-                .SelectMany(r => r.Data.Keys)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            var uncoveredCurrencies = standardTargetCurrencies
-                .Where(c => !coveredCurrencies.Contains(c))
-                .ToArray();
+            var datesToFetch = GetCurrencyApiFallbackDates(start, end, result, requiredTargetsByDate);
 
-            if (uncoveredCurrencies.Length > 0)
+            foreach (var date in datesToFetch)
             {
-                // Only iterate dates Frankfurter returned (trading days); weekends/holidays get carry-forward.
-                // If Frankfurter returned nothing at all, fall back to all dates in range.
-                var datesToFetch = result.Count > 0
-                    ? result.Keys.ToList()
-                    : Enumerable.Range(0, (end.Date - start.Date).Days + 1).Select(i => start.Date.AddDays(i)).ToList();
+                var requiredStandardCurrencies = requiredTargetsByDate is not null
+                    ? requiredTargetsByDate[date]
+                        .Where(targetCurrency => standardTargetCurrencies.Contains(targetCurrency, StringComparer.OrdinalIgnoreCase))
+                        .ToArray()
+                    : standardTargetCurrencies;
 
-                foreach (var date in datesToFetch)
+                if (requiredStandardCurrencies.Length == 0)
                 {
-                    try
+                    continue;
+                }
+
+                var coveredCurrencies = result.TryGetValue(date.Date, out var dateResponse)
+                    ? dateResponse.Data.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase)
+                    : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var uncoveredCurrencies = requiredStandardCurrencies
+                    .Where(c => !coveredCurrencies.Contains(c))
+                    .ToArray();
+
+                if (uncoveredCurrencies.Length == 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var singleDay = await _apiClient.GetRatesAsync(date, baseCurrency, uncoveredCurrencies, ct);
+                    if (singleDay?.Data?.Count > 0)
                     {
-                        var singleDay = await _apiClient.GetRatesAsync(date, baseCurrency, uncoveredCurrencies, ct);
-                        if (singleDay?.Data?.Count > 0)
-                        {
-                            MergeRates(result, date, singleDay);
-                        }
+                        MergeRates(result, date, singleDay);
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "CurrencyAPI fetch failed for {Date}/{BaseCurrency}/{Currencies}.", date, baseCurrency, string.Join(",", uncoveredCurrencies));
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "CurrencyAPI fetch failed for {Date}/{BaseCurrency}/{Currencies}.", date, baseCurrency, string.Join(",", uncoveredCurrencies));
                 }
             }
         }
@@ -262,9 +361,18 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// Existing temporary rates are overwritten with actual values.
     /// Returns <see langword="true"/> if any record was inserted or updated (caller must save).
     /// </summary>
-    private async Task<bool> UpsertRatesForDate(int userId, DateTime date, string baseCurrency, ExchangeApiResponse response, CancellationToken ct = default)
+    private async Task<bool> UpsertRatesForDate(
+        int userId,
+        DateTime date,
+        string baseCurrency,
+        ExchangeApiResponse response,
+        IReadOnlySet<string>? requiredTargetCodes = null,
+        CancellationToken ct = default)
     {
         DateTime createdDate = date.Date;
+        var requiredTargets = requiredTargetCodes is null
+            ? null
+            : new HashSet<string>(requiredTargetCodes, StringComparer.OrdinalIgnoreCase);
 
         List<ExchangeRate> existingRates = DbInEx.ExchangeRateRepository.Get(false)
             .Where(i => i.Created == createdDate && i.FromCode == baseCurrency)
@@ -276,6 +384,11 @@ public class ExchangeRateService : Service, IExchangeRateService
         {
             string toCode = string.IsNullOrWhiteSpace(item.Value.Code) ? item.Key : item.Value.Code;
             decimal value = item.Value.Value;
+
+            if (requiredTargets is not null && !requiredTargets.Contains(toCode))
+            {
+                continue;
+            }
 
             ExchangeRate? existingRate = existingRates.FirstOrDefault(i => i.ToCode == toCode);
 
@@ -313,50 +426,66 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// by copying the most recent available rates from a prior date and marking them as temporary.
     /// Does nothing when rates already exist for today, or when no prior rates are found.
     /// </summary>
-    private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency, CancellationToken ct = default)
+    private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
     {
         DateTime today = date.Date;
-
-        bool ratesExist = DbInEx.ExchangeRateRepository.Get(true)
-            .Any(i => i.Created == today && i.FromCode == baseCurrency);
-
-        if (ratesExist)
+        var acquiredLocks = await AcquireSyncLocks(baseCurrency, [today], ct);
+        try
         {
-            return;
-        }
+            List<ExchangeRate> existingRates = DbInEx.ExchangeRateRepository.Get(true)
+                .Where(i => i.Created == today && i.FromCode == baseCurrency)
+                .ToList();
+            var existingTargetCodes = existingRates
+                .Select(rate => rate.ToCode)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Find the most recent date before today that has rates for this base currency.
-        DateTime? latestDate = DbInEx.ExchangeRateRepository.Get(true)
-            .Where(i => i.Created < today && i.FromCode == baseCurrency)
-            .OrderByDescending(i => i.Created)
-            .Select(i => (DateTime?)i.Created)
-            .FirstOrDefault();
+            var missingTargetCodes = targetCurrencyCodes
+                .Where(targetCode => !existingTargetCodes.Contains(targetCode))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        if (!latestDate.HasValue)
-        {
-            return;
-        }
-
-        List<ExchangeRate> latestRates = DbInEx.ExchangeRateRepository.Get(true)
-            .Where(i => i.Created == latestDate.Value && i.FromCode == baseCurrency)
-            .ToList();
-
-        foreach (ExchangeRate rate in latestRates)
-        {
-            await DbInEx.ExchangeRateRepository.CreateAsync(new ExchangeRate()
+            if (existingRates.Count > 0 && missingTargetCodes.Count == 0)
             {
-                FromCode = rate.FromCode,
-                ToCode = rate.ToCode,
-                Rate = rate.Rate,
-                IsTemporary = true,
-                CreatedBy = userId,
-                Created = today
-            }, ct);
-        }
+                return;
+            }
 
-        if (latestRates.Count > 0)
+            List<ExchangeRate> latestRates = DbInEx.ExchangeRateRepository.Get(true)
+                .Where(i => i.Created < today
+                         && i.FromCode == baseCurrency
+                         && !i.IsTemporary
+                         && missingTargetCodes.Contains(i.ToCode))
+                .OrderByDescending(i => i.Created)
+                .GroupBy(i => i.ToCode)
+                .Select(g => g.First())
+                .ToList();
+
+            if (existingRates.Count == 0 && missingTargetCodes.Count == 0)
+            {
+                missingTargetCodes = latestRates
+                    .Select(rate => rate.ToCode)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+
+            foreach (ExchangeRate rate in latestRates.Where(rate => missingTargetCodes.Contains(rate.ToCode)))
+            {
+                await DbInEx.ExchangeRateRepository.CreateAsync(new ExchangeRate()
+                {
+                    FromCode = rate.FromCode,
+                    ToCode = rate.ToCode,
+                    Rate = rate.Rate,
+                    IsTemporary = true,
+                    CreatedBy = userId,
+                    Created = today
+                }, ct);
+            }
+
+            if (latestRates.Any(rate => missingTargetCodes.Contains(rate.ToCode)))
+            {
+                await DbInEx.SaveAsync(ct);
+            }
+        }
+        finally
         {
-            await DbInEx.SaveAsync(ct);
+            ReleaseSyncLocks(acquiredLocks);
         }
     }
 
@@ -368,13 +497,17 @@ public class ExchangeRateService : Service, IExchangeRateService
     /// </summary>
     private async Task<bool> CarryForwardMissingRatesFromPriorDay(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
     {
-        var existingTargetCodes = DbInEx.ExchangeRateRepository.Get(true)
+        List<ExchangeRate> existingRates = DbInEx.ExchangeRateRepository.Get(false)
             .Where(r => r.Created == date.Date && r.FromCode == baseCurrency)
+            .ToList();
+
+        var existingActualTargetCodes = existingRates
+            .Where(r => !r.IsTemporary)
             .Select(r => r.ToCode)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var missingTargetCodes = targetCurrencyCodes
-            .Where(targetCode => !existingTargetCodes.Contains(targetCode))
+            .Where(targetCode => !existingActualTargetCodes.Contains(targetCode))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (missingTargetCodes.Count == 0) return false;
 
@@ -388,18 +521,135 @@ public class ExchangeRateService : Service, IExchangeRateService
 
         foreach (var rate in priorRates)
         {
-            await DbInEx.ExchangeRateRepository.CreateAsync(new ExchangeRate
+            var existingRate = existingRates.FirstOrDefault(r => string.Equals(r.ToCode, rate.ToCode, StringComparison.OrdinalIgnoreCase));
+            if (existingRate is null)
             {
-                FromCode = rate.FromCode,
-                ToCode = rate.ToCode,
-                Rate = rate.Rate,
-                IsTemporary = false,
-                CreatedBy = userId,
-                Created = date.Date
-            }, ct);
+                await DbInEx.ExchangeRateRepository.CreateAsync(new ExchangeRate
+                {
+                    FromCode = rate.FromCode,
+                    ToCode = rate.ToCode,
+                    Rate = rate.Rate,
+                    IsTemporary = false,
+                    CreatedBy = userId,
+                    Created = date.Date
+                }, ct);
+
+                continue;
+            }
+
+            if (existingRate.Rate != rate.Rate || existingRate.IsTemporary)
+            {
+                existingRate.Rate = rate.Rate;
+                existingRate.IsTemporary = false;
+                DbInEx.ExchangeRateRepository.Update(existingRate);
+            }
         }
 
         return priorRates.Count > 0;
+    }
+
+    private static IEnumerable<DateTime> EnumerateDates(DateTime start, DateTime end)
+    {
+        if (end < start)
+        {
+            yield break;
+        }
+
+        for (var date = start.Date; date <= end.Date; date = date.AddDays(1))
+        {
+            yield return date;
+        }
+    }
+
+    private static IEnumerable<(DateTime Start, DateTime End)> GetContiguousRanges(IEnumerable<DateTime> dates)
+    {
+        DateTime? rangeStart = null;
+        DateTime? previous = null;
+
+        foreach (var date in dates.Select(d => d.Date).Distinct().OrderBy(d => d))
+        {
+            if (rangeStart is null)
+            {
+                rangeStart = date;
+                previous = date;
+                continue;
+            }
+
+            if (previous!.Value.AddDays(1) == date)
+            {
+                previous = date;
+                continue;
+            }
+
+            yield return (rangeStart.Value, previous.Value);
+            rangeStart = date;
+            previous = date;
+        }
+
+        if (rangeStart.HasValue && previous.HasValue)
+        {
+            yield return (rangeStart.Value, previous.Value);
+        }
+    }
+
+    private static List<DateTime> GetCurrencyApiFallbackDates(
+        DateTime start,
+        DateTime end,
+        IReadOnlyDictionary<DateTime, ExchangeApiResponse> providerResult,
+        IReadOnlyDictionary<DateTime, IReadOnlySet<string>>? requiredTargetsByDate)
+    {
+        if (requiredTargetsByDate is null)
+        {
+            return providerResult.Count > 0
+                ? providerResult.Keys.OrderBy(d => d).ToList()
+                : EnumerateDates(start, end).ToList();
+        }
+
+        if (providerResult.Count == 0)
+        {
+            return requiredTargetsByDate.Keys.OrderBy(d => d).ToList();
+        }
+
+        var providerDates = providerResult.Keys.ToHashSet();
+        return requiredTargetsByDate.Keys
+            .Where(providerDates.Contains)
+            .OrderBy(d => d)
+            .ToList();
+    }
+
+    private static async Task<List<SemaphoreSlim>> AcquireSyncLocks(string baseCurrency, IEnumerable<DateTime> dates, CancellationToken ct)
+    {
+        var keys = dates
+            .Select(date => $"{baseCurrency.ToUpperInvariant()}:{date.Date:yyyy-MM-dd}")
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToList();
+        var acquiredLocks = new List<SemaphoreSlim>();
+
+        try
+        {
+            foreach (var key in keys)
+            {
+                var syncLock = SyncLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+                await syncLock.WaitAsync(ct);
+                acquiredLocks.Add(syncLock);
+            }
+        }
+        catch
+        {
+            ReleaseSyncLocks(acquiredLocks);
+            throw;
+        }
+
+        return acquiredLocks;
+    }
+
+    private static void ReleaseSyncLocks(IEnumerable<SemaphoreSlim> syncLocks)
+    {
+        foreach (var syncLock in syncLocks.Reverse())
+        {
+            syncLock.Release();
+        }
     }
 
     private static bool IsBynRubPath(string baseCurrency, string targetCurrency) =>
@@ -417,6 +667,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     private readonly INbrbApiClient _nbrbClient;
     private readonly ILogger<ExchangeRateService> _logger;
     private readonly IClock _clock;
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> SyncLocks = new(StringComparer.Ordinal);
 
     #endregion Private Fields
 }
