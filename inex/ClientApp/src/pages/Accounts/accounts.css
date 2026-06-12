@@ -295,8 +295,8 @@
 .accounts-filter-strip button:focus-visible,
 .accounts-inline-retry button:focus-visible,
 .accounts-row:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+    outline: none;
 }
 
 .accounts-inline-retry,
@@ -395,8 +395,8 @@
 }
 
 .accounts-group__head:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: -2px;
+    box-shadow: var(--focus-ring);
+    outline: none;
 }
 
 .accounts-group__identity {

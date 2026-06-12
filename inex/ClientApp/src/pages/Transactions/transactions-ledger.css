@@ -267,8 +267,8 @@
 .transactions-filter-chip:focus-visible,
 .transactions-clear-filters:focus-visible,
 .transactions-search:focus-within {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+    outline: none;
 }
 
 .transactions-row-main,
@@ -313,8 +313,8 @@
 }
 
 .transactions-row-token:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+    outline: none;
 }
 
 .transactions-row-account {

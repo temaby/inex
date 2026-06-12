@@ -69,11 +69,14 @@ Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and rel
 - Route high/medium findings back to the same implementation subagent only when the packet remains isolated; otherwise the orchestrator fixes them.
 - Fix high/medium findings before PR unless explicitly deferred with rationale, then re-run impacted verification.
 
-### 6. GitHub And CI
-- Push the branch and open a PR with summary, linked issues, tests run, review findings, risks, and screenshots/evidence wording when relevant.
-- Wait for fresh checks on the pushed commit. Do not rely on stale CI from a previous commit.
-- Merge only when required checks and review requirements pass and no blocking review findings remain.
-- If checks fail, inspect logs, fix the cause, push again, and wait for fresh CI.
+### 6. GitHub, PR Review, And CI
+- Push the branch and open a ready-for-review PR by default with summary, linked issues, tests run, review findings, risks, and screenshots/evidence wording when relevant.
+- Do not stop after creating the PR. PR creation is an intermediate step, not the delivery endpoint.
+- Create a draft PR only when explicitly requested, local verification is incomplete, blockers remain, or the PR is intentionally being used for early CI.
+- If the PR tool creates a draft by default and no blocker justifies draft state, state the tool limitation and mark the PR ready before final CI/review handling.
+- Wait for fresh checks and required GitHub reviews on the pushed commit. Do not rely on stale CI from a previous commit.
+- Inspect requested changes, unresolved review threads, and actionable inline comments; fix blocking feedback, re-run impacted verification, push again, and wait for fresh CI.
+- Merge only when required checks pass, required reviews approve, and no blocking review threads remain.
 
 ## Stacked PR Rules
 - Base the first PR on the target branch.
