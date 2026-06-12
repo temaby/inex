@@ -46,6 +46,7 @@
     "preview": "vite preview",
     "lint": "eslint ./src/**/*.ts ./src/**/*.tsx",
     "test": "vitest run",
+    "visual-qa:accounts": "node visual-qa/accounts.mjs",
     "test:watch": "vitest"
   }
 }
