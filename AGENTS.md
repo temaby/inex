@@ -31,7 +31,6 @@ Use `CLAUDE.md` and `README.md` for broader project context. This file defines a
 
 ## Safety
 
-- Do not start the application or trigger live external API calls during investigation unless explicitly approved.
 - Do not call live CurrencyAPI, Frankfurter, NBRB, or other paid/external providers from tests or exploratory work.
 - Never print secrets, connection strings, tokens, `.env` contents, or credentials.
 - Preserve unrelated user changes. Do not revert files unless explicitly requested.
