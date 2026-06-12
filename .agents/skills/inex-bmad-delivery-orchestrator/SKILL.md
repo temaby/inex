@@ -18,6 +18,18 @@ Before planning, read:
 - `docs/project-context.md` for architecture, security, testing, frontend migration, or database behavior
 - `inex/ClientApp/AGENTS.md` and design docs for frontend UI
 
+## GitHub Connector Notes
+- Use the GitHub connector before `gh` for issue operations when the needed operation is exposed.
+- Available connector issue operations include recent issue discovery via `_list_recent_issues`, issue creation via `_create_issue`, issue updates via `_update_issue`, additive labeling via `_add_issue_labels`, and single-label removal via `_remove_issue_label`.
+- Known connector gap: there is no direct repository-scoped issue read equivalent to `gh issue view <number>` and no repository label-list operation exposed in the current tool set.
+- For direct issue intake by number, state the connector gap and use the approved fallback:
+
+```powershell
+gh issue view <number> --repo <owner>/<repo> --json number,title,body,state,labels,assignees,milestone,comments,url
+```
+
+- For repository issue searches or label taxonomy inspection that cannot be satisfied by `_list_recent_issues` or issue mutation results, state the connector gap before using the narrowest applicable `gh issue list` or `gh label list` fallback.
+
 ## Compact Default Prompt
 Use this prompt when launching the workflow from a terse user request:
 
@@ -27,7 +39,8 @@ Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and rel
 
 ## Workflow
 ### 1. Intake
-- Read GitHub issue(s) with the GitHub connector when available; use `gh` only for connector gaps.
+- Read GitHub issue(s) with the GitHub connector when available; for direct issue reads by number, use the documented `gh issue view` fallback because the connector currently lacks repository-scoped issue view.
+- Use connector issue label operations for add/remove/replace label mutations before falling back to `gh`.
 - Check `git status --short`; identify unrelated user changes and avoid reverting them.
 - Read applicable story/spec and docs.
 - Classify scope: backend, frontend, database, visual, tests, docs, CI, or product decision.
