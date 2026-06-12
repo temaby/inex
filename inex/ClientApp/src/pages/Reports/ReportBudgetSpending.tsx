@@ -185,6 +185,7 @@ const ReportBudgetSpending: React.FC = () => {
                 <section className="report-panel">
                     <div className="report-table-wrap">
                         <Table
+                            className="report-table"
                             dataSource={items}
                             columns={columns}
                             rowKey="categoryName"

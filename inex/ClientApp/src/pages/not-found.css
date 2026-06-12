@@ -1,0 +1,33 @@
+@import "../styles/tokens.css";
+
+.not-found-page {
+  margin: 0 auto;
+  max-width: 720px;
+  padding: var(--space-12) var(--space-5);
+}
+
+.not-found-page__link {
+  align-items: center;
+  background: var(--income-500);
+  border: 1px solid var(--income-500);
+  border-radius: var(--radius-2);
+  color: #fff;
+  display: inline-flex;
+  font-weight: var(--fw-medium);
+  justify-content: center;
+  line-height: 1.2;
+  padding: 11px 20px;
+  text-decoration: none;
+}
+
+.not-found-page__link:hover,
+.not-found-page__link:focus-visible {
+  background: var(--income-600);
+  border-color: var(--income-600);
+  color: #fff;
+  outline: none;
+}
+
+.not-found-page__link:focus-visible {
+  box-shadow: var(--focus-ring);
+}

@@ -12,7 +12,7 @@
 .transactions-kpi-strip {
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
-    border-radius: var(--radius-2);
+    border-radius: var(--radius-3);
     box-shadow: var(--shadow-1);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -32,9 +32,9 @@
 
 .transactions-kpi__label {
     color: var(--fg-3);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0;
+    font-size: var(--fs-11);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
@@ -59,7 +59,7 @@
 .transactions-ledger-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
-    border-radius: var(--radius-2);
+    border-radius: var(--radius-3);
     box-shadow: var(--shadow-1);
     min-width: 0;
     overflow: hidden;

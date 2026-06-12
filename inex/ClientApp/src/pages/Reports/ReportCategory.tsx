@@ -179,6 +179,7 @@ const ReportCategory = () => {
                 <Spin spinning={isLoading}>
                     <div className="report-table-wrap">
                         <Table
+                            className="report-table"
                             rowKey={(record) => record.id.toString()}
                             columns={reportColumns}
                             expandable={{

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Card, Empty, Spin, Space, Typography } from "antd";
+import { Alert, Spin } from "antd";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
@@ -17,8 +17,7 @@ import type {
   SpendingHeatmapResponse,
 } from "../model/Report/SpendingHeatmap";
 import apiClient from "../utils/apiClient";
-
-const { Text } = Typography;
+import "./SpendingHeatmap.css";
 
 interface SpendingHeatmapProps {
   start: Dayjs;
@@ -47,7 +46,13 @@ interface HeatmapCellProps extends CellShapeProps {
 
 const cellSize = 14;
 const dayTicks = [0, 1, 2, 3, 4, 5, 6];
-const spendingHeatmapColors = ["#f8fafc", "#fee2e2", "#fca5a5", "#ef4444", "#991b1b"] as const;
+const spendingHeatmapColors = [
+  "var(--bg-stripe)",
+  "var(--expense-50)",
+  "var(--expense-100)",
+  "var(--expense-400)",
+  "var(--expense-700)",
+] as const;
 
 export const getSpendingIntensityColor = (totalSpend: number, maxSpend: number) => {
   if (totalSpend <= 0 || maxSpend <= 0) return spendingHeatmapColors[0];
@@ -164,23 +169,22 @@ const SpendingHeatmap = ({
     if (!day) return null;
 
     return (
-      <Card size="small">
-        <Space direction="vertical" size={2}>
-          <Text strong>{day.label}</Text>
-          <Text>
-            {t("reports.heatmapTooltipSpend", {
-              amount: amountFormatter.format(day.totalSpend),
-            })}
-          </Text>
-        </Space>
-      </Card>
+      <div className="spending-heatmap-tooltip">
+        <strong>{day.label}</strong>
+        <span>
+          {t("reports.heatmapTooltipSpend", {
+            amount: amountFormatter.format(day.totalSpend),
+          })}
+        </span>
+      </div>
     );
   };
 
   if (isLoading) {
     return (
-      <div style={{ padding, textAlign: "center" }}>
-        <Spin tip={t("reports.heatmapLoading")} />
+      <div className="spending-heatmap-state" style={{ padding }}>
+        <Spin />
+        <span>{t("reports.heatmapLoading")}</span>
       </div>
     );
   }
@@ -195,103 +199,95 @@ const SpendingHeatmap = ({
 
   if (!report || chartData.length === 0) {
     return (
-      <div style={{ padding }}>
-        <Empty description={t("reports.heatmapEmpty")} />
+      <div className="spending-heatmap-empty" style={{ padding }}>
+        <strong>{t("reports.heatmapEmpty")}</strong>
       </div>
     );
   }
 
   return (
-    <div style={{ padding }}>
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-        {showRange && (
-          <Text type="secondary">
-            {t("reports.heatmapRange", {
-              start: dayjs(report.metadata.start).format("D MMM YYYY"),
-              end: dayjs(report.metadata.end).format("D MMM YYYY"),
-            })}
-          </Text>
-        )}
+    <div className="spending-heatmap" style={{ padding }}>
+      {showRange && (
+        <p className="spending-heatmap__range">
+          {t("reports.heatmapRange", {
+            start: dayjs(report.metadata.start).format("D MMM YYYY"),
+            end: dayjs(report.metadata.end).format("D MMM YYYY"),
+          })}
+        </p>
+      )}
 
-        <div style={{ width: "100%", height, overflowX: "auto" }}>
-          <div style={{ minWidth: Math.max(minWidth, (maxWeek + 1) * 18) }}>
-            <ResponsiveContainer width="100%" height={height - 10}>
-              <ScatterChart margin={{ top: 20, right: 16, bottom: 10, left: 16 }}>
-                <XAxis
-                  type="number"
-                  dataKey="x"
-                  domain={[0, maxWeek]}
-                  ticks={monthTicks}
-                  tickFormatter={value => dayjs(report.metadata.start).startOf("week").add(value, "week").format("MMM")}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={0}
-                  height={24}
-                />
-                <YAxis
-                  type="number"
-                  dataKey="y"
-                  domain={[0, 6]}
-                  ticks={dayTicks}
-                  tickFormatter={value => dayjs().day(value).format("dd")}
-                  axisLine={false}
-                  tickLine={false}
-                  width={28}
-                  reversed
-                />
-                <ZAxis range={[cellSize]} />
-                <Tooltip content={renderTooltip} cursor={false} />
-                <Scatter
-                  data={chartData}
-                  shape={(props: CellShapeProps) => <HeatmapCell {...props} maxSpend={maxSpend} />}
-                  isAnimationActive={false}
-                />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
+      <div className="spending-heatmap__chart-scroll" style={{ height }}>
+        <div style={{ minWidth: Math.max(minWidth, (maxWeek + 1) * 18) }}>
+          <ResponsiveContainer width="100%" height={height - 10}>
+            <ScatterChart margin={{ top: 20, right: 16, bottom: 10, left: 16 }}>
+              <XAxis
+                type="number"
+                dataKey="x"
+                domain={[0, maxWeek]}
+                ticks={monthTicks}
+                tickFormatter={value => dayjs(report.metadata.start).startOf("week").add(value, "week").format("MMM")}
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+                height={24}
+              />
+              <YAxis
+                type="number"
+                dataKey="y"
+                domain={[0, 6]}
+                ticks={dayTicks}
+                tickFormatter={value => dayjs().day(value).format("dd")}
+                axisLine={false}
+                tickLine={false}
+                width={28}
+                reversed
+              />
+              <ZAxis range={[cellSize]} />
+              <Tooltip content={renderTooltip} cursor={false} />
+              <Scatter
+                data={chartData}
+                shape={(props: CellShapeProps) => <HeatmapCell {...props} maxSpend={maxSpend} />}
+                isAnimationActive={false}
+              />
+            </ScatterChart>
+          </ResponsiveContainer>
         </div>
+      </div>
 
-        <Space size="small" align="center">
-          <Text type="secondary">{t("reports.heatmapLegendLess")}</Text>
-          {[0, 0.2, 0.4, 0.7, 1].map(step => (
-            <span
-              key={step}
-              aria-label={t("reports.heatmapLegendCell")}
-              style={{
-                display: "inline-block",
-                width: 12,
-                height: 12,
-                borderRadius: 2,
-                background: getSpendingIntensityColor(step * maxSpend, maxSpend),
-              }}
-            />
-          ))}
-          <Text type="secondary">{t("reports.heatmapLegendMore")}</Text>
-        </Space>
+      <div className="spending-heatmap__legend" aria-label={t("reports.heatmapLegendCell")}>
+        <span>{t("reports.heatmapLegendLess")}</span>
+        {[0, 0.2, 0.4, 0.7, 1].map(step => (
+          <span
+            key={step}
+            aria-hidden="true"
+            className="spending-heatmap__legend-cell"
+            style={{
+              background: getSpendingIntensityColor(step * maxSpend, maxSpend),
+            }}
+          />
+        ))}
+        <span>{t("reports.heatmapLegendMore")}</span>
+      </div>
 
-        <section aria-label={t("reports.heatmapSummaryTitle")}>
-          <Space direction="vertical" size={4} style={{ width: "100%" }}>
-            <Text strong>{t("reports.heatmapSummaryTitle")}</Text>
-            <Text type="secondary">
-              {t("reports.heatmapSummaryTotals", {
-                days: heatmapSummary.spendDays,
-                total: amountFormatter.format(heatmapSummary.totalSpend),
-              })}
-            </Text>
-            {heatmapSummary.topDays.length > 0 && (
-              <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>
-                {heatmapSummary.topDays.map(day => (
-                  <li key={day.date}>
-                    <Text>
-                      {day.label}: {amountFormatter.format(day.totalSpend)}
-                    </Text>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Space>
-        </section>
-      </Space>
+      <section className="spending-heatmap__summary" aria-label={t("reports.heatmapSummaryTitle")}>
+        <strong>{t("reports.heatmapSummaryTitle")}</strong>
+        <p>
+          {t("reports.heatmapSummaryTotals", {
+            days: heatmapSummary.spendDays,
+            total: amountFormatter.format(heatmapSummary.totalSpend),
+          })}
+        </p>
+        {heatmapSummary.topDays.length > 0 && (
+          <ul>
+            {heatmapSummary.topDays.map(day => (
+              <li key={day.date}>
+                <span>{day.label}</span>
+                <span>{amountFormatter.format(day.totalSpend)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 };

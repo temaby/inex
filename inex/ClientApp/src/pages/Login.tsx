@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { loginUser } from "../store/auth/auth-actions";
 import { setAuthError } from "../store/auth/auth-slice";
 import { translateLoginError } from "./auth-error-message";
+import "./auth-pages.css";
 
 interface LoginFormValues {
   email: string;
@@ -50,46 +51,22 @@ const Login = () => {
   return (
     <>
       {isInitializing ? (
-        <div style={{ display: "grid", placeItems: "center", minHeight: 260 }}>
+        <div className="auth-form-spinner">
           <Spin size="large" />
         </div>
       ) : (
         <>
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "var(--fg-3)",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            marginBottom: 8,
-          }}
-        >
+      <header className="auth-form-header">
+        <span className="auth-form-eyebrow">
           {t("auth.welcomeBack")}
-        </div>
-        <h2
-          style={{
-            fontSize: 26,
-            fontWeight: 600,
-            color: "var(--fg-1)",
-            letterSpacing: 0,
-            margin: 0,
-          }}
-        >
+        </span>
+        <h2 className="auth-form-title">
           {t("auth.signInTitle")}
         </h2>
-        <p
-          style={{
-            fontSize: 14,
-            color: "var(--fg-3)",
-            marginTop: 6,
-            marginBottom: 0,
-          }}
-        >
+        <p className="auth-form-subtitle">
           {t("auth.signInSubtitle")}
         </p>
-      </div>
+      </header>
 
       <ErrorBanner message={displayError} />
 
@@ -130,7 +107,7 @@ const Login = () => {
           />
         </Form.Item>
 
-        <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+        <Form.Item className="auth-form-submit">
           <Button
             type="primary"
             htmlType="submit"
