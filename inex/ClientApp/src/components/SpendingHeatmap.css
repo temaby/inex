@@ -1,0 +1,118 @@
+@import "../styles/tokens.css";
+
+.spending-heatmap {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.spending-heatmap-state,
+.spending-heatmap-empty {
+  align-items: center;
+  color: var(--fg-3);
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  min-height: 120px;
+  text-align: center;
+}
+
+.spending-heatmap-empty {
+  background: var(--bg-stripe);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius-3);
+}
+
+.spending-heatmap-empty strong {
+  color: var(--fg-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+
+.spending-heatmap-tooltip {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2);
+  color: var(--fg-2);
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+}
+
+.spending-heatmap-tooltip strong {
+  color: var(--fg-1);
+  font-size: var(--fs-13);
+}
+
+.spending-heatmap-tooltip span,
+.spending-heatmap__range,
+.spending-heatmap__legend,
+.spending-heatmap__summary p {
+  color: var(--fg-3);
+  font-size: var(--fs-13);
+}
+
+.spending-heatmap__range,
+.spending-heatmap__summary p {
+  margin: 0;
+}
+
+.spending-heatmap__chart-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.spending-heatmap__legend {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.spending-heatmap__legend-cell {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-1);
+  display: inline-block;
+  height: 12px;
+  width: 12px;
+}
+
+.spending-heatmap__summary {
+  background: var(--bg-stripe);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.spending-heatmap__summary > strong {
+  color: var(--fg-1);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+
+.spending-heatmap__summary ul {
+  display: grid;
+  gap: var(--space-1);
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+}
+
+.spending-heatmap__summary li {
+  align-items: baseline;
+  color: var(--fg-2);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.spending-heatmap__summary li span:last-child {
+  color: var(--expense-600);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

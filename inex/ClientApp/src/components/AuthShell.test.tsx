@@ -58,8 +58,7 @@ describe("AuthShell", () => {
     expect(container.querySelector(".r-auth-shell")).toBeInTheDocument();
     expect(container.querySelector(".r-auth-brand")).toBeInTheDocument();
     expect(container.querySelector(".r-auth-mobile-logo")).toBeInTheDocument();
-    expect(container.querySelector("style")?.textContent).toContain("@media (max-width: 768px)");
-    expect(container.querySelector("style")?.textContent).toContain(".r-auth-brand");
+    expect(container.querySelector("style")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Sign In" })).toHaveAttribute("href", "/login");
   });
 });

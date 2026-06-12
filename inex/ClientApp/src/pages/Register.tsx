@@ -11,6 +11,7 @@ import { setAuthError } from "../store/auth/auth-slice";
 import apiClient from "../utils/apiClient";
 import i18n from "../i18n";
 import { translateRegisterError } from "./auth-error-message";
+import "./auth-pages.css";
 
 interface Currency {
   id: number;
@@ -129,46 +130,22 @@ const Register = () => {
   return (
     <>
       {isInitializing ? (
-        <div style={{ display: "grid", placeItems: "center", minHeight: 260 }}>
+        <div className="auth-form-spinner">
           <Spin size="large" />
         </div>
       ) : (
         <>
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "var(--fg-3)",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            marginBottom: 8,
-          }}
-        >
+      <header className="auth-form-header">
+        <span className="auth-form-eyebrow">
           {t("auth.getStarted")}
-        </div>
-        <h2
-          style={{
-            fontSize: 26,
-            fontWeight: 600,
-            color: "var(--fg-1)",
-            letterSpacing: 0,
-            margin: 0,
-          }}
-        >
+        </span>
+        <h2 className="auth-form-title">
           {t("auth.registerTitle")}
         </h2>
-        <p
-          style={{
-            fontSize: 14,
-            color: "var(--fg-3)",
-            marginTop: 6,
-            marginBottom: 0,
-          }}
-        >
+        <p className="auth-form-subtitle">
           {t("auth.registerSubtitle")}
         </p>
-      </div>
+      </header>
 
       <ErrorBanner message={displayError} />
 
@@ -226,21 +203,20 @@ const Register = () => {
         </Form.Item>
 
         {password && (
-          <div style={{ marginTop: -10, marginBottom: 18 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4, marginBottom: 6 }}>
+          <div className="auth-password-strength">
+            <div className="auth-password-strength__meter">
               {[1, 2, 3, 4, 5].map((segment) => (
                 <span
                   key={segment}
                   aria-hidden="true"
+                  className="auth-password-strength__segment"
                   style={{
-                    height: 4,
-                    borderRadius: 999,
                     background: segment <= strength ? strengthColor(strength) : "var(--border-1)",
                   }}
                 />
               ))}
             </div>
-            <div style={{ fontSize: 12, color: "var(--fg-3)" }}>{t(strengthLabelKey(strength))}</div>
+            <div className="auth-password-strength__label">{t(strengthLabelKey(strength))}</div>
           </div>
         )}
 
@@ -309,7 +285,7 @@ const Register = () => {
           />
         </Form.Item>
 
-        <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+        <Form.Item className="auth-form-submit">
           <Button
             type="primary"
             htmlType="submit"

@@ -1,0 +1,62 @@
+@import "../styles/tokens.css";
+
+.auth-form-spinner {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+}
+
+.auth-form-header {
+  margin-bottom: var(--space-6);
+}
+
+.auth-form-eyebrow {
+  color: var(--fg-3);
+  display: block;
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+}
+
+.auth-form-title {
+  color: var(--fg-1);
+  font-size: 26px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.auth-form-subtitle {
+  color: var(--fg-3);
+  font-size: var(--fs-14);
+  margin: var(--space-2) 0 0;
+}
+
+.auth-form-submit {
+  margin-bottom: 0;
+  margin-top: var(--space-6);
+}
+
+.auth-password-strength {
+  margin: -10px 0 18px;
+}
+
+.auth-password-strength__meter {
+  display: grid;
+  gap: var(--space-1);
+  grid-template-columns: repeat(5, 1fr);
+  margin-bottom: 6px;
+}
+
+.auth-password-strength__segment {
+  border-radius: var(--radius-pill);
+  display: block;
+  height: 4px;
+}
+
+.auth-password-strength__label {
+  color: var(--fg-3);
+  font-size: var(--fs-12);
+}

@@ -27,16 +27,18 @@
 
 .categories-eyebrow {
     color: var(--fg-3);
-    font-size: 12px;
-    font-weight: 600;
+    font-size: var(--fs-11);
+    font-weight: var(--fw-semibold);
     letter-spacing: 0.08em;
     margin-bottom: 10px;
     text-transform: uppercase;
 }
 
 .categories-hero__amount {
-    font-size: 34px;
-    font-weight: 700;
+    font-family: var(--font-num);
+    font-size: var(--fs-30);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--fw-semibold);
     margin-bottom: 8px;
 }
 
@@ -53,7 +55,7 @@
 .categories-hero__dash {
     color: var(--fg-4);
     font-family: var(--font-num);
-    font-size: 34px;
+    font-size: var(--fs-30);
     font-variant-numeric: tabular-nums;
 }
 
