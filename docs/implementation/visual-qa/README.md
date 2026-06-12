@@ -8,12 +8,14 @@ Run from `inex/ClientApp`:
 
 ```powershell
 npm run visual-qa:accounts
+npm run visual-qa:categories
 npm run visual-qa:transactions
 ```
 
 Output is refreshed under:
 
 - `docs/implementation/visual-qa/accounts/`
+- `docs/implementation/visual-qa/categories/`
 - `docs/implementation/visual-qa/transactions/`
 
 Each output folder contains:
@@ -33,4 +35,14 @@ Transactions coverage currently includes:
 - first-use empty at 390px
 - add drawer open at 390px and 360px
 - row edit drawer opened from the ledger row at 1440px and 390px
+- controlled load-error at 390px
+
+Categories coverage currently includes:
+
+- populated tree view at 1440px, 390px, and 360px
+- populated by-spend view at 1024px
+- filter-empty at 390px
+- first-use empty at 390px
+- add drawer open at 390px and 360px
+- inline edit opened from a category row at 1440px and 390px
 - controlled load-error at 390px
