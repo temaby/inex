@@ -47,6 +47,7 @@
     "lint": "eslint ./src/**/*.ts ./src/**/*.tsx",
     "test": "vitest run",
     "visual-qa:accounts": "node visual-qa/accounts.mjs",
+    "visual-qa:transactions": "node visual-qa/transactions.mjs",
     "test:watch": "vitest"
   }
 }
