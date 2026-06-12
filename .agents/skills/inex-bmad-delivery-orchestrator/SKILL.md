@@ -6,7 +6,7 @@ description: Orchestrates InEx issue-driven BMAD delivery from GitHub issue inta
 # InEx BMAD Delivery Orchestrator
 
 ## Purpose
-Run a complete issue-driven delivery loop while preserving InEx project rules. The orchestrator owns implementation and repository mutation; subagents, when available, are read-only analysts/reviewers that return findings.
+Run a complete issue-driven delivery loop while preserving InEx project rules. The orchestrator owns delivery, integration, repository mutation, PRs, CI, and merge decisions. Subagents may review or, when explicitly assigned isolated packets, implement scoped changes.
 
 ## Required Context
 Before planning, read:
@@ -22,7 +22,7 @@ Before planning, read:
 Use this prompt when launching the workflow from a terse user request:
 
 ```text
-Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and relevant BMAD/project docs, inspect worktree state, choose branch/PR grouping, implement only from the orchestrator context, use subagents only for analysis/review, preserve unrelated changes, verify with focused tests before broad checks, run visual QA for visual work, use MySQL MCP for DB-backed validation, open PR(s) with linked issues/tests/risks, wait for fresh CI, merge only when checks and review requirements pass, and finish with issues, branches, PR URLs, tests, review findings, merge result, and remaining risks.
+Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and relevant BMAD/project docs, inspect worktree state, choose branch/PR grouping, decide whether the orchestrator or isolated implementation subagents should code, preserve unrelated changes, verify with focused tests before broad checks, run visual QA for visual work, use MySQL MCP for DB-backed validation, open PR(s) with linked issues/tests/risks, wait for fresh CI, merge only when checks and review requirements pass, and finish with issues, branches, PR URLs, tests, review findings, merge result, and remaining risks.
 ```
 
 ## Workflow
@@ -36,13 +36,19 @@ Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and rel
 
 ### 2. Planning
 - Decide one PR, stacked PRs, parallel PRs, or issue-only/no-code disposition.
+- Choose orchestrator vs implementation subagents by complexity, not issue count. Five small independent issues can stay with the orchestrator; two noisy cross-cutting issues may need subagent packets or separate PRs.
+- Use implementation subagents when issue slices are isolated, have clear acceptance criteria, materially reduce context load, or improve review isolation.
+- Keep orchestrator implementation when the PR is small, touches shared files heavily, depends on one unsettled decision, or needs one coherent refactor.
 - Write a verification matrix with focused tests, broader tests/build/lint, DB validation, visual QA, and CI checks.
 - Identify blocked decisions before coding; use `question` issue handling when implementation depends on product, UX, QA, or architecture direction.
 - Keep public GitHub issue and PR content free of local absolute paths, localhost URLs, credentials, tokens, `.env` values, and user-local details.
 
 ### 3. Implementation
-- The orchestrator performs all file edits, branch changes, commits, pushes, and PR operations.
-- Subagents may inspect context, run read-only analysis, or review diffs. Do not delegate file edits, staging, commits, pushes, merges, destructive commands, or secret inspection to subagents.
+- The orchestrator may implement directly or assign implementation packets to subagents. The orchestrator always integrates, reviews, stages, commits, pushes, opens PRs, interprets CI, and merges.
+- Use implementation subagents only for explicit issue packets with assigned branch/worktree, scope, likely files, relevant docs, acceptance criteria, non-goals, verification, security/ownership constraints, and required output.
+- Do not run concurrent implementation subagents in the same working tree. Use separate worktrees/branches or run them sequentially.
+- Subagents must not stage, commit, push, merge, perform destructive commands, resolve cross-issue conflicts independently, or inspect secrets.
+- Subagent output must include result, files changed, behavior changed, tests run, tests not run, review notes, risks, and items needing orchestrator attention.
 - Follow existing code patterns and narrow the change to the issue scope.
 - Preserve API routes, response shapes, status codes, enum values, validation keys, i18n behavior, and user data isolation unless an accepted story changes them.
 - Never query or mutate user-owned data by entity ID alone; require `UserId` or equivalent ownership predicates.
@@ -60,6 +66,7 @@ Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and rel
 - Run three review passes before PR: Blind Hunter, Edge Case Hunter, and Acceptance Auditor.
 - Prefer fresh-context subagents for reviews when available; otherwise perform the passes manually.
 - Triage findings as high, medium, low, or accepted risk.
+- Route high/medium findings back to the same implementation subagent only when the packet remains isolated; otherwise the orchestrator fixes them.
 - Fix high/medium findings before PR unless explicitly deferred with rationale, then re-run impacted verification.
 
 ### 6. GitHub And CI

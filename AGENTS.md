@@ -40,7 +40,7 @@ Use `CLAUDE.md` and `README.md` for broader project context. This file defines a
 ## Tool Priority
 
 - Use MySQL MCP for read-only DB inspection before Docker, app startup, local `mysql`, migrations, or connection-string fallbacks. See `docs/operations/codex-mcp.md`.
-- Use the GitHub connector for issue and PR operations when available; use `gh` only for connector gaps.
+- For GitHub issue/PR work, use the GitHub connector/MCP first when the needed operation is exposed. If the loaded connector tool set lacks a needed capability, such as direct `issue view`, state the connector gap and use `gh` as the fallback.
 
 ## GitHub Issues
 
