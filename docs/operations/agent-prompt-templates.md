@@ -6,6 +6,7 @@ Use these copy-paste prompts to start common InEx agent workflows. Keep project 
 - `docs/operations/project-doctor.md`
 - `docs/operations/codex-mcp.md`
 - `docs/design/docs/design-implementation-guide.md`
+- `docs/operations/session-retrospective-checklist.md`
 
 ## Starting An Implementation Task
 
@@ -260,7 +261,7 @@ Inputs:
 - Friction points: <tooling|environment|scope|review|visual QA|DB validation>
 
 Required steps:
-1. Read `AGENTS.md` and relevant operations docs.
+1. Read `AGENTS.md` and `docs/operations/session-retrospective-checklist.md`.
 2. Identify what caused time loss or quality risk.
 3. Separate one-off notes from durable improvements.
 4. Recommend at most three follow-ups.
