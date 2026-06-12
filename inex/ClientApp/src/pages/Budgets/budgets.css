@@ -31,7 +31,7 @@
 .budgets-eyebrow {
   color: var(--fg-3);
   font-size: var(--fs-12);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -39,7 +39,7 @@
 .budgets-hero h2 {
   color: var(--fg-1);
   font-size: var(--fs-24);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-tight);
   margin: var(--space-2) 0 var(--space-2);
 }
@@ -47,7 +47,7 @@
 .budgets-hero p {
   color: var(--fg-3);
   font-size: var(--fs-14);
-  line-height: var(--lh-body);
+  line-height: var(--lh-normal);
   margin: 0;
 }
 
@@ -63,7 +63,7 @@
   font-family: var(--font-num);
   font-size: var(--fs-24);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   gap: var(--space-2);
   line-height: var(--lh-tight);
   margin-top: var(--space-3);
@@ -73,7 +73,7 @@
   color: var(--fg-3);
   font-family: var(--font-sans);
   font-size: var(--fs-14);
-  font-weight: var(--fw-500);
+  font-weight: var(--fw-medium);
 }
 
 .budgets-hero__state {
@@ -130,7 +130,7 @@
 .budgets-hero__burn-header span:first-child {
   color: var(--fg-1);
   font-size: var(--fs-13);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
 }
 
 .budgets-hero__burn-header span:last-child,
@@ -207,7 +207,7 @@
 .budgets-burn-row > span:first-child {
   color: var(--fg-2);
   font-size: var(--fs-13);
-  font-weight: var(--fw-500);
+  font-weight: var(--fw-medium);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -219,7 +219,7 @@
   font-family: var(--font-num);
   font-size: var(--fs-12);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   text-align: right;
 }
 
@@ -389,8 +389,8 @@
 
 .budget-row__title {
   color: var(--fg-1);
-  font-size: var(--fs-15);
-  font-weight: var(--fw-600);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 
@@ -404,7 +404,7 @@
 
 .budget-row__parent-context {
   color: var(--fg-2);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 
@@ -453,7 +453,7 @@
 .budget-row__progress-meta strong {
   color: var(--fg-3);
   font-size: var(--fs-12);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
 }
 
 .budget-row__pace,
@@ -476,7 +476,7 @@
   font-family: var(--font-num);
   font-size: var(--fs-13);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
 }
 
 .budget-row__notice {
@@ -484,7 +484,7 @@
   color: var(--expense-600);
   display: flex;
   font-size: var(--fs-12);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   gap: var(--space-1);
   grid-column: 1 / -1;
 }
@@ -555,7 +555,7 @@
 .budget-edit-form__snapshot-title {
   color: var(--fg-3);
   font-size: var(--fs-12);
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
   margin-bottom: var(--space-3);
   text-transform: uppercase;
 }
@@ -582,7 +582,7 @@
   font-family: var(--font-num);
   font-size: var(--fs-14);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--fw-600);
+  font-weight: var(--fw-semibold);
 }
 
 .budgets-skeleton {
@@ -651,15 +651,11 @@
     color: var(--fg-3);
     content: attr(data-label);
     font-size: var(--fs-12);
-    font-weight: var(--fw-600);
+    font-weight: var(--fw-semibold);
   }
 }
 
 @media (max-width: 768px) {
-  .budgets-workspace {
-    padding-bottom: 280px;
-  }
-
   .budgets-hero {
     grid-template-columns: 1fr;
     padding: var(--space-4);
