@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T20:02:06.861Z",
+  "generatedAt": "2026-06-12T16:32:55.627Z",
   "page": "accounts",
   "dataMode": "fixture",
   "harness": {
@@ -43,7 +43,7 @@
   "apiRequests": [
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /currencies",
     "GET /accounts?mode=ALL",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
@@ -51,76 +51,76 @@
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
-    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
-    "GET /currencies",
-    "POST /auth/refresh",
-    "GET /auth/me",
-    "GET /currencies",
-    "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "GET /currencies",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "GET /currencies",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "GET /currencies",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
+    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
+    "GET /currencies",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /currencies",
+    "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11",
+    "GET /exchange/rates/2026-06-12",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
     "GET /accounts?mode=ALL",
-    "GET /exchange/rates/2026-06-11"
+    "GET /exchange/rates/2026-06-12"
   ],
   "unhandledApiRequests": [],
   "states": [
@@ -142,7 +142,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 967.671875,
+      "lastContentBottom": 968.484375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -157,12 +157,12 @@
       "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT CURRENCY SHARE BALANCE UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel",
       "pngDimensions": {
         "width": 1425,
-        "height": 1448
+        "height": 1442
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /currencies",
         "GET /accounts?mode=ALL",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
@@ -215,7 +215,7 @@
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -259,14 +259,14 @@
       "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel Travel buffer GEL 1.7% of net worth 588.46 USD 1,735.96 GEL approx 588.46 USD Dashboard Tran",
       "pngDimensions": {
         "width": 375,
-        "height": 3447
+        "height": 3445
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -310,14 +310,14 @@
       "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel Travel buffer GEL 1.7% of net worth 588.46 USD 1,735.96 GEL approx 588.46 USD Dashboard Tran",
       "pngDimensions": {
         "width": 345,
-        "height": 3447
+        "height": 3445
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -361,14 +361,14 @@
       "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 0 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list Filtering by \"zzzz-no-match\" Clear search No accounts match Try clearing search or showing all accounts. Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1911
+        "height": 1909
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -419,7 +419,7 @@
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11"
+        "GET /exchange/rates/2026-06-12"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -466,14 +466,14 @@
       "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel Travel buffer GEL 1.7% of net worth 588.46 USD 1,735.96 GEL approx 588.46 USD Dashboard Tran",
       "pngDimensions": {
         "width": 390,
-        "height": 3447
+        "height": 3445
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
         "GET /currencies"
       ],
@@ -522,14 +522,14 @@
       "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel Travel buffer GEL 1.7% of net worth 588.46 USD 1,735.96 GEL approx 588.46 USD Dashboard Tran",
       "pngDimensions": {
         "width": 360,
-        "height": 3447
+        "height": 3445
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
         "GET /currencies"
       ],
@@ -559,7 +559,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 967.671875,
+      "lastContentBottom": 968.484375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -574,14 +574,14 @@
       "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT CURRENCY SHARE BALANCE UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD Name Description Currency BYN - BYN Active Disabled Delete Update SNAPSHOT ",
       "pngDimensions": {
         "width": 1425,
-        "height": 1848
+        "height": 1842
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
         "GET /currencies"
       ],
@@ -623,17 +623,17 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD Name Description Currency BYN - BYN Active Disabled Delete Update SNAPSHOT Current balance 4,200.00 BYN USD equivalent 1,354.84 USD Rate to base 0.3226 USD / BYN Accoun",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD UZS main wallet Cash reserves UZS 48.8% of net worth 16,591.12 USD 199,093,440.00 UZS approx 16,591.12 USD Name Description Currency UZS - UZS Active Disabled Delete Update SNAPSHOT Current balance 199,093,440.00 UZS USD equivalent 16,591.12 USD Rate to base 0.000083 USD / UZS Account ID #201 USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN a",
       "pngDimensions": {
         "width": 375,
-        "height": 4164
+        "height": 4162
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
         "GET /currencies"
       ],
@@ -663,7 +663,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 968.171875,
+      "lastContentBottom": 967.984375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -680,14 +680,14 @@
       "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT CURRENCY SHARE BALANCE UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel Travel buffer GEL 1.7% of net worth 588.46 USD 1,735.96 GEL approx 588.46 USD",
       "pngDimensions": {
         "width": 1425,
-        "height": 1387
+        "height": 1382
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -733,14 +733,14 @@
       "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968.12 USD +383.14 USD +1.1% MoM Change from previous month 6 active 6 currencies BY CURRENCY USD equivalent UZS 48.8% 16,591.12 USD USD 27.1% 9,200.00 USD PLN 10.7% 3,625.00 USD RUB 7.7% 2,608.70 USD BYN 4.0% 1,354.84 USD GEL 1.7% 588.46 USD Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% of net worth 199,093,440.00 UZS approx 16,591.12 USD USD - 1 account 27.1% of net worth 9,200.00 USD approx 9,200.00 USD USD operating Payroll and vendors USD 27.1% of net worth 9,200.00 USD 9,200.00 USD approx 9,200.00 USD PLN - 1 account 10.7% of net worth 14,500.00 PLN approx 3,625.00 USD PLN card Poland expenses PLN 10.7% of net worth 3,625.00 USD 14,500.00 PLN approx 3,625.00 USD RUB - 1 account 7.7% of net worth 240,000.00 RUB approx 2,608.70 USD RUB savings RUB 7.7% of net worth 2,608.70 USD 240,000.00 RUB approx 2,608.70 USD BYN - 1 account 4.0% of net worth 4,200.00 BYN approx 1,354.84 USD BYN reserve Belarus reserve BYN 4.0% of net worth 1,354.84 USD 4,200.00 BYN approx 1,354.84 USD GEL - 1 account 1.7% of net worth 1,735.96 GEL approx 588.46 USD GEL travel Travel buffer GEL 1.7% of net worth 588.46 USD 1,735.96 GEL approx 588.46 USD Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 3269
+        "height": 3267
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11",
+        "GET /exchange/rates/2026-06-12",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -791,7 +791,7 @@
         "GET /auth/me",
         "GET /currencies",
         "GET /accounts?mode=ALL",
-        "GET /exchange/rates/2026-06-11"
+        "GET /exchange/rates/2026-06-12"
       ],
       "consoleMessages": [
         "[vite] connecting...",

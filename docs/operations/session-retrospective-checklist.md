@@ -104,7 +104,7 @@ Use this table to avoid overfitting:
 
 ## Verification Example
 
-Source artifact reviewed: `docs/implementation/visual-qa/stage-4-accounts/qa-summary.json`.
+Source artifact reviewed: `docs/implementation/visual-qa/accounts/qa-summary.json`.
 
 ### Preserve CDP visual QA fallback as documented behavior
 
@@ -123,7 +123,7 @@ Priority: `low`
 
 Exact follow-up prompt:
 ```text
-Review the existing Accounts visual QA CDP harness and decide whether a dedicated Playwright dependency PR is justified. Use `docs/implementation/visual-qa/stage-4-accounts/qa-summary.json` as evidence, compare maintainability against current CDP coverage, and recommend either no change or a scoped dependency PR. Do not edit files unless the recommendation is explicitly approved.
+Review the existing Accounts visual QA CDP harness and decide whether a dedicated Playwright dependency PR is justified. Use `docs/implementation/visual-qa/accounts/qa-summary.json` as evidence, compare maintainability against current CDP coverage, and recommend either no change or a scoped dependency PR. Do not edit files unless the recommendation is explicitly approved.
 ```
 
 One-off notes:

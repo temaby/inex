@@ -1,6 +1,8 @@
 # Visual QA Harness
 
-Stage 4 uses page-scoped fixture harnesses. Each harness serves the production React route through Vite in `test` mode, then intercepts every browser `/api/*` request and fulfills it from page-specific fixture data under `inex/ClientApp/src/test/fixtures/`.
+Visual QA uses page-scoped fixture harnesses. Each harness serves the production React route through Vite in `test` mode, then intercepts every browser `/api/*` request and fulfills it from page-specific fixture data under `inex/ClientApp/src/test/fixtures/`.
+
+Shared CDP browser control, Vite startup, screenshot capture, request interception, and common summary checks live in `inex/ClientApp/visual-qa/harness.mjs`. Page scripts should keep only their fixture route handlers, state matrix, interactions, page-specific metrics, and summary metadata.
 
 Run from `inex/ClientApp`:
 
@@ -11,8 +13,8 @@ npm run visual-qa:transactions
 
 Output is refreshed under:
 
-- `docs/implementation/visual-qa/stage-4-accounts/`
-- `docs/implementation/visual-qa/stage-4-transactions/`
+- `docs/implementation/visual-qa/accounts/`
+- `docs/implementation/visual-qa/transactions/`
 
 Each output folder contains:
 
