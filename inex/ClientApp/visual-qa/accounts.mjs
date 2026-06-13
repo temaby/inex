@@ -310,7 +310,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       playwrightInstalled: playwrightInstalled(root),
       note: "Playwright is not installed in this project. This harness uses Chrome DevTools Protocol with request interception; add Playwright in a dedicated dependency PR if a Playwright suite is desired.",
       viteMode: "test",
-      apiIsolation: "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 599.",
+      apiIsolation: "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 502.",
       realBackendCalled: false,
     },
     fixture: {

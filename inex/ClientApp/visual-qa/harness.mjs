@@ -89,7 +89,7 @@ export function createApiFixtureHandler({
       scenario: scenarioRef.current,
     }) ?? (() => {
       unhandledApiRequests.push(route);
-      return problemResponse("Unhandled visual QA API fixture", route, 599);
+      return problemResponse("Unhandled visual QA API fixture", route, 502);
     })();
 
     await client.send("Fetch.fulfillRequest", {

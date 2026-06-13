@@ -18,8 +18,8 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/transactions");
-const fixturePath = path.join(clientRoot, "src/test/fixtures/transactionsVisualFixture.ts");
+const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/budgets");
+const fixturePath = path.join(clientRoot, "src/test/fixtures/budgetsVisualFixture.ts");
 
 const authUser = {
   id: 1,
@@ -39,10 +39,11 @@ const states = [
     scenario: "populated",
   },
   {
-    name: "populated-1024",
-    screenshot: "populated-1024.png",
+    name: "populated-amount-1024",
+    screenshot: "populated-amount-1024.png",
     viewport: { width: 1024, height: defaultViewportHeight },
     scenario: "populated",
+    interaction: "sort-by-amount",
   },
   {
     name: "populated-390",
@@ -88,20 +89,20 @@ const states = [
     screenshot: "expanded-row-1440.png",
     viewport: { width: 1440, height: 1000 },
     scenario: "populated",
-    interaction: "open-row-edit",
+    interaction: "expand-first-row",
   },
   {
     name: "expanded-row-390",
     screenshot: "expanded-row-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "open-row-edit",
+    interaction: "expand-first-row",
   },
   {
     name: "load-error-390",
     screenshot: "load-error-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "transactions-error",
+    scenario: "budgets-error",
   },
 ];
 
@@ -117,25 +118,35 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/auth/me" && method === "GET") {
         return jsonResponse(authUser);
       }
-      if (url.pathname === "/api/accounts" && method === "GET") {
-        return jsonResponse({ data: fixture.transactionsVisualFixtureAccounts });
-      }
-      if (url.pathname === "/api/categories" && method === "GET") {
-        return jsonResponse({ data: fixture.transactionsVisualFixtureCategories });
+      if (url.pathname === "/api/currencies" && method === "GET") {
+        return jsonResponse(fixture.budgetsVisualFixtureCurrencies);
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
-        return jsonResponse({ data: fixture.transactionsVisualFixtureRates });
+        return jsonResponse({ data: fixture.budgetsVisualFixtureRates });
       }
-      if (url.pathname === "/api/transactions" && method === "GET") {
-        if (scenario === "transactions-error") {
-          return problemResponse("Transactions fixture failure", "Controlled Transactions load failure.", 500);
+      if (url.pathname === "/api/categories" && method === "GET") {
+        return jsonResponse({ data: fixture.budgetsVisualFixtureCategories });
+      }
+      if (url.pathname === "/api/budgets" && method === "GET") {
+        if (scenario === "budgets-error") {
+          return problemResponse("Budgets fixture failure", "Controlled Budgets load failure.", 500);
         }
-
-        const data = scenario === "empty" ? [] : fixture.transactionsVisualFixtureTransactions;
         return jsonResponse({
-          data,
-          metadata: { totalItems: data.length },
+          data: scenario === "empty" ? [] : fixture.budgetsVisualFixtureBudgets,
         });
+      }
+      if (url.pathname === "/api/reports/budget/comparison" && method === "GET") {
+        if (scenario === "empty") {
+          return jsonResponse({
+            ...fixture.budgetsVisualFixtureReport,
+            data: [],
+            metadata: {
+              ...fixture.budgetsVisualFixtureReport.metadata,
+              totalOutcome: 0,
+            },
+          });
+        }
+        return jsonResponse(fixture.budgetsVisualFixtureReport);
       }
       return null;
     },
@@ -144,29 +155,36 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 
 async function applyInteraction(client, state) {
   switch (state.interaction) {
+    case "sort-by-amount":
+      await evaluate(client, clickButtonByTextExpression("Amount"));
+      await waitFor(client, `(() => {
+        const firstRow = document.querySelector(".budget-row__title");
+        return firstRow && firstRow.textContent && firstRow.textContent.includes("Rent envelope");
+      })()`);
+      return;
     case "search-no-match":
       await evaluate(client, `(() => {
-        const input = document.querySelector("input[type='search'][aria-label='Search']");
+        const input = document.querySelector("input[type='search'][aria-label='Search budgets']");
         if (!input) return false;
         const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
         setter.call(input, "zzzz-no-match");
         input.dispatchEvent(new Event("input", { bubbles: true }));
         return true;
       })()`);
-      await waitFor(client, "document.body.innerText.includes('No transactions match these filters')");
+      await waitFor(client, "document.body.innerText.includes('No budgets match this search')");
       return;
     case "open-add-drawer":
-      await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
+      await evaluate(client, clickButtonByTextExpression("Add budget"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Add Budget')");
       return;
-    case "open-row-edit":
+    case "expand-first-row":
       await evaluate(client, `(() => {
-        const row = document.querySelector(".transactions-ledger-row");
+        const row = document.querySelector(".budget-row__main");
         if (!row) return false;
         row.click();
         return true;
       })()`);
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction')");
+      await waitFor(client, "Boolean(document.querySelector('.budget-row__edit'))");
       return;
     case undefined:
       return;
@@ -175,15 +193,15 @@ async function applyInteraction(client, state) {
   }
 }
 
-async function waitForTransactionsReady(client, state) {
-  await waitFor(client, "document.body.innerText.includes('Transactions')");
+async function waitForBudgetsReady(client, state) {
+  await waitFor(client, "document.body.innerText.includes('Budgets')");
 
-  if (state.scenario === "transactions-error") {
-    await waitFor(client, "document.body.innerText.includes('Failed to load transactions')");
+  if (state.scenario === "budgets-error") {
+    await waitFor(client, "document.body.innerText.includes('Budgets could not load')");
   } else if (state.scenario === "empty") {
-    await waitFor(client, "document.body.innerText.includes('No transactions to display')");
+    await waitFor(client, "document.body.innerText.includes('No budgets planned for this month')");
   } else {
-    await waitFor(client, "document.body.innerText.includes('BIEDRONKA groceries')");
+    await waitFor(client, "document.body.innerText.includes('Groceries cap') && document.body.innerText.includes('Apr 2026')");
   }
 }
 
@@ -198,12 +216,16 @@ async function collectMetrics(client, state, apiRequestCount) {
     const bottomNavStyle = bottomNav ? window.getComputedStyle(bottomNav) : null;
     const bottomNavVisible = Boolean(bottomNav && bottomNavStyle && bottomNavStyle.display !== "none" && bottomNav.getBoundingClientRect().height > 0);
     const bottomNavRect = bottomNavVisible ? bottomNav.getBoundingClientRect() : null;
-    const content = document.querySelector(".transactions-ledger, .transactions-empty-wrap, .transactions-ledger-card");
+    const content = document.querySelector(".budgets-workspace, .budgets-list, .budgets-hero");
     const contentRect = content ? content.getBoundingClientRect() : null;
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
-    const rows = Array.from(document.querySelectorAll(".transactions-ledger-row"));
-    const groups = Array.from(document.querySelectorAll(".transactions-day-group"));
+    const rows = Array.from(document.querySelectorAll(".budget-row"));
+    const expandedRows = rows.filter((row) => row.querySelector(".budget-row__main")?.getAttribute("aria-expanded") === "true");
+    const editPanels = Array.from(document.querySelectorAll(".budget-row__edit"));
+    const burnRows = Array.from(document.querySelectorAll(".budgets-burn-row"));
+    const overRows = rows.filter((row) => row.classList.contains("is-over"));
+    const atLimitRows = rows.filter((row) => row.classList.contains("is-atLimit"));
 
     return {
       title: document.title,
@@ -219,13 +241,17 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       rowCount: rows.length,
-      dayGroupCount: groups.length,
+      expandedRowCount: expandedRows.length,
+      editPanelCount: editPanels.length,
+      burnRowCount: burnRows.length,
+      overBudgetRowCount: overRows.length,
+      atLimitRowCount: atLimitRows.length,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
-      addDrawerOpen: document.body.innerText.includes("New transaction"),
-      rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
-      loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
-      filterEmptyVisible: document.body.innerText.includes("No transactions match these filters"),
-      firstUseEmptyVisible: document.body.innerText.includes("No transactions to display"),
+      addDrawerOpen: document.body.innerText.includes("Add Budget"),
+      inlineEditOpen: editPanels.length > 0,
+      loadErrorVisible: document.body.innerText.includes("Budgets could not load"),
+      filterEmptyVisible: document.body.innerText.includes("No budgets match this search"),
+      firstUseEmptyVisible: document.body.innerText.includes("No budgets planned for this month"),
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
@@ -246,9 +272,9 @@ async function collectMetrics(client, state, apiRequestCount) {
 function runState(args) {
   return runBrowserState({
     ...args,
-    routePath: "/transactions",
-    initScript: fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, "en"),
-    waitForReady: waitForTransactionsReady,
+    routePath: "/budgets?year=2026&month=4",
+    initScript: fixedDateInitScript(args.fixture.budgetsVisualFixtureMeta.fixedNow, "en"),
+    waitForReady: waitForBudgetsReady,
     applyInteraction,
     collectMetrics,
   });
@@ -259,7 +285,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
 
   return {
     generatedAt: new Date().toISOString(),
-    page: "transactions",
+    page: "budgets",
     dataMode: "fixture",
     harness: {
       runner: "Node CDP headless browser",
@@ -268,14 +294,15 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       viteMode: "test",
       apiIsolation: "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 502.",
       realBackendCalled: false,
-      fixedNow: fixture.transactionsVisualFixtureMeta.fixedNow,
+      fixedNow: fixture.budgetsVisualFixtureMeta.fixedNow,
     },
     fixture: {
-      source: "inex/ClientApp/src/test/fixtures/transactionsVisualFixture.ts",
-      baseline: fixture.transactionsVisualFixtureMeta.baseline,
-      expectedBaseCurrency: fixture.transactionsVisualFixtureMeta.expectedBaseCurrency,
-      expectedTransactionCount: fixture.transactionsVisualFixtureMeta.expectedTransactionCount,
-      rowInteraction: fixture.transactionsVisualFixtureMeta.rowInteraction,
+      source: "inex/ClientApp/src/test/fixtures/budgetsVisualFixture.ts",
+      baseline: fixture.budgetsVisualFixtureMeta.baseline,
+      expectedBaseCurrency: fixture.budgetsVisualFixtureMeta.expectedBaseCurrency,
+      expectedBudgetCount: fixture.budgetsVisualFixtureMeta.expectedBudgetCount,
+      expectedCategoryCount: fixture.budgetsVisualFixtureMeta.expectedCategoryCount,
+      rowInteraction: fixture.budgetsVisualFixtureMeta.rowInteraction,
     },
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,
@@ -285,20 +312,20 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
   };
 }
 
-const fixtureExports = loadFixture(fixturePath, `Transactions fixture is missing: ${fixturePath}`);
+const fixtureExports = loadFixture(fixturePath, `Budgets fixture is missing: ${fixturePath}`);
 
 runVisualQa({
   clientRoot,
   repoRoot,
   outputDir,
-  defaultPort: 5199,
+  defaultPort: 5202,
   fixture: fixtureExports,
   states,
   createApiHandler,
   runState,
   buildSummary,
-  label: "Transactions",
-  userDataPrefix: "inex-transactions-visual-qa",
+  label: "Budgets",
+  userDataPrefix: "inex-budgets-visual-qa",
 }).catch((error) => {
   process.stderr.write(`${error.stack ?? error.message}\n`);
   process.exitCode = 1;
