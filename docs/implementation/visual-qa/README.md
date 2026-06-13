@@ -11,6 +11,7 @@ npm run visual-qa:accounts
 npm run visual-qa:budgets
 npm run visual-qa:categories
 npm run visual-qa:dashboard
+npm run visual-qa:profile
 npm run visual-qa:reports
 npm run visual-qa:transactions
 ```
@@ -21,6 +22,7 @@ Output is refreshed under:
 - `docs/implementation/visual-qa/budgets/`
 - `docs/implementation/visual-qa/categories/`
 - `docs/implementation/visual-qa/dashboard/`
+- `docs/implementation/visual-qa/profile/`
 - `docs/implementation/visual-qa/reports/`
 - `docs/implementation/visual-qa/transactions/`
 
@@ -81,3 +83,12 @@ Dashboard coverage currently includes:
 - controlled month-summary load-error at 390px
 - controlled net-worth load-error at 390px
 - controlled heatmap load-error at 390px
+
+Profile & Settings coverage currently includes:
+
+- populated profile/settings view at 1440px, 1024px, 390px, and 360px
+- profile form edited state at 390px
+- security form filled state at 390px
+- controlled currency-load error at 390px
+- controlled profile-update error at 390px
+- filter-empty, first-use empty, drawer-open, expanded-row, and collapsed-group marked not applicable for this route
