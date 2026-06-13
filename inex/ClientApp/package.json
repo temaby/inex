@@ -49,6 +49,7 @@
     "visual-qa:accounts": "node visual-qa/accounts.mjs",
     "visual-qa:budgets": "node visual-qa/budgets.mjs",
     "visual-qa:categories": "node visual-qa/categories.mjs",
+    "visual-qa:reports": "node visual-qa/reports.mjs",
     "visual-qa:transactions": "node visual-qa/transactions.mjs",
     "test:watch": "vitest"
   }

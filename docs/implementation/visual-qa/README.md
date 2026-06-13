@@ -10,6 +10,7 @@ Run from `inex/ClientApp`:
 npm run visual-qa:accounts
 npm run visual-qa:budgets
 npm run visual-qa:categories
+npm run visual-qa:reports
 npm run visual-qa:transactions
 ```
 
@@ -18,6 +19,7 @@ Output is refreshed under:
 - `docs/implementation/visual-qa/accounts/`
 - `docs/implementation/visual-qa/budgets/`
 - `docs/implementation/visual-qa/categories/`
+- `docs/implementation/visual-qa/reports/`
 - `docs/implementation/visual-qa/transactions/`
 
 Each output folder contains:
@@ -58,3 +60,14 @@ Budgets coverage currently includes:
 - add drawer open at 390px and 360px
 - inline budget edit expanded from a budget row at 1440px and 390px
 - controlled load-error at 390px
+
+Reports coverage currently includes:
+
+- populated hub at 1440px, 1024px, 390px, and 360px
+- populated category drill-down at 1440px
+- empty category drill-down at 390px
+- populated budget drill-down at 390px
+- controlled budget report load-error at 390px
+- populated cash-flow history chart at 1440px
+- populated heatmap drill-down at 390px
+- controlled heatmap load-error at 390px
