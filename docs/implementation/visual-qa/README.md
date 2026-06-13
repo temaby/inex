@@ -10,6 +10,7 @@ Run from `inex/ClientApp`:
 npm run visual-qa:accounts
 npm run visual-qa:budgets
 npm run visual-qa:categories
+npm run visual-qa:dashboard
 npm run visual-qa:reports
 npm run visual-qa:transactions
 ```
@@ -19,6 +20,7 @@ Output is refreshed under:
 - `docs/implementation/visual-qa/accounts/`
 - `docs/implementation/visual-qa/budgets/`
 - `docs/implementation/visual-qa/categories/`
+- `docs/implementation/visual-qa/dashboard/`
 - `docs/implementation/visual-qa/reports/`
 - `docs/implementation/visual-qa/transactions/`
 
@@ -70,4 +72,12 @@ Reports coverage currently includes:
 - controlled budget report load-error at 390px
 - populated cash-flow history chart at 1440px
 - populated heatmap drill-down at 390px
+- controlled heatmap load-error at 390px
+
+Dashboard coverage currently includes:
+
+- populated dashboard at 1440px, 1024px, 390px, and 360px
+- first-use empty dashboard at 390px
+- controlled month-summary load-error at 390px
+- controlled net-worth load-error at 390px
 - controlled heatmap load-error at 390px
