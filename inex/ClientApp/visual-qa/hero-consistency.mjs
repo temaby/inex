@@ -184,6 +184,12 @@ function initScriptForPage(page) {
   return localeInitScript("en");
 }
 
+function previousMonthLabelFromFixedNow(fixedNow, locale = "en") {
+  const current = new Date(fixedNow);
+  return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" })
+    .format(new Date(current.getFullYear(), current.getMonth() - 1, 1));
+}
+
 async function collectMetrics(client, state, apiRequestCount) {
   await wait(150);
 
@@ -367,6 +373,16 @@ function collectAdditionalFailures(stateResults) {
     if (state.page === "categories" && !/% of total/.test(state.heroText)) {
       failures.push(`${state.name}: Categories hero is missing percent-of-total label`);
     }
+    if (state.page === "categories" && /\bMoM\b/.test(state.heroText)) {
+      failures.push(`${state.name}: Categories hero still shows standalone MoM copy`);
+    }
+    if (state.page === "categories") {
+      const expectedPreviousPeriod = previousMonthLabelFromFixedNow(fixtures.categories.categoriesVisualFixtureMeta.fixedNow);
+      const expectedChangeText = `Change from ${expectedPreviousPeriod}`;
+      if (!state.heroText.includes(expectedChangeText)) {
+        failures.push(`${state.name}: Categories hero is missing "${expectedChangeText}"`);
+      }
+    }
     if (state.page === "budgets" && /Month planning/.test(state.heroText)) {
       failures.push(`${state.name}: Budgets hero still shows Month planning`);
     }
@@ -375,6 +391,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.page === "budgets" && !/Apr 2026 budget/.test(state.heroText)) {
       failures.push(`${state.name}: Budgets hero does not show selected-month title`);
+    }
+    if (state.page === "budgets" && /\d[\d,]*\.\d{2}\s+[A-Z]{3}\s*\/\s*\d/.test(state.heroText)) {
+      failures.push(`${state.name}: Budgets hero repeats currency before the rollup slash`);
     }
   }
 
@@ -396,6 +415,16 @@ function collectAdditionalFailures(stateResults) {
     }
 
     const referenceState = widthStates.find((state) => state.page !== "dashboard" && state.heroPrimaryValue && state.heroPrimaryCurrencies.length > 0);
+    const referenceWeight = widthStates.find((state) => state.page === "transactions")?.heroPrimaryValue?.fontWeight
+      ?? widthStates.find((state) => state.page === "dashboard")?.dashboardCardValues.find(Boolean)?.fontWeight;
+    if (referenceWeight) {
+      for (const page of ["accounts", "categories", "budgets"]) {
+        const state = widthStates.find((candidate) => candidate.page === page);
+        if (state?.heroPrimaryValue?.fontWeight && state.heroPrimaryValue.fontWeight !== referenceWeight) {
+          failures.push(`${state.name}: hero primary metric font weight differs from Dashboard/Transactions`);
+        }
+      }
+    }
     const dashboardStates = widthStates.filter((state) => state.page === "dashboard");
     for (const dashboard of dashboardStates) {
       if (!referenceState) continue;
@@ -472,7 +501,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     harness: {
       runner: "Node CDP headless browser",
       playwrightInstalled: playwrightInstalled(root),
-      note: "Compares top-section selectors, typography, distribution treatment, accepted Budgets burn-rate legend placement, Dashboard summary-card treatment, text removals, overflow, and bottom-nav clearance across Transactions, Accounts, Categories, Budgets, and Dashboard.",
+      note: "Compares top-section selectors, typography including main metric weight, distribution treatment, accepted Budgets burn-rate legend placement, Dashboard summary-card treatment, Budgets rollup currency repetition, Categories previous-period copy, text removals, overflow, and bottom-nav clearance across Transactions, Accounts, Categories, Budgets, and Dashboard.",
       viteMode: "test",
       apiIsolation: "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 502.",
       realBackendCalled: false,

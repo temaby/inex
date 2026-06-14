@@ -208,7 +208,7 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.queryByText("2 / 3")).not.toBeInTheDocument();
         expect(screen.queryByText("cash WALLET")).not.toBeInTheDocument();
         expect(screen.getByText("Daily card")).toBeVisible();
-        expect(document.querySelector(".accounts-share-bar")).not.toBeInTheDocument();
+        expect(document.querySelector(".accounts-group__bar")).not.toBeInTheDocument();
     });
 
     it("renders fixture currency groups expanded by default and supports collapsed-state QA", async () => {

@@ -325,6 +325,14 @@ const Categories = () => {
             }).format(new Date(categoryStats.period.year, categoryStats.period.month - 1, 1)),
         [categoryStats.period.month, categoryStats.period.year, i18n.language],
     );
+    const previousPeriodLabel = React.useMemo(
+        () =>
+            new Intl.DateTimeFormat(i18n.language, {
+                month: "long",
+                year: "numeric",
+            }).format(new Date(categoryStats.period.year, categoryStats.period.month - 2, 1)),
+        [categoryStats.period.month, categoryStats.period.year, i18n.language],
+    );
 
     const budgetByCategoryId = React.useMemo(
         () => buildBudgetCategoryIndex(budgetsForPeriod, categoryStats.period, categories),
@@ -462,6 +470,7 @@ const Categories = () => {
                                 categories={categories}
                                 loading={showInitialLoading}
                                 periodLabel={periodLabel}
+                                previousPeriodLabel={previousPeriodLabel}
                                 stats={categoryStats}
                             />
                         </React.Fragment>

@@ -568,11 +568,6 @@ const Accounts = () => {
                                     })}
                                 </span>
                             </button>
-                            {group.share !== null && (
-                                <div className="accounts-group__bar" aria-hidden="true">
-                                    <span style={{ width: `${group.share === 0 ? 0 : Math.min(100, Math.max(4, group.share))}%` }} />
-                                </div>
-                            )}
                             {!collapsed && <div className="accounts-list">{group.accounts.map(renderRow)}</div>}
                         </section>
                     );
