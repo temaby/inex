@@ -114,10 +114,9 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                     <div className="categories-hero__distribution" aria-label={t("categories.hero.byCategory")}>
                         <div className="categories-hero__distribution-head">
                             <div>
-                                <div className="categories-eyebrow">{t("categories.hero.byCategory")}</div>
-                                <h2 data-qa="hero-distribution-title">
-                                    {t("categories.hero.baseEquivalent", { currency: stats.currency })}
-                                </h2>
+                                <div className="categories-eyebrow" data-qa="hero-distribution-eyebrow">
+                                    {t("categories.hero.byCategory")}
+                                </div>
                             </div>
                         </div>
                         <div className="categories-hero__distribution-bar" data-qa="hero-distribution-bar">

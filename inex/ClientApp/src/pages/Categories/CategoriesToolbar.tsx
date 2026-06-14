@@ -74,16 +74,16 @@ export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({
                     value={view}
                     onChange={(key) => onViewChange(key as CategoriesViewMode)}
                 />
-                <div className="categories-search">
-                    <Input
-                        aria-label={t("categories.search.label")}
-                        value={search}
-                        onChange={(event) => onSearchChange(event.target.value)}
-                        placeholder={t("categories.search.placeholder")}
-                        prefix={<Search size={15} aria-hidden="true" />}
-                        variant="search"
-                    />
-                </div>
+                <Input
+                    aria-label={t("categories.search.label")}
+                    className="categories-search"
+                    value={search}
+                    onChange={(event) => onSearchChange(event.target.value)}
+                    placeholder={t("categories.search.placeholder")}
+                    prefix={<Search size={15} aria-hidden="true" />}
+                    variant="search"
+                    width="var(--management-toolbar-search-width)"
+                />
             </ListPanelFilterBar>
         </React.Fragment>
     );

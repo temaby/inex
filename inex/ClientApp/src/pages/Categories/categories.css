@@ -14,15 +14,15 @@
 
 .categories-hero {
     display: grid;
-    gap: 32px;
-    grid-template-columns: 320px minmax(0, 1fr);
-    padding: 24px 28px;
+    grid-template-columns: var(--management-hero-summary-width) minmax(0, 1fr);
+    overflow: hidden;
 }
 
 .categories-hero__summary {
     border-right: 1px solid var(--border-1);
+    box-sizing: border-box;
     min-width: 0;
-    padding-right: 32px;
+    padding: 24px 28px;
 }
 
 .categories-eyebrow {
@@ -83,11 +83,13 @@
 }
 
 .categories-hero__details {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 18px;
     justify-content: center;
     min-width: 0;
+    padding: 24px 28px;
 }
 
 .categories-hero__metric-grid,
@@ -173,13 +175,6 @@
     min-width: 0;
 }
 
-.categories-hero__distribution-head h2 {
-    color: var(--fg-1);
-    font-size: 16px;
-    font-weight: 700;
-    margin: 4px 0 0;
-}
-
 .categories-hero__distribution-bar {
     background: var(--bg-muted);
     border-radius: 6px;
@@ -247,9 +242,9 @@
 }
 
 .categories-search {
-    flex: 0 1 260px;
+    flex: 0 1 var(--management-toolbar-search-width);
     margin-left: auto;
-    max-width: 260px;
+    max-width: var(--management-toolbar-search-width);
     min-width: min(220px, 100%);
 }
 
@@ -538,18 +533,18 @@
     }
 
     .categories-hero {
-        gap: 16px;
         grid-template-columns: 1fr;
-        padding: 18px 16px;
     }
 
     .categories-hero__summary {
+        border-bottom: 1px solid var(--border-1);
         border-right: 0;
-        padding-right: 0;
+        padding: 18px 16px;
     }
 
     .categories-hero__details {
         gap: 12px;
+        padding: 18px 16px;
     }
 
     .categories-hero__metric-grid,
@@ -558,10 +553,12 @@
     }
 
     .categories-search {
-        flex-basis: auto;
+        flex: 0 1 auto !important;
+        flex-basis: auto !important;
         margin-left: 0;
         max-width: none;
-        width: 100%;
+        min-width: 0;
+        width: 100% !important;
     }
 
     .category-row {

@@ -288,6 +288,11 @@
     display: none;
 }
 
+:root {
+    --management-hero-summary-width: 320px;
+    --management-toolbar-search-width: 260px;
+}
+
 .inex-list-panel {
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
