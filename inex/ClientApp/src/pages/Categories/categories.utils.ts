@@ -1,6 +1,7 @@
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
+import { buildTopDistribution } from "../../utils/distribution";
 
 export type CategoryNode = CategoryResponse & {
     children: CategoryNode[];
@@ -331,23 +332,13 @@ export const computeCategorySpendStats = ({
         .filter((item) => item.spend > 0)
         .sort((left, right) => right.spend - left.spend || left.index - right.index);
     const totalSpend = sortedParents.reduce((sum, item) => sum + item.spend, 0);
-    const topFive = sortedParents.slice(0, 5);
-    const otherSpend = sortedParents.slice(5).reduce((sum, item) => sum + item.spend, 0);
-    const distribution: CategoryDistributionItem[] = topFive.map((item) => ({
-        key: String(item.category.id),
-        label: item.category.name,
-        value: item.spend,
-        share: totalSpend > 0 ? item.spend / totalSpend : 0,
-    }));
-
-    if (otherSpend > 0) {
-        distribution.push({
-            key: "other",
-            label: "Other",
-            value: otherSpend,
-            share: totalSpend > 0 ? otherSpend / totalSpend : 0,
-        });
-    }
+    const distribution: CategoryDistributionItem[] = buildTopDistribution(
+        sortedParents.map((item) => ({
+            key: String(item.category.id),
+            label: item.category.name,
+            value: item.spend,
+        })),
+    );
 
     return {
         available: true,

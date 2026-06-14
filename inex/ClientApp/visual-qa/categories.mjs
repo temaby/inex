@@ -220,6 +220,20 @@ async function collectMetrics(client, state, apiRequestCount) {
     const expandedRows = rows.filter((row) => row.getAttribute("aria-expanded") === "true");
     const inlineEdit = document.querySelector(".category-inline-edit");
     const distributionSegments = Array.from(document.querySelectorAll(".categories-hero__distribution-segment"));
+    const legendItems = Array.from(document.querySelectorAll(".categories-hero__legend-item"));
+    const legendMarkers = legendItems.map((item) => item.querySelector(".categories-hero__legend-swatch"));
+    const distributionTitle = document.querySelector('[data-qa="hero-distribution-title"]');
+    const styleSample = (element) => {
+      if (!element) return null;
+      const style = window.getComputedStyle(element);
+      return {
+        text: element.textContent.trim().replace(/\\s+/g, " "),
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        marginTop: style.marginTop,
+      };
+    };
+    const colorOf = (element) => element ? window.getComputedStyle(element).backgroundColor : null;
 
     return {
       title: document.title,
@@ -238,6 +252,14 @@ async function collectMetrics(client, state, apiRequestCount) {
       expandedRowCount: expandedRows.length,
       inlineEditOpen: Boolean(inlineEdit),
       distributionSegmentCount: distributionSegments.length,
+      distributionLegendItemCount: legendItems.length,
+      distributionSegmentColors: distributionSegments.map(colorOf),
+      distributionLegendMarkerColors: legendMarkers.map(colorOf),
+      distributionLegendLabels: legendItems.map((item) => {
+        const label = item.querySelector(".categories-hero__legend-copy strong");
+        return label ? label.textContent.trim() : "";
+      }),
+      distributionTitle: styleSample(distributionTitle),
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       addDrawerOpen: document.body.innerText.includes("Add Category"),
       loadErrorVisible: document.body.innerText.includes("Failed to load categories"),
@@ -271,6 +293,35 @@ function runState(args) {
   });
 }
 
+function collectAdditionalFailures(stateResults) {
+  const failures = [];
+
+  for (const state of stateResults) {
+    const populatedState = state.scenario === "populated";
+    if (!populatedState) continue;
+
+    if (state.distributionSegmentCount !== state.distributionLegendItemCount) {
+      failures.push(`${state.name}: Categories distribution segment count ${state.distributionSegmentCount} does not match legend item count ${state.distributionLegendItemCount}`);
+    }
+    if (new Set(state.distributionSegmentColors).size !== state.distributionSegmentColors.length) {
+      failures.push(`${state.name}: Categories displayed legend colors are not unique`);
+    }
+    if (state.distributionSegmentColors.some((color, index) => color !== state.distributionLegendMarkerColors[index])) {
+      failures.push(`${state.name}: Categories legend marker colors do not match bar segment colors`);
+    }
+    if (!state.distributionLegendLabels.includes("Other")) {
+      failures.push(`${state.name}: Categories distribution fixture did not render Other segment`);
+    }
+    if (state.distributionTitle?.text !== "USD equivalent" ||
+      state.distributionTitle?.fontSize !== "16px" ||
+      state.distributionTitle?.fontWeight !== "700") {
+      failures.push(`${state.name}: Categories distribution title style does not match Accounts title baseline`);
+    }
+  }
+
+  return failures;
+}
+
 function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
   const fixture = fixtureExports;
 
@@ -295,6 +346,12 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       expectedTransactionCount: fixture.categoriesVisualFixtureMeta.expectedTransactionCount,
       rowInteraction: fixture.categoriesVisualFixtureMeta.rowInteraction,
     },
+    assertions: [
+      "displayed category legend colors are unique",
+      "legend marker colors match corresponding bar segment colors",
+      "Other segment is rendered from the fixture distribution",
+      "By category distribution title style matches the Accounts distribution title baseline",
+    ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,
     unhandledApiRequests,
@@ -315,6 +372,7 @@ export const visualQaConfig = {
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Categories",
   userDataPrefix: "inex-categories-visual-qa",
 };

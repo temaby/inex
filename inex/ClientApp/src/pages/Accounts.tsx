@@ -24,6 +24,7 @@ import {
 import BasicPage from "../layouts/BasicPage";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
+import { buildUniqueDistributionColors } from "../utils/distribution";
 import {
     useGetAccountsQuery,
     useGetAccountsSummaryQuery,
@@ -38,6 +39,7 @@ import {
     getTotalAbsBaseValue,
     getTotalBaseValue,
     hasBaseValues,
+    makeCurrencyDistribution,
     makeCurrencyGroups,
     normalizeAccountSearch,
     sortAccountsByBaseValue,
@@ -76,7 +78,7 @@ const getErrorDetail = (error: unknown): string | null => {
 };
 
 const Accounts = () => {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [scope, setScope] = useState<AccountScope>("active");
     const [viewMode, setViewMode] = useState<AccountViewMode>("currency");
@@ -178,10 +180,30 @@ const Accounts = () => {
         [equivalentShareTotal, searchedAccounts],
     );
 
-    const distributionGroups = useMemo(
+    const allDistributionGroups = useMemo(
         () => makeCurrencyGroups(scopedAccounts, equivalentShareTotal),
         [equivalentShareTotal, scopedAccounts],
     );
+
+    const distributionGroups = useMemo(
+        () => makeCurrencyDistribution(allDistributionGroups, t("accounts.hero.other")),
+        [allDistributionGroups, t],
+    );
+
+    const distributionColorMap = useMemo(
+        () => buildUniqueDistributionColors(distributionGroups.map((group) => group.key)),
+        [distributionGroups],
+    );
+
+    const previousMonthLabel = useMemo(() => {
+        const current = new Date();
+        const previousMonth = new Date(current.getFullYear(), current.getMonth() - 1, 1);
+
+        return new Intl.DateTimeFormat(i18n.language, {
+            month: "long",
+            year: "numeric",
+        }).format(previousMonth);
+    }, [i18n.language]);
 
     const sortedFlatAccounts = useMemo(
         () => sortAccountsByBaseValue(searchedAccounts),
@@ -333,7 +355,7 @@ const Accounts = () => {
 
     const renderHeroDelta = () => {
         if (!canRenderHeroDelta) {
-            return t("accounts.hero.momUnavailable");
+            return t("accounts.hero.momUnavailable", { period: previousMonthLabel });
         }
 
         return (
@@ -347,6 +369,7 @@ const Accounts = () => {
                     />
                     <span>
                         {t("accounts.hero.momDeltaPercent", {
+                            period: previousMonthLabel,
                             value: `${momPercent >= 0 ? "+" : ""}${momPercent.toFixed(1)}%`,
                         })}
                     </span>
@@ -646,10 +669,8 @@ const Accounts = () => {
                             <div className="accounts-hero__mix-head">
                                 <div>
                                     <div className="accounts-eyebrow">{t("accounts.hero.currencyDistribution")}</div>
-                                    <h2>
-                                        {hasCompleteScopedBaseValues && baseCurrency
-                                            ? t("accounts.hero.baseEquivalentLabel", { currency: baseCurrency })
-                                            : t("accounts.hero.byCount")}
+                                    <h2 data-qa="hero-distribution-title">
+                                        {hasCompleteScopedBaseValues ? t("accounts.hero.byValue") : t("accounts.hero.byCount")}
                                     </h2>
                                 </div>
                                 {isRefreshing && (
@@ -671,26 +692,33 @@ const Accounts = () => {
                                             <div className="accounts-distribution__stack" aria-hidden="true" data-qa="hero-distribution-bar">
                                                 {distributionGroups.map((group) => (
                                                     <span
-                                                        className={`accounts-distribution__segment is-${currencyToneClass(group.currency)}`}
-                                                        key={group.currency}
-                                                        style={{ width: `${getCurrencySegmentWidth(group.share ?? 0)}%` }}
+                                                        aria-label={`${group.label} ${group.share.toFixed(1)}%`}
+                                                        className="accounts-distribution__segment"
+                                                        key={group.key}
+                                                        style={{
+                                                            background: distributionColorMap[group.key],
+                                                            width: `${getCurrencySegmentWidth(group.share)}%`,
+                                                        }}
                                                     />
                                                 ))}
                                             </div>
                                         )}
                                         <div className="accounts-distribution__legend" data-qa="hero-distribution-legend">
                                             {distributionGroups.map((group) => (
-                                                <div className="accounts-distribution__item" key={group.currency}>
-                                                    <span className={`accounts-currency-dot is-${currencyToneClass(group.currency)}`} />
-                                                    <span className="accounts-distribution__currency">{group.currency}</span>
-                                                    <span className="accounts-distribution__share">
-                                                        {group.share === null
-                                                            ? t("accounts.equivalent.unavailable")
-                                                            : `${group.share.toFixed(1)}%`}
+                                                <div className="accounts-distribution__item" key={group.key}>
+                                                    <span
+                                                        className="accounts-currency-dot"
+                                                        style={{ background: distributionColorMap[group.key] }}
+                                                    />
+                                                    <span className="accounts-distribution__copy">
+                                                        <strong>{group.label}</strong>
+                                                        {renderBaseEquivalent(group.baseSubtotal, {
+                                                            className: "accounts-distribution__amount",
+                                                        })}
                                                     </span>
-                                                    {renderBaseEquivalent(group.baseSubtotal, {
-                                                        className: "accounts-distribution__amount",
-                                                    })}
+                                                    <small className="accounts-distribution__share">
+                                                        {`${group.share.toFixed(1)}%`}
+                                                    </small>
                                                 </div>
                                             ))}
                                         </div>

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Num } from "../../components/primitives";
 import type { CategoryResponse } from "../../store/categories/categories-api";
+import { buildUniqueDistributionColors } from "../../utils/distribution";
 import {
     categoryPaletteColor,
     type CategorySpendStats,
@@ -47,6 +48,21 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
     const topParentShare = stats.totalSpend > 0
         ? Math.round((stats.topParentSpend / stats.totalSpend) * 100)
         : 0;
+    const distributionColorMap = (() => {
+        const preferredColors: Record<string, string | undefined> = {};
+
+        stats.distribution.forEach((item) => {
+            const category = categoryById.get(Number(item.key));
+            if (category) {
+                preferredColors[item.key] = categoryPaletteColor(category, categories);
+            }
+        });
+
+        return buildUniqueDistributionColors(
+            stats.distribution.map((item) => item.key),
+            preferredColors,
+        );
+    })();
 
     return (
         <section className="categories-hero r-categories-hero" data-qa="hero-card">
@@ -97,15 +113,15 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                 {hasSpend ? (
                     <div className="categories-hero__distribution" aria-label={t("categories.hero.byCategory")}>
                         <div className="categories-hero__distribution-head">
-                            <strong>{t("categories.hero.byCategory")}</strong>
-                            <span>{t("categories.hero.baseEquivalent", { currency: stats.currency })}</span>
+                            <div>
+                                <div className="categories-eyebrow">{t("categories.hero.byCategory")}</div>
+                                <h2 data-qa="hero-distribution-title">
+                                    {t("categories.hero.baseEquivalent", { currency: stats.currency })}
+                                </h2>
+                            </div>
                         </div>
                         <div className="categories-hero__distribution-bar" data-qa="hero-distribution-bar">
                             {stats.distribution.map((item) => {
-                                const category = categoryById.get(Number(item.key));
-                                const color = category
-                                    ? categoryPaletteColor(category, categories)
-                                    : "var(--border-2)";
                                 const label = item.key === "other"
                                     ? t("categories.hero.other")
                                     : item.label;
@@ -115,7 +131,7 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                                         className="categories-hero__distribution-segment"
                                         key={item.key}
                                         style={{
-                                            background: color,
+                                            background: distributionColorMap[item.key],
                                             width: `${Math.max(item.share * 100, 2)}%`,
                                         }}
                                     />
@@ -124,17 +140,16 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                         </div>
                         <div className="categories-hero__legend" data-qa="hero-distribution-legend">
                             {stats.distribution.map((item) => {
-                                const category = categoryById.get(Number(item.key));
-                                const color = category
-                                    ? categoryPaletteColor(category, categories)
-                                    : "var(--border-2)";
                                 const label = item.key === "other"
                                     ? t("categories.hero.other")
                                     : item.label;
 
                                 return (
                                     <div className="categories-hero__legend-item" key={item.key}>
-                                        <span className="categories-hero__legend-swatch" style={{ background: color }} />
+                                        <span
+                                            className="categories-hero__legend-swatch"
+                                            style={{ background: distributionColorMap[item.key] }}
+                                        />
                                         <span className="categories-hero__legend-copy">
                                             <strong>{label}</strong>
                                             <small>
