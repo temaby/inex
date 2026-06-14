@@ -276,14 +276,12 @@ const Dashboard = () => {
     return (
         <BasicPage title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
             <div className="dashboard-workspace">
-                <p className="dashboard-intro">{t("dashboard.description")}</p>
-
                 {error && (
                     <div className="dashboard-alert" role="alert">{error}</div>
                 )}
 
                 <Spin spinning={isLoading} tip={t("dashboard.summary.loading")}>
-                    <div className="dashboard-summary-grid">
+                    <div className="dashboard-summary-grid" data-qa="dashboard-top-cards">
                         {cards.map((card) => {
                             const delta = getDeltaPercent(card.value, card.previous);
                             const deltaColor = hasNoCurrentMonthActivity ? undefined : getDeltaColor(delta, card.trendMode);
@@ -302,20 +300,29 @@ const Dashboard = () => {
                                 });
 
                             return (
-                                <article className="dashboard-card" key={card.key}>
+                                <article className="dashboard-card" data-qa="dashboard-top-card" key={card.key}>
                                     <div className="dashboard-card__top">
-                                        <span className="dashboard-card__label">{card.title}</span>
+                                        <span className="dashboard-card__label" data-qa="dashboard-card-title">{card.title}</span>
                                         <span className="dashboard-card__icon" aria-hidden="true">{card.icon}</span>
                                     </div>
-                                    <div className="dashboard-card__value">
+                                    <div className="dashboard-card__value" data-qa="dashboard-card-value">
                                         {card.percent
-                                            ? (card.hasBaseline ? `${card.value > 0 ? "+" : ""}${card.value.toFixed(0)}%` : "-")
-                                            : <Num value={card.value} currency={currency ?? ""} kind={card.kind} />}
+                                            ? <span>{card.hasBaseline ? `${card.value > 0 ? "+" : ""}${card.value.toFixed(0)}%` : "-"}</span>
+                                            : (
+                                                <Num
+                                                    value={card.value}
+                                                    currency={currency ?? ""}
+                                                    kind={card.kind}
+                                                    currencyDataQa="dashboard-card-currency"
+                                                />
+                                            )}
                                     </div>
-                                    <span className={`dashboard-card__delta${deltaColor ? ` is-${deltaColor}` : ""}`}>
+                                    <span
+                                        className={`dashboard-card__delta${deltaColor ? ` is-${deltaColor}` : ""}`}
+                                        data-qa="dashboard-card-delta"
+                                    >
                                         {deltaText}
                                     </span>
-                                    <span className="dashboard-card__period">{t("dashboard.summary.currentMonth")}</span>
                                 </article>
                             );
                         })}

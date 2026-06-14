@@ -53,8 +53,9 @@
 .dashboard-card__label,
 .dashboard-panel__eyebrow {
   color: var(--fg-3);
-  font-size: var(--fs-12);
+  font-size: var(--fs-11);
   font-weight: var(--fw-semibold);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -70,8 +71,16 @@
 }
 
 .dashboard-card__value {
-  font-size: var(--fs-24);
-  font-weight: var(--fw-semibold);
+  color: var(--fg-1);
+  font-family: var(--font-num);
+  font-size: var(--fs-30);
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.dashboard-card__value [role="text"] > span {
+  font-size: inherit;
 }
 
 .dashboard-card__delta {
@@ -85,12 +94,6 @@
 
 .dashboard-card__delta.is-bad {
   color: var(--expense-600);
-}
-
-.dashboard-card__period {
-  color: var(--fg-3);
-  font-size: var(--fs-12);
-  margin-top: auto;
 }
 
 .dashboard-panel-grid {

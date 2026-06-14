@@ -179,11 +179,13 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const summaryCards = Array.from(document.querySelectorAll(".dashboard-card"));
+    const topCardSelectors = Array.from(document.querySelectorAll('[data-qa="dashboard-top-card"]'));
     const dashboardPanels = Array.from(document.querySelectorAll(".dashboard-panel"));
     const alerts = Array.from(document.querySelectorAll(".dashboard-alert, .ant-alert"));
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
     const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary, .spending-heatmap__summary"));
     const heatmapCells = Array.from(document.querySelectorAll(".spending-heatmap rect"));
+    const dashboardTopText = topCardSelectors.map((card) => card.textContent.trim().replace(/\\s+/g, " ")).join(" | ");
 
     return {
       title: document.title,
@@ -199,6 +201,12 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       summaryCardCount: summaryCards.length,
+      dashboardTopCardSelectorCount: topCardSelectors.length,
+      dashboardCardTitleSelectorCount: document.querySelectorAll('[data-qa="dashboard-card-title"]').length,
+      dashboardCardValueSelectorCount: document.querySelectorAll('[data-qa="dashboard-card-value"]').length,
+      dashboardCardCurrencySelectorCount: document.querySelectorAll('[data-qa="dashboard-card-currency"]').length,
+      dashboardCardDeltaSelectorCount: document.querySelectorAll('[data-qa="dashboard-card-delta"]').length,
+      dashboardTopText,
       dashboardPanelCount: dashboardPanels.length,
       alertCount: alerts.length,
       chartSurfaceCount: chartSurfaces.length,
@@ -248,11 +256,35 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     if (state.summaryCardCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
       pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} summary cards, found ${state.summaryCardCount}`);
     }
+    if (state.dashboardTopCardSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
+      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard top card selectors, found ${state.dashboardTopCardSelectorCount}`);
+    }
+    if (state.dashboardCardTitleSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
+      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard card title selectors, found ${state.dashboardCardTitleSelectorCount}`);
+    }
+    if (state.dashboardCardValueSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
+      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard card value selectors, found ${state.dashboardCardValueSelectorCount}`);
+    }
+    if (state.dashboardCardCurrencySelectorCount < 3) {
+      pageFailures.push(`${state.name}: expected Dashboard currency selectors on the money cards`);
+    }
+    if (state.dashboardCardDeltaSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
+      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard secondary delta selectors, found ${state.dashboardCardDeltaSelectorCount}`);
+    }
     if (state.dashboardPanelCount !== fixture.dashboardVisualFixtureMeta.expectedPanelCount) {
       pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedPanelCount} dashboard panels, found ${state.dashboardPanelCount}`);
     }
     if (state.chartSurfaceCount < 2) {
       pageFailures.push(`${state.name}: expected heatmap and net-worth chart surfaces, found ${state.chartSurfaceCount}`);
+    }
+  }
+
+  for (const state of stateResults) {
+    if (/Quick month status lives here\. Use Reports when you need deeper analysis and drill-downs\./.test(state.textSample)) {
+      pageFailures.push(`${state.name}: removed Dashboard subtitle copy is still visible`);
+    }
+    if (/Current month/.test(state.dashboardTopText)) {
+      pageFailures.push(`${state.name}: Dashboard top card still contains Current month`);
     }
   }
 

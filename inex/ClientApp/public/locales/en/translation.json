@@ -167,14 +167,12 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Home",
-    "description": "Quick month status lives here. Use Reports when you need deeper analysis and drill-downs.",
     "analyticsLabel": "Insight",
     "summary": {
       "totalIncome": "Total Income",
       "totalExpenses": "Total Expenses",
       "netSavings": "Net Savings",
       "momDelta": "MoM Delta",
-      "currentMonth": "Current month",
       "vsLastMonth": "{{value}} vs last month",
       "noPreviousMonth": "No previous month baseline",
       "noCurrentMonthData": "No current month activity",

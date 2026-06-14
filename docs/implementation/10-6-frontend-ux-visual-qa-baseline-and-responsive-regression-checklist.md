@@ -76,6 +76,7 @@ npm run visual-qa:accounts
 npm run visual-qa:categories
 npm run visual-qa:budgets
 npm run visual-qa:dashboard
+npm run visual-qa:hero-consistency
 npm run visual-qa:reports
 npm run visual-qa:profile
 npm run visual-qa:auth

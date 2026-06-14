@@ -12,6 +12,7 @@ npm run visual-qa:auth
 npm run visual-qa:budgets
 npm run visual-qa:categories
 npm run visual-qa:dashboard
+npm run visual-qa:hero-consistency
 npm run visual-qa:profile
 npm run visual-qa:reports
 npm run visual-qa:transactions
@@ -24,6 +25,7 @@ Output is refreshed under:
 - `docs/implementation/visual-qa/budgets/`
 - `docs/implementation/visual-qa/categories/`
 - `docs/implementation/visual-qa/dashboard/`
+- `docs/implementation/visual-qa/hero-consistency/`
 - `docs/implementation/visual-qa/profile/`
 - `docs/implementation/visual-qa/reports/`
 - `docs/implementation/visual-qa/transactions/`
@@ -95,6 +97,14 @@ Dashboard coverage currently includes:
 - controlled month-summary load-error at 390px
 - controlled net-worth load-error at 390px
 - controlled heatmap load-error at 390px
+
+Hero consistency coverage currently includes:
+
+- Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px
+- shared page title, eyebrow, primary action where present, hero/top-card label, value, split-currency, and secondary text selectors
+- page-specific distribution or burn-rate treatment for Accounts, Categories, and Budgets
+- Dashboard summary-card copy removal checks for the retired intro sentence and card period text
+- horizontal overflow, mobile bottom-nav clearance, unhandled API request, and backend-isolation checks
 
 Profile & Settings coverage currently includes:
 
