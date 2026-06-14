@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T16:16:31.013Z",
+  "generatedAt": "2026-06-14T17:54:48.107Z",
   "page": "categories",
   "dataMode": "fixture",
   "harness": {
@@ -23,7 +23,9 @@
     "displayed category legend colors are unique",
     "legend marker colors match corresponding bar segment colors",
     "Other segment is rendered from the fixture distribution",
-    "By category distribution title style matches the Accounts distribution title baseline"
+    "visible USD equivalent label is absent from Categories hero distribution",
+    "desktop hero summary column and divider are 320px from the hero card edge",
+    "desktop search control is 260px wide and right-aligned in the toolbar"
   ],
   "screenshots": [
     "populated-1440.png",
@@ -62,11 +64,11 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /categories?mode=ALL",
     "GET /budgets?year=2026&month=4",
     "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
     "GET /currencies",
+    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /categories?mode=ALL",
@@ -137,13 +139,24 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 967.671875,
+      "lastContentBottom": 968.484375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 320,
+      "heroDividerOffset": 320,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 260,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -170,12 +183,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -183,10 +192,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Health Health and care 1 txn last 14 Apr 80.00 USD USD · April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD USD · April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD USD · April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD USD · April 2026 Transfer Internal movement — —",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Health Health and care 1 txn last 14 Apr 80.00 USD USD · April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD USD · April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD USD · April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD USD · April 2026 Transfer Internal movement — —",
       "pngDimensions": {
         "width": 1425,
-        "height": 1256,
+        "height": 1236,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -224,13 +233,24 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 867.921875,
+      "lastContentBottom": 867.734375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 8,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 320,
+      "heroDividerOffset": 320,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 260,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -257,12 +277,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -270,10 +286,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD USD · April 2026 Health Health and care 1 txn last 14 Apr 80.00 USD USD · April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD USD · April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Income Money in — —",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD USD · April 2026 Health Health and care 1 txn last 14 Apr 80.00 USD USD · April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD USD · April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Income Money in — —",
       "pngDimensions": {
         "width": 1009,
-        "height": 1075,
+        "height": 1056,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -311,13 +327,24 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.609375,
+      "lastContentBottom": 772.421875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 390,
+      "heroDividerOffset": 390,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 350,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -344,12 +371,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -357,10 +380,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1610,
+        "height": 1611,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -398,13 +421,24 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.609375,
+      "lastContentBottom": 772.421875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 360,
+      "heroDividerOffset": 360,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 320,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -431,12 +465,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -444,20 +474,20 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 345,
-        "height": 1743,
+        "height": 1745,
         "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /categories?mode=ALL",
         "GET /budgets?year=2026&month=4",
         "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
-        "GET /currencies"
+        "GET /currencies",
+        "GET /exchange/rates/2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -485,13 +515,24 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.859375,
+      "lastContentBottom": 771.671875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 0,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 390,
+      "heroDividerOffset": 390,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 350,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -518,12 +559,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": null,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -531,10 +568,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 0 of 12 categories · active only Status Active All View Tree By spend No categories match these filters Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 0 of 12 categories · active only Status Active All View Tree By spend No categories match these filters Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1023,
+        "height": 1025,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -579,12 +616,18 @@
       "rowCount": 0,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": null,
+      "heroDividerOffset": null,
+      "distributionEyebrow": null,
+      "toolbarSearchWidth": null,
+      "toolbarSearchRightOffset": null,
       "distributionSegmentCount": 0,
       "distributionLegendItemCount": 0,
       "distributionSegmentColors": [],
       "distributionLegendMarkerColors": [],
       "distributionLegendLabels": [],
-      "distributionTitle": null,
+      "distributionText": "",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": null,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -633,7 +676,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.609375,
+      "lastContentBottom": 772.421875,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -644,6 +687,17 @@
       "rowCount": 11,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 375,
+      "heroDividerOffset": 375,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 335,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -670,12 +724,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": true,
       "loadErrorVisible": false,
@@ -683,10 +733,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
       "pngDimensions": {
         "width": 390,
-        "height": 1610,
+        "height": 1611,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -724,7 +774,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.109375,
+      "lastContentBottom": 771.921875,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -735,6 +785,17 @@
       "rowCount": 11,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": 345,
+      "heroDividerOffset": 345,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 305,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -761,12 +822,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": true,
       "loadErrorVisible": false,
@@ -774,10 +831,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
       "pngDimensions": {
         "width": 360,
-        "height": 1743,
+        "height": 1745,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -815,13 +872,24 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 967.6875,
+      "lastContentBottom": 967.5,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
       "expandedRowCount": 1,
       "inlineEditOpen": true,
+      "heroSummaryWidth": 320,
+      "heroDividerOffset": 320,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 260,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -848,12 +916,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -861,10 +925,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Health Health and care 1 txn last 14 Apr 80.00 USD USD · April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD USD · April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD USD · April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD USD · April 2026 Transfer Internal movement — —",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Health Health and care 1 txn last 14 Apr 80.00 USD USD · April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD USD · April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD USD · April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD USD · April 2026 Transfer Internal movement — —",
       "pngDimensions": {
         "width": 1425,
-        "height": 1686,
+        "height": 1667,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -902,13 +966,24 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.375,
+      "lastContentBottom": 772.1875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
       "expandedRowCount": 1,
       "inlineEditOpen": true,
+      "heroSummaryWidth": 390,
+      "heroDividerOffset": 390,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 350,
+      "toolbarSearchRightOffset": 0,
       "distributionSegmentCount": 6,
       "distributionLegendItemCount": 6,
       "distributionSegmentColors": [
@@ -935,12 +1010,8 @@
         "Learning",
         "Other"
       ],
-      "distributionTitle": {
-        "text": "USD equivalent",
-        "fontSize": "16px",
-        "fontWeight": "700",
-        "marginTop": "4px"
-      },
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3%",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": 60.5,
       "addDrawerOpen": false,
       "loadErrorVisible": false,
@@ -948,10 +1019,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY USD equivalent Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,936.50 USD Change from March 2026 Most spent in Home 1,450.00 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Health Health and care 80.00 USD USD · April 2026 Travel Trips and visas 90.00 USD USD · April 2026 Learning Books and courses 70.00 USD USD · April 2026 Fees Bank and service fees 60.00 USD USD · April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 2315,
+        "height": 2317,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -996,12 +1067,18 @@
       "rowCount": 0,
       "expandedRowCount": 0,
       "inlineEditOpen": false,
+      "heroSummaryWidth": null,
+      "heroDividerOffset": null,
+      "distributionEyebrow": null,
+      "toolbarSearchWidth": null,
+      "toolbarSearchRightOffset": null,
       "distributionSegmentCount": 0,
       "distributionLegendItemCount": 0,
       "distributionSegmentColors": [],
       "distributionLegendMarkerColors": [],
       "distributionLegendLabels": [],
-      "distributionTitle": null,
+      "distributionText": "",
+      "usdEquivalentVisibleInHeroDistribution": false,
       "maxRowHeight": null,
       "addDrawerOpen": false,
       "loadErrorVisible": true,

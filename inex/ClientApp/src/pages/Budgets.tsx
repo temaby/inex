@@ -654,7 +654,9 @@ const Budgets = () => {
                         </div>
                         <div className="budgets-hero__burn">
                             <div className="budgets-hero__burn-header">
-                                <span>{t("budgets.burnRate.title")}</span>
+                                <span className="budgets-hero__burn-title" data-qa="hero-distribution-eyebrow">
+                                    {t("budgets.burnRate.title")}
+                                </span>
                                 <span>{t("budgets.burnRate.subtitle")}</span>
                             </div>
                             <div className="budgets-hero__legend" aria-label={t("budgets.burnRate.legendLabel")} data-qa="hero-distribution-legend">
@@ -823,6 +825,13 @@ const Budgets = () => {
                                                 className="budgets-toolbar__picker"
                                                 aria-label={t("budgets.jumpToMonth")}
                                             />
+                                            <SegmentedControl
+                                                label={t("budgets.sortLabel")}
+                                                size="compact"
+                                                options={sortOptions}
+                                                value={sortMode}
+                                                onChange={(key) => setSortMode(key as BudgetSortMode)}
+                                            />
                                             <InExInput
                                                 aria-label={t("budgets.searchLabel")}
                                                 className="budgets-search"
@@ -830,13 +839,7 @@ const Budgets = () => {
                                                 onChange={(event) => setSearchText(event.target.value)}
                                                 placeholder={t("budgets.searchPlaceholder")}
                                                 variant="search"
-                                            />
-                                            <SegmentedControl
-                                                label={t("budgets.sortLabel")}
-                                                size="compact"
-                                                options={sortOptions}
-                                                value={sortMode}
-                                                onChange={(key) => setSortMode(key as BudgetSortMode)}
+                                                width="var(--management-toolbar-search-width)"
                                             />
                                         </div>
                                     </ListPanelFilterBar>

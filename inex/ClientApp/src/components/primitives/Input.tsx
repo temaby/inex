@@ -52,6 +52,8 @@ export const Input: React.FC<InputProps> = ({
     const [focused, setFocused] = React.useState(false);
     const compact = size === "compact" || variant === "search";
     const resolvedWidth = width ?? (variant === "search" ? 220 : undefined);
+    const hasExplicitWidth = width !== undefined;
+    const searchFlexBasis = width ?? 220;
     const resolvedPrefix = prefix ?? (variant === "search" ? <Search size={15} aria-hidden="true" /> : undefined);
 
     const wrapperStyle: React.CSSProperties = {
@@ -61,8 +63,8 @@ export const Input: React.FC<InputProps> = ({
         borderRadius: "var(--radius-2)",
         boxShadow: focused ? "var(--focus-ring)" : undefined,
         display: "flex",
-        flex: variant === "search" ? "1 1 220px" : undefined,
-        flexBasis: variant === "search" ? "220px" : undefined,
+        flex: variant === "search" ? `${hasExplicitWidth ? 0 : 1} 1 ${typeof searchFlexBasis === "number" ? `${searchFlexBasis}px` : searchFlexBasis}` : undefined,
+        flexBasis: variant === "search" ? searchFlexBasis : undefined,
         maxWidth: "100%",
         minWidth: "0px",
         overflow: "hidden",

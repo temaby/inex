@@ -18,14 +18,18 @@
   border-radius: var(--radius-3);
   box-shadow: var(--shadow-1);
   display: grid;
-  gap: var(--space-4);
-  grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
-  padding: var(--space-5);
+  grid-template-columns: var(--management-hero-summary-width) minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .budgets-hero__summary,
 .budgets-workspace section {
+  box-sizing: border-box;
   min-width: 0;
+}
+
+.budgets-hero__summary {
+  padding: var(--space-5);
 }
 
 .budgets-eyebrow {
@@ -98,10 +102,11 @@
 
 .budgets-hero__burn {
   border-left: 1px solid var(--border-1);
+  box-sizing: border-box;
   display: grid;
   gap: var(--space-3);
   min-width: 0;
-  padding-left: var(--space-5);
+  padding: var(--space-5);
 }
 
 .budgets-hero__burn-header {
@@ -111,10 +116,12 @@
   gap: var(--space-3);
 }
 
-.budgets-hero__burn-header span:first-child {
-  color: var(--fg-1);
-  font-size: var(--fs-13);
+.budgets-hero__burn-title {
+  color: var(--fg-3);
+  font-size: var(--fs-11);
   font-weight: var(--fw-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .budgets-hero__burn-header span:last-child,
@@ -256,7 +263,8 @@
 }
 
 .budgets-search {
-  justify-self: end;
+  flex: 0 1 var(--management-toolbar-search-width);
+  margin-left: auto;
 }
 
 .budgets-refreshing,
@@ -642,14 +650,16 @@
 @media (max-width: 768px) {
   .budgets-hero {
     grid-template-columns: 1fr;
-    padding: var(--space-4);
   }
 
   .budgets-hero__burn {
     border-left: 0;
     border-top: 1px solid var(--border-1);
-    padding-left: 0;
-    padding-top: var(--space-4);
+  }
+
+  .budgets-hero__summary,
+  .budgets-hero__burn {
+    padding: var(--space-4);
   }
 
   .budgets-page-actions {
@@ -665,8 +675,14 @@
   .budgets-period-controls,
   .budgets-toolbar__picker,
   .budgets-search {
+    flex-basis: auto !important;
+    margin-left: 0;
     max-width: none;
-    width: 100%;
+    width: 100% !important;
+  }
+
+  .budgets-search {
+    flex: 0 1 auto !important;
   }
 
   .budgets-period-controls {
@@ -686,6 +702,11 @@
 
 @media (max-width: 390px) {
   .budgets-hero {
+    padding: 0;
+  }
+
+  .budgets-hero__summary,
+  .budgets-hero__burn {
     padding: var(--space-3);
   }
 

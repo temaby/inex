@@ -195,6 +195,7 @@ async function collectMetrics(client, state, apiRequestCount) {
   await wait(150);
 
   const topMetrics = await evaluate(client, `(() => {
+    const page = ${JSON.stringify(state.page)};
     const styleSample = (element) => {
       if (!element) return null;
       const rect = element.getBoundingClientRect();
@@ -211,6 +212,7 @@ async function collectMetrics(client, state, apiRequestCount) {
         fontWeight: style.fontWeight,
         lineHeight: style.lineHeight,
         letterSpacing: style.letterSpacing,
+        textTransform: style.textTransform,
         borderRadius: style.borderRadius,
         paddingTop: style.paddingTop,
         paddingLeft: style.paddingLeft,
@@ -221,9 +223,37 @@ async function collectMetrics(client, state, apiRequestCount) {
     };
     const first = (selector) => document.querySelector(selector);
     const all = (selector) => Array.from(document.querySelectorAll(selector)).map(styleSample);
+    const heroSummarySelector = {
+      accounts: ".accounts-hero__net",
+      categories: ".categories-hero__summary",
+      budgets: ".budgets-hero__summary",
+    }[page];
+    const toolbarSelector = {
+      accounts: ".accounts-toolbar__filters",
+      categories: ".categories-list .inex-list-panel__filters",
+      budgets: ".budgets-list .inex-list-panel__filters",
+    }[page];
+    const searchLabel = {
+      accounts: "Search accounts",
+      categories: "Search categories",
+      budgets: "Search budgets",
+    }[page];
     const hero = first('[data-qa="hero-card"]');
+    const heroSummary = heroSummarySelector ? first(heroSummarySelector) : null;
+    const toolbar = toolbarSelector ? first(toolbarSelector) : null;
+    const searchControl = searchLabel
+      ? first(\`input[type='search'][aria-label='\${searchLabel}']\`)?.parentElement
+      : null;
     const primaryValue = first('[data-qa="hero-primary-value"] [role="text"] > span') ?? first('[data-qa="hero-primary-value"]');
     const heroText = hero ? hero.textContent.trim().replace(/\\s+/g, " ") : "";
+    const heroStyle = hero ? window.getComputedStyle(hero) : null;
+    const heroContentLeft = hero && heroStyle
+      ? hero.getBoundingClientRect().left + Number.parseFloat(heroStyle.borderLeftWidth || "0")
+      : null;
+    const toolbarStyle = toolbar ? window.getComputedStyle(toolbar) : null;
+    const toolbarContentRight = toolbar && toolbarStyle
+      ? toolbar.getBoundingClientRect().right - Number.parseFloat(toolbarStyle.paddingRight || "0")
+      : null;
     const marker = first('[data-qa="hero-distribution-legend"] span');
     const legendLabel = first('[data-qa="hero-distribution-legend"] strong');
     const legendAmount = first('[data-qa="hero-distribution-legend"] small, [data-qa="hero-distribution-legend"] .accounts-distribution__amount');
@@ -239,17 +269,21 @@ async function collectMetrics(client, state, apiRequestCount) {
       pageEyebrow: styleSample(first('[data-qa="page-eyebrow"]')),
       pagePrimaryAction: styleSample(first('[data-qa="page-primary-action"]')),
       heroCard: styleSample(hero),
+      heroSummary: styleSample(heroSummary),
+      heroDividerOffset: heroContentLeft !== null && heroSummary ? Math.round(heroSummary.getBoundingClientRect().right - heroContentLeft) : null,
       heroPrimaryLabel: styleSample(first('[data-qa="hero-primary-label"]')),
       heroPrimaryValue: styleSample(primaryValue),
       heroPrimaryCurrencies: all('[data-qa="hero-primary-currency"]'),
       heroSecondaryText: styleSample(first('[data-qa="hero-secondary-text"]')),
-      heroDistributionTitle: styleSample(first('[data-qa="hero-distribution-title"]')),
+      heroDistributionEyebrow: styleSample(first('[data-qa="hero-distribution-eyebrow"]')),
       heroDistributionBar: styleSample(first('[data-qa="hero-distribution-bar"]')),
       heroDistributionLegend: styleSample(first('[data-qa="hero-distribution-legend"]')),
       heroLegendMarker: styleSample(marker),
       heroLegendLabel: styleSample(legendLabel),
       heroLegendAmount: styleSample(legendAmount),
       heroLegendShare: styleSample(legendShare),
+      toolbarSearch: styleSample(searchControl),
+      toolbarSearchRightOffset: toolbarContentRight !== null && searchControl ? Math.round(toolbarContentRight - searchControl.getBoundingClientRect().right) : null,
       dashboardTopCards: dashboardTopCards.map(styleSample),
       dashboardCardTitles: all('[data-qa="dashboard-card-title"]'),
       dashboardCardValues,
@@ -368,6 +402,9 @@ function collectAdditionalFailures(stateResults) {
     if (state.page !== "transactions" && state.page !== "dashboard" && !state.heroDistributionLegend) {
       failures.push(`${state.name}: missing distribution or burn legend selector`);
     }
+    if (["accounts", "categories", "budgets"].includes(state.page) && !state.heroDistributionEyebrow) {
+      failures.push(`${state.name}: missing distribution or burn-rate eyebrow selector`);
+    }
 
     if (state.page === "accounts" && /\bMoM\b/.test(state.heroText)) {
       failures.push(`${state.name}: Accounts Net Worth still shows MoM`);
@@ -377,6 +414,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.page === "accounts" && /USD equivalent/.test(state.heroText)) {
       failures.push(`${state.name}: Accounts hero still shows visible USD equivalent label`);
+    }
+    if (state.page === "accounts" && /By current balance/.test(state.heroText)) {
+      failures.push(`${state.name}: Accounts hero still shows visible By current balance label`);
     }
     if (state.page === "accounts" && /\b\d+\s+active\b/.test(state.heroText)) {
       failures.push(`${state.name}: Accounts Net Worth still shows active-count pill`);
@@ -389,6 +429,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.page === "categories" && /\bMoM\b/.test(state.heroText)) {
       failures.push(`${state.name}: Categories hero still shows standalone MoM copy`);
+    }
+    if (state.page === "categories" && /USD equivalent/.test(state.heroText)) {
+      failures.push(`${state.name}: Categories hero still shows visible USD equivalent label`);
     }
     if (state.page === "categories") {
       const expectedPreviousPeriod = previousMonthLabelFromFixedNow(fixtures.categories.categoriesVisualFixtureMeta.fixedNow);
@@ -408,6 +451,14 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.page === "budgets" && /\d[\d,]*\.\d{2}\s+[A-Z]{3}\s*\/\s*\d/.test(state.heroText)) {
       failures.push(`${state.name}: Budgets hero repeats currency before the rollup slash`);
+    }
+    if (state.page === "budgets") {
+      if (state.heroDistributionEyebrow?.text !== "Burn rate") {
+        failures.push(`${state.name}: Budgets burn-rate title is missing the distribution eyebrow selector`);
+      }
+      if (state.heroDistributionEyebrow?.textTransform !== "uppercase") {
+        failures.push(`${state.name}: Budgets burn-rate title is not styled as an uppercase eyebrow`);
+      }
     }
   }
 
@@ -486,6 +537,25 @@ function collectAdditionalFailures(stateResults) {
 
     const accounts = widthStates.find((state) => state.page === "accounts");
     const categories = widthStates.find((state) => state.page === "categories");
+    const budgets = widthStates.find((state) => state.page === "budgets");
+    if (width === 1440) {
+      const managementStates = [accounts, categories, budgets].filter(Boolean);
+      const referenceSummary = accounts;
+      for (const state of managementStates) {
+        if (!near(referenceSummary?.heroSummary?.width, state.heroSummary?.width, 1)) {
+          failures.push(`${state.name}: hero summary column width differs from ${referenceSummary?.name}`);
+        }
+        if (!near(referenceSummary?.heroDividerOffset, state.heroDividerOffset, 1)) {
+          failures.push(`${state.name}: hero divider offset differs from ${referenceSummary?.name}`);
+        }
+        if (!near(referenceSummary?.toolbarSearch?.width, state.toolbarSearch?.width, 1)) {
+          failures.push(`${state.name}: toolbar search width differs from ${referenceSummary?.name}`);
+        }
+        if (!near(referenceSummary?.toolbarSearchRightOffset, state.toolbarSearchRightOffset, 2)) {
+          failures.push(`${state.name}: toolbar search right alignment differs from ${referenceSummary?.name}`);
+        }
+      }
+    }
     if (accounts?.heroDistributionBar && categories?.heroDistributionBar) {
       const accountsHeight = accounts.heroDistributionBar.height;
       const categoriesHeight = categories.heroDistributionBar.height;
@@ -502,10 +572,12 @@ function collectAdditionalFailures(stateResults) {
         failures.push(`accounts/categories-${width}: legend marker size differs`);
       }
     }
-    if (accounts?.heroDistributionTitle && categories?.heroDistributionTitle) {
-      for (const property of ["fontSize", "fontWeight", "lineHeight", "marginTop"]) {
-        if (accounts.heroDistributionTitle[property] !== categories.heroDistributionTitle[property]) {
-          failures.push(`accounts/categories-${width}: distribution title ${property} differs`);
+    const eyebrowStates = [accounts, categories, budgets].filter((state) => state?.heroDistributionEyebrow);
+    const eyebrowReference = accounts;
+    for (const candidate of eyebrowStates) {
+      for (const property of ["fontSize", "fontWeight", "lineHeight", "letterSpacing", "textTransform"]) {
+        if (eyebrowReference?.heroDistributionEyebrow?.[property] !== candidate.heroDistributionEyebrow?.[property]) {
+          failures.push(`${candidate.name}: distribution/burn-rate eyebrow ${property} differs from ${eyebrowReference?.name}`);
         }
       }
     }
@@ -548,17 +620,20 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     acceptedDeviations: [
       {
         page: "budgets",
-        deviation: "Burn-rate legend remains above the bars.",
-        rationale: "Budgets is a burn-rate chart/list, not a distribution summary.",
+        deviation: "Burn-rate legend remains above the bars while the title uses the shared eyebrow treatment.",
+        rationale: "Budgets is a burn-rate chart/list, not a category distribution summary.",
         date: "2026-06-14",
       },
     ],
     assertions: [
-      "Accounts and Categories distribution title typography matches",
+      "Accounts, Categories, and Budgets hero summary width and divider offset match at desktop width",
+      "Accounts, Categories, and Budgets distribution/burn-rate eyebrow typography matches",
+      "Accounts, Categories, and Budgets toolbar search width and right alignment match at desktop width",
       "Accounts and Categories distribution legend spacing matches",
       "Accounts and Categories legend marker dimensions match",
       "Accounts and Categories legend label, amount, and percentage typography matches",
-      "Accounts hero does not show MoM or a visible USD equivalent distribution label",
+      "Accounts hero does not show MoM, visible USD equivalent distribution label, or visible By current balance label",
+      "Categories hero does not show visible USD equivalent distribution label",
       "Accounts hero shows from May 2026 for the fixed visual QA date",
     ],
     screenshots: stateResults.map((state) => state.screenshot),

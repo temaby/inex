@@ -668,10 +668,9 @@ const Accounts = () => {
                         <div className="accounts-hero__mix">
                             <div className="accounts-hero__mix-head">
                                 <div>
-                                    <div className="accounts-eyebrow">{t("accounts.hero.currencyDistribution")}</div>
-                                    <h2 data-qa="hero-distribution-title">
-                                        {hasCompleteScopedBaseValues ? t("accounts.hero.byValue") : t("accounts.hero.byCount")}
-                                    </h2>
+                                    <div className="accounts-eyebrow" data-qa="hero-distribution-eyebrow">
+                                        {t("accounts.hero.currencyDistribution")}
+                                    </div>
                                 </div>
                                 {isRefreshing && (
                                     <span className="accounts-refreshing">
@@ -784,6 +783,7 @@ const Accounts = () => {
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder={t("accounts.searchPlaceholder")}
                                     variant="search"
+                                    width="var(--management-toolbar-search-width)"
                                 />
                             </div>
                         </div>

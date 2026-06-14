@@ -248,11 +248,48 @@ async function collectMetrics(client, state, apiRequestCount) {
     const rows = Array.from(document.querySelectorAll(".accounts-row"));
     const groupButtons = Array.from(document.querySelectorAll(".accounts-group__head"));
     const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
+    const hero = document.querySelector('[data-qa="hero-card"]');
+    const heroSummary = document.querySelector(".accounts-hero__net");
     const distribution = document.querySelector(".accounts-distribution");
+    const distributionEyebrow = document.querySelector('[data-qa="hero-distribution-eyebrow"]');
     const distributionSegments = Array.from(document.querySelectorAll(".accounts-distribution__segment"));
     const legendItems = Array.from(document.querySelectorAll(".accounts-distribution__item"));
     const legendMarkers = legendItems.map((item) => item.querySelector(".accounts-currency-dot"));
+    const search = document.querySelector("input[type='search'][aria-label='Search accounts']")?.parentElement;
+    const toolbarFilters = document.querySelector(".accounts-toolbar__filters");
     const colorOf = (element) => element ? window.getComputedStyle(element).backgroundColor : null;
+    const geometry = (element) => {
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        width: Math.round(rect.width),
+      };
+    };
+    const styleSample = (element) => {
+      if (!element) return null;
+      const style = window.getComputedStyle(element);
+      return {
+        text: element.textContent.trim().replace(/\\s+/g, " "),
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        letterSpacing: style.letterSpacing,
+        textTransform: style.textTransform,
+      };
+    };
+    const heroRect = geometry(hero);
+    const heroSummaryRect = geometry(heroSummary);
+    const heroStyle = hero ? window.getComputedStyle(hero) : null;
+    const heroContentLeft = heroRect && heroStyle
+      ? heroRect.left + Number.parseFloat(heroStyle.borderLeftWidth || "0")
+      : null;
+    const toolbarRect = geometry(toolbarFilters);
+    const searchRect = geometry(search);
+    const toolbarStyle = toolbarFilters ? window.getComputedStyle(toolbarFilters) : null;
+    const toolbarContentRight = toolbarRect && toolbarStyle
+      ? toolbarRect.right - Number.parseFloat(toolbarStyle.paddingRight || "0")
+      : null;
     const collapsedGroups = groupButtons
       .filter((button) => button.getAttribute("aria-expanded") === "false")
       .map((button) => button.textContent.trim().replace(/\\s+/g, " ").slice(0, 80));
@@ -271,6 +308,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       rowCount: rows.length,
+      heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
+      heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
+      distributionEyebrow: styleSample(distributionEyebrow),
+      toolbarSearchWidth: searchRect ? searchRect.width : null,
+      toolbarSearchRightOffset: toolbarContentRight !== null && searchRect ? toolbarContentRight - searchRect.right : null,
       groupShareBarCount: groupShareBars.length,
       heroDistributionBarCount: document.querySelectorAll('[data-qa="hero-distribution-bar"]').length,
       distributionSegmentCount: distributionSegments.length,
@@ -285,6 +327,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       momVisible: /\\bMoM\\b/.test(document.body.innerText),
       previousMonthVisible: document.body.innerText.includes(${JSON.stringify("from May 2026")}),
       usdEquivalentVisibleInHeroDistribution: distribution ? distribution.innerText.includes("USD equivalent") : false,
+      byCurrentBalanceVisibleInHeroDistribution: distribution ? distribution.innerText.includes("By current balance") : false,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       collapsedGroups,
       loadErrorVisible: document.body.innerText.includes("Accounts could not be loaded"),
@@ -336,6 +379,21 @@ function collectAdditionalFailures(stateResults) {
     if (groupedPopulatedState && state.usdEquivalentVisibleInHeroDistribution) {
       failures.push(`${state.name}: Accounts hero distribution still shows visible USD equivalent label`);
     }
+    if (groupedPopulatedState && state.byCurrentBalanceVisibleInHeroDistribution) {
+      failures.push(`${state.name}: Accounts hero distribution still shows visible By current balance label`);
+    }
+    if (groupedPopulatedState && state.viewport.width >= 1024 && state.heroSummaryWidth !== 320) {
+      failures.push(`${state.name}: Accounts hero summary column width ${state.heroSummaryWidth} does not match 320px`);
+    }
+    if (groupedPopulatedState && state.viewport.width >= 1024 && state.heroDividerOffset !== 320) {
+      failures.push(`${state.name}: Accounts hero divider offset ${state.heroDividerOffset} does not match 320px`);
+    }
+    if (groupedPopulatedState && state.viewport.width >= 1024 && state.toolbarSearchWidth !== 260) {
+      failures.push(`${state.name}: Accounts search width ${state.toolbarSearchWidth} does not match 260px`);
+    }
+    if (groupedPopulatedState && state.viewport.width >= 1024 && !nearZero(state.toolbarSearchRightOffset)) {
+      failures.push(`${state.name}: Accounts search right offset ${state.toolbarSearchRightOffset} is not aligned to the toolbar edge`);
+    }
     if (groupedPopulatedState && state.name.startsWith("populated")) {
       const expectedOrder = fixtureExports.accountsVisualFixtureMeta.expectedDistributionOrder;
       if (JSON.stringify(state.distributionLegendLabels) !== JSON.stringify(expectedOrder)) {
@@ -345,6 +403,10 @@ function collectAdditionalFailures(stateResults) {
   }
 
   return failures;
+}
+
+function nearZero(value, tolerance = 2) {
+  return typeof value === "number" && Math.abs(value) <= tolerance;
 }
 
 function runState(args) {
@@ -390,6 +452,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "MoM is absent",
       "from May 2026 appears for the fixed visual QA date",
       "visible USD equivalent label is absent from Accounts hero distribution",
+      "visible By current balance label is absent from Accounts hero distribution",
+      "desktop hero summary column and divider are 320px from the hero card edge",
+      "desktop search control is 260px wide and right-aligned in the toolbar",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

@@ -224,8 +224,45 @@ async function collectMetrics(client, state, apiRequestCount) {
     const expandedRows = rows.filter((row) => row.querySelector(".budget-row__main")?.getAttribute("aria-expanded") === "true");
     const editPanels = Array.from(document.querySelectorAll(".budget-row__edit"));
     const burnRows = Array.from(document.querySelectorAll(".budgets-burn-row"));
+    const hero = document.querySelector('[data-qa="hero-card"]');
+    const heroSummary = document.querySelector(".budgets-hero__summary");
+    const burnTitle = document.querySelector('[data-qa="hero-distribution-eyebrow"]');
+    const search = document.querySelector("input[type='search'][aria-label='Search budgets']")?.parentElement;
+    const toolbarFilters = document.querySelector(".budgets-list .inex-list-panel__filters");
     const overRows = rows.filter((row) => row.classList.contains("is-over"));
     const atLimitRows = rows.filter((row) => row.classList.contains("is-atLimit"));
+    const geometry = (element) => {
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        width: Math.round(rect.width),
+      };
+    };
+    const styleSample = (element) => {
+      if (!element) return null;
+      const style = window.getComputedStyle(element);
+      return {
+        text: element.textContent.trim().replace(/\\s+/g, " "),
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        letterSpacing: style.letterSpacing,
+        textTransform: style.textTransform,
+      };
+    };
+    const heroRect = geometry(hero);
+    const heroSummaryRect = geometry(heroSummary);
+    const heroStyle = hero ? window.getComputedStyle(hero) : null;
+    const heroContentLeft = heroRect && heroStyle
+      ? heroRect.left + Number.parseFloat(heroStyle.borderLeftWidth || "0")
+      : null;
+    const toolbarRect = geometry(toolbarFilters);
+    const searchRect = geometry(search);
+    const toolbarStyle = toolbarFilters ? window.getComputedStyle(toolbarFilters) : null;
+    const toolbarContentRight = toolbarRect && toolbarStyle
+      ? toolbarRect.right - Number.parseFloat(toolbarStyle.paddingRight || "0")
+      : null;
 
     return {
       title: document.title,
@@ -243,6 +280,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       rowCount: rows.length,
       expandedRowCount: expandedRows.length,
       editPanelCount: editPanels.length,
+      heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
+      heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
+      burnTitle: styleSample(burnTitle),
+      toolbarSearchWidth: searchRect ? searchRect.width : null,
+      toolbarSearchRightOffset: toolbarContentRight !== null && searchRect ? toolbarContentRight - searchRect.right : null,
       burnRowCount: burnRows.length,
       overBudgetRowCount: overRows.length,
       atLimitRowCount: atLimitRows.length,
@@ -280,6 +322,39 @@ function runState(args) {
   });
 }
 
+function nearZero(value, tolerance = 2) {
+  return typeof value === "number" && Math.abs(value) <= tolerance;
+}
+
+function collectAdditionalFailures(stateResults) {
+  const failures = [];
+
+  for (const state of stateResults) {
+    if (state.scenario !== "populated") continue;
+
+    if (state.viewport.width >= 1024 && state.heroSummaryWidth !== 320) {
+      failures.push(`${state.name}: Budgets hero summary column width ${state.heroSummaryWidth} does not match 320px`);
+    }
+    if (state.viewport.width >= 1024 && state.heroDividerOffset !== 320) {
+      failures.push(`${state.name}: Budgets hero divider offset ${state.heroDividerOffset} does not match 320px`);
+    }
+    if (state.viewport.width >= 1024 && state.toolbarSearchWidth !== 260) {
+      failures.push(`${state.name}: Budgets search width ${state.toolbarSearchWidth} does not match 260px`);
+    }
+    if (state.viewport.width >= 1024 && !nearZero(state.toolbarSearchRightOffset)) {
+      failures.push(`${state.name}: Budgets search right offset ${state.toolbarSearchRightOffset} is not aligned to the toolbar edge`);
+    }
+    if (state.burnTitle?.text !== "Burn rate" ||
+      state.burnTitle?.fontSize !== "11px" ||
+      state.burnTitle?.fontWeight !== "600" ||
+      state.burnTitle?.textTransform !== "uppercase") {
+      failures.push(`${state.name}: Budgets burn-rate title does not match distribution eyebrow treatment`);
+    }
+  }
+
+  return failures;
+}
+
 function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
   const fixture = fixtureExports;
 
@@ -304,6 +379,11 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       expectedCategoryCount: fixture.budgetsVisualFixtureMeta.expectedCategoryCount,
       rowInteraction: fixture.budgetsVisualFixtureMeta.rowInteraction,
     },
+    assertions: [
+      "Burn rate title uses uppercase distribution-eyebrow treatment",
+      "desktop hero summary column and divider are 320px from the hero card edge",
+      "desktop search control is 260px wide and right-aligned in the toolbar",
+    ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,
     unhandledApiRequests,
@@ -324,6 +404,7 @@ export const visualQaConfig = {
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Budgets",
   userDataPrefix: "inex-budgets-visual-qa",
 };

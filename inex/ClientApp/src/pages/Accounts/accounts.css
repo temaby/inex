@@ -20,12 +20,13 @@
 
 .accounts-hero {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: var(--management-hero-summary-width) minmax(0, 1fr);
     overflow: hidden;
 }
 
 .accounts-hero__net,
 .accounts-hero__mix {
+    box-sizing: border-box;
     min-width: 0;
     padding: 24px 28px;
 }
@@ -85,7 +86,6 @@
     justify-content: space-between;
 }
 
-.accounts-hero__mix h2,
 .accounts-toolbar h2 {
     color: var(--fg-1);
     font-size: 16px;
