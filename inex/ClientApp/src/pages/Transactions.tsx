@@ -202,6 +202,7 @@ const Transactions = () => {
             kind: ledgerMetrics.net > 0 ? "income" as MoneyKind : ledgerMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
             signage: "signed" as Signage,
             sub: t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency }),
+            primary: true,
         },
     ];
 
@@ -217,18 +218,26 @@ const Transactions = () => {
         <>
             <BasicPage title={t("transactions.title")} subtitle={t("transactions.subtitle")} extra={headerActions}>
                 <section className="transactions-ledger">
-                    <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")}>
+                    <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card">
                         {kpiItems.map(item => (
                             <div className={`transactions-kpi${ledgerInitialLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
-                                <div className="transactions-kpi__label">{item.label}</div>
-                                <div className="transactions-kpi__value">
+                                <div className="transactions-kpi__label" data-qa={item.primary ? "hero-primary-label" : undefined}>{item.label}</div>
+                                <div className="transactions-kpi__value" data-qa={item.primary ? "hero-primary-value" : undefined}>
                                     {ledgerInitialLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
-                                        <Num currency={baseCurrency} currencySize="sm" kind={item.kind} signage={item.signage} size={34} value={item.value} />
+                                        <Num
+                                            currency={baseCurrency}
+                                            currencyDataQa={item.primary ? "hero-primary-currency" : undefined}
+                                            currencySize="sm"
+                                            kind={item.kind}
+                                            signage={item.signage}
+                                            size={30}
+                                            value={item.value}
+                                        />
                                     )}
                                 </div>
-                                <div className="transactions-kpi__sub">{item.sub}</div>
+                                <div className="transactions-kpi__sub" data-qa={item.primary ? "hero-secondary-text" : undefined}>{item.sub}</div>
                             </div>
                         ))}
                     </div>

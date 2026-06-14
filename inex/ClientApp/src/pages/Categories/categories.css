@@ -39,6 +39,7 @@
     font-size: var(--fs-30);
     font-variant-numeric: tabular-nums;
     font-weight: var(--fw-semibold);
+    line-height: 1.1;
     margin-bottom: 8px;
 }
 
@@ -50,6 +51,23 @@
 .categories-hero__note strong {
     color: var(--fg-1);
     font-weight: 600;
+}
+
+.categories-hero__top-category {
+    display: grid;
+    gap: 4px;
+}
+
+.categories-hero__top-category-metric {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.categories-hero__top-category-metric small {
+    color: var(--fg-4);
+    font-size: 12px;
 }
 
 .categories-hero__dash {
@@ -163,10 +181,10 @@
 }
 
 .categories-hero__distribution-bar {
-    background: var(--bg-surface);
-    border-radius: var(--radius-pill);
+    background: var(--bg-muted);
+    border-radius: 6px;
     display: flex;
-    height: 10px;
+    height: 16px;
     overflow: hidden;
     width: 100%;
 }
@@ -186,16 +204,16 @@
 .categories-hero__legend-item {
     align-items: start;
     display: grid;
-    gap: 8px;
-    grid-template-columns: 8px minmax(0, 1fr) auto;
+    gap: 4px 9px;
+    grid-template-columns: 9px minmax(0, 1fr) auto;
     min-width: 0;
 }
 
 .categories-hero__legend-swatch {
-    border-radius: 2px;
-    height: 8px;
+    border-radius: var(--radius-pill);
+    height: 9px;
     margin-top: 4px;
-    width: 8px;
+    width: 9px;
 }
 
 .categories-hero__legend-copy {

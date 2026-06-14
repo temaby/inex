@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T08:44:26.022Z",
+  "generatedAt": "2026-06-14T11:09:35.003Z",
   "page": "categories",
   "dataMode": "fixture",
   "harness": {
@@ -131,7 +131,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 910.984375,
+      "lastContentBottom": 922.484375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -146,7 +146,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Transfer Internal movement — —",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Transfer Internal movement — —",
       "pngDimensions": {
         "width": 1440,
         "height": 1000
@@ -186,7 +186,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 730.234375,
+      "lastContentBottom": 741.734375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -201,7 +201,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Income Money in — —",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Income Money in — —",
       "pngDimensions": {
         "width": 1024,
         "height": 900
@@ -241,7 +241,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.421875,
+      "lastContentBottom": 771.921875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -256,10 +256,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1210
+        "height": 1228
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -296,7 +296,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.421875,
+      "lastContentBottom": 771.921875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -311,10 +311,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 345,
-        "height": 1255
+        "height": 1272
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -351,7 +351,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 734.671875,
+      "lastContentBottom": 752.171875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -366,7 +366,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 0 of 8 categories · active only Status Active All View Tree By spend No categories match these filters Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 0 of 8 categories · active only Status Active All View Tree By spend No categories match these filters Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 390,
         "height": 900
@@ -461,7 +461,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.421875,
+      "lastContentBottom": 771.921875,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -480,10 +480,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
       "pngDimensions": {
         "width": 390,
-        "height": 1210
+        "height": 1228
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -520,7 +520,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.921875,
+      "lastContentBottom": 772.421875,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -539,10 +539,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports Add Category Create a parent group or child category for future transactions. Name Parent Category None (top-level) Description Active Cancel Create",
       "pngDimensions": {
         "width": 360,
-        "height": 1255
+        "height": 1272
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -579,7 +579,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 968,
+      "lastContentBottom": 967.5,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -594,10 +594,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Transfer Internal movement — —",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD USD · April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD USD · April 2026 Income Money in — — Transfer Internal movement — —",
       "pngDimensions": {
         "width": 1425,
-        "height": 1373
+        "height": 1385
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -634,7 +634,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.1875,
+      "lastContentBottom": 771.6875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -649,10 +649,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,636.50 USD Most spent in Home 1,450.00 USD 89% of total BY CATEGORY USD equivalent Home 1,450.00 USD 89% Living 186.50 USD 11% Categories 7 of 8 categories · active only Status Active All View Tree By spend Living Daily life 186.50 USD USD · April 2026 Groceries Food and household Budgeted 142.50 USD USD · April 2026 Edit category Name * Description Parent Category Living Reparenting is not supported yet Active Cancel Delete Save Snapshot · April 2026 Spend 142.50 USD Transactions 2 Budget Budgeted Groceries cap 420.00 USD Category ID #402 Transport Transit and fuel 44.00 USD USD · April 2026 Home Rent and utilities Budgeted 1,450.00 USD USD · April 2026 Rent Apartment rent Budgeted 1,450.00 USD USD · April 2026 Income Money in — Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1916
+        "height": 1934
       },
       "requestLog": [
         "POST /auth/refresh",

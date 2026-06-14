@@ -477,6 +477,7 @@
       "unavailableDescription": "Сигналы расходов появятся здесь, когда данные транзакций уже есть в кеше.",
       "noCategories": "Пока нет активных групп",
       "mostSpentIn": "Больше всего в",
+      "ofTotal": "{{percent}}% от итога",
       "byCategory": "По категориям",
       "baseEquivalent": "Эквивалент {{currency}}",
       "unavailable": "Расходы недоступны",

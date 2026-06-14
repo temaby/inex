@@ -150,10 +150,10 @@ const AppShell = ({ title, subtitle, extra, children }: AppShellProps) => {
 
             <div className="inex-page-head r-page-head">
                 <div className="inex-page-head__main">
-                    {subtitle && <div className="inex-page-head__subtitle">{subtitle}</div>}
-                    <h1 className="inex-page-head__title r-page-head-title">{title}</h1>
+                    {subtitle && <div className="inex-page-head__subtitle" data-qa="page-eyebrow">{subtitle}</div>}
+                    <h1 className="inex-page-head__title r-page-head-title" data-qa="page-title">{title}</h1>
                 </div>
-                {extra && <div className="inex-page-head__right r-page-head-right">{extra}</div>}
+                {extra && <div className="inex-page-head__right r-page-head-right" data-qa="page-primary-action">{extra}</div>}
             </div>
 
             <main className="inex-page-body r-page-body">{children}</main>

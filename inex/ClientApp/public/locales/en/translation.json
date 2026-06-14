@@ -475,6 +475,7 @@
       "unavailableDescription": "Spend signals appear here when transaction data is already cached.",
       "noCategories": "No active category groups yet",
       "mostSpentIn": "Most spent in",
+      "ofTotal": "{{percent}}% of total",
       "byCategory": "By category",
       "baseEquivalent": "{{currency}} equivalent",
       "unavailable": "Spend unavailable",

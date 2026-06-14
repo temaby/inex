@@ -31,6 +31,7 @@ npm run visual-qa:transactions
 npm run visual-qa:accounts
 npm run visual-qa:categories
 npm run visual-qa:budgets
+npm run visual-qa:hero-consistency
 npm run visual-qa:dashboard
 npm run visual-qa:reports
 npm run visual-qa:profile
@@ -48,6 +49,7 @@ npm run lint
 - Viewports captured: 1440px, 1024px, 390px, 360px.
 - Screenshot output folder: docs/implementation/visual-qa/{area}/.
 - Harness isolation: each current `qa-summary.json` reports `checks.hasFailures=false`, `harness.realBackendCalled=false`, and `unhandledApiRequests=[]`.
+- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, and Budgets at 1440px and 390px, verifies shared hero selectors and metric sizing, blocks retired copy from returning, and writes evidence under `docs/implementation/visual-qa/hero-consistency/`.
 - Notes for Windows/macOS/Linux differences: Vite/esbuild and the CDP harness may need permission to spawn child processes and a Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH`.
 
 ## Evidence Summary
@@ -58,6 +60,7 @@ npm run lint
 | Accounts | 2026-06-14T08:43:59.280Z | 13 | PASS: fixture, no failures, no backend calls |
 | Categories | 2026-06-14T08:44:26.022Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
+| Hero consistency | 2026-06-14T11:07:51.980Z | 8 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
 | Dashboard | 2026-06-14T08:45:22.166Z | 8 | PASS: fixture, no failures, no backend calls |
 | Reports | 2026-06-14T08:45:48.855Z | 11 | PASS: fixture, no failures, no backend calls |
 | Profile | 2026-06-14T08:46:15.728Z | 8 | PASS: fixture, no failures, no backend calls |
@@ -124,13 +127,13 @@ npm run lint
 
 | Route | Viewport | Issue | Rationale | Accepted by | Date |
 | --- | --- | --- | --- | --- | --- |
-| None | | | | | |
+| `/budgets` | 1440px, 390px | Burn-rate legend remains above the bars instead of matching Accounts/Categories distribution legend placement. | Budgets presents burn-rate progress and budget status, not a category distribution summary. Keeping the legend above the bars preserves scan order for planned/spent/remaining values while the hero still follows the shared page title, action, metric, and mobile overflow contract. | Product/Design | 2026-06-14 |
 
 ## Summary
 
-- Total fixture screenshots inspected: 85.
+- Total fixture screenshots inspected: 93.
 - Required route groups covered: 10.
-- Passes: 41 checklist rows.
+- Passes: 42 checklist rows.
 - Failures fixed: 0.
-- Exceptions accepted: 0.
+- Exceptions accepted: 1.
 - Skipped: 0.

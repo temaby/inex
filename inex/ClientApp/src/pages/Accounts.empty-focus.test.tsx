@@ -233,7 +233,7 @@ describe("Accounts empty-state create focus", () => {
         );
 
         expect(await screen.findByText("UZS main wallet")).toBeVisible();
-        expect(screen.getByText("Change from previous month")).toBeVisible();
+        expect(screen.queryByText("Change from previous month")).not.toBeInTheDocument();
         expect(document.querySelector(".accounts-distribution__stack")).toBeInTheDocument();
         expect(document.querySelectorAll(".accounts-distribution__segment")).toHaveLength(
             accountsVisualFixtureMeta.expectedDistributionOrder.length,

@@ -36,21 +36,6 @@
   text-transform: uppercase;
 }
 
-.budgets-hero h2 {
-  color: var(--fg-1);
-  font-size: var(--fs-24);
-  font-weight: var(--fw-semibold);
-  line-height: var(--lh-tight);
-  margin: var(--space-2) 0 var(--space-2);
-}
-
-.budgets-hero p {
-  color: var(--fg-3);
-  font-size: var(--fs-14);
-  line-height: var(--lh-normal);
-  margin: 0;
-}
-
 .budgets-hero__progress {
   margin-top: var(--space-4);
 }
@@ -69,7 +54,7 @@
   margin-top: var(--space-3);
 }
 
-.budgets-hero__rollup > span {
+.budgets-hero__rollup-divider {
   color: var(--fg-3);
   font-family: var(--font-sans);
   font-size: var(--fs-14);

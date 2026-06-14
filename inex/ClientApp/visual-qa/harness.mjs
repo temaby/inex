@@ -503,6 +503,7 @@ export async function runVisualQa({
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures = () => [],
   label,
   userDataPrefix,
 }) {
@@ -557,7 +558,10 @@ export async function runVisualQa({
       stateResults.push(result);
     }
 
-    const failures = collectCommonFailures(stateResults, unhandledApiRequests);
+    const failures = [
+      ...collectCommonFailures(stateResults, unhandledApiRequests),
+      ...collectAdditionalFailures(stateResults),
+    ];
     const summary = buildSummary({
       stateResults,
       requestLog,
