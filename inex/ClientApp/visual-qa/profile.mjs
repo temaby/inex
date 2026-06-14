@@ -12,7 +12,8 @@ import {
   problemResponse,
   resolveVisualQaPaths,
   runBrowserState,
-  runVisualQa,
+  runVisualQaScript,
+  setInputValue,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -116,18 +117,6 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       return null;
     },
   });
-}
-
-async function setInputValue(client, selector, value) {
-  await evaluate(client, `(() => {
-    const input = document.querySelector(${JSON.stringify(selector)});
-    if (!input) return false;
-    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    setter.call(input, ${JSON.stringify(value)});
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-    return true;
-  })()`);
 }
 
 async function applyInteraction(client, state) {
@@ -248,50 +237,57 @@ function runState(args) {
   });
 }
 
-function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
+function collectAdditionalFailures(stateResults) {
   const fixture = fixtureExports;
-  const pageFailures = failures;
   const meta = fixture.profileVisualFixtureMeta;
+  const failures = [];
 
   for (const state of stateResults) {
     if (state.scenario !== "populated") continue;
 
     if (state.tabCount !== meta.expectedTabCount) {
-      pageFailures.push(`${state.name}: expected ${meta.expectedTabCount} profile tabs, found ${state.tabCount}`);
+      failures.push(`${state.name}: expected ${meta.expectedTabCount} profile tabs, found ${state.tabCount}`);
     }
     if (state.cardCount !== meta.expectedCardCount) {
-      pageFailures.push(`${state.name}: expected ${meta.expectedCardCount} profile cards, found ${state.cardCount}`);
+      failures.push(`${state.name}: expected ${meta.expectedCardCount} profile cards, found ${state.cardCount}`);
     }
     if (state.formCount !== meta.expectedFormCount) {
-      pageFailures.push(`${state.name}: expected ${meta.expectedFormCount} forms, found ${state.formCount}`);
+      failures.push(`${state.name}: expected ${meta.expectedFormCount} forms, found ${state.formCount}`);
     }
     if (state.overviewMetricCount !== meta.expectedOverviewMetricCount) {
-      pageFailures.push(`${state.name}: expected ${meta.expectedOverviewMetricCount} overview metrics, found ${state.overviewMetricCount}`);
+      failures.push(`${state.name}: expected ${meta.expectedOverviewMetricCount} overview metrics, found ${state.overviewMetricCount}`);
     }
     if (!state.accountCopyVisible || !state.securityCopyVisible) {
-      pageFailures.push(`${state.name}: expected account and security copy to be visible`);
+      failures.push(`${state.name}: expected account and security copy to be visible`);
     }
   }
 
   const profileEditState = stateResults.find((state) => state.name === "profile-form-edit-390");
   if (!profileEditState?.usernameEdited) {
-    pageFailures.push("profile-form-edit-390: expected edited username field");
+    failures.push("profile-form-edit-390: expected edited username field");
   }
 
   const securityState = stateResults.find((state) => state.name === "security-form-filled-390");
   if (!securityState?.securityFieldsFilled || securityState.passwordStrengthValue < 4) {
-    pageFailures.push("security-form-filled-390: expected filled password fields with strong password meter");
+    failures.push("security-form-filled-390: expected filled password fields with strong password meter");
   }
 
   const currencyErrorState = stateResults.find((state) => state.name === "currency-error-390");
   if (!currencyErrorState?.currencyErrorVisible) {
-    pageFailures.push("currency-error-390: expected controlled currency error alert");
+    failures.push("currency-error-390: expected controlled currency error alert");
   }
 
   const profileUpdateErrorState = stateResults.find((state) => state.name === "profile-update-error-390");
   if (!profileUpdateErrorState?.profileUpdateErrorVisible) {
-    pageFailures.push("profile-update-error-390: expected controlled profile update error alert");
+    failures.push("profile-update-error-390: expected controlled profile update error alert");
   }
+
+  return failures;
+}
+
+function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
+  const fixture = fixtureExports;
+  const meta = fixture.profileVisualFixtureMeta;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -320,13 +316,13 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     apiRequests: requestLog,
     unhandledApiRequests,
     states: stateResults,
-    checks: buildCommonChecks(stateResults, pageFailures, unhandledApiRequests),
+    checks: buildCommonChecks(stateResults, failures, unhandledApiRequests),
   };
 }
 
 const fixtureExports = loadFixture(fixturePath, `Profile fixture is missing: ${fixturePath}`);
 
-runVisualQa({
+export const visualQaConfig = {
   clientRoot,
   repoRoot,
   outputDir,
@@ -336,9 +332,9 @@ runVisualQa({
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Profile",
   userDataPrefix: "inex-profile-visual-qa",
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error.message}\n`);
-  process.exitCode = 1;
-});
+};
+
+runVisualQaScript(import.meta.url, visualQaConfig);

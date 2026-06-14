@@ -21,6 +21,21 @@ export function resolveVisualQaPaths(scriptImportMetaUrl) {
   return { clientRoot, repoRoot, scriptDir };
 }
 
+export function isMainModule(scriptImportMetaUrl) {
+  return Boolean(process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(scriptImportMetaUrl));
+}
+
+export function runVisualQaScript(scriptImportMetaUrl, config) {
+  if (!isMainModule(scriptImportMetaUrl)) {
+    return;
+  }
+
+  runVisualQa(config).catch((error) => {
+    process.stderr.write(`${error.stack ?? error.message}\n`);
+    process.exitCode = 1;
+  });
+}
+
 export function loadFixture(fixturePath, missingMessage) {
   const source = ts.sys.readFile(fixturePath);
   if (!source) {
@@ -147,10 +162,11 @@ function findBrowserExecutable() {
 }
 
 class CdpClient {
-  constructor(webSocketUrl, onEvent) {
+  constructor(webSocketUrl, onEvent, onEventError) {
     this.nextId = 1;
     this.pending = new Map();
     this.onEvent = onEvent;
+    this.onEventError = onEventError;
     this.ws = new WebSocket(webSocketUrl);
   }
 
@@ -173,7 +189,13 @@ class CdpClient {
         return;
       }
 
-      this.onEvent?.(message);
+      try {
+        Promise.resolve(this.onEvent?.(message)).catch((error) => {
+          this.onEventError?.(error);
+        });
+      } catch (error) {
+        this.onEventError?.(error);
+      }
     });
   }
 
@@ -288,7 +310,7 @@ async function launchBrowser(clientRoot, userDataPrefix = "inex-visual-qa") {
   };
 }
 
-async function createPage(browserPort, onEvent) {
+async function createPage(browserPort, onEvent, onEventError) {
   const response = await fetch(`http://127.0.0.1:${browserPort}/json/new?about:blank`, {
     method: "PUT",
   });
@@ -296,9 +318,52 @@ async function createPage(browserPort, onEvent) {
     throw new Error(`Could not create browser tab: HTTP ${response.status}`);
   }
   const target = await response.json();
-  const client = new CdpClient(target.webSocketDebuggerUrl, onEvent);
+  const client = new CdpClient(target.webSocketDebuggerUrl, onEvent, onEventError);
   await client.open();
   return client;
+}
+
+async function continueRequest(client, requestId) {
+  await client.send("Fetch.continueRequest", { requestId });
+}
+
+async function failRequest(client, requestId) {
+  await client.send("Fetch.failRequest", {
+    requestId,
+    errorReason: "BlockedByClient",
+  });
+}
+
+function isApiRequest(url) {
+  return url.pathname === "/api" || url.pathname.startsWith("/api/");
+}
+
+async function handlePausedRequest(event, client, apiHandler, appOrigin) {
+  let url;
+  try {
+    url = new URL(event.request.url);
+  } catch {
+    await continueRequest(client, event.requestId);
+    return;
+  }
+
+  if (isApiRequest(url)) {
+    await apiHandler(event, client);
+    return;
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    await continueRequest(client, event.requestId);
+    return;
+  }
+
+  if (url.origin === appOrigin) {
+    await continueRequest(client, event.requestId);
+    return;
+  }
+
+  await failRequest(client, event.requestId);
+  throw new Error(`Unexpected network request during visual QA: ${event.request.method} ${event.request.url}`);
 }
 
 export async function evaluate(client, expression, awaitPromise = false) {
@@ -337,6 +402,18 @@ export function clickButtonByTextExpression(label) {
   })()`;
 }
 
+export async function setInputValue(client, selector, value) {
+  await evaluate(client, `(() => {
+    const input = document.querySelector(${JSON.stringify(selector)});
+    if (!input) return false;
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    setter.call(input, ${JSON.stringify(value)});
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  })()`);
+}
+
 export function localeInitScript(language = "en") {
   return `localStorage.setItem('i18n_lang', ${JSON.stringify(language)});`;
 }
@@ -365,11 +442,58 @@ export function fixedDateInitScript(fixedNow, language = "en") {
   `;
 }
 
-export async function captureScreenshot(client, filePath) {
+export async function captureScreenshot(client, filePath, options = {}) {
+  const mode = options.mode ?? "fullPage";
   await evaluate(client, "window.scrollTo(0, 0)");
   await wait(100);
 
   const layout = await client.send("Page.getLayoutMetrics");
+
+  if (mode === "viewport") {
+    const width = Math.ceil(layout.visualViewport.clientWidth);
+    const height = Math.ceil(layout.visualViewport.clientHeight);
+    const screenshot = await client.send("Page.captureScreenshot", {
+      format: "png",
+      fromSurface: true,
+      captureBeyondViewport: false,
+    });
+    await writeFile(filePath, Buffer.from(screenshot.data, "base64"));
+
+    return { width, height, mode };
+  }
+
+  if (mode === "selector") {
+    const selector = options.selector;
+    if (!selector) {
+      throw new Error("Selector screenshot mode requires a selector.");
+    }
+
+    const rect = await evaluate(client, `(() => {
+      const element = document.querySelector(${JSON.stringify(selector)});
+      if (!element) return null;
+      const bounds = element.getBoundingClientRect();
+      return {
+        x: Math.max(0, bounds.x + window.scrollX),
+        y: Math.max(0, bounds.y + window.scrollY),
+        width: Math.ceil(bounds.width),
+        height: Math.ceil(bounds.height),
+      };
+    })()`);
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      throw new Error(`Could not capture selector screenshot for ${selector}.`);
+    }
+
+    const screenshot = await client.send("Page.captureScreenshot", {
+      format: "png",
+      fromSurface: true,
+      captureBeyondViewport: true,
+      clip: { ...rect, scale: 1 },
+    });
+    await writeFile(filePath, Buffer.from(screenshot.data, "base64"));
+
+    return { width: rect.width, height: rect.height, mode, selector };
+  }
+
   const width = Math.ceil(layout.contentSize.width);
   const height = Math.ceil(layout.contentSize.height);
   const screenshot = await client.send("Page.captureScreenshot", {
@@ -380,7 +504,7 @@ export async function captureScreenshot(client, filePath) {
   });
   await writeFile(filePath, Buffer.from(screenshot.data, "base64"));
 
-  return { width, height };
+  return { width, height, mode };
 }
 
 export async function runBrowserState({
@@ -400,54 +524,79 @@ export async function runBrowserState({
 }) {
   const stateRequestLog = [];
   const consoleMessages = [];
+  const eventErrors = [];
   let client;
+
+  const throwEventErrors = () => {
+    if (eventErrors.length === 0) {
+      return;
+    }
+
+    const firstError = eventErrors[0];
+    throw new Error(`Browser event handler failed in ${state.name}: ${firstError.stack ?? firstError.message ?? firstError}`);
+  };
+
+  const appOrigin = new URL(appUrl).origin;
 
   client = await createPage(browser.port, async (message) => {
     if (message.method === "Fetch.requestPaused") {
-      await apiHandler(message.params, client);
+      await handlePausedRequest(message.params, client, apiHandler, appOrigin);
     }
     if (message.method === "Runtime.consoleAPICalled") {
       consoleMessages.push(message.params.args.map((arg) => arg.value).filter(Boolean).join(" "));
     }
+  }, (error) => {
+    eventErrors.push(error);
   });
 
-  await client.send("Page.enable");
-  await client.send("Runtime.enable");
-  await client.send("Fetch.enable", {
-    patterns: [{ urlPattern: "*://127.0.0.1:*/api/*", requestStage: "Request" }],
-  });
-  await client.send("Emulation.setDeviceMetricsOverride", {
-    width: state.viewport.width,
-    height: state.viewport.height,
-    deviceScaleFactor: 1,
-    mobile: false,
-  });
-  await client.send("Page.addScriptToEvaluateOnNewDocument", {
-    source: initScript,
-  });
+  try {
+    await client.send("Page.enable");
+    await client.send("Runtime.enable");
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "*", requestStage: "Request" }],
+    });
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: state.viewport.width,
+      height: state.viewport.height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await client.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: initScript,
+    });
 
-  scenarioRef.current = state.scenario;
-  const requestLogStart = fixture.requestLog.length;
+    scenarioRef.current = state.scenario;
+    const requestLogStart = fixture.requestLog.length;
 
-  await client.send("Page.navigate", { url: `${appUrl}${routePath}` });
-  await waitForReady(client, state, fixture);
-  await applyInteraction(client, state, fixture);
-  await wait(interactionDelayMs);
+    await client.send("Page.navigate", { url: `${appUrl}${routePath}` });
+    await waitForReady(client, state, fixture);
+    throwEventErrors();
+    await applyInteraction(client, state, fixture);
+    await wait(interactionDelayMs);
+    throwEventErrors();
 
-  stateRequestLog.push(...fixture.requestLog.slice(requestLogStart));
+    stateRequestLog.push(...fixture.requestLog.slice(requestLogStart));
 
-  const screenshotPath = path.join(outputDir, state.screenshot);
-  const pngDimensions = await captureScreenshot(client, screenshotPath);
-  const metrics = await collectMetrics(client, state, stateRequestLog.length);
+    const screenshotPath = path.join(outputDir, state.screenshot);
+    const pngDimensions = await captureScreenshot(client, screenshotPath, {
+      mode: state.screenshotMode,
+      selector: state.screenshotSelector,
+    });
+    throwEventErrors();
+    const metrics = await collectMetrics(client, state, stateRequestLog.length);
 
-  await client.close();
-
-  return {
-    ...metrics,
-    pngDimensions,
-    requestLog: stateRequestLog,
-    consoleMessages: consoleMessages.filter(Boolean),
-  };
+    return {
+      ...metrics,
+      pngDimensions,
+      requestLog: stateRequestLog,
+      consoleMessages: consoleMessages.filter(Boolean),
+    };
+  } catch (error) {
+    throwEventErrors();
+    throw error;
+  } finally {
+    await client?.close();
+  }
 }
 
 function collectCommonFailures(stateResults, unhandledApiRequests) {
@@ -493,32 +642,11 @@ export function buildCommonChecks(stateResults, failures, unhandledApiRequests) 
   };
 }
 
-export async function runVisualQa({
+export async function createVisualQaEnvironment({
   clientRoot,
-  repoRoot,
-  outputDir,
   defaultPort,
-  fixture,
-  states,
-  createApiHandler,
-  runState,
-  buildSummary,
-  collectAdditionalFailures = () => [],
-  label,
-  userDataPrefix,
+  userDataPrefix = "inex-visual-qa",
 }) {
-  if (!WebSocket) {
-    throw new Error("The visual QA harness requires a WebSocket client. The local ws package is missing.");
-  }
-
-  const requestLog = [];
-  const unhandledApiRequests = [];
-  const scenarioRef = { current: "populated" };
-  const apiHandler = createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef);
-
-  await rm(outputDir, { recursive: true, force: true });
-  await mkdir(outputDir, { recursive: true });
-
   const vite = await createViteServer({
     root: clientRoot,
     mode: "test",
@@ -540,6 +668,57 @@ export async function runVisualQa({
 
     browser = await launchBrowser(clientRoot, userDataPrefix);
 
+    return {
+      appUrl,
+      browser,
+      vite,
+      async close() {
+        await browser?.close();
+        await vite.close();
+      },
+    };
+  } catch (error) {
+    await browser?.close();
+    await vite.close();
+    throw error;
+  }
+}
+
+export async function runVisualQa({
+  clientRoot,
+  repoRoot,
+  outputDir,
+  defaultPort,
+  fixture,
+  states,
+  createApiHandler,
+  runState,
+  buildSummary,
+  collectAdditionalFailures = () => [],
+  label,
+  userDataPrefix,
+  environment,
+}) {
+  if (!WebSocket) {
+    throw new Error("The visual QA harness requires a WebSocket client. The local ws package is missing.");
+  }
+
+  const requestLog = [];
+  const unhandledApiRequests = [];
+  const scenarioRef = { current: "populated" };
+  const apiHandler = createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef);
+
+  await rm(outputDir, { recursive: true, force: true });
+  await mkdir(outputDir, { recursive: true });
+
+  let ownedEnvironment;
+  try {
+    ownedEnvironment = environment ?? await createVisualQaEnvironment({
+      clientRoot,
+      defaultPort,
+      userDataPrefix,
+    });
+
     const stateResults = [];
     for (const state of states) {
       const stateFixture = {
@@ -547,8 +726,8 @@ export async function runVisualQa({
         requestLog,
       };
       const result = await runState({
-        browser,
-        appUrl,
+        browser: ownedEnvironment.browser,
+        appUrl: ownedEnvironment.appUrl,
         state,
         fixture: stateFixture,
         apiHandler,
@@ -578,8 +757,9 @@ export async function runVisualQa({
 
     process.stdout.write(`${label} visual QA complete: ${path.relative(repoRoot, outputDir)}\n`);
   } finally {
-    await browser?.close();
-    await vite.close();
+    if (!environment) {
+      await ownedEnvironment?.close();
+    }
   }
 }
 

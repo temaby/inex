@@ -12,7 +12,7 @@ import {
   problemResponse,
   resolveVisualQaPaths,
   runBrowserState,
-  runVisualQa,
+  runVisualQaScript,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -522,20 +522,19 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
   };
 }
 
-runVisualQa({
+export const visualQaConfig = {
   clientRoot,
   repoRoot,
   outputDir,
   defaultPort: 5205,
   fixture: fixtures,
-  states: states.map((state) => ({ ...state, scenario: state.page })),
+  states: states.map((state) => ({ ...state, scenario: state.page, screenshotMode: "viewport" })),
   createApiHandler,
   runState,
   buildSummary,
   collectAdditionalFailures,
   label: "Hero consistency",
   userDataPrefix: "inex-hero-consistency-visual-qa",
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error.message}\n`);
-  process.exitCode = 1;
-});
+};
+
+runVisualQaScript(import.meta.url, visualQaConfig);

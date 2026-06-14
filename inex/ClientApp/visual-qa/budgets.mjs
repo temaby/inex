@@ -12,7 +12,7 @@ import {
   problemResponse,
   resolveVisualQaPaths,
   runBrowserState,
-  runVisualQa,
+  runVisualQaScript,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -314,7 +314,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
 
 const fixtureExports = loadFixture(fixturePath, `Budgets fixture is missing: ${fixturePath}`);
 
-runVisualQa({
+export const visualQaConfig = {
   clientRoot,
   repoRoot,
   outputDir,
@@ -326,7 +326,6 @@ runVisualQa({
   buildSummary,
   label: "Budgets",
   userDataPrefix: "inex-budgets-visual-qa",
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error.message}\n`);
-  process.exitCode = 1;
-});
+};
+
+runVisualQaScript(import.meta.url, visualQaConfig);

@@ -12,7 +12,8 @@ import {
   problemResponse,
   resolveVisualQaPaths,
   runBrowserState,
-  runVisualQa,
+  runVisualQaScript,
+  setInputValue,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -146,18 +147,6 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       return null;
     },
   });
-}
-
-async function setInputValue(client, selector, value) {
-  await evaluate(client, `(() => {
-    const input = document.querySelector(${JSON.stringify(selector)});
-    if (!input) return false;
-    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    setter.call(input, ${JSON.stringify(value)});
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-    return true;
-  })()`);
 }
 
 async function fillLoginForm(client) {
@@ -303,60 +292,67 @@ function runState(args) {
   });
 }
 
-function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
+function collectAdditionalFailures(stateResults) {
   const fixture = fixtureExports;
-  const pageFailures = failures;
   const meta = fixture.authVisualFixtureMeta;
+  const failures = [];
 
   for (const state of stateResults) {
     if (state.routePath === "/login") {
       if (state.formCount !== meta.expectedLoginFormCount) {
-        pageFailures.push(`${state.name}: expected ${meta.expectedLoginFormCount} login form, found ${state.formCount}`);
+        failures.push(`${state.name}: expected ${meta.expectedLoginFormCount} login form, found ${state.formCount}`);
       }
       if (!state.loginCopyVisible) {
-        pageFailures.push(`${state.name}: expected login copy to be visible`);
+        failures.push(`${state.name}: expected login copy to be visible`);
       }
     }
 
     if (state.routePath === "/register") {
       if (state.formCount !== meta.expectedRegisterFormCount) {
-        pageFailures.push(`${state.name}: expected ${meta.expectedRegisterFormCount} register form, found ${state.formCount}`);
+        failures.push(`${state.name}: expected ${meta.expectedRegisterFormCount} register form, found ${state.formCount}`);
       }
       if (!state.registerCopyVisible) {
-        pageFailures.push(`${state.name}: expected register copy to be visible`);
+        failures.push(`${state.name}: expected register copy to be visible`);
       }
     }
 
     if (state.viewport.width >= 1024 && state.featureCount !== meta.expectedFeatureCount) {
-      pageFailures.push(`${state.name}: expected ${meta.expectedFeatureCount} brand features, found ${state.featureCount}`);
+      failures.push(`${state.name}: expected ${meta.expectedFeatureCount} brand features, found ${state.featureCount}`);
     }
     if (state.viewport.width >= 1024 && !state.brandVisible) {
-      pageFailures.push(`${state.name}: expected desktop brand panel to be visible`);
+      failures.push(`${state.name}: expected desktop brand panel to be visible`);
     }
     if ([390, 360].includes(state.viewport.width) && !state.mobileLogoVisible) {
-      pageFailures.push(`${state.name}: expected mobile auth logo to be visible`);
+      failures.push(`${state.name}: expected mobile auth logo to be visible`);
     }
   }
 
   const loginErrorState = stateResults.find((state) => state.name === "login-error-390");
   if (!loginErrorState?.loginErrorVisible) {
-    pageFailures.push("login-error-390: expected controlled invalid credentials alert");
+    failures.push("login-error-390: expected controlled invalid credentials alert");
   }
 
   const registerFilledState = stateResults.find((state) => state.name === "register-form-filled-390");
   if (!registerFilledState?.registerFormFilled || registerFilledState.passwordStrengthSegmentCount !== 5) {
-    pageFailures.push("register-form-filled-390: expected filled register form with password strength meter");
+    failures.push("register-form-filled-390: expected filled register form with password strength meter");
   }
 
   const registerErrorState = stateResults.find((state) => state.name === "register-error-390");
   if (!registerErrorState?.registerErrorVisible) {
-    pageFailures.push("register-error-390: expected controlled invite-token error alert");
+    failures.push("register-error-390: expected controlled invite-token error alert");
   }
 
   const currencyErrorState = stateResults.find((state) => state.name === "register-currency-error-390");
   if (!currencyErrorState?.currencyErrorVisible) {
-    pageFailures.push("register-currency-error-390: expected controlled currency error");
+    failures.push("register-currency-error-390: expected controlled currency error");
   }
+
+  return failures;
+}
+
+function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
+  const fixture = fixtureExports;
+  const meta = fixture.authVisualFixtureMeta;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -384,13 +380,13 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     apiRequests: requestLog,
     unhandledApiRequests,
     states: stateResults,
-    checks: buildCommonChecks(stateResults, pageFailures, unhandledApiRequests),
+    checks: buildCommonChecks(stateResults, failures, unhandledApiRequests),
   };
 }
 
 const fixtureExports = loadFixture(fixturePath, `Auth fixture is missing: ${fixturePath}`);
 
-runVisualQa({
+export const visualQaConfig = {
   clientRoot,
   repoRoot,
   outputDir,
@@ -400,9 +396,9 @@ runVisualQa({
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Auth",
   userDataPrefix: "inex-auth-visual-qa",
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error.message}\n`);
-  process.exitCode = 1;
-});
+};
+
+runVisualQaScript(import.meta.url, visualQaConfig);

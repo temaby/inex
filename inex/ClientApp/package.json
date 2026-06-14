@@ -46,6 +46,7 @@
     "preview": "vite preview",
     "lint": "eslint ./src/**/*.ts ./src/**/*.tsx",
     "test": "vitest run",
+    "visual-qa:all": "node visual-qa/all.mjs",
     "visual-qa:accounts": "node visual-qa/accounts.mjs",
     "visual-qa:auth": "node visual-qa/auth.mjs",
     "visual-qa:budgets": "node visual-qa/budgets.mjs",

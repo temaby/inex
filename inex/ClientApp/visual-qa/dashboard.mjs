@@ -11,7 +11,7 @@ import {
   problemResponse,
   resolveVisualQaPaths,
   runBrowserState,
-  runVisualQa,
+  runVisualQaScript,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -246,47 +246,53 @@ function runState(args) {
   });
 }
 
-function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
+function collectAdditionalFailures(stateResults) {
   const fixture = fixtureExports;
-  const pageFailures = failures;
+  const failures = [];
 
   for (const state of stateResults) {
     if (state.scenario !== "populated") continue;
 
     if (state.summaryCardCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
-      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} summary cards, found ${state.summaryCardCount}`);
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} summary cards, found ${state.summaryCardCount}`);
     }
     if (state.dashboardTopCardSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
-      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard top card selectors, found ${state.dashboardTopCardSelectorCount}`);
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard top card selectors, found ${state.dashboardTopCardSelectorCount}`);
     }
     if (state.dashboardCardTitleSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
-      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard card title selectors, found ${state.dashboardCardTitleSelectorCount}`);
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard card title selectors, found ${state.dashboardCardTitleSelectorCount}`);
     }
     if (state.dashboardCardValueSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
-      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard card value selectors, found ${state.dashboardCardValueSelectorCount}`);
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard card value selectors, found ${state.dashboardCardValueSelectorCount}`);
     }
     if (state.dashboardCardCurrencySelectorCount < 3) {
-      pageFailures.push(`${state.name}: expected Dashboard currency selectors on the money cards`);
+      failures.push(`${state.name}: expected Dashboard currency selectors on the money cards`);
     }
     if (state.dashboardCardDeltaSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
-      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard secondary delta selectors, found ${state.dashboardCardDeltaSelectorCount}`);
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard secondary delta selectors, found ${state.dashboardCardDeltaSelectorCount}`);
     }
     if (state.dashboardPanelCount !== fixture.dashboardVisualFixtureMeta.expectedPanelCount) {
-      pageFailures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedPanelCount} dashboard panels, found ${state.dashboardPanelCount}`);
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedPanelCount} dashboard panels, found ${state.dashboardPanelCount}`);
     }
     if (state.chartSurfaceCount < 2) {
-      pageFailures.push(`${state.name}: expected heatmap and net-worth chart surfaces, found ${state.chartSurfaceCount}`);
+      failures.push(`${state.name}: expected heatmap and net-worth chart surfaces, found ${state.chartSurfaceCount}`);
     }
   }
 
   for (const state of stateResults) {
     if (/Quick month status lives here\. Use Reports when you need deeper analysis and drill-downs\./.test(state.textSample)) {
-      pageFailures.push(`${state.name}: removed Dashboard subtitle copy is still visible`);
+      failures.push(`${state.name}: removed Dashboard subtitle copy is still visible`);
     }
     if (/Current month/.test(state.dashboardTopText)) {
-      pageFailures.push(`${state.name}: Dashboard top card still contains Current month`);
+      failures.push(`${state.name}: Dashboard top card still contains Current month`);
     }
   }
+
+  return failures;
+}
+
+function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
+  const fixture = fixtureExports;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -315,13 +321,13 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     apiRequests: requestLog,
     unhandledApiRequests,
     states: stateResults,
-    checks: buildCommonChecks(stateResults, pageFailures, unhandledApiRequests),
+    checks: buildCommonChecks(stateResults, failures, unhandledApiRequests),
   };
 }
 
 const fixtureExports = loadFixture(fixturePath, `Dashboard fixture is missing: ${fixturePath}`);
 
-runVisualQa({
+export const visualQaConfig = {
   clientRoot,
   repoRoot,
   outputDir,
@@ -331,9 +337,9 @@ runVisualQa({
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Dashboard",
   userDataPrefix: "inex-dashboard-visual-qa",
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error.message}\n`);
-  process.exitCode = 1;
-});
+};
+
+runVisualQaScript(import.meta.url, visualQaConfig);

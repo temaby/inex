@@ -12,7 +12,7 @@ import {
   problemResponse,
   resolveVisualQaPaths,
   runBrowserState,
-  runVisualQa,
+  runVisualQaScript,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -305,7 +305,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
 
 const fixtureExports = loadFixture(fixturePath, `Categories fixture is missing: ${fixturePath}`);
 
-runVisualQa({
+export const visualQaConfig = {
   clientRoot,
   repoRoot,
   outputDir,
@@ -317,7 +317,6 @@ runVisualQa({
   buildSummary,
   label: "Categories",
   userDataPrefix: "inex-categories-visual-qa",
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error.message}\n`);
-  process.exitCode = 1;
-});
+};
+
+runVisualQaScript(import.meta.url, visualQaConfig);
