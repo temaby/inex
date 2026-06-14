@@ -1,6 +1,6 @@
 # Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
 
-Status: blocked
+Status: ready-for-dev
 
 ## Story
 
@@ -10,11 +10,11 @@ so that responsive and layout regressions are caught before production.
 
 ## Acceptance Criteria
 
-1. **Given** the visual regression coverage list in `docs/design/docs/design-implementation-guide.md` (Section 14), **when** this story is complete, **then** the repo contains the documented manual and Playwright-assisted screenshot commands for 1440px, 1024px, 390px, and 360px checks in `docs/design/docs/visual-qa-checklist.md`.
+1. **Given** the visual regression coverage list in `docs/design/docs/design-implementation-guide.md` (Section 14), **when** this story is complete, **then** the repo contains the documented manual and fixture-assisted visual QA commands for 1440px, 1024px, 390px, and 360px checks in `docs/design/docs/visual-qa-checklist.md`.
 
 2. **Given** all top-level routes, **when** the visual QA checklist is executed, **then** it covers: Transactions, Accounts, Categories, Budgets, Dashboard (home landing), Reports hub, a report drill-down, Profile, Login, and Register — ten routes in total.
 
-3. **Given** important UI states, **when** the visual QA checklist is executed, **then** it covers: populated (real seed data), empty (no records), filter-empty (filter active, zero results), drawer-open (create/edit drawer visible), expanded-row (detail row expanded), report drill-down, long translated labels (switch to RU locale), and long amounts (five-digit+ amounts).
+3. **Given** important UI states, **when** the visual QA checklist is executed, **then** it covers: populated (fixture or live-seed data), empty (no records), filter-empty (filter active, zero results), drawer-open (create/edit drawer visible), expanded-row (detail row expanded), report drill-down, long translated labels (switch to RU locale), and long amounts (five-digit+ amounts).
 
 4. **Given** a screenshot reveals overlap, clipped button text, page-level horizontal overflow, bottom-nav occlusion, or chart blankness, **when** the story is reviewed, **then** the regression is treated as a **failed acceptance criterion** — not a cosmetic follow-up — and must be fixed before this story is marked done.
 
@@ -47,7 +47,7 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 | 10.5a | Profile and settings redesign                                             |
 | 10.5b | Login and registration redesign                                           |
 
-**Check before starting:** every story above must be status `done` in `docs/implementation/sprint-status.yaml`. If any story is not `done`, do not start the final Epic 10 QA gate; send the incomplete story back to its owner first. Subset QA is allowed only as story-level evidence for an individual route story, not as completion evidence for Story 10.6.
+**Check before starting:** every story above must be status `done` in `docs/implementation/sprint-status.yaml`. If any story is not `done`, do not start the final Epic 10 QA gate; send the incomplete story back to its owner first. As of 2026-06-14, all listed prerequisites are `done`, so Story 10.6 may start when its own sprint status is `ready-for-dev` or `in-progress`. Subset QA is allowed only as story-level evidence for an individual route story, not as completion evidence for Story 10.6.
 
 **Story 10.1d policy gate:** before capturing final QA screenshots, confirm the current implementation and checklist use these decisions from Story 10.1d:
 
@@ -62,9 +62,30 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 - English is the primary visual parity baseline. Russian is a required long-label responsive stress test, not the baseline used for mockup pixel/content parity.
 - Each QA row must label `dataMode: fixture` or `dataMode: live-seed`. Exact value parity is required only for fixture rows; live-seed rows may differ in values while still failing on layout, hierarchy, missing state, formatting, overflow, or inaccessible controls.
 
-**Dev server must be running** with populated data. Follow the local startup flow in `README.md`: start MySQL with Docker Compose, run the backend (`dotnet watch run --project inex`), and run the frontend (`npm start` from `inex/ClientApp/`). Confirm `http://localhost:3000` loads and you can log in.
+**Primary automated baseline:** use the committed fixture-based visual QA harness from `inex/ClientApp`. It starts an isolated Vite server, intercepts `/api` calls, writes screenshots and `qa-summary.json` under `docs/implementation/visual-qa/{area}/`, and must not call the real backend, MySQL, exchange-rate providers, or other external services. Before running UI QA, run the project doctor if available:
 
-**Test account setup:** log in with a test user that has at least:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/doctor.ps1 -Ui
+```
+
+Run the baseline commands from `inex/ClientApp`:
+
+```powershell
+npm run visual-qa:transactions
+npm run visual-qa:accounts
+npm run visual-qa:categories
+npm run visual-qa:budgets
+npm run visual-qa:dashboard
+npm run visual-qa:reports
+npm run visual-qa:profile
+npm run visual-qa:auth
+```
+
+The harness requires a local Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH` and rerun the failed command. Do not install Playwright or add browser dependencies as part of this story unless a separate dependency decision explicitly approves it.
+
+**Optional live-seed smoke:** start MySQL, backend, and frontend only when validating live seeded data in a real browser. Follow the local startup flow in `README.md`: start MySQL with Docker Compose, run the backend (`dotnet watch run --project inex`), and run the frontend (`npm start` from `inex/ClientApp/`). Confirm `http://localhost:3000` loads and you can log in.
+
+**Live-seed test account setup:** when running optional live-seed smoke, log in with a test user that has at least:
 
 - 3 accounts in different currencies (e.g., USD, EUR, BYN)
 - 10+ transactions across multiple months with tags and refs
@@ -72,7 +93,7 @@ This is the capstone story for Epic 10. **All of the following stories must reac
 - 3+ budgets for the current month
 - At least one report result accessible from the Reports hub
 
-**Data mode setup:** choose either fixed April 2026 mockup fixtures or live seeded user data before a QA pass starts. Use the same mode across Transactions, Accounts, Categories, and Budgets for a comparable pass, and record the mode in every checklist row. If fixture mode is used, route/query/period/currency values must match the mockup fixture. If live-seed mode is used, account balances, transaction amounts, category totals, budget usage, and currency values may differ from the mockup, but visual structure, labels, affordances, responsive behavior, and empty/filter/drawer states must still match the accepted design contract.
+**Data mode setup:** use `dataMode: fixture` as the default Epic 10 baseline because the committed harness already supplies fixed April 2026 mockup fixtures for route/query/period/currency-sensitive states. Use `dataMode: live-seed` only for optional real-browser smoke coverage. Record the mode in every checklist row. Exact value parity is required for fixture rows. In live-seed rows, account balances, transaction amounts, category totals, budget usage, and currency values may differ from the mockup, but visual structure, labels, affordances, responsive behavior, and empty/filter/drawer states must still match the accepted design contract.
 
 **Accounts fixture baseline:** Accounts mockup parity uses fixture mode as the source of truth. Follow `docs/implementation/visual-qa/accounts-fixture-baseline.md` for the Accounts fixture values, default-expanded group rule, collapsed-group state, and live-smoke limitations. Do not accept or reject Accounts value parity from a developer's live account data.
 
@@ -110,7 +131,7 @@ Epic 10 rebuilds the production React app to implement the `docs/design` visual 
 
 **Shell and accepted-deviation baseline:** Story 10.1d intentionally keeps Dashboard in authenticated navigation and allows the production profile pill plus separate sign-out icon to remain visible. Do not fail Story 10.6 solely because the shell has six nav items or a separate sign-out icon. Do fail the QA run if navigation, profile, or logout controls are clipped, unreachable by keyboard, hidden on mobile, or occluded by the bottom nav.
 
-**Locale baseline:** run mockup parity screenshots in English. Reset the app language to English before parity capture by setting `localStorage.setItem("i18nextLng", "en")` and reloading, or by using the profile/settings language control when available. Run the Russian pass separately as the long-label stress state and record it as RU stress coverage.
+**Locale baseline:** run mockup parity screenshots in English. Reset the app language to English before parity capture by setting `localStorage.setItem("i18n_lang", "en")` and reloading, or by using the profile/settings language control when available. Run the Russian pass separately as the long-label stress state and record it as RU stress coverage.
 
 **Dependencies from epics.md:**
 
@@ -274,9 +295,45 @@ If a failure is found and is a known limitation with an accepted trade-off, docu
 5. **Important:** after resizing, **hard reload** the page (`Ctrl+Shift+R`) so CSS media queries re-evaluate correctly.
 6. To take a screenshot of the full page: in DevTools `...` menu → **Run command** → type `Capture full size screenshot`. This captures scrollable content, not just the visible viewport.
 
-### Option B: Playwright CLI (Automated — Optional but Recommended for Documentation)
+### Option B: Committed Fixture Harness (Automated - Recommended)
 
-The project does not yet have a Playwright configuration. Install Playwright as a dev dependency without affecting the test suite:
+Run the existing scripts from `inex/ClientApp`. These scripts start Vite in test mode, launch a local Chromium-family browser through Chrome DevTools Protocol, intercept `/api` requests with fixture responses, capture screenshots, and write a `qa-summary.json` for each area.
+
+```powershell
+npm run visual-qa:transactions
+npm run visual-qa:accounts
+npm run visual-qa:categories
+npm run visual-qa:budgets
+npm run visual-qa:dashboard
+npm run visual-qa:reports
+npm run visual-qa:profile
+npm run visual-qa:auth
+```
+
+Output folders:
+
+```text
+docs/implementation/visual-qa/transactions/
+docs/implementation/visual-qa/accounts/
+docs/implementation/visual-qa/categories/
+docs/implementation/visual-qa/budgets/
+docs/implementation/visual-qa/dashboard/
+docs/implementation/visual-qa/reports/
+docs/implementation/visual-qa/profile/
+docs/implementation/visual-qa/auth/
+```
+
+For each `qa-summary.json`, verify `checks.hasFailures` is `false`, `checks.fixtureModeAvoidedBackendApis` is `true`, `harness.realBackendCalled` is `false`, `unhandledApiRequests` is empty, and the generated screenshots were visually inspected.
+
+### Option C: Live Browser Smoke (Optional)
+
+Use Chrome or Edge manually against `http://localhost:3000` only when validating live seeded data, route behavior, or user-authenticated browser interactions that the fixture harness does not cover. Record live rows as `dataMode: live-seed` and do not treat value/date/name differences from fixture screenshots as parity failures.
+
+### Deprecated: Temporary Playwright CLI/Script Path
+
+The following Playwright notes are historical and must not be used for Story 10.6 unless a separate dependency decision explicitly approves adding Playwright. Prefer Option B above.
+
+Do not install Playwright as part of this story:
 
 ```bash
 # Run from inex/ClientApp/
@@ -284,7 +341,7 @@ npm install --save-dev playwright
 npx playwright install chromium --with-deps
 ```
 
-Then use inline script (no config file needed):
+Historical inline script examples, retained only as reference and not part of Story 10.6 execution:
 
 ```bash
 # Capture Transactions populated at 1440px desktop
@@ -308,9 +365,9 @@ npx playwright screenshot \
 
 **Note:** Playwright CLI screenshots will land on the login page if you are not authenticated. For authenticated routes, use a helper script (see below) or use Option A (browser DevTools) while logged in.
 
-### Option C: Playwright Script for Authenticated Routes
+### Deprecated Playwright Script for Authenticated Routes
 
-Create a temporary helper script at `inex/ClientApp/qa-screenshots.mjs` (do not commit unless the team decides to keep it):
+Do not create `inex/ClientApp/qa-screenshots.mjs` for Story 10.6. If a future dependency decision formalizes Playwright, replace this reference with a committed, credential-free script that reads test credentials from environment variables.
 
 ```js
 // qa-screenshots.mjs — run with: node qa-screenshots.mjs
@@ -391,16 +448,16 @@ mkdirSync(OUT_DIR, { recursive: true });
 })();
 ```
 
-**Run with:**
+**Historical run command, not for Story 10.6:**
 
 ```bash
 cd inex/ClientApp
 node qa-screenshots.mjs
 ```
 
-**Do not commit this script** unless the team decides to formalize it as a permanent QA tool. The script is a helper for this story's QA run.
+**Do not commit this script.** It is a historical helper reference, not the current QA path.
 
-**Add to `.gitignore`** before running to prevent accidental commit:
+Historical note only: older temporary-script runs required adding the helper to `.gitignore` before execution.
 
 ```
 # in inex/ClientApp/.gitignore or root .gitignore:
@@ -439,7 +496,7 @@ Switch the app locale to Russian (via the language toggle in Profile/Settings or
 
 ```js
 // Switch to Russian in browser console:
-localStorage.setItem("i18nextLng", "ru");
+localStorage.setItem("i18n_lang", "ru");
 location.reload();
 ```
 
@@ -468,13 +525,20 @@ Design guide reference: docs/design/docs/design-implementation-guide.md Section 
 
 ## QA Commands / Screenshot Capture
 
-Record the exact commands and workflow used for this run. Include both manual browser steps and any Playwright-assisted commands.
+Record the exact commands and workflow used for this run. Include the committed fixture harness commands and any manual browser checks.
 
 ```bash
 # Example only; replace with the actual commands used for this run.
 npm run build
 npm run lint
-node qa-screenshots.mjs
+npm run visual-qa:transactions
+npm run visual-qa:accounts
+npm run visual-qa:categories
+npm run visual-qa:budgets
+npm run visual-qa:dashboard
+npm run visual-qa:reports
+npm run visual-qa:profile
+npm run visual-qa:auth
 ```
 
 - Browser/tool used:
@@ -570,7 +634,14 @@ List any known issues accepted as exceptions (must have owner + rationale + date
 docs/design/docs/visual-qa-checklist.md   ← REQUIRED deliverable (completed checklist)
 docs/design/docs/screenshots/             ← OPTIONAL: committed screenshots
   {viewport}_{route}_{state}.png          ← naming convention
-inex/ClientApp/qa-screenshots.mjs         ← OPTIONAL: Playwright helper (do not commit unless formalized)
+```
+
+### Existing Evidence Folders
+
+The committed visual QA harness writes screenshots and summaries under:
+
+```
+docs/implementation/visual-qa/{transactions,accounts,categories,budgets,dashboard,reports,profile,auth}/
 ```
 
 ### Files to Modify
@@ -622,9 +693,9 @@ When a page component is changed, re-run the relevant rows of the checklist:
 4. Update `docs/design/docs/visual-qa-checklist.md` with new pass/fail results.
 5. If a new failure is introduced, fix it before merging.
 
-### Automated Option
+### Automated Fixture Harness
 
-An optional Playwright helper script is documented in `docs/implementation/10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist.md`. It captures full-page screenshots for all routes and viewports at once. Run it after each significant redesign pass and diff the images visually.
+The project uses committed Node/CDP visual QA scripts under `inex/ClientApp/visual-qa/`. They start Vite in test mode, fulfill `/api` requests from fixtures, capture full-page screenshots, and write `qa-summary.json` under `docs/implementation/visual-qa/{area}/`. Run the relevant `npm run visual-qa:*` commands after each significant redesign pass and visually inspect the generated screenshots.
 
 ### Regression Policy
 
@@ -666,6 +737,7 @@ When a failure is found during QA:
 ## Definition of Done
 
 - [ ] `npm run build` passes from `inex/ClientApp/` before starting QA (baseline clean build)
+- [ ] Relevant `npm run visual-qa:*` commands pass from `inex/ClientApp/`, with `checks.hasFailures=false`, `harness.realBackendCalled=false`, and no unhandled API requests in each generated `qa-summary.json`
 - [ ] All 10 routes covered by QA at applicable viewports and states (see QA matrix above)
 - [ ] `docs/design/docs/visual-qa-checklist.md` exists, is fully filled in, and is committed to the repo
 - [ ] Zero unresolved ❌ FAIL rows — all failures either fixed (with confirmation screenshot) or accepted as documented exceptions
@@ -691,11 +763,11 @@ Switch to Russian locale via browser console to avoid changing the app settings 
 
 ```js
 // Enable Russian locale (run in browser console while logged in):
-localStorage.setItem("i18nextLng", "ru");
+localStorage.setItem("i18n_lang", "ru");
 location.reload();
 
 // Restore English after RU QA:
-localStorage.setItem("i18nextLng", "en");
+localStorage.setItem("i18n_lang", "en");
 location.reload();
 ```
 
@@ -713,15 +785,4 @@ If any regression fix adds new UI text, it must go through `useTranslation()` wi
 
 ### Security Note
 
-The Playwright helper script (`qa-screenshots.mjs`) embeds test credentials. If you create this script, ensure:
-
-- It is added to `.gitignore` before running
-- It uses a dedicated test account, not your production account
-- It is never committed with real credentials
-
-If you want to commit the script for future use, replace credentials with environment variable reads:
-
-```js
-const EMAIL = process.env.QA_EMAIL;
-const PASSWORD = process.env.QA_PASSWORD;
-```
+The fixture harness must stay isolated from the real backend and external providers. Treat any non-empty `unhandledApiRequests`, `harness.realBackendCalled=true`, or accidental test-account credential capture as a QA blocker. Do not commit browser storage, credentials, tokens, `.env` contents, or screenshots that expose private user data.
