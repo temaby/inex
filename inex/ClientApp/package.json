@@ -47,6 +47,13 @@
     "lint": "eslint ./src/**/*.ts ./src/**/*.tsx",
     "test": "vitest run",
     "visual-qa:accounts": "node visual-qa/accounts.mjs",
+    "visual-qa:auth": "node visual-qa/auth.mjs",
+    "visual-qa:budgets": "node visual-qa/budgets.mjs",
+    "visual-qa:categories": "node visual-qa/categories.mjs",
+    "visual-qa:dashboard": "node visual-qa/dashboard.mjs",
+    "visual-qa:profile": "node visual-qa/profile.mjs",
+    "visual-qa:reports": "node visual-qa/reports.mjs",
+    "visual-qa:transactions": "node visual-qa/transactions.mjs",
     "test:watch": "vitest"
   }
 }

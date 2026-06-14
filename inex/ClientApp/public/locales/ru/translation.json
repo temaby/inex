@@ -757,6 +757,7 @@
     "yearControl": "Год",
     "summaryTitle": "Сводка отчёта",
     "summaryValue": "Значение",
+    "month": "Месяц",
     "heatmapSummaryTitle": "Текстовая сводка тепловой карты",
     "heatmapSummaryTotals": "{{days}} дней с расходами, всего {{total}}",
     "categorySummaryTitle": "Текстовая сводка отчёта по категориям",

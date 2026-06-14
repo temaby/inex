@@ -5,9 +5,9 @@ import {
   clickButtonByTextExpression,
   createApiFixtureHandler,
   evaluate,
+  fixedDateInitScript,
   jsonResponse,
   loadFixture,
-  localeInitScript,
   playwrightInstalled,
   problemResponse,
   resolveVisualQaPaths,
@@ -18,8 +18,8 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/accounts");
-const fixturePath = path.join(clientRoot, "src/test/fixtures/accountsVisualFixture.ts");
+const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/budgets");
+const fixturePath = path.join(clientRoot, "src/test/fixtures/budgetsVisualFixture.ts");
 
 const authUser = {
   id: 1,
@@ -39,11 +39,11 @@ const states = [
     scenario: "populated",
   },
   {
-    name: "populated-flat-1024",
-    screenshot: "populated-flat-1024.png",
+    name: "populated-amount-1024",
+    screenshot: "populated-amount-1024.png",
     viewport: { width: 1024, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "select-flat-view",
+    interaction: "sort-by-amount",
   },
   {
     name: "populated-390",
@@ -75,14 +75,14 @@ const states = [
     screenshot: "drawer-open-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "open-drawer",
+    interaction: "open-add-drawer",
   },
   {
     name: "drawer-open-360",
     screenshot: "drawer-open-360.png",
     viewport: { width: 360, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "open-drawer",
+    interaction: "open-add-drawer",
   },
   {
     name: "expanded-row-1440",
@@ -99,37 +99,14 @@ const states = [
     interaction: "expand-first-row",
   },
   {
-    name: "collapsed-group-1440",
-    screenshot: "collapsed-group-1440.png",
-    viewport: { width: 1440, height: 1000 },
-    scenario: "populated",
-    interaction: "collapse-fixture-group",
-  },
-  {
-    name: "collapsed-group-390",
-    screenshot: "collapsed-group-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "populated",
-    interaction: "collapse-fixture-group",
-  },
-  {
     name: "load-error-390",
     screenshot: "load-error-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "accounts-error",
+    scenario: "budgets-error",
   },
 ];
 
-function withCurrencyNames(currencies) {
-  return currencies.map((currency) => ({
-    ...currency,
-    name: currency.key,
-  }));
-}
-
 function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef) {
-  const currencies = withCurrencyNames(fixture.accountsVisualFixtureCurrencies);
-
   return createApiFixtureHandler({
     requestLog,
     unhandledApiRequests,
@@ -142,74 +119,72 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse(authUser);
       }
       if (url.pathname === "/api/currencies" && method === "GET") {
-        return jsonResponse(currencies);
+        return jsonResponse(fixture.budgetsVisualFixtureCurrencies);
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
-        return jsonResponse({ data: fixture.accountsVisualFixtureRates });
+        return jsonResponse({ data: fixture.budgetsVisualFixtureRates });
       }
-      if (url.pathname === "/api/accounts" && method === "GET") {
-        if (scenario === "accounts-error") {
-          return problemResponse("Accounts fixture failure", "Controlled Accounts load failure.", 500);
+      if (url.pathname === "/api/categories" && method === "GET") {
+        return jsonResponse({ data: fixture.budgetsVisualFixtureCategories });
+      }
+      if (url.pathname === "/api/budgets" && method === "GET") {
+        if (scenario === "budgets-error") {
+          return problemResponse("Budgets fixture failure", "Controlled Budgets load failure.", 500);
         }
         return jsonResponse({
-          data: scenario === "empty" ? [] : fixture.accountsVisualFixtureAccounts,
+          data: scenario === "empty" ? [] : fixture.budgetsVisualFixtureBudgets,
         });
       }
-      if (url.pathname === "/api/accounts/details" && method === "GET") {
-        return jsonResponse({
-          data: scenario === "empty" ? [] : fixture.accountsVisualFixtureSummaries,
-        });
+      if (url.pathname === "/api/reports/budget/comparison" && method === "GET") {
+        if (scenario === "empty") {
+          return jsonResponse({
+            ...fixture.budgetsVisualFixtureReport,
+            data: [],
+            metadata: {
+              ...fixture.budgetsVisualFixtureReport.metadata,
+              totalOutcome: 0,
+            },
+          });
+        }
+        return jsonResponse(fixture.budgetsVisualFixtureReport);
       }
       return null;
     },
   });
 }
 
-async function applyInteraction(client, state, fixture) {
+async function applyInteraction(client, state) {
   switch (state.interaction) {
-    case "select-flat-view":
-      await evaluate(client, clickButtonByTextExpression("Flat list"));
-      await waitFor(client, "document.body.innerText.includes('UZS main wallet')");
+    case "sort-by-amount":
+      await evaluate(client, clickButtonByTextExpression("Amount"));
+      await waitFor(client, `(() => {
+        const firstRow = document.querySelector(".budget-row__title");
+        return firstRow && firstRow.textContent && firstRow.textContent.includes("Rent envelope");
+      })()`);
       return;
     case "search-no-match":
       await evaluate(client, `(() => {
-        const input = document.querySelector("input[type='search'][aria-label='Search accounts']");
+        const input = document.querySelector("input[type='search'][aria-label='Search budgets']");
         if (!input) return false;
         const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
         setter.call(input, "zzzz-no-match");
         input.dispatchEvent(new Event("input", { bubbles: true }));
         return true;
       })()`);
-      await waitFor(client, "document.body.innerText.includes('No accounts match')");
+      await waitFor(client, "document.body.innerText.includes('No budgets match this search')");
       return;
-    case "open-drawer":
-      await evaluate(client, clickButtonByTextExpression("Add account"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
+    case "open-add-drawer":
+      await evaluate(client, clickButtonByTextExpression("Add budget"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Add Budget')");
       return;
     case "expand-first-row":
       await evaluate(client, `(() => {
-        const row = document.querySelector(".accounts-row");
+        const row = document.querySelector(".budget-row__main");
         if (!row) return false;
         row.click();
         return true;
       })()`);
-      await waitFor(client, "document.body.innerText.includes('SNAPSHOT')");
-      return;
-    case "collapse-fixture-group":
-      await evaluate(client, `(() => {
-        const currency = ${JSON.stringify(fixture.accountsVisualFixtureMeta.collapsedStateCurrency)};
-        const button = Array.from(document.querySelectorAll(".accounts-group__head"))
-          .find((item) => item.textContent && item.textContent.includes(currency));
-        if (!button) return false;
-        button.click();
-        return true;
-      })()`);
-      await waitFor(client, `(() => {
-        const currency = ${JSON.stringify(fixture.accountsVisualFixtureMeta.collapsedStateCurrency)};
-        const button = Array.from(document.querySelectorAll(".accounts-group__head"))
-          .find((item) => item.textContent && item.textContent.includes(currency));
-        return button && button.getAttribute("aria-expanded") === "false";
-      })()`);
+      await waitFor(client, "Boolean(document.querySelector('.budget-row__edit'))");
       return;
     case undefined:
       return;
@@ -218,15 +193,15 @@ async function applyInteraction(client, state, fixture) {
   }
 }
 
-async function waitForAccountsReady(client, state) {
-  await waitFor(client, "document.body.innerText.includes('Accounts') || document.body.innerText.includes('No accounts yet')");
+async function waitForBudgetsReady(client, state) {
+  await waitFor(client, "document.body.innerText.includes('Budgets')");
 
-  if (state.scenario === "accounts-error") {
-    await waitFor(client, "document.body.innerText.includes('Accounts could not be loaded')");
+  if (state.scenario === "budgets-error") {
+    await waitFor(client, "document.body.innerText.includes('Budgets could not load')");
   } else if (state.scenario === "empty") {
-    await waitFor(client, "document.body.innerText.includes('No accounts yet')");
+    await waitFor(client, "document.body.innerText.includes('No budgets planned for this month')");
   } else {
-    await waitFor(client, "document.body.innerText.includes('UZS main wallet')");
+    await waitFor(client, "document.body.innerText.includes('Groceries cap') && document.body.innerText.includes('Apr 2026')");
   }
 }
 
@@ -241,15 +216,16 @@ async function collectMetrics(client, state, apiRequestCount) {
     const bottomNavStyle = bottomNav ? window.getComputedStyle(bottomNav) : null;
     const bottomNavVisible = Boolean(bottomNav && bottomNavStyle && bottomNavStyle.display !== "none" && bottomNav.getBoundingClientRect().height > 0);
     const bottomNavRect = bottomNavVisible ? bottomNav.getBoundingClientRect() : null;
-    const content = document.querySelector(".accounts-workspace, .accounts-first-empty, .accounts-card");
+    const content = document.querySelector(".budgets-workspace, .budgets-list, .budgets-hero");
     const contentRect = content ? content.getBoundingClientRect() : null;
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
-    const rows = Array.from(document.querySelectorAll(".accounts-row"));
-    const groupButtons = Array.from(document.querySelectorAll(".accounts-group__head"));
-    const collapsedGroups = groupButtons
-      .filter((button) => button.getAttribute("aria-expanded") === "false")
-      .map((button) => button.textContent.trim().replace(/\\s+/g, " ").slice(0, 80));
+    const rows = Array.from(document.querySelectorAll(".budget-row"));
+    const expandedRows = rows.filter((row) => row.querySelector(".budget-row__main")?.getAttribute("aria-expanded") === "true");
+    const editPanels = Array.from(document.querySelectorAll(".budget-row__edit"));
+    const burnRows = Array.from(document.querySelectorAll(".budgets-burn-row"));
+    const overRows = rows.filter((row) => row.classList.contains("is-over"));
+    const atLimitRows = rows.filter((row) => row.classList.contains("is-atLimit"));
 
     return {
       title: document.title,
@@ -265,11 +241,17 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       rowCount: rows.length,
+      expandedRowCount: expandedRows.length,
+      editPanelCount: editPanels.length,
+      burnRowCount: burnRows.length,
+      overBudgetRowCount: overRows.length,
+      atLimitRowCount: atLimitRows.length,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
-      collapsedGroups,
-      loadErrorVisible: document.body.innerText.includes("Accounts could not be loaded"),
-      filterEmptyVisible: document.body.innerText.includes("No accounts match"),
-      firstUseEmptyVisible: document.body.innerText.includes("No accounts yet"),
+      addDrawerOpen: document.body.innerText.includes("Add Budget"),
+      inlineEditOpen: editPanels.length > 0,
+      loadErrorVisible: document.body.innerText.includes("Budgets could not load"),
+      filterEmptyVisible: document.body.innerText.includes("No budgets match this search"),
+      firstUseEmptyVisible: document.body.innerText.includes("No budgets planned for this month"),
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
@@ -290,9 +272,9 @@ async function collectMetrics(client, state, apiRequestCount) {
 function runState(args) {
   return runBrowserState({
     ...args,
-    routePath: "/accounts",
-    initScript: localeInitScript("en"),
-    waitForReady: waitForAccountsReady,
+    routePath: "/budgets?year=2026&month=4",
+    initScript: fixedDateInitScript(args.fixture.budgetsVisualFixtureMeta.fixedNow, "en"),
+    waitForReady: waitForBudgetsReady,
     applyInteraction,
     collectMetrics,
   });
@@ -303,7 +285,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
 
   return {
     generatedAt: new Date().toISOString(),
-    page: "accounts",
+    page: "budgets",
     dataMode: "fixture",
     harness: {
       runner: "Node CDP headless browser",
@@ -312,14 +294,15 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       viteMode: "test",
       apiIsolation: "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 502.",
       realBackendCalled: false,
+      fixedNow: fixture.budgetsVisualFixtureMeta.fixedNow,
     },
     fixture: {
-      source: "inex/ClientApp/src/test/fixtures/accountsVisualFixture.ts",
-      baseline: fixture.accountsVisualFixtureMeta.baseline,
-      expectedBaseCurrency: fixture.accountsVisualFixtureMeta.expectedBaseCurrency,
-      expectedNetWorth: fixture.accountsVisualFixtureMeta.expectedNetWorth,
-      expectedDistributionOrder: fixture.accountsVisualFixtureMeta.expectedDistributionOrder,
-      collapsedStateCurrency: fixture.accountsVisualFixtureMeta.collapsedStateCurrency,
+      source: "inex/ClientApp/src/test/fixtures/budgetsVisualFixture.ts",
+      baseline: fixture.budgetsVisualFixtureMeta.baseline,
+      expectedBaseCurrency: fixture.budgetsVisualFixtureMeta.expectedBaseCurrency,
+      expectedBudgetCount: fixture.budgetsVisualFixtureMeta.expectedBudgetCount,
+      expectedCategoryCount: fixture.budgetsVisualFixtureMeta.expectedCategoryCount,
+      rowInteraction: fixture.budgetsVisualFixtureMeta.rowInteraction,
     },
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,
@@ -329,20 +312,20 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
   };
 }
 
-const fixtureExports = loadFixture(fixturePath, `Accounts fixture is missing: ${fixturePath}`);
+const fixtureExports = loadFixture(fixturePath, `Budgets fixture is missing: ${fixturePath}`);
 
 runVisualQa({
   clientRoot,
   repoRoot,
   outputDir,
-  defaultPort: 5198,
+  defaultPort: 5202,
   fixture: fixtureExports,
   states,
   createApiHandler,
   runState,
   buildSummary,
-  label: "Accounts",
-  userDataPrefix: "inex-accounts-visual-qa",
+  label: "Budgets",
+  userDataPrefix: "inex-budgets-visual-qa",
 }).catch((error) => {
   process.stderr.write(`${error.stack ?? error.message}\n`);
   process.exitCode = 1;

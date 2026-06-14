@@ -722,6 +722,7 @@
     "yearControl": "Year",
     "summaryTitle": "Report summary",
     "summaryValue": "Value",
+    "month": "Month",
     "categoryReport": "Category Report",
     "budgetReport": "Budget Control",
     "historyReport": "Cash Flow",
