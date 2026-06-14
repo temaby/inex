@@ -579,8 +579,8 @@ const Budgets = () => {
                                         <Num
                                             value={totalSpent}
                                             currency={currency}
-                                            currencyDataQa="hero-primary-currency"
-                                            currencySize="sm"
+                                            accessibleCurrency={currency}
+                                            bare
                                             kind="expense"
                                         />
                                         <span className="budgets-hero__rollup-divider">/</span>

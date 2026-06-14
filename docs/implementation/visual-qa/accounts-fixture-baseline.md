@@ -42,6 +42,7 @@ Source issue: #196.
 
 - The Accounts hero follows the mockup white-card composition: net-worth summary on the left and currency distribution on the right.
 - Currency distribution uses one stacked bar plus a legend. Do not render independent progress bars for every currency in the hero.
+- Currency groups in the non-hero account list must not render dedicated share bars; the grouped list keeps labels, balances, equivalents, share text, and expand/collapse behavior, while visual share comparison lives in the hero distribution.
 - If complete base-currency data is available, show signed absolute movement, percentage movement, and generic comparison copy for live data.
 - Use a concrete period such as `Mar 2026` only from fixture metadata or a reliable app data source. Live Accounts data currently uses the generic previous-month label.
 - If base-currency or monthly movement data is incomplete, render the localized unavailable state instead of a partial percent-only claim.

@@ -468,6 +468,7 @@
     "systemLocked": "System category",
     "hero": {
       "monthLabel": "{{period}} spend",
+      "changeFromPeriod": "Change from {{period}}",
       "noSpend": "No spend recorded",
       "noSpendDescription": "Spend signals appear here after matching transaction data is available.",
       "unavailableDescription": "Spend signals appear here when transaction data is already cached.",

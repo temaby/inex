@@ -247,6 +247,7 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".accounts-row"));
     const groupButtons = Array.from(document.querySelectorAll(".accounts-group__head"));
+    const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
     const collapsedGroups = groupButtons
       .filter((button) => button.getAttribute("aria-expanded") === "false")
       .map((button) => button.textContent.trim().replace(/\\s+/g, " ").slice(0, 80));
@@ -265,6 +266,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       rowCount: rows.length,
+      groupShareBarCount: groupShareBars.length,
+      heroDistributionBarCount: document.querySelectorAll('[data-qa="hero-distribution-bar"]').length,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       collapsedGroups,
       loadErrorVisible: document.body.innerText.includes("Accounts could not be loaded"),
@@ -285,6 +288,22 @@ async function collectMetrics(client, state, apiRequestCount) {
     interaction: state.interaction ?? null,
     ...metrics,
   };
+}
+
+function collectAdditionalFailures(stateResults) {
+  const failures = [];
+
+  for (const state of stateResults) {
+    const groupedPopulatedState = state.scenario === "populated" && state.interaction !== "select-flat-view";
+    if (groupedPopulatedState && state.groupShareBarCount > 0) {
+      failures.push(`${state.name}: currency groups still render per-group share bars`);
+    }
+    if (groupedPopulatedState && state.name.startsWith("populated") && state.heroDistributionBarCount < 1) {
+      failures.push(`${state.name}: missing Accounts hero distribution bar`);
+    }
+  }
+
+  return failures;
 }
 
 function runState(args) {
@@ -341,6 +360,7 @@ runVisualQa({
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Accounts",
   userDataPrefix: "inex-accounts-visual-qa",
 }).catch((error) => {

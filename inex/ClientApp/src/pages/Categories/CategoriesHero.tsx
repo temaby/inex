@@ -12,6 +12,7 @@ interface CategoriesHeroProps {
     categories: CategoryResponse[];
     loading?: boolean;
     periodLabel: string;
+    previousPeriodLabel: string;
     stats: CategorySpendStats;
 }
 
@@ -19,6 +20,7 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
     categories,
     loading = false,
     periodLabel,
+    previousPeriodLabel,
     stats,
 }) => {
     const { t } = useTranslation();
@@ -66,6 +68,9 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                     )}
                 </div>
                 <div className="categories-hero__note" data-qa="hero-secondary-text">
+                    <span className="categories-hero__comparison">
+                        {t("categories.hero.changeFromPeriod", { period: previousPeriodLabel })}
+                    </span>
                     {stats.topParent && hasSpend ? (
                         <div className="categories-hero__top-category">
                             <span>

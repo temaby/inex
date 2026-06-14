@@ -711,10 +711,10 @@ npm run visual-qa:profile
 npm run visual-qa:auth
 ```
 
-4. For cross-page management-page header changes, include `npm run visual-qa:hero-consistency`. It captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared top-section and Dashboard top-card selectors, checks metric and split-currency sizing, blocks removed copy from returning, and guards mobile overflow and bottom-nav clearance.
+4. For cross-page management-page header changes, include `npm run visual-qa:hero-consistency`. It captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared top-section and Dashboard top-card selectors, checks metric weight, sizing, and split-currency treatment, blocks removed copy from returning, rejects repeated Budgets rollup currency before `/`, requires the Categories `Change from <previous period>` row, and guards mobile overflow and bottom-nav clearance.
 5. Open the generated screenshots under `docs/implementation/visual-qa/{area}/`.
 6. Check each applicable viewport for overlap, clipped text, horizontal overflow, bottom-nav occlusion, chart blankness, and long-label or long-amount overflow.
-7. For top-section consistency work, also compare the generated `docs/implementation/visual-qa/hero-consistency/` screenshots for title hierarchy, primary action placement where present, hero or Dashboard top-card metric treatment, distribution or burn-rate bar placement, and accepted page-specific deviations.
+7. For top-section consistency work, also compare the generated `docs/implementation/visual-qa/hero-consistency/` screenshots for title hierarchy, primary action placement where present, hero or Dashboard top-card metric treatment, Budgets rollup formatting, Categories previous-period copy, distribution or burn-rate bar placement, and accepted page-specific deviations. For Accounts grouped-list changes, inspect `docs/implementation/visual-qa/accounts/` and confirm currency groups have no per-group share bars while the hero distribution remains visible.
 8. Update `docs/design/docs/visual-qa-checklist.md` with the new result, screenshot evidence, and notes.
 9. Run `npm run lint` and a final `npm run build` from `inex/ClientApp`.
 

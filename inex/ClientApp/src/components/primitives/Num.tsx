@@ -18,6 +18,7 @@ export interface NumProps {
     dataQa?: string;
     valueDataQa?: string;
     currencyDataQa?: string;
+    accessibleCurrency?: string;
 }
 
 const colorMap: Record<MoneyKind, string> = {
@@ -81,6 +82,7 @@ export const Num: React.FC<NumProps> = ({
     dataQa,
     valueDataQa,
     currencyDataQa,
+    accessibleCurrency,
 }) => {
     const { t } = useTranslation();
     const { signage: contextSignage } = useSignage();
@@ -88,6 +90,7 @@ export const Num: React.FC<NumProps> = ({
     const resolvedSignage = signage ?? contextSignage;
     const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact)}`;
     const visibleValue = bare || !currency ? formattedValue : `${formattedValue} ${currency}`;
+    const accessibleValue = accessibleCurrency ? `${formattedValue} ${accessibleCurrency}` : visibleValue;
     const kindLabel = t(`primitives.kindLabel.${resolvedKind}`);
 
     const visibleStyle: React.CSSProperties = {
@@ -112,7 +115,7 @@ export const Num: React.FC<NumProps> = ({
     const shouldSplitCurrency = !bare && Boolean(currency) && (currencySize === "sm" || Boolean(currencyDataQa));
 
     return (
-        <span aria-label={`${kindLabel}: ${visibleValue}`} data-qa={dataQa} role="text">
+        <span aria-label={`${kindLabel}: ${accessibleValue}`} data-qa={dataQa} role="text">
             <span aria-hidden="true" data-qa={valueDataQa} style={visibleStyle}>
                 {shouldSplitCurrency ? (
                     <>

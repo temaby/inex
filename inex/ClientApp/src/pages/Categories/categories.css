@@ -38,14 +38,19 @@
     font-family: var(--font-num);
     font-size: var(--fs-30);
     font-variant-numeric: tabular-nums;
-    font-weight: var(--fw-semibold);
     line-height: 1.1;
     margin-bottom: 8px;
 }
 
 .categories-hero__note {
     color: var(--fg-3);
+    display: grid;
     font-size: 13px;
+    gap: 5px;
+}
+
+.categories-hero__comparison {
+    color: var(--fg-3);
 }
 
 .categories-hero__note strong {

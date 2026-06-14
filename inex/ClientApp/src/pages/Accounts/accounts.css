@@ -47,7 +47,6 @@
     font-family: var(--font-num);
     font-size: var(--fs-30);
     font-variant-numeric: tabular-nums;
-    font-weight: var(--fw-semibold);
     line-height: 1.1;
     margin-top: 10px;
 }
@@ -200,23 +199,6 @@
     display: inline-block;
     height: 9px;
     width: 9px;
-}
-
-.accounts-group__bar {
-    background: var(--bg-muted);
-    border-radius: var(--radius-pill);
-    overflow: hidden;
-}
-
-.accounts-group__bar {
-    height: 8px;
-}
-
-.accounts-group__bar span {
-    background: var(--income-500);
-    border-radius: inherit;
-    display: block;
-    height: 100%;
 }
 
 .accounts-card {
@@ -415,10 +397,6 @@
 .accounts-group__share {
     color: var(--fg-3);
     font-size: 12px;
-}
-
-.accounts-group__bar {
-    margin: 0 14px 10px;
 }
 
 .accounts-list-header {

@@ -49,7 +49,8 @@ npm run lint
 - Viewports captured: 1440px, 1024px, 390px, 360px.
 - Screenshot output folder: docs/implementation/visual-qa/{area}/.
 - Harness isolation: each current `qa-summary.json` reports `checks.hasFailures=false`, `harness.realBackendCalled=false`, and `unhandledApiRequests=[]`.
-- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared hero/top-card selectors and metric sizing, blocks retired copy from returning, and writes evidence under `docs/implementation/visual-qa/hero-consistency/`.
+- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared hero/top-card selectors, metric sizing and weight, blocks retired copy from returning, rejects repeated Budgets rollup currency before `/`, and requires the Categories previous-period `Change from ...` row with no standalone `MoM` label.
+- Accounts grouped-list check: `visual-qa:accounts` rejects currency-group share bars outside the hero distribution section while preserving the hero distribution bar and legend.
 - Notes for Windows/macOS/Linux differences: Vite/esbuild and the CDP harness may need permission to spawn child processes and a Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH`.
 
 ## Evidence Summary
@@ -75,7 +76,7 @@ npm run lint
 | `/transactions` | filter-empty | PASS | N/A | `transactions/filter-empty-390.png` | dataMode: fixture; filter-empty state passed visual and overflow checks. |
 | `/transactions` | drawer-open | PASS | PASS | `transactions/expanded-row-1440.png`; `transactions/drawer-open-390.png`; `transactions/drawer-open-360.png` | dataMode: fixture; add/edit drawer remains within viewport. |
 | `/transactions` | filter drawer open | PASS | PASS | `transactions/filter-empty-390.png`; `transactions/populated-1024.png` | dataMode: fixture; filter controls render without clipping; no separate filter drawer screenshot exists in current harness. |
-| `/accounts` | populated | PASS | PASS | `accounts/populated-1440.png`; `accounts/populated-flat-1024.png` | dataMode: fixture; grouped and flat account layouts inspected. |
+| `/accounts` | populated | PASS | PASS | `accounts/populated-1440.png`; `accounts/populated-flat-1024.png` | dataMode: fixture; grouped and flat account layouts inspected; grouped currency sections do not render per-group share bars. |
 | `/accounts` | empty | PASS | N/A | `accounts/first-use-empty-390.png` | dataMode: fixture; empty-state affordance clears bottom nav. |
 | `/accounts` | drawer-open | PASS | PASS | `accounts/drawer-open-390.png`; `accounts/drawer-open-360.png` | dataMode: fixture; drawer content and footer visible. |
 | `/categories` | populated (tree) | PASS | PASS | `categories/populated-1440.png`; `categories/populated-390.png`; `categories/populated-360.png` | dataMode: fixture; tree view inspected across desktop and mobile widths. |
