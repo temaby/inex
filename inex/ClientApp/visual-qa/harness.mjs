@@ -453,13 +453,14 @@ export async function runBrowserState({
 function collectCommonFailures(stateResults, unhandledApiRequests) {
   const failures = stateResults.flatMap((state) => {
     const stateFailures = [];
+    const expectsMobileBottomNav = state.expectsMobileBottomNav !== false;
     if (state.hasHorizontalOverflow) {
       stateFailures.push(`${state.name}: horizontal overflow`);
     }
-    if ([390, 360].includes(state.viewport.width) && !state.bottomNavVisible && !state.drawerOpen) {
+    if ([390, 360].includes(state.viewport.width) && expectsMobileBottomNav && !state.bottomNavVisible && !state.drawerOpen) {
       stateFailures.push(`${state.name}: mobile bottom nav not visible`);
     }
-    if ([390, 360].includes(state.viewport.width) && state.bottomNavOccludesLastContent && !state.drawerOpen) {
+    if ([390, 360].includes(state.viewport.width) && expectsMobileBottomNav && state.bottomNavOccludesLastContent && !state.drawerOpen) {
       stateFailures.push(`${state.name}: bottom nav occludes final content`);
     }
     if (state.drawerOpen && state.drawerWithinViewport === false) {
@@ -486,7 +487,7 @@ export function buildCommonChecks(stateResults, failures, unhandledApiRequests) 
       .filter((state) => state.viewport.width === 360)
       .every((state) => !state.hasHorizontalOverflow),
     mobileBottomNavClear: stateResults
-      .filter((state) => [390, 360].includes(state.viewport.width) && !state.drawerOpen)
+      .filter((state) => [390, 360].includes(state.viewport.width) && state.expectsMobileBottomNav !== false && !state.drawerOpen)
       .every((state) => state.bottomNavVisible && !state.bottomNavOccludesLastContent),
     fixtureModeAvoidedBackendApis: unhandledApiRequests.length === 0,
   };

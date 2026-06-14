@@ -8,6 +8,7 @@ Run from `inex/ClientApp`:
 
 ```powershell
 npm run visual-qa:accounts
+npm run visual-qa:auth
 npm run visual-qa:budgets
 npm run visual-qa:categories
 npm run visual-qa:dashboard
@@ -19,6 +20,7 @@ npm run visual-qa:transactions
 Output is refreshed under:
 
 - `docs/implementation/visual-qa/accounts/`
+- `docs/implementation/visual-qa/auth/`
 - `docs/implementation/visual-qa/budgets/`
 - `docs/implementation/visual-qa/categories/`
 - `docs/implementation/visual-qa/dashboard/`
@@ -34,6 +36,16 @@ Each output folder contains:
 The command does not require a real user password and does not call the real backend. Any unhandled `/api` request is failed by the harness with HTTP 502 and recorded in `qa-summary.json`.
 
 Playwright is not currently installed in `inex/ClientApp/package.json`. This first harness uses Chrome DevTools Protocol with a local headless Chrome or Edge executable. If no browser is detected, set `CHROME_PATH` or `EDGE_PATH`; adding Playwright should be handled in a dedicated dependency PR.
+
+Auth coverage currently includes:
+
+- login view at 1440px, 1024px, 390px, and 360px
+- register view at 1440px, 1024px, 390px, and 360px
+- controlled invalid-credentials login error at 390px
+- filled register form with password strength meter at 390px
+- controlled invalid invite-token register error at 390px
+- controlled register currency-load error at 390px
+- filter-empty, first-use empty, drawer-open, expanded-row, collapsed-group, and mobile bottom-nav marked not applicable for public auth routes
 
 Transactions coverage currently includes:
 
