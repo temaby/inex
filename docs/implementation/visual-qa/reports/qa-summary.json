@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T07:24:38.926Z",
+  "generatedAt": "2026-06-14T08:45:48.855Z",
   "page": "reports",
   "dataMode": "fixture",
   "harness": {
@@ -54,9 +54,9 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /categories?mode=ALL",
     "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;",
-    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /categories?mode=ALL",
@@ -76,8 +76,8 @@
     "GET /reports/history/2026?currency=USD",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30",
+    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30",
@@ -360,9 +360,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /categories?mode=ALL",
-        "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;",
-        "GET /exchange/rates/2026-04-30"
+        "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -586,7 +586,7 @@
       "emptyReportVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA REPORT DETAIL Cash Flow All reports Share Export Print INTERVAL Cash Flow Year TOTAL INCOME 39,060.00 USD TOTAL EXPENSE 32,380.00 USD SAVINGS 6,680.00 USD Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec $396 $1,346 $2,296 $4,140 IncomeExpenseSavings Cash flow chart data summary Monthly savings values with income and expense context. REPORTS.MONTH VALUE Jan Income: $3,050.00 | Expense: $2,320.00 View category report 730.00 USD Feb Income: $3,080.00 | Expense: $2,390.00 View category report 690.00 USD Mar Income: $3,100.00 | Expense: $2,550.00 View category report 550.00 USD Apr Income: $3,200.00 | Expense: $2,105.00 View category report 1,095.00 USD May Income: $3,180.00 | Expense: $2,680.00 View category report 500.00 USD Jun Income: $3,250.00 | Expense: $2,790.00 View category report 460.00 USD Jul Income: $3,300.00 | Expense: $2,870.00 View category report 430.00 USD Aug Income: $3,320.00 | Expense: $2,925.00 View category report 395.00 USD Sep Income: $3,350.00 | Expense: $3,010.00 View category report 340.00 USD Oct Income: $3,380.00 | Expense: $2,860.00 View category report 520.00 USD Nov Income: $3,400.00 | Expense: $2,760.00 View category report 640.00 USD Dec Income: $3,450.00 | Expense: $3,120.00 View category report 330.00 USD",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA REPORT DETAIL Cash Flow All reports Share Export Print INTERVAL Cash Flow Year TOTAL INCOME 39,060.00 USD TOTAL EXPENSE 32,380.00 USD SAVINGS 6,680.00 USD Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec $396 $1,346 $2,296 $4,140 IncomeExpenseSavings Cash flow chart data summary Monthly savings values with income and expense context. MONTH VALUE Jan Income: $3,050.00 | Expense: $2,320.00 View category report 730.00 USD Feb Income: $3,080.00 | Expense: $2,390.00 View category report 690.00 USD Mar Income: $3,100.00 | Expense: $2,550.00 View category report 550.00 USD Apr Income: $3,200.00 | Expense: $2,105.00 View category report 1,095.00 USD May Income: $3,180.00 | Expense: $2,680.00 View category report 500.00 USD Jun Income: $3,250.00 | Expense: $2,790.00 View category report 460.00 USD Jul Income: $3,300.00 | Expense: $2,870.00 View category report 430.00 USD Aug Income: $3,320.00 | Expense: $2,925.00 View category report 395.00 USD Sep Income: $3,350.00 | Expense: $3,010.00 View category report 340.00 USD Oct Income: $3,380.00 | Expense: $2,860.00 View category report 520.00 USD Nov Income: $3,400.00 | Expense: $2,760.00 View category report 640.00 USD Dec Income: $3,450.00 | Expense: $3,120.00 View category report 330.00 USD",
       "pngDimensions": {
         "width": 1425,
         "height": 1945
@@ -652,8 +652,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
-        "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30"
+        "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30",
+        "GET /exchange/rates/2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",

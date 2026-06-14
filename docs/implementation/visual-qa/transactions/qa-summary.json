@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T16:33:36.160Z",
+  "generatedAt": "2026-06-14T08:43:25.542Z",
   "page": "transactions",
   "dataMode": "fixture",
   "harness": {
@@ -7,7 +7,7 @@
     "playwrightInstalled": false,
     "note": "Playwright is not installed in this project. This harness uses Chrome DevTools Protocol with request interception; add Playwright in a dedicated dependency PR if a Playwright suite is desired.",
     "viteMode": "test",
-    "apiIsolation": "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 599.",
+    "apiIsolation": "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 502.",
     "realBackendCalled": false,
     "fixedNow": "2026-04-30T12:00:00.000Z"
   },

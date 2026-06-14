@@ -671,3 +671,93 @@ Recommended migration order:
 6. Convert Profile and Auth, including mobile overflow and form-state fixes.
 
 During migration, keep authenticated API calls on the existing `apiClient`, keep Redux data ownership unchanged until the RTK Query story, and put every new visible string into the EN/RU locale files.
+
+## 18. Visual QA Workflow
+
+This section documents how the visual QA checklist in `docs/design/docs/visual-qa-checklist.md` was created and how to re-run it for future changes.
+
+### QA Execution Method
+
+The Epic 10 baseline QA used the committed fixture harness as the primary evidence source. The harness starts an isolated Vite test server, intercepts `/api` requests through Chrome DevTools Protocol, captures full-page screenshots, and writes `qa-summary.json` under `docs/implementation/visual-qa/{area}/`.
+
+The baseline viewport presets are:
+
+| Preset | Width | Height | Purpose |
+| --- | ---: | ---: | --- |
+| Desktop-XL | 1440px | 1000px | All top-level pages |
+| Desktop-M | 1024px | 900px | Operational pages with tables |
+| Mobile-L | 390px | 900px | All top-level pages |
+| Mobile-S | 360px | 900px | Categories, Budgets, and narrow-width stress checks |
+
+Screenshots were inspected through generated contact sheets and direct image review. The automated summary is not a substitute for visual inspection; it is a guard for measurable regressions such as page overflow, bottom-nav occlusion, drawer bounds, backend leakage, and unhandled API calls.
+
+### Re-Running QA After Changes
+
+When a page component is changed, re-run the relevant rows of the checklist:
+
+1. Run `powershell -ExecutionPolicy Bypass -File scripts\doctor.ps1 -Ui` from the repo root.
+2. Run `npm run build` from `inex/ClientApp`.
+3. Run the relevant fixture harness command:
+
+```powershell
+npm run visual-qa:transactions
+npm run visual-qa:accounts
+npm run visual-qa:categories
+npm run visual-qa:budgets
+npm run visual-qa:dashboard
+npm run visual-qa:reports
+npm run visual-qa:profile
+npm run visual-qa:auth
+```
+
+4. Open the generated screenshots under `docs/implementation/visual-qa/{area}/`.
+5. Check each applicable viewport for overlap, clipped text, horizontal overflow, bottom-nav occlusion, chart blankness, and long-label or long-amount overflow.
+6. Update `docs/design/docs/visual-qa-checklist.md` with the new result, screenshot evidence, and notes.
+7. Run `npm run lint` and a final `npm run build` from `inex/ClientApp`.
+
+### Manual Browser Checks
+
+Use manual browser QA when a state is not directly exposed by the fixture harness or when a reviewer needs to reproduce a visual concern interactively.
+
+1. Start the app with the normal local development workflow from `README.md`.
+2. Use Chrome DevTools Responsive Mode at 1440px, 1024px, 390px, and 360px as applicable.
+3. Hard reload after each viewport change.
+4. For Russian long-label stress, run:
+
+```js
+localStorage.setItem("i18n_lang", "ru");
+location.reload();
+```
+
+5. Restore the English baseline before parity capture:
+
+```js
+localStorage.setItem("i18n_lang", "en");
+location.reload();
+```
+
+Manual checks must still record `dataMode: fixture` or `dataMode: live-seed` in the checklist row. Fixture rows require exact value parity with the committed fixture data. Live-seed rows may differ in values, but still fail on layout, hierarchy, missing state, formatting, overflow, or inaccessible controls.
+
+### Regression Policy
+
+Any of the following findings is a build-blocking regression, not a cosmetic follow-up:
+
+- Overlap, where elements cover each other.
+- Clipped button or navigation text.
+- Page-level horizontal overflow at mobile widths.
+- Bottom-nav occlusion of final interactive content.
+- Chart blankness or a chart container with zero height.
+- Long translated label overflow at any production breakpoint.
+- Long amount overflow that breaks tabular alignment or forces page-level scrolling.
+
+When a failure is found, make the smallest layout or component fix that resolves the failure, re-run the affected harness command, inspect the new screenshot, and update the checklist from `FAIL` to `PASS`. Do not mark Story 10.6 or future visual QA work complete while a blocking row remains unresolved.
+
+### Known Exceptions
+
+Known exceptions must be listed here and in the Exceptions table of `visual-qa-checklist.md` with owner-visible rationale and date.
+
+None accepted as of 2026-06-14.
+
+| Route | Viewport | Issue | Rationale | Accepted by | Date |
+| --- | --- | --- | --- | --- | --- |
+| None accepted as of 2026-06-14 | | | | | |

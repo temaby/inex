@@ -1,5 +1,5 @@
 # generated: 2026-05-26T16:11:20.6477763+02:00
-# last_updated: 2026-06-08T13:45:16+02:00
+# last_updated: 2026-06-14T00:00:00+02:00
 # project: inex
 # project_key: NOKEY
 # tracking_system: file-system
@@ -36,7 +36,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-08T13:45:16+02:00
+last_updated: 2026-06-14T00:00:00+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
@@ -121,5 +121,5 @@ development_status:
   10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome: done
   10-5a-frontend-ux-profile-and-settings-redesign: done
   10-5b-frontend-ux-login-and-registration-redesign: done
-  10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: ready-for-dev
+  10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: review
   epic-10-retrospective: optional

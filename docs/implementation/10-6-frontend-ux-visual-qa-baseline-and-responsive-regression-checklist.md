@@ -1,6 +1,6 @@
 # Story 10.6: Frontend UX - Visual QA Baseline And Responsive Regression Checklist
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -736,16 +736,16 @@ When a failure is found during QA:
 
 ## Definition of Done
 
-- [ ] `npm run build` passes from `inex/ClientApp/` before starting QA (baseline clean build)
-- [ ] Relevant `npm run visual-qa:*` commands pass from `inex/ClientApp/`, with `checks.hasFailures=false`, `harness.realBackendCalled=false`, and no unhandled API requests in each generated `qa-summary.json`
-- [ ] All 10 routes covered by QA at applicable viewports and states (see QA matrix above)
-- [ ] `docs/design/docs/visual-qa-checklist.md` exists, is fully filled in, and is committed to the repo
-- [ ] Zero unresolved ❌ FAIL rows — all failures either fixed (with confirmation screenshot) or accepted as documented exceptions
-- [ ] `docs/design/docs/design-implementation-guide.md` has a new **Section 18: Visual QA Workflow**
-- [ ] `npm run build` passes from `inex/ClientApp/` with no new errors (regression fixes must not break the build)
-- [ ] `npm run lint` passes from `inex/ClientApp/` with no new errors
-- [ ] All user-visible strings added in any regression fixes are in `en/translation.json` and `ru/translation.json`
-- [ ] No new `any` type usages introduced in regression fixes
+- [x] `npm run build` passes from `inex/ClientApp/` before starting QA (baseline clean build)
+- [x] Relevant `npm run visual-qa:*` commands pass from `inex/ClientApp/`, with `checks.hasFailures=false`, `harness.realBackendCalled=false`, and no unhandled API requests in each generated `qa-summary.json`
+- [x] All 10 routes covered by QA at applicable viewports and states (see QA matrix above)
+- [x] `docs/design/docs/visual-qa-checklist.md` exists, is fully filled in, and is committed to the repo
+- [x] Zero unresolved ❌ FAIL rows — all failures either fixed (with confirmation screenshot) or accepted as documented exceptions
+- [x] `docs/design/docs/design-implementation-guide.md` has a new **Section 18: Visual QA Workflow**
+- [x] `npm run build` passes from `inex/ClientApp/` with no new errors (regression fixes must not break the build)
+- [x] `npm run lint` passes from `inex/ClientApp/` with no new errors
+- [x] All user-visible strings added in any regression fixes are in `en/translation.json` and `ru/translation.json`
+- [x] No new `any` type usages introduced in regression fixes
 
 ## Notes and Guardrails
 
@@ -786,3 +786,46 @@ If any regression fix adds new UI text, it must go through `useTranslation()` wi
 ### Security Note
 
 The fixture harness must stay isolated from the real backend and external providers. Treat any non-empty `unhandledApiRequests`, `harness.realBackendCalled=true`, or accidental test-account credential capture as a QA blocker. Do not commit browser storage, credentials, tokens, `.env` contents, or screenshots that expose private user data.
+
+## Dev Agent Record
+
+### Debug Log
+
+- 2026-06-14: Ran `powershell -ExecutionPolicy Bypass -File scripts\doctor.ps1 -Ui`; result: 0 failures, 0 warnings.
+- 2026-06-14: Initial sandboxed `npm run build` and `npm run visual-qa:transactions` hit Vite/esbuild `spawn EPERM`; reran required commands with escalation so Vite/CDP child processes could start.
+- 2026-06-14: Ran baseline `npm run build` from `inex/ClientApp`; passed.
+- 2026-06-14: Ran `npm run visual-qa:transactions`, `accounts`, `categories`, `budgets`, `dashboard`, `reports`, `profile`, and `auth`; all completed and refreshed fixture evidence.
+- 2026-06-14: Verified current `qa-summary.json` files for the eight Story 10.6 harness areas: `checks.hasFailures=false`, `harness.realBackendCalled=false`, and `unhandledApiRequests=[]`.
+- 2026-06-14: Created temporary contact sheets under `tmp/visual-qa-contact-sheets` for visual inspection, inspected them, then removed the temporary files.
+- 2026-06-14: Ran final `npm run lint`; passed.
+- 2026-06-14: Ran final `npm run build`; passed.
+
+### Completion Notes
+
+- Added `docs/design/docs/visual-qa-checklist.md` with the required route/state/viewport checklist, exact commands, evidence summary, screenshot references, failure table, exception table, and final pass summary.
+- Appended `Section 18: Visual QA Workflow` to `docs/design/docs/design-implementation-guide.md` with the current fixture harness workflow, manual browser fallback, regression policy, and known-exception policy.
+- Refreshed Story 10.6 visual QA evidence under `docs/implementation/visual-qa/{transactions,accounts,categories,budgets,dashboard,reports,profile,auth}/`.
+- No blocking visual failures were found. No exceptions were accepted as of 2026-06-14.
+- No frontend source code, backend code, user-visible strings, dependencies, or `any` usages were added.
+
+## File List
+
+- `.gitignore`
+- `docs/design/docs/design-implementation-guide.md`
+- `docs/design/docs/visual-qa-checklist.md`
+- `docs/implementation/10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist.md`
+- `docs/implementation/sprint-status.yaml`
+- `docs/implementation/visual-qa/accounts/expanded-row-390.png`
+- `docs/implementation/visual-qa/accounts/qa-summary.json`
+- `docs/implementation/visual-qa/auth/qa-summary.json`
+- `docs/implementation/visual-qa/budgets/qa-summary.json`
+- `docs/implementation/visual-qa/categories/qa-summary.json`
+- `docs/implementation/visual-qa/dashboard/qa-summary.json`
+- `docs/implementation/visual-qa/profile/qa-summary.json`
+- `docs/implementation/visual-qa/reports/history-report-1440.png`
+- `docs/implementation/visual-qa/reports/qa-summary.json`
+- `docs/implementation/visual-qa/transactions/qa-summary.json`
+
+## Change Log
+
+- 2026-06-14: Completed Story 10.6 visual QA baseline, documented the checklist and workflow, refreshed fixture QA evidence, and moved the story to review.

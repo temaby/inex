@@ -19,6 +19,11 @@ scripts
 /scripts/*
 !/scripts/doctor.ps1
 docs/*
+!docs/design/
+docs/design/*
+!docs/design/docs/
+docs/design/docs/*
+!docs/design/docs/visual-qa-checklist.md
 !docs/brainstorming/
 !docs/brainstorming/**
 !docs/planning/
