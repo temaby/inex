@@ -365,14 +365,17 @@ const Accounts = () => {
                         currency={baseCurrency ?? undefined}
                         kind={thisMonthNet < 0 ? "expense" : "income"}
                         signage="signed"
+                        fractionDigits={0}
                         value={toFixedMoney(thisMonthNet)}
                     />
                     <span>
-                        {t("accounts.hero.momDeltaPercent", {
-                            period: previousMonthLabel,
-                            value: `${momPercent >= 0 ? "+" : ""}${momPercent.toFixed(1)}%`,
+                        {t("accounts.hero.momDeltaPercentValue", {
+                            value: `${momPercent >= 0 ? "+" : ""}${Math.round(momPercent)}%`,
                         })}
                     </span>
+                </span>
+                <span className="accounts-hero__delta-period">
+                    {t("accounts.hero.momDeltaPeriod", { period: previousMonthLabel })}
                 </span>
             </React.Fragment>
         );
@@ -655,6 +658,7 @@ const Accounts = () => {
                                             currency={baseCurrency ?? undefined}
                                             currencyDataQa="hero-primary-currency"
                                             currencySize="sm"
+                                            fractionDigits={0}
                                             kind={totalBaseValue < 0 ? "expense" : "neutral"}
                                             value={toFixedMoney(totalBaseValue)}
                                         />

@@ -300,6 +300,13 @@
   width: 100%;
 }
 
+.budgets-list__sort-action {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  width: 100%;
+}
+
 .budgets-period-controls {
   align-items: center;
   display: flex;
@@ -672,6 +679,7 @@
   }
 
   .budgets-list__tools,
+  .budgets-list__sort-action,
   .budgets-period-controls,
   .budgets-toolbar__picker,
   .budgets-search {
@@ -683,6 +691,10 @@
 
   .budgets-search {
     flex: 0 1 auto !important;
+  }
+
+  .budgets-list__sort-action > [role="group"] {
+    width: 100%;
   }
 
   .budgets-period-controls {

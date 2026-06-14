@@ -226,8 +226,15 @@ async function collectMetrics(client, state, apiRequestCount) {
     const burnRows = Array.from(document.querySelectorAll(".budgets-burn-row"));
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".budgets-hero__summary");
+    const heroPrimaryValue = document.querySelector('[data-qa="hero-primary-value"]');
+    const heroSecondaryText = document.querySelector('[data-qa="hero-secondary-text"]');
     const burnTitle = document.querySelector('[data-qa="hero-distribution-eyebrow"]');
     const search = document.querySelector("input[type='search'][aria-label='Search budgets']")?.parentElement;
+    const sortGroup = Array.from(document.querySelectorAll(".budgets-list [role='group']"))
+      .find((group) => group.textContent && group.textContent.includes("Sort"));
+    const sortLabel = sortGroup?.querySelector("span[id]") ?? null;
+    const sortLabelStyle = sortLabel ? window.getComputedStyle(sortLabel) : null;
+    const header = document.querySelector(".budgets-list .inex-list-panel__header");
     const toolbarFilters = document.querySelector(".budgets-list .inex-list-panel__filters");
     const overRows = rows.filter((row) => row.classList.contains("is-over"));
     const atLimitRows = rows.filter((row) => row.classList.contains("is-atLimit"));
@@ -263,6 +270,12 @@ async function collectMetrics(client, state, apiRequestCount) {
     const toolbarContentRight = toolbarRect && toolbarStyle
       ? toolbarRect.right - Number.parseFloat(toolbarStyle.paddingRight || "0")
       : null;
+    const headerRect = geometry(header);
+    const headerStyle = header ? window.getComputedStyle(header) : null;
+    const headerContentRight = headerRect && headerStyle
+      ? headerRect.right - Number.parseFloat(headerStyle.paddingRight || "0")
+      : null;
+    const sortRect = geometry(sortGroup);
 
     return {
       title: document.title,
@@ -282,9 +295,25 @@ async function collectMetrics(client, state, apiRequestCount) {
       editPanelCount: editPanels.length,
       heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
       heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
+      heroPrimaryValueText: heroPrimaryValue ? heroPrimaryValue.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroPrimaryValueHasDecimal: heroPrimaryValue ? /\\d[\\d,]*\\.\\d/.test(heroPrimaryValue.textContent) : null,
+      heroSecondaryText: heroSecondaryText ? heroSecondaryText.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroSecondaryTextHasDecimal: heroSecondaryText ? /\\d[\\d,]*\\.\\d/.test(heroSecondaryText.textContent) : null,
       burnTitle: styleSample(burnTitle),
       toolbarSearchWidth: searchRect ? searchRect.width : null,
       toolbarSearchRightOffset: toolbarContentRight !== null && searchRect ? toolbarContentRight - searchRect.right : null,
+      sortLabel: sortLabelStyle ? {
+        text: sortLabel.textContent.trim().replace(/\\s+/g, " "),
+        color: sortLabelStyle.color,
+        fontSize: sortLabelStyle.fontSize,
+        fontWeight: sortLabelStyle.fontWeight,
+        letterSpacing: sortLabelStyle.letterSpacing,
+        textTransform: sortLabelStyle.textTransform,
+      } : null,
+      sortInHeader: Boolean(sortGroup && header && header.contains(sortGroup)),
+      searchInFilterRow: Boolean(search && toolbarFilters && toolbarFilters.contains(search)),
+      sortRightOffset: headerContentRight !== null && sortRect ? headerContentRight - sortRect.right : null,
+      sortAboveSearch: Boolean(sortGroup && search && sortGroup.getBoundingClientRect().bottom <= search.getBoundingClientRect().top),
       burnRowCount: burnRows.length,
       overBudgetRowCount: overRows.length,
       atLimitRowCount: atLimitRows.length,
@@ -350,6 +379,33 @@ function collectAdditionalFailures(stateResults) {
       state.burnTitle?.textTransform !== "uppercase") {
       failures.push(`${state.name}: Budgets burn-rate title does not match distribution eyebrow treatment`);
     }
+    if (state.heroPrimaryValueHasDecimal) {
+      failures.push(`${state.name}: Budgets primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
+    }
+    if (state.heroSecondaryTextHasDecimal) {
+      failures.push(`${state.name}: Budgets secondary hero value still shows decimal digits: ${state.heroSecondaryText}`);
+    }
+    if (!state.sortInHeader) {
+      failures.push(`${state.name}: Budgets Sort control is not in the top header row`);
+    }
+    if (!state.searchInFilterRow) {
+      failures.push(`${state.name}: Budgets search control is not in the filter row`);
+    }
+    if (state.viewport.width >= 1024 && !nearZero(state.sortRightOffset)) {
+      failures.push(`${state.name}: Budgets Sort right offset ${state.sortRightOffset} is not aligned to the header edge`);
+    }
+    if (!state.sortAboveSearch) {
+      failures.push(`${state.name}: Budgets Sort control is not above the search control`);
+    }
+    const normalSortLetterSpacing = state.sortLabel &&
+      (state.sortLabel.letterSpacing === "0px" || state.sortLabel.letterSpacing === "normal");
+    if (!state.sortLabel ||
+      state.sortLabel.fontSize !== "11px" ||
+      state.sortLabel.fontWeight !== "700" ||
+      !normalSortLetterSpacing ||
+      state.sortLabel.textTransform !== "uppercase") {
+      failures.push(`${state.name}: Budgets Sort label does not match Accounts toolbar label typography`);
+    }
   }
 
   return failures;
@@ -381,6 +437,11 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     },
     assertions: [
       "Burn rate title uses uppercase distribution-eyebrow treatment",
+      "primary hero rollup values are rounded with no visible decimal digits",
+      "secondary hero remaining and pace values are rounded with no visible decimal digits",
+      "Sort control is right-aligned in the top toolbar row above search",
+      "Search control remains in the filter row",
+      "Sort label uses the shared uppercase small-label treatment",
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
     ],

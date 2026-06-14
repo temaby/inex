@@ -126,6 +126,12 @@ const getMetricStateLabel = (state: ReportMetricsState, t: (key: string) => stri
     return t("budgets.metricsUnavailable");
 };
 
+const formatRoundedHeroAmount = (amount: number) =>
+    Math.abs(amount).toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    });
+
 const Budgets = () => {
     const { t } = useTranslation();
     const [form] = Form.useForm<BudgetFormValues>();
@@ -581,6 +587,7 @@ const Budgets = () => {
                                             currency={currency}
                                             accessibleCurrency={currency}
                                             bare
+                                            fractionDigits={0}
                                             kind="expense"
                                         />
                                         <span className="budgets-hero__rollup-divider">/</span>
@@ -589,6 +596,7 @@ const Budgets = () => {
                                             currency={currency}
                                             currencyDataQa="hero-primary-currency"
                                             currencySize="sm"
+                                            fractionDigits={0}
                                             kind="neutral"
                                         />
                                     </>
@@ -601,6 +609,7 @@ const Budgets = () => {
                                             currency={currency}
                                             currencyDataQa="hero-primary-currency"
                                             currencySize="sm"
+                                            fractionDigits={0}
                                             kind="neutral"
                                         />
                                     </>
@@ -630,17 +639,11 @@ const Budgets = () => {
                                         <span className={totalRemaining < 0 ? "is-over" : "is-left"}>
                                             {totalRemaining < 0
                                                 ? t("budgets.remainingOver", {
-                                                    amount: Math.abs(totalRemaining).toLocaleString(undefined, {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2,
-                                                    }),
+                                                    amount: formatRoundedHeroAmount(totalRemaining),
                                                     currency,
                                                 })
                                                 : t("budgets.remainingLeft", {
-                                                    amount: totalRemaining.toLocaleString(undefined, {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2,
-                                                    }),
+                                                    amount: formatRoundedHeroAmount(totalRemaining),
                                                     currency,
                                                 })}
                                         </span>
@@ -785,6 +788,17 @@ const Budgets = () => {
                                             total: budgets.length,
                                             month: formatMonthScopeLabel(selectedMonth),
                                         })}
+                                        actions={
+                                            <div className="budgets-list__sort-action">
+                                                <SegmentedControl
+                                                    label={t("budgets.sortLabel")}
+                                                    size="compact"
+                                                    options={sortOptions}
+                                                    value={sortMode}
+                                                    onChange={(key) => setSortMode(key as BudgetSortMode)}
+                                                />
+                                            </div>
+                                        }
                                     />
                                     <ListPanelFilterBar>
                                         <div className="budgets-list__tools" aria-label={t("budgets.toolbarLabel")}>
@@ -824,13 +838,6 @@ const Budgets = () => {
                                                 disabledDate={isBudgetPeriodDisabled}
                                                 className="budgets-toolbar__picker"
                                                 aria-label={t("budgets.jumpToMonth")}
-                                            />
-                                            <SegmentedControl
-                                                label={t("budgets.sortLabel")}
-                                                size="compact"
-                                                options={sortOptions}
-                                                value={sortMode}
-                                                onChange={(key) => setSortMode(key as BudgetSortMode)}
                                             />
                                             <InExInput
                                                 aria-label={t("budgets.searchLabel")}
@@ -1029,7 +1036,7 @@ interface PaceDisplayProps {
 
 const PaceVerdict: React.FC<PaceDisplayProps> = ({ pace, currency }) => {
     const { t } = useTranslation();
-    const amount = formatMetricAmount(pace.paceDelta);
+    const amount = formatRoundedHeroAmount(pace.paceDelta);
 
     if (pace.paceStatus === "overBudget") {
         return <span className="pace-verdict is-overBudget">{t("budgets.pace.overBudget")}</span>;

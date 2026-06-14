@@ -383,6 +383,8 @@
       "momUnavailable": "Изменение с {{period}} недоступно",
       "momDelta": "{{value}} м/м",
       "momDeltaPercent": "{{value}} с {{period}}",
+      "momDeltaPercentValue": "{{value}}",
+      "momDeltaPeriod": "с {{period}}",
       "momComparisonPeriod": "к прошлому месяцу",
       "momComparisonFallback": "Изменение к прошлому месяцу",
       "activeAccounts": "{{count}} активных",

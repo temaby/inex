@@ -40,6 +40,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
         fontWeight: 700,
         letterSpacing: 0,
         lineHeight: 1,
+        textTransform: "uppercase",
         whiteSpace: "nowrap",
     };
 
