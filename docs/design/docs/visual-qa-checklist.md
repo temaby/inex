@@ -49,7 +49,7 @@ npm run lint
 - Viewports captured: 1440px, 1024px, 390px, 360px.
 - Screenshot output folder: docs/implementation/visual-qa/{area}/.
 - Harness isolation: each current `qa-summary.json` reports `checks.hasFailures=false`, `harness.realBackendCalled=false`, and `unhandledApiRequests=[]`.
-- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, and Budgets at 1440px and 390px, verifies shared hero selectors and metric sizing, blocks retired copy from returning, and writes evidence under `docs/implementation/visual-qa/hero-consistency/`.
+- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared hero/top-card selectors and metric sizing, blocks retired copy from returning, and writes evidence under `docs/implementation/visual-qa/hero-consistency/`.
 - Notes for Windows/macOS/Linux differences: Vite/esbuild and the CDP harness may need permission to spawn child processes and a Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH`.
 
 ## Evidence Summary
@@ -60,8 +60,8 @@ npm run lint
 | Accounts | 2026-06-14T08:43:59.280Z | 13 | PASS: fixture, no failures, no backend calls |
 | Categories | 2026-06-14T08:44:26.022Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
-| Hero consistency | 2026-06-14T11:07:51.980Z | 8 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
-| Dashboard | 2026-06-14T08:45:22.166Z | 8 | PASS: fixture, no failures, no backend calls |
+| Hero consistency | 2026-06-14T12:13:01.274Z | 10 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
+| Dashboard | 2026-06-14T12:12:34.614Z | 8 | PASS: fixture, no failures, no backend calls |
 | Reports | 2026-06-14T08:45:48.855Z | 11 | PASS: fixture, no failures, no backend calls |
 | Profile | 2026-06-14T08:46:15.728Z | 8 | PASS: fixture, no failures, no backend calls |
 | Auth | 2026-06-14T08:46:45.410Z | 12 | PASS: fixture, no failures, no backend calls |
@@ -131,7 +131,7 @@ npm run lint
 
 ## Summary
 
-- Total fixture screenshots inspected: 93.
+- Total fixture screenshots inspected: 95.
 - Required route groups covered: 10.
 - Passes: 42 checklist rows.
 - Failures fixed: 0.

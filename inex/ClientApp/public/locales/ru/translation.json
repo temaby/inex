@@ -166,12 +166,10 @@
   },
   "dashboard": {
     "title": "Дашборд",
-    "description": "Краткое состояние месяца находится здесь. Для глубокого анализа и детализации используйте отчёты.",
     "summary": {
       "totalIncome": "Общий доход",
       "totalExpenses": "Общие расходы",
       "netSavings": "Чистые накопления",
-      "currentMonth": "Текущий месяц",
       "vsLastMonth": "{{value}} к прошлому месяцу",
       "noPreviousMonth": "Нет базы прошлого месяца",
       "noCurrentMonthData": "Нет операций в этом месяце",
