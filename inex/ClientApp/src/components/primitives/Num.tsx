@@ -12,6 +12,7 @@ export interface NumProps {
     kind?: MoneyKind;
     bare?: boolean;
     compact?: boolean;
+    fractionDigits?: 0 | 1 | 2;
     signage?: Signage;
     size?: string | number;
     currencySize?: "same" | "sm";
@@ -35,7 +36,7 @@ const inferKind = (value: number): MoneyKind => {
     return "neutral";
 };
 
-const formatAmount = (value: number, compact: boolean): string => {
+const formatAmount = (value: number, compact: boolean, fractionDigits: 0 | 1 | 2): string => {
     const absoluteValue = Math.abs(value);
 
     if (compact && absoluteValue >= 1_000_000) {
@@ -47,8 +48,8 @@ const formatAmount = (value: number, compact: boolean): string => {
     }
 
     return absoluteValue.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
     });
 };
 
@@ -76,6 +77,7 @@ export const Num: React.FC<NumProps> = ({
     kind,
     bare = false,
     compact = false,
+    fractionDigits = 2,
     signage,
     size,
     currencySize = "same",
@@ -88,7 +90,7 @@ export const Num: React.FC<NumProps> = ({
     const { signage: contextSignage } = useSignage();
     const resolvedKind = kind ?? inferKind(value);
     const resolvedSignage = signage ?? contextSignage;
-    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact)}`;
+    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact, fractionDigits)}`;
     const visibleValue = bare || !currency ? formattedValue : `${formattedValue} ${currency}`;
     const accessibleValue = accessibleCurrency ? `${formattedValue} ${accessibleCurrency}` : visibleValue;
     const kindLabel = t(`primitives.kindLabel.${resolvedKind}`);

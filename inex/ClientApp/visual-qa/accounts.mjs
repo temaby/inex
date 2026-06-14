@@ -250,6 +250,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".accounts-hero__net");
+    const heroPrimaryValue = document.querySelector('[data-qa="hero-primary-value"] [role="text"] > span') ?? document.querySelector('[data-qa="hero-primary-value"]');
+    const heroSecondaryText = document.querySelector('[data-qa="hero-secondary-text"]');
+    const heroDeltaMain = document.querySelector(".accounts-hero__delta-main");
+    const heroDeltaPeriod = document.querySelector(".accounts-hero__delta-period");
     const distribution = document.querySelector(".accounts-distribution");
     const distributionEyebrow = document.querySelector('[data-qa="hero-distribution-eyebrow"]');
     const distributionSegments = Array.from(document.querySelectorAll(".accounts-distribution__segment"));
@@ -326,6 +330,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       heroDistributionText: distribution ? distribution.innerText.replace(/\\s+/g, " ").trim() : "",
       momVisible: /\\bMoM\\b/.test(document.body.innerText),
       previousMonthVisible: document.body.innerText.includes(${JSON.stringify("from May 2026")}),
+      heroPrimaryValueText: heroPrimaryValue ? heroPrimaryValue.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroPrimaryValueHasDecimal: heroPrimaryValue ? /\\d[\\d,]*\\.\\d/.test(heroPrimaryValue.textContent) : null,
+      heroSecondaryText: heroSecondaryText ? heroSecondaryText.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroSecondaryTextHasDecimal: heroSecondaryText ? /\\d[\\d,]*\\.\\d/.test(heroSecondaryText.textContent) : null,
+      heroDeltaPeriodOnOwnLine: Boolean(heroDeltaMain && heroDeltaPeriod && heroDeltaPeriod.getBoundingClientRect().top >= heroDeltaMain.getBoundingClientRect().bottom - 1),
       usdEquivalentVisibleInHeroDistribution: distribution ? distribution.innerText.includes("USD equivalent") : false,
       byCurrentBalanceVisibleInHeroDistribution: distribution ? distribution.innerText.includes("By current balance") : false,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
@@ -375,6 +384,15 @@ function collectAdditionalFailures(stateResults) {
     }
     if (groupedPopulatedState && !state.previousMonthVisible) {
       failures.push(`${state.name}: Accounts hero is missing "from May 2026"`);
+    }
+    if (groupedPopulatedState && state.heroPrimaryValueHasDecimal) {
+      failures.push(`${state.name}: Accounts primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
+    }
+    if (groupedPopulatedState && state.heroSecondaryTextHasDecimal) {
+      failures.push(`${state.name}: Accounts secondary hero value still shows decimal digits: ${state.heroSecondaryText}`);
+    }
+    if (groupedPopulatedState && !state.heroDeltaPeriodOnOwnLine) {
+      failures.push(`${state.name}: Accounts hero period label is not on a separate line from the delta`);
     }
     if (groupedPopulatedState && state.usdEquivalentVisibleInHeroDistribution) {
       failures.push(`${state.name}: Accounts hero distribution still shows visible USD equivalent label`);
@@ -451,6 +469,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "legend marker colors match corresponding bar segment colors",
       "MoM is absent",
       "from May 2026 appears for the fixed visual QA date",
+      "primary hero value is rounded with no visible decimal digits",
+      "secondary hero amount and percent values are rounded with no visible decimal digits",
+      "from May 2026 period label is on a separate line from the delta amount/percent",
       "visible USD equivalent label is absent from Accounts hero distribution",
       "visible By current balance label is absent from Accounts hero distribution",
       "desktop hero summary column and divider are 320px from the hero card edge",

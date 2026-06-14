@@ -221,6 +221,8 @@ async function collectMetrics(client, state, apiRequestCount) {
     const inlineEdit = document.querySelector(".category-inline-edit");
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".categories-hero__summary");
+    const heroPrimaryValue = document.querySelector('[data-qa="hero-primary-value"] [role="text"] > span') ?? document.querySelector('[data-qa="hero-primary-value"]');
+    const heroSecondaryText = document.querySelector('[data-qa="hero-secondary-text"]');
     const distributionSegments = Array.from(document.querySelectorAll(".categories-hero__distribution-segment"));
     const legendItems = Array.from(document.querySelectorAll(".categories-hero__legend-item"));
     const legendMarkers = legendItems.map((item) => item.querySelector(".categories-hero__legend-swatch"));
@@ -228,6 +230,17 @@ async function collectMetrics(client, state, apiRequestCount) {
     const distributionEyebrow = document.querySelector('[data-qa="hero-distribution-eyebrow"]');
     const search = document.querySelector("input[type='search'][aria-label='Search categories']")?.parentElement;
     const toolbarFilters = document.querySelector(".categories-list .inex-list-panel__filters");
+    const toolbarLabels = Array.from(document.querySelectorAll(".categories-list [role='group'] > span[id]")).map((label) => {
+      const style = window.getComputedStyle(label);
+      return {
+        text: label.textContent.trim().replace(/\\s+/g, " "),
+        color: style.color,
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        letterSpacing: style.letterSpacing,
+        textTransform: style.textTransform,
+      };
+    });
     const styleSample = (element) => {
       if (!element) return null;
       const style = window.getComputedStyle(element);
@@ -291,6 +304,12 @@ async function collectMetrics(client, state, apiRequestCount) {
         const label = item.querySelector(".categories-hero__legend-copy strong");
         return label ? label.textContent.trim() : "";
       }),
+      heroPrimaryValueText: heroPrimaryValue ? heroPrimaryValue.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroPrimaryValueHasDecimal: heroPrimaryValue ? /\\d[\\d,]*\\.\\d/.test(heroPrimaryValue.textContent) : null,
+      heroSecondaryText: heroSecondaryText ? heroSecondaryText.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroSecondaryTextHasDecimal: heroSecondaryText ? /\\d[\\d,]*\\.\\d/.test(heroSecondaryText.textContent) : null,
+      heroComparisonVisible: heroSecondaryText ? /\\bChange from\\b/.test(heroSecondaryText.textContent) : false,
+      toolbarLabels,
       distributionText: distribution ? distribution.innerText.replace(/\\s+/g, " ").trim() : "",
       usdEquivalentVisibleInHeroDistribution: distribution ? distribution.innerText.includes("USD equivalent") : false,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
@@ -348,6 +367,24 @@ function collectAdditionalFailures(stateResults) {
     if (state.usdEquivalentVisibleInHeroDistribution) {
       failures.push(`${state.name}: Categories hero distribution still shows visible USD equivalent label`);
     }
+    if (state.heroPrimaryValueHasDecimal) {
+      failures.push(`${state.name}: Categories primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
+    }
+    if (state.heroSecondaryTextHasDecimal) {
+      failures.push(`${state.name}: Categories secondary hero value still shows decimal digits: ${state.heroSecondaryText}`);
+    }
+    if (state.heroComparisonVisible) {
+      failures.push(`${state.name}: Categories hero still shows visible Change from period copy`);
+    }
+    for (const label of state.toolbarLabels) {
+      const normalLetterSpacing = label.letterSpacing === "0px" || label.letterSpacing === "normal";
+      if (label.fontSize !== "11px" ||
+        label.fontWeight !== "700" ||
+        !normalLetterSpacing ||
+        label.textTransform !== "uppercase") {
+        failures.push(`${state.name}: Categories ${label.text} label does not match Accounts toolbar label typography`);
+      }
+    }
     if (state.viewport.width >= 1024 && state.heroSummaryWidth !== 320) {
       failures.push(`${state.name}: Categories hero summary column width ${state.heroSummaryWidth} does not match 320px`);
     }
@@ -397,7 +434,11 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "displayed category legend colors are unique",
       "legend marker colors match corresponding bar segment colors",
       "Other segment is rendered from the fixture distribution",
+      "primary hero value is rounded with no visible decimal digits",
+      "secondary hero top-category amount is rounded with no visible decimal digits",
+      "visible Change from period copy is absent from the Categories hero summary",
       "visible USD equivalent label is absent from Categories hero distribution",
+      "Status and View labels use the shared uppercase small-label treatment",
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
     ],

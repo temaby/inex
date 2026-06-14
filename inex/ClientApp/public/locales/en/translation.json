@@ -381,6 +381,8 @@
       "momUnavailable": "Change from {{period}} unavailable",
       "momDelta": "{{value}} MoM",
       "momDeltaPercent": "{{value}} from {{period}}",
+      "momDeltaPercentValue": "{{value}}",
+      "momDeltaPeriod": "from {{period}}",
       "momComparisonPeriod": "vs previous month",
       "momComparisonFallback": "Change from previous month",
       "activeAccounts": "{{count}} active",

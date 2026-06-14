@@ -49,10 +49,6 @@
     gap: 5px;
 }
 
-.categories-hero__comparison {
-    color: var(--fg-3);
-}
-
 .categories-hero__note strong {
     color: var(--fg-1);
     font-weight: 600;

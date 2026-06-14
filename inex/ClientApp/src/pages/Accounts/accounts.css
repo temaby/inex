@@ -74,6 +74,11 @@
     gap: 6px;
 }
 
+.accounts-hero__delta-period {
+    display: block;
+    margin-top: 2px;
+}
+
 .accounts-hero__mix {
     display: grid;
     gap: 18px;

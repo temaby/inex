@@ -185,12 +185,6 @@ function initScriptForPage(page) {
   return localeInitScript("en");
 }
 
-function previousMonthLabelFromFixedNow(fixedNow, locale = "en") {
-  const current = new Date(fixedNow);
-  return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" })
-    .format(new Date(current.getFullYear(), current.getMonth() - 1, 1));
-}
-
 async function collectMetrics(client, state, apiRequestCount) {
   await wait(150);
 
@@ -212,6 +206,7 @@ async function collectMetrics(client, state, apiRequestCount) {
         fontWeight: style.fontWeight,
         lineHeight: style.lineHeight,
         letterSpacing: style.letterSpacing,
+        color: style.color,
         textTransform: style.textTransform,
         borderRadius: style.borderRadius,
         paddingTop: style.paddingTop,
@@ -244,6 +239,24 @@ async function collectMetrics(client, state, apiRequestCount) {
     const searchControl = searchLabel
       ? first(\`input[type='search'][aria-label='\${searchLabel}']\`)?.parentElement
       : null;
+    const controlLabelSelectors = {
+      accounts: [
+        ".accounts-toolbar__primary [role='group'] > span[id]",
+        ".accounts-toolbar__filters [role='group'] > span[id]",
+      ],
+      categories: [
+        ".categories-list .inex-list-panel__actions [role='group'] > span[id]",
+        ".categories-list .inex-list-panel__filters [role='group'] > span[id]",
+      ],
+      budgets: [
+        ".budgets-list .inex-list-panel__header [role='group'] > span[id]",
+      ],
+    }[page] ?? [];
+    const toolbarLabels = controlLabelSelectors.map((selector) => styleSample(first(selector))).filter(Boolean);
+    const accountsDeltaMain = first(".accounts-hero__delta-main");
+    const accountsDeltaPeriod = first(".accounts-hero__delta-period");
+    const budgetsHeader = first(".budgets-list .inex-list-panel__header");
+    const budgetsSortGroup = first(".budgets-list .inex-list-panel__header [role='group']");
     const primaryValue = first('[data-qa="hero-primary-value"] [role="text"] > span') ?? first('[data-qa="hero-primary-value"]');
     const heroText = hero ? hero.textContent.trim().replace(/\\s+/g, " ") : "";
     const heroStyle = hero ? window.getComputedStyle(hero) : null;
@@ -253,6 +266,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const toolbarStyle = toolbar ? window.getComputedStyle(toolbar) : null;
     const toolbarContentRight = toolbar && toolbarStyle
       ? toolbar.getBoundingClientRect().right - Number.parseFloat(toolbarStyle.paddingRight || "0")
+      : null;
+    const budgetsHeaderStyle = budgetsHeader ? window.getComputedStyle(budgetsHeader) : null;
+    const budgetsHeaderContentRight = budgetsHeader && budgetsHeaderStyle
+      ? budgetsHeader.getBoundingClientRect().right - Number.parseFloat(budgetsHeaderStyle.paddingRight || "0")
       : null;
     const marker = first('[data-qa="hero-distribution-legend"] span');
     const legendLabel = first('[data-qa="hero-distribution-legend"] strong');
@@ -273,8 +290,12 @@ async function collectMetrics(client, state, apiRequestCount) {
       heroDividerOffset: heroContentLeft !== null && heroSummary ? Math.round(heroSummary.getBoundingClientRect().right - heroContentLeft) : null,
       heroPrimaryLabel: styleSample(first('[data-qa="hero-primary-label"]')),
       heroPrimaryValue: styleSample(primaryValue),
+      heroPrimaryValueText: primaryValue ? primaryValue.textContent.trim().replace(/\\s+/g, " ") : "",
+      heroPrimaryValueHasDecimal: primaryValue ? /\\d[\\d,]*\\.\\d/.test(primaryValue.textContent) : null,
       heroPrimaryCurrencies: all('[data-qa="hero-primary-currency"]'),
       heroSecondaryText: styleSample(first('[data-qa="hero-secondary-text"]')),
+      heroSecondaryTextHasDecimal: first('[data-qa="hero-secondary-text"]') ? /\\d[\\d,]*\\.\\d/.test(first('[data-qa="hero-secondary-text"]').textContent) : null,
+      accountsDeltaPeriodOnOwnLine: Boolean(accountsDeltaMain && accountsDeltaPeriod && accountsDeltaPeriod.getBoundingClientRect().top >= accountsDeltaMain.getBoundingClientRect().bottom - 1),
       heroDistributionEyebrow: styleSample(first('[data-qa="hero-distribution-eyebrow"]')),
       heroDistributionBar: styleSample(first('[data-qa="hero-distribution-bar"]')),
       heroDistributionLegend: styleSample(first('[data-qa="hero-distribution-legend"]')),
@@ -284,6 +305,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       heroLegendShare: styleSample(legendShare),
       toolbarSearch: styleSample(searchControl),
       toolbarSearchRightOffset: toolbarContentRight !== null && searchControl ? Math.round(toolbarContentRight - searchControl.getBoundingClientRect().right) : null,
+      toolbarLabels,
+      budgetsSortInHeader: Boolean(budgetsSortGroup && budgetsHeader && budgetsHeader.contains(budgetsSortGroup)),
+      budgetsSearchInFilterRow: Boolean(searchControl && toolbar && toolbar.contains(searchControl)),
+      budgetsSortRightOffset: budgetsHeaderContentRight !== null && budgetsSortGroup ? Math.round(budgetsHeaderContentRight - budgetsSortGroup.getBoundingClientRect().right) : null,
+      budgetsSortAboveSearch: Boolean(budgetsSortGroup && searchControl && budgetsSortGroup.getBoundingClientRect().bottom <= searchControl.getBoundingClientRect().top),
       dashboardTopCards: dashboardTopCards.map(styleSample),
       dashboardCardTitles: all('[data-qa="dashboard-card-title"]'),
       dashboardCardValues,
@@ -396,6 +422,13 @@ function collectAdditionalFailures(stateResults) {
       if (!state.heroPrimaryCurrencies.length) failures.push(`${state.name}: missing hero primary currency selector`);
     }
 
+    if (["accounts", "categories", "budgets"].includes(state.page) && state.heroPrimaryValueHasDecimal) {
+      failures.push(`${state.name}: primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
+    }
+    if (["accounts", "categories", "budgets"].includes(state.page) && state.heroSecondaryTextHasDecimal) {
+      failures.push(`${state.name}: secondary hero value still shows decimal digits: ${state.heroSecondaryText?.text ?? ""}`);
+    }
+
     if (state.page !== "transactions" && state.page !== "dashboard" && !state.heroDistributionBar) {
       failures.push(`${state.name}: missing distribution or burn bar selector`);
     }
@@ -411,6 +444,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.page === "accounts" && !state.heroText.includes("from May 2026")) {
       failures.push(`${state.name}: Accounts Net Worth is missing from May 2026`);
+    }
+    if (state.page === "accounts" && !state.accountsDeltaPeriodOnOwnLine) {
+      failures.push(`${state.name}: Accounts period label is not on a separate line from the delta amount/percent`);
     }
     if (state.page === "accounts" && /USD equivalent/.test(state.heroText)) {
       failures.push(`${state.name}: Accounts hero still shows visible USD equivalent label`);
@@ -430,15 +466,11 @@ function collectAdditionalFailures(stateResults) {
     if (state.page === "categories" && /\bMoM\b/.test(state.heroText)) {
       failures.push(`${state.name}: Categories hero still shows standalone MoM copy`);
     }
+    if (state.page === "categories" && /\bChange from\b/.test(state.heroText)) {
+      failures.push(`${state.name}: Categories hero still shows visible Change from period copy`);
+    }
     if (state.page === "categories" && /USD equivalent/.test(state.heroText)) {
       failures.push(`${state.name}: Categories hero still shows visible USD equivalent label`);
-    }
-    if (state.page === "categories") {
-      const expectedPreviousPeriod = previousMonthLabelFromFixedNow(fixtures.categories.categoriesVisualFixtureMeta.fixedNow);
-      const expectedChangeText = `Change from ${expectedPreviousPeriod}`;
-      if (!state.heroText.includes(expectedChangeText)) {
-        failures.push(`${state.name}: Categories hero is missing "${expectedChangeText}"`);
-      }
     }
     if (state.page === "budgets" && /Month planning/.test(state.heroText)) {
       failures.push(`${state.name}: Budgets hero still shows Month planning`);
@@ -458,6 +490,18 @@ function collectAdditionalFailures(stateResults) {
       }
       if (state.heroDistributionEyebrow?.textTransform !== "uppercase") {
         failures.push(`${state.name}: Budgets burn-rate title is not styled as an uppercase eyebrow`);
+      }
+      if (!state.budgetsSortInHeader) {
+        failures.push(`${state.name}: Budgets Sort control is not in the top header row`);
+      }
+      if (!state.budgetsSearchInFilterRow) {
+        failures.push(`${state.name}: Budgets search control is not in the filter row`);
+      }
+      if (!state.budgetsSortAboveSearch) {
+        failures.push(`${state.name}: Budgets Sort control is not above the search control`);
+      }
+      if (state.viewport.width === 1440 && !near(state.budgetsSortRightOffset, 0, 2)) {
+        failures.push(`${state.name}: Budgets Sort right alignment differs from the header edge`);
       }
     }
   }
@@ -538,6 +582,20 @@ function collectAdditionalFailures(stateResults) {
     const accounts = widthStates.find((state) => state.page === "accounts");
     const categories = widthStates.find((state) => state.page === "categories");
     const budgets = widthStates.find((state) => state.page === "budgets");
+    const accountsToolbarLabels = accounts?.toolbarLabels ?? [];
+    const labelReference = accountsToolbarLabels.find((label) => label.text === "STATUS") ?? accountsToolbarLabels[0];
+    if (labelReference) {
+      for (const candidate of [
+        ...(categories?.toolbarLabels ?? []),
+        ...(budgets?.toolbarLabels ?? []),
+      ]) {
+        for (const property of ["fontSize", "fontWeight", "letterSpacing", "textTransform", "color"]) {
+          if (labelReference[property] !== candidate[property]) {
+            failures.push(`${candidate.text}-${width}: toolbar label ${property} differs from Accounts STATUS`);
+          }
+        }
+      }
+    }
     if (width === 1440) {
       const managementStates = [accounts, categories, budgets].filter(Boolean);
       const referenceSummary = accounts;
@@ -627,8 +685,15 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     ],
     assertions: [
       "Accounts, Categories, and Budgets hero summary width and divider offset match at desktop width",
+      "Accounts, Categories, and Budgets primary hero values are rounded with no visible decimal digits",
+      "Accounts, Categories, and Budgets secondary hero summary values are rounded with no visible decimal digits",
+      "Accounts hero period label is on a separate line from the delta amount/percent",
+      "Categories hero does not show visible Change from period copy",
       "Accounts, Categories, and Budgets distribution/burn-rate eyebrow typography matches",
       "Accounts, Categories, and Budgets toolbar search width and right alignment match at desktop width",
+      "Budgets Sort control is right-aligned in the top toolbar row above search",
+      "Budgets search control remains in the filter row",
+      "Budgets Sort, Categories Status, and Categories View label typography matches Accounts STATUS/VIEW",
       "Accounts and Categories distribution legend spacing matches",
       "Accounts and Categories legend marker dimensions match",
       "Accounts and Categories legend label, amount, and percentage typography matches",
