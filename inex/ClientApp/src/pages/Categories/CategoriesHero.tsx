@@ -42,32 +42,47 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
     const noSpendDescription = stats.available
         ? t("categories.hero.noSpendDescription")
         : t("categories.hero.unavailableDescription");
+    const topParentShare = stats.totalSpend > 0
+        ? Math.round((stats.topParentSpend / stats.totalSpend) * 100)
+        : 0;
 
     return (
-        <section className="categories-hero r-categories-hero">
+        <section className="categories-hero r-categories-hero" data-qa="hero-card">
             <div className="categories-hero__summary">
-                <div className="categories-eyebrow">
+                <div className="categories-eyebrow" data-qa="hero-primary-label">
                     {t("categories.hero.monthLabel", { period: periodLabel })}
                 </div>
-                <div className="categories-hero__amount">
+                <div className="categories-hero__amount" data-qa="hero-primary-value">
                     {hasSpend ? (
-                        <Num value={stats.totalSpend} currency={stats.currency} kind="expense" />
+                        <Num
+                            value={stats.totalSpend}
+                            currency={stats.currency}
+                            currencyDataQa="hero-primary-currency"
+                            currencySize="sm"
+                            kind="expense"
+                        />
                     ) : (
                         <span className="categories-hero__dash">-</span>
                     )}
                 </div>
-                <div className="categories-hero__note">
+                <div className="categories-hero__note" data-qa="hero-secondary-text">
                     {stats.topParent && hasSpend ? (
-                        <React.Fragment>
-                            {t("categories.hero.mostSpentIn")}{" "}
-                            <strong>{stats.topParent.name}</strong>{" "}
-                            <Num
-                                value={stats.topParentSpend}
-                                currency={stats.currency}
-                                kind="expense"
-                                size={13}
-                            />
-                        </React.Fragment>
+                        <div className="categories-hero__top-category">
+                            <span>
+                                {t("categories.hero.mostSpentIn")}{" "}
+                                <strong>{stats.topParent.name}</strong>
+                            </span>
+                            <span className="categories-hero__top-category-metric">
+                                <Num
+                                    value={stats.topParentSpend}
+                                    currency={stats.currency}
+                                    currencySize="sm"
+                                    kind="expense"
+                                    size={13}
+                                />
+                                <small>{t("categories.hero.ofTotal", { percent: topParentShare })}</small>
+                            </span>
+                        </div>
                     ) : (
                         noSpendNote
                     )}
@@ -80,7 +95,7 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                             <strong>{t("categories.hero.byCategory")}</strong>
                             <span>{t("categories.hero.baseEquivalent", { currency: stats.currency })}</span>
                         </div>
-                        <div className="categories-hero__distribution-bar">
+                        <div className="categories-hero__distribution-bar" data-qa="hero-distribution-bar">
                             {stats.distribution.map((item) => {
                                 const category = categoryById.get(Number(item.key));
                                 const color = category
@@ -102,7 +117,7 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                                 );
                             })}
                         </div>
-                        <div className="categories-hero__legend">
+                        <div className="categories-hero__legend" data-qa="hero-distribution-legend">
                             {stats.distribution.map((item) => {
                                 const category = categoryById.get(Number(item.key));
                                 const color = category

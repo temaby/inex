@@ -190,7 +190,6 @@ const Accounts = () => {
 
     const activeCount = displayAccounts.filter((account) => account.isEnabled).length;
     const scopedCount = scopedAccounts.length;
-    const currencyCount = new Set(displayAccounts.map((account) => account.currency)).size;
     const hasSearch = normalizeAccountSearch(search).length > 0;
     const isInitialLoading = accountsQuery.isLoading && accounts.length === 0;
     const isRefreshing = (accountsQuery.isFetching || summaryQuery.isFetching) && accounts.length > 0;
@@ -351,9 +350,6 @@ const Accounts = () => {
                             value: `${momPercent >= 0 ? "+" : ""}${momPercent.toFixed(1)}%`,
                         })}
                     </span>
-                </span>
-                <span className="accounts-hero__delta-helper">
-                    {t("accounts.hero.momComparisonFallback")}
                 </span>
             </React.Fragment>
         );
@@ -631,26 +627,24 @@ const Accounts = () => {
             {drawer}
             <BasicPage title={t("accounts.title")} subtitle={t("accounts.subtitle")} extra={pageExtra}>
                 <div className="accounts-workspace">
-                    <section className="accounts-hero">
+                    <section className="accounts-hero" data-qa="hero-card">
                         <div className="accounts-hero__net">
-                            <div className="accounts-eyebrow">{t("accounts.hero.netWorth")}</div>
-                            <div className="accounts-hero__value">
+                            <div className="accounts-eyebrow" data-qa="hero-primary-label">{t("accounts.hero.netWorth")}</div>
+                            <div className="accounts-hero__value" data-qa="hero-primary-value">
                                 {hasCompleteScopedBaseValues
                                     ? (
                                         <Num
                                             currency={baseCurrency ?? undefined}
+                                            currencyDataQa="hero-primary-currency"
+                                            currencySize="sm"
                                             kind={totalBaseValue < 0 ? "expense" : "neutral"}
                                             value={toFixedMoney(totalBaseValue)}
                                         />
                                     )
                                     : <span>{t("accounts.hero.balanceUnavailable")}</span>}
                             </div>
-                            <div className="accounts-hero__delta">
+                            <div className="accounts-hero__delta" data-qa="hero-secondary-text">
                                 {renderHeroDelta()}
-                            </div>
-                            <div className="accounts-hero__stats">
-                                <span>{t("accounts.hero.activeAccounts", { count: activeCount })}</span>
-                                <span>{t("accounts.hero.currencyCount", { count: currencyCount })}</span>
                             </div>
                         </div>
                         <div className="accounts-hero__mix">
@@ -679,7 +673,7 @@ const Accounts = () => {
                                 {distributionGroups.length > 0 ? (
                                     <React.Fragment>
                                         {hasCompleteScopedBaseValues && (
-                                            <div className="accounts-distribution__stack" aria-hidden="true">
+                                            <div className="accounts-distribution__stack" aria-hidden="true" data-qa="hero-distribution-bar">
                                                 {distributionGroups.map((group) => (
                                                     <span
                                                         className={`accounts-distribution__segment is-${currencyToneClass(group.currency)}`}
@@ -689,7 +683,7 @@ const Accounts = () => {
                                                 ))}
                                             </div>
                                         )}
-                                        <div className="accounts-distribution__legend">
+                                        <div className="accounts-distribution__legend" data-qa="hero-distribution-legend">
                                             {distributionGroups.map((group) => (
                                                 <div className="accounts-distribution__item" key={group.currency}>
                                                     <span className={`accounts-currency-dot is-${currencyToneClass(group.currency)}`} />

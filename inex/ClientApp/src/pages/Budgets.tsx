@@ -466,6 +466,7 @@ const Budgets = () => {
         { key: "amount", label: t("budgets.sort.amount") },
         { key: "name", label: t("budgets.sort.name") },
     ];
+    const selectedMonthTitle = t("budgets.heroTitle", { month: selectedMonth.format("MMM YYYY") });
 
     const drawerFooter = (
         <>
@@ -569,23 +570,39 @@ const Budgets = () => {
             <BasicPage title={t("budgets.title")} subtitle={t("budgets.subtitle")} extra={pageActions}>
                 <div className="budgets-workspace">
                     {!showFirstUseEmpty && (
-                    <section className="budgets-hero">
+                    <section className="budgets-hero" data-qa="hero-card">
                         <div className="budgets-hero__summary">
-                            <div className="budgets-eyebrow">{t("budgets.heroLabel")}</div>
-                            <h2>{t("budgets.heroTitle", { month: selectedMonth.format("MMM YYYY") })}</h2>
-                            <p>{t("budgets.heroDescription")}</p>
-                            <div className="budgets-hero__rollup" aria-label={t("budgets.summaryLabel")}>
+                            <div className="budgets-eyebrow" data-qa="hero-primary-label">{selectedMonthTitle}</div>
+                            <div className="budgets-hero__rollup" aria-label={t("budgets.summaryLabel")} data-qa="hero-primary-value">
                                 {isReportReady ? (
                                     <>
-                                        <Num value={totalSpent} currency={currency} kind="expense" compact />
-                                        <span>/</span>
-                                        <Num value={totalBudgeted} currency={currency} kind="neutral" compact />
+                                        <Num
+                                            value={totalSpent}
+                                            currency={currency}
+                                            currencyDataQa="hero-primary-currency"
+                                            currencySize="sm"
+                                            kind="expense"
+                                        />
+                                        <span className="budgets-hero__rollup-divider">/</span>
+                                        <Num
+                                            value={totalBudgeted}
+                                            currency={currency}
+                                            currencyDataQa="hero-primary-currency"
+                                            currencySize="sm"
+                                            kind="neutral"
+                                        />
                                     </>
                                 ) : (
                                     <>
                                         <span className="budgets-hero__state">{metricStateLabel}</span>
-                                        <span>/</span>
-                                        <Num value={totalBudgeted} currency={currency} kind="neutral" compact />
+                                        <span className="budgets-hero__rollup-divider">/</span>
+                                        <Num
+                                            value={totalBudgeted}
+                                            currency={currency}
+                                            currencyDataQa="hero-primary-currency"
+                                            currencySize="sm"
+                                            kind="neutral"
+                                        />
                                     </>
                                 )}
                             </div>
@@ -599,14 +616,15 @@ const Budgets = () => {
                                             day: heroPace.dayOfMonth,
                                             days: heroPace.daysInMonth,
                                         })}
+                                        dataQa="hero-distribution-bar"
                                     />
                                 ) : (
-                                    <div className="budget-usage-bar is-unavailable">
+                                    <div className="budget-usage-bar is-unavailable" data-qa="hero-distribution-bar">
                                         <span>{metricStateLabel}</span>
                                     </div>
                                 )}
                             </div>
-                            <div className="budgets-hero__verdict">
+                            <div className="budgets-hero__verdict" data-qa="hero-secondary-text">
                                 {isReportReady && heroPace ? (
                                     <>
                                         <span className={totalRemaining < 0 ? "is-over" : "is-left"}>
@@ -639,7 +657,7 @@ const Budgets = () => {
                                 <span>{t("budgets.burnRate.title")}</span>
                                 <span>{t("budgets.burnRate.subtitle")}</span>
                             </div>
-                            <div className="budgets-hero__legend" aria-label={t("budgets.burnRate.legendLabel")}>
+                            <div className="budgets-hero__legend" aria-label={t("budgets.burnRate.legendLabel")} data-qa="hero-distribution-legend">
                                 {(["ok", "near", "atLimit", "over", "idle"] as BudgetUsageStatus[]).map((status) => (
                                     <span className={`budget-status-legend is-${status}`} key={status}>
                                         <span aria-hidden="true" />
@@ -1057,9 +1075,10 @@ interface UsageBarProps {
     status: BudgetUsageStatus;
     markerPercent?: number;
     markerLabel?: string;
+    dataQa?: string;
 }
 
-const UsageBar: React.FC<UsageBarProps> = ({ percent, status, markerPercent, markerLabel }) => {
+const UsageBar: React.FC<UsageBarProps> = ({ percent, status, markerPercent, markerLabel, dataQa }) => {
     const clampedPercent = Math.max(0, Math.min(100, percent));
     const roundedPercent = Math.round(clampedPercent);
     const clampedMarkerPercent = markerPercent === undefined
@@ -1072,6 +1091,7 @@ const UsageBar: React.FC<UsageBarProps> = ({ percent, status, markerPercent, mar
             aria-valuemin={0}
             aria-valuenow={roundedPercent}
             className={`budget-usage-bar is-${status}`}
+            data-qa={dataQa}
             role="progressbar"
         >
             <span style={{ width: `${clampedPercent}%` }} />

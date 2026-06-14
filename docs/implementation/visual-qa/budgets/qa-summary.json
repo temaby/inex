@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T08:44:57.420Z",
+  "generatedAt": "2026-06-14T11:10:03.868Z",
   "page": "budgets",
   "dataMode": "fixture",
   "harness": {
@@ -149,7 +149,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name BUDGET CATEGORIES PROGRESS DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name BUDGET CATEGORIES PROGRESS DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD",
       "pngDimensions": {
         "width": 1425,
         "height": 1083
@@ -207,7 +207,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD",
       "pngDimensions": {
         "width": 1009,
         "height": 1957
@@ -247,7 +247,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.515625,
+      "lastContentBottom": 771.921875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -265,10 +265,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 2453
+        "height": 2428
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -305,7 +305,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.515625,
+      "lastContentBottom": 771.921875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -323,10 +323,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 345,
-        "height": 2472
+        "height": 2447
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -363,7 +363,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.015625,
+      "lastContentBottom": 772.421875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -381,10 +381,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 0 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name No budgets match this search Clear search Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 0 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name No budgets match this search Clear search Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1207
+        "height": 1182
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -479,7 +479,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.515625,
+      "lastContentBottom": 771.921875,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -501,10 +501,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports Add Budget Planning for Apr 2026 Key Required by the current budget API contract. Name Description Categories Select categories Amount USD Period Cance",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports Add Budget Planning for Apr 2026 Key Required by the current budget API contract. Name Description Categories Select categories Amount USD Period Cancel Create",
       "pngDimensions": {
         "width": 390,
-        "height": 2453
+        "height": 2428
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -542,7 +542,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.515625,
+      "lastContentBottom": 771.921875,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -564,10 +564,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports Add Budget Planning for Apr 2026 Key Required by the current budget API contract. Name Description Categories Select categories Amount USD Period Cance",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports Add Budget Planning for Apr 2026 Key Required by the current budget API contract. Name Description Categories Select categories Amount USD Period Cancel Create",
       "pngDimensions": {
         "width": 360,
-        "height": 2472
+        "height": 2447
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -623,7 +623,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name BUDGET CATEGORIES PROGRESS DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Name Description Categories Groceries Amount USD Period SNAPSHOT - APR 2026 Budget 420.00 USD Spent 505.00 USD Remaining 85.00 USD Daily avg left 0.00 USD Delete Cancel Save Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.0",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name BUDGET CATEGORIES PROGRESS DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Name Description Categories Groceries Amount USD Period SNAPSHOT - APR 2026 Budget 420.00 USD Spent 505.00 USD Remaining 85.00 USD Daily avg left 0.00 USD Delete Cancel Save Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD",
       "pngDimensions": {
         "width": 1425,
         "height": 1695
@@ -664,7 +664,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.53125,
+      "lastContentBottom": 771.9375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -682,10 +682,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Name Description Categories Groceries Amount USD Period SNAPSHOT - APR 2026 Budget 420.00 USD Spent 505.00 USD Remaining 85.00 USD Daily avg left 0.00 USD Delete Cancel Save Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Cate",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 2,390.00 USD 285.00 USD left / 285.00 USD under pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 Sort Burn rate Remaining Amount Name Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Name Description Categories Groceries Amount USD Period SNAPSHOT - APR 2026 Budget 420.00 USD Spent 505.00 USD Remaining 85.00 USD Daily avg left 0.00 USD Delete Cancel Save Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 3342
+        "height": 3317
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -723,7 +723,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.453125,
+      "lastContentBottom": 771.859375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -741,10 +741,10 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget MONTH PLANNING Apr 2026 budget Compare budgeted amounts, current spend, and remaining room for the selected month. 2,105.00 USD / 0.00 USD 2,105.00 USD over / 2,105.00 USD ahead of pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Budgets could not load Retry loading budgets for this month. Retry Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105.00 USD / 0.00 USD 2,105.00 USD over / 2,105.00 USD ahead of pace Burn rate % of budget consumed On track Close to limit At limit Over budget Not touched Budgets could not load Retry loading budgets for this month. Retry Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1040
+        "height": 972
       },
       "requestLog": [
         "POST /auth/refresh",

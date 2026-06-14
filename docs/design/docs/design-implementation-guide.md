@@ -704,16 +704,19 @@ npm run visual-qa:transactions
 npm run visual-qa:accounts
 npm run visual-qa:categories
 npm run visual-qa:budgets
+npm run visual-qa:hero-consistency
 npm run visual-qa:dashboard
 npm run visual-qa:reports
 npm run visual-qa:profile
 npm run visual-qa:auth
 ```
 
-4. Open the generated screenshots under `docs/implementation/visual-qa/{area}/`.
-5. Check each applicable viewport for overlap, clipped text, horizontal overflow, bottom-nav occlusion, chart blankness, and long-label or long-amount overflow.
-6. Update `docs/design/docs/visual-qa-checklist.md` with the new result, screenshot evidence, and notes.
-7. Run `npm run lint` and a final `npm run build` from `inex/ClientApp`.
+4. For cross-page management-page header changes, include `npm run visual-qa:hero-consistency`. It captures Transactions, Accounts, Categories, and Budgets at 1440px and 390px, verifies shared top-section selectors, checks hero metric sizing, blocks removed copy from returning, and guards mobile overflow and bottom-nav clearance.
+5. Open the generated screenshots under `docs/implementation/visual-qa/{area}/`.
+6. Check each applicable viewport for overlap, clipped text, horizontal overflow, bottom-nav occlusion, chart blankness, and long-label or long-amount overflow.
+7. For top-section consistency work, also compare the generated `docs/implementation/visual-qa/hero-consistency/` screenshots for title hierarchy, primary action placement, hero metric treatment, distribution or burn-rate bar placement, and accepted page-specific deviations.
+8. Update `docs/design/docs/visual-qa-checklist.md` with the new result, screenshot evidence, and notes.
+9. Run `npm run lint` and a final `npm run build` from `inex/ClientApp`.
 
 ### Manual Browser Checks
 
@@ -756,8 +759,6 @@ When a failure is found, make the smallest layout or component fix that resolves
 
 Known exceptions must be listed here and in the Exceptions table of `visual-qa-checklist.md` with owner-visible rationale and date.
 
-None accepted as of 2026-06-14.
-
 | Route | Viewport | Issue | Rationale | Accepted by | Date |
 | --- | --- | --- | --- | --- | --- |
-| None accepted as of 2026-06-14 | | | | | |
+| `/budgets` | 1440px, 390px | Burn-rate legend remains above the bars instead of matching Accounts/Categories distribution legend placement. | Budgets presents burn-rate progress and budget status, not a category distribution summary. Keeping the legend above the bars preserves scan order for planned/spent/remaining values while the hero still follows the shared page title, action, metric, and mobile overflow contract. | Product/Design | 2026-06-14 |
