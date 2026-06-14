@@ -378,9 +378,9 @@
     "hero": {
       "netWorth": "Net worth",
       "balanceUnavailable": "Balance unavailable",
-      "momUnavailable": "MoM delta unavailable",
+      "momUnavailable": "Change from {{period}} unavailable",
       "momDelta": "{{value}} MoM",
-      "momDeltaPercent": "{{value}} MoM",
+      "momDeltaPercent": "{{value}} from {{period}}",
       "momComparisonPeriod": "vs previous month",
       "momComparisonFallback": "Change from previous month",
       "activeAccounts": "{{count}} active",
@@ -389,7 +389,8 @@
       "baseEquivalentLabel": "{{currency}} equivalent",
       "byValue": "By current balance",
       "byCount": "By account count",
-      "noDistribution": "No currencies to display"
+      "noDistribution": "No currencies to display",
+      "other": "Other"
     },
     "loading": {
       "initial": "Loading accounts",

@@ -11,10 +11,12 @@ export const accountsVisualFixtureMeta = {
   dataMode: "fixture",
   locale: "en",
   baseline: "Accounts mockup parity",
+  fixedNow: "2026-06-14T12:00:00.000Z",
   comparisonPeriodLabel: "Mar 2026",
   expectedBaseCurrency: "USD",
   expectedNetWorth: 33968.12,
-  expectedDistributionOrder: ["UZS", "USD", "PLN", "RUB", "BYN", "GEL"],
+  expectedDistributionOrder: ["UZS", "USD", "PLN", "RUB", "BYN", "Other"],
+  expectedPreviousMonthLabel: "May 2026",
   defaultCollapsedCurrencies: [],
   collapsedStateCurrency: "UZS",
 } as const;

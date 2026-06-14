@@ -178,6 +178,7 @@ async function waitForHeroReady(client, state) {
 
 function initScriptForPage(page) {
   if (page === "transactions") return fixedDateInitScript(fixtures.transactions.transactionsVisualFixtureMeta.fixedNow, "en");
+  if (page === "accounts") return fixedDateInitScript(fixtures.accounts.accountsVisualFixtureMeta.fixedNow, "en");
   if (page === "categories") return fixedDateInitScript(fixtures.categories.categoriesVisualFixtureMeta.fixedNow, "en");
   if (page === "budgets") return fixedDateInitScript(fixtures.budgets.budgetsVisualFixtureMeta.fixedNow, "en");
   if (page === "dashboard") return fixedDateInitScript(fixtures.dashboard.dashboardVisualFixtureMeta.fixedNow, "en");
@@ -224,6 +225,9 @@ async function collectMetrics(client, state, apiRequestCount) {
     const primaryValue = first('[data-qa="hero-primary-value"] [role="text"] > span') ?? first('[data-qa="hero-primary-value"]');
     const heroText = hero ? hero.textContent.trim().replace(/\\s+/g, " ") : "";
     const marker = first('[data-qa="hero-distribution-legend"] span');
+    const legendLabel = first('[data-qa="hero-distribution-legend"] strong');
+    const legendAmount = first('[data-qa="hero-distribution-legend"] small, [data-qa="hero-distribution-legend"] .accounts-distribution__amount');
+    const legendShare = first('[data-qa="hero-distribution-legend"] .accounts-distribution__share, [data-qa="hero-distribution-legend"] .categories-hero__legend-share');
     const dashboardTopCards = Array.from(document.querySelectorAll('[data-qa="dashboard-top-card"]'));
     const dashboardCardValues = dashboardTopCards.map((card) => {
       const value = card.querySelector('[data-qa="dashboard-card-value"]');
@@ -239,9 +243,13 @@ async function collectMetrics(client, state, apiRequestCount) {
       heroPrimaryValue: styleSample(primaryValue),
       heroPrimaryCurrencies: all('[data-qa="hero-primary-currency"]'),
       heroSecondaryText: styleSample(first('[data-qa="hero-secondary-text"]')),
+      heroDistributionTitle: styleSample(first('[data-qa="hero-distribution-title"]')),
       heroDistributionBar: styleSample(first('[data-qa="hero-distribution-bar"]')),
       heroDistributionLegend: styleSample(first('[data-qa="hero-distribution-legend"]')),
       heroLegendMarker: styleSample(marker),
+      heroLegendLabel: styleSample(legendLabel),
+      heroLegendAmount: styleSample(legendAmount),
+      heroLegendShare: styleSample(legendShare),
       dashboardTopCards: dashboardTopCards.map(styleSample),
       dashboardCardTitles: all('[data-qa="dashboard-card-title"]'),
       dashboardCardValues,
@@ -361,8 +369,14 @@ function collectAdditionalFailures(stateResults) {
       failures.push(`${state.name}: missing distribution or burn legend selector`);
     }
 
-    if (state.page === "accounts" && /MoM/.test(state.heroText) && /Change from previous month/.test(state.heroText)) {
-      failures.push(`${state.name}: Accounts Net Worth duplicates MoM and Change from previous month`);
+    if (state.page === "accounts" && /\bMoM\b/.test(state.heroText)) {
+      failures.push(`${state.name}: Accounts Net Worth still shows MoM`);
+    }
+    if (state.page === "accounts" && !state.heroText.includes("from May 2026")) {
+      failures.push(`${state.name}: Accounts Net Worth is missing from May 2026`);
+    }
+    if (state.page === "accounts" && /USD equivalent/.test(state.heroText)) {
+      failures.push(`${state.name}: Accounts hero still shows visible USD equivalent label`);
     }
     if (state.page === "accounts" && /\b\d+\s+active\b/.test(state.heroText)) {
       failures.push(`${state.name}: Accounts Net Worth still shows active-count pill`);
@@ -488,6 +502,31 @@ function collectAdditionalFailures(stateResults) {
         failures.push(`accounts/categories-${width}: legend marker size differs`);
       }
     }
+    if (accounts?.heroDistributionTitle && categories?.heroDistributionTitle) {
+      for (const property of ["fontSize", "fontWeight", "lineHeight", "marginTop"]) {
+        if (accounts.heroDistributionTitle[property] !== categories.heroDistributionTitle[property]) {
+          failures.push(`accounts/categories-${width}: distribution title ${property} differs`);
+        }
+      }
+    }
+    if (accounts?.heroDistributionLegend && categories?.heroDistributionLegend) {
+      if (accounts.heroDistributionLegend.gap !== categories.heroDistributionLegend.gap) {
+        failures.push(`accounts/categories-${width}: distribution legend gap differs`);
+      }
+    }
+    for (const [metric, label] of [
+      ["heroLegendLabel", "legend label"],
+      ["heroLegendAmount", "legend amount"],
+      ["heroLegendShare", "legend share"],
+    ]) {
+      if (accounts?.[metric] && categories?.[metric]) {
+        for (const property of ["fontSize", "fontWeight", "fontFamily", "lineHeight"]) {
+          if (accounts[metric][property] !== categories[metric][property]) {
+            failures.push(`accounts/categories-${width}: distribution ${label} ${property} differs`);
+          }
+        }
+      }
+    }
   }
 
   return failures;
@@ -513,6 +552,14 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
         rationale: "Budgets is a burn-rate chart/list, not a distribution summary.",
         date: "2026-06-14",
       },
+    ],
+    assertions: [
+      "Accounts and Categories distribution title typography matches",
+      "Accounts and Categories distribution legend spacing matches",
+      "Accounts and Categories legend marker dimensions match",
+      "Accounts and Categories legend label, amount, and percentage typography matches",
+      "Accounts hero does not show MoM or a visible USD equivalent distribution label",
+      "Accounts hero shows from May 2026 for the fixed visual QA date",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

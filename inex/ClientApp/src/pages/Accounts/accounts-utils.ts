@@ -1,4 +1,8 @@
 import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
+import {
+  buildTopDistribution,
+  type DistributionItem,
+} from "../../utils/distribution";
 
 export interface ExchangeRateLike {
   currencyFrom: string;
@@ -20,6 +24,14 @@ export interface CurrencyGroup {
   baseSubtotal: number | null;
   share: number | null;
   sortValue: number;
+}
+
+export interface CurrencyDistributionGroup {
+  key: string;
+  label: string;
+  baseSubtotal: number;
+  share: number;
+  isOther: boolean;
 }
 
 export const toFixedMoney = (value: number): number => Math.round(value * 100) / 100;
@@ -170,3 +182,25 @@ export const makeCurrencyGroups = (
       return a.currency.localeCompare(b.currency);
     });
 };
+
+export const makeCurrencyDistribution = (
+  groups: CurrencyGroup[],
+  otherLabel: string,
+): CurrencyDistributionGroup[] =>
+  buildTopDistribution<CurrencyGroup>(
+    groups
+      .filter((group) => group.baseSubtotal !== null)
+      .map((group) => ({
+        key: group.currency,
+        label: group.currency,
+        value: group.sortValue,
+        payload: group,
+      })),
+    { otherLabel },
+  ).map((item: DistributionItem<CurrencyGroup>) => ({
+    key: item.key,
+    label: item.label,
+    baseSubtotal: item.isOther ? item.value : item.payload?.baseSubtotal ?? item.value,
+    share: item.share * 100,
+    isOther: item.isOther,
+  }));

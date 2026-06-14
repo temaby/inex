@@ -5,9 +5,9 @@ import {
   clickButtonByTextExpression,
   createApiFixtureHandler,
   evaluate,
+  fixedDateInitScript,
   jsonResponse,
   loadFixture,
-  localeInitScript,
   playwrightInstalled,
   problemResponse,
   resolveVisualQaPaths,
@@ -248,6 +248,11 @@ async function collectMetrics(client, state, apiRequestCount) {
     const rows = Array.from(document.querySelectorAll(".accounts-row"));
     const groupButtons = Array.from(document.querySelectorAll(".accounts-group__head"));
     const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
+    const distribution = document.querySelector(".accounts-distribution");
+    const distributionSegments = Array.from(document.querySelectorAll(".accounts-distribution__segment"));
+    const legendItems = Array.from(document.querySelectorAll(".accounts-distribution__item"));
+    const legendMarkers = legendItems.map((item) => item.querySelector(".accounts-currency-dot"));
+    const colorOf = (element) => element ? window.getComputedStyle(element).backgroundColor : null;
     const collapsedGroups = groupButtons
       .filter((button) => button.getAttribute("aria-expanded") === "false")
       .map((button) => button.textContent.trim().replace(/\\s+/g, " ").slice(0, 80));
@@ -268,6 +273,18 @@ async function collectMetrics(client, state, apiRequestCount) {
       rowCount: rows.length,
       groupShareBarCount: groupShareBars.length,
       heroDistributionBarCount: document.querySelectorAll('[data-qa="hero-distribution-bar"]').length,
+      distributionSegmentCount: distributionSegments.length,
+      distributionLegendItemCount: legendItems.length,
+      distributionSegmentColors: distributionSegments.map(colorOf),
+      distributionLegendMarkerColors: legendMarkers.map(colorOf),
+      distributionLegendLabels: legendItems.map((item) => {
+        const label = item.querySelector(".accounts-distribution__copy strong");
+        return label ? label.textContent.trim() : "";
+      }),
+      heroDistributionText: distribution ? distribution.innerText.replace(/\\s+/g, " ").trim() : "",
+      momVisible: /\\bMoM\\b/.test(document.body.innerText),
+      previousMonthVisible: document.body.innerText.includes(${JSON.stringify("from May 2026")}),
+      usdEquivalentVisibleInHeroDistribution: distribution ? distribution.innerText.includes("USD equivalent") : false,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       collapsedGroups,
       loadErrorVisible: document.body.innerText.includes("Accounts could not be loaded"),
@@ -301,6 +318,30 @@ function collectAdditionalFailures(stateResults) {
     if (groupedPopulatedState && state.name.startsWith("populated") && state.heroDistributionBarCount < 1) {
       failures.push(`${state.name}: missing Accounts hero distribution bar`);
     }
+    if (groupedPopulatedState && state.distributionSegmentCount !== state.distributionLegendItemCount) {
+      failures.push(`${state.name}: Accounts distribution segment count ${state.distributionSegmentCount} does not match legend item count ${state.distributionLegendItemCount}`);
+    }
+    if (groupedPopulatedState && new Set(state.distributionSegmentColors).size !== state.distributionSegmentColors.length) {
+      failures.push(`${state.name}: Accounts distribution segment colors are not unique`);
+    }
+    if (groupedPopulatedState && state.distributionSegmentColors.some((color, index) => color !== state.distributionLegendMarkerColors[index])) {
+      failures.push(`${state.name}: Accounts legend marker colors do not match bar segment colors`);
+    }
+    if (groupedPopulatedState && state.momVisible) {
+      failures.push(`${state.name}: Accounts hero still shows MoM`);
+    }
+    if (groupedPopulatedState && !state.previousMonthVisible) {
+      failures.push(`${state.name}: Accounts hero is missing "from May 2026"`);
+    }
+    if (groupedPopulatedState && state.usdEquivalentVisibleInHeroDistribution) {
+      failures.push(`${state.name}: Accounts hero distribution still shows visible USD equivalent label`);
+    }
+    if (groupedPopulatedState && state.name.startsWith("populated")) {
+      const expectedOrder = fixtureExports.accountsVisualFixtureMeta.expectedDistributionOrder;
+      if (JSON.stringify(state.distributionLegendLabels) !== JSON.stringify(expectedOrder)) {
+        failures.push(`${state.name}: Accounts distribution legend order ${JSON.stringify(state.distributionLegendLabels)} does not match ${JSON.stringify(expectedOrder)}`);
+      }
+    }
   }
 
   return failures;
@@ -310,7 +351,7 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: "/accounts",
-    initScript: localeInitScript("en"),
+    initScript: fixedDateInitScript(args.fixture.accountsVisualFixtureMeta.fixedNow, "en"),
     waitForReady: waitForAccountsReady,
     applyInteraction,
     collectMetrics,
@@ -338,8 +379,18 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       expectedBaseCurrency: fixture.accountsVisualFixtureMeta.expectedBaseCurrency,
       expectedNetWorth: fixture.accountsVisualFixtureMeta.expectedNetWorth,
       expectedDistributionOrder: fixture.accountsVisualFixtureMeta.expectedDistributionOrder,
+      fixedNow: fixture.accountsVisualFixtureMeta.fixedNow,
+      expectedPreviousMonthLabel: fixture.accountsVisualFixtureMeta.expectedPreviousMonthLabel,
       collapsedStateCurrency: fixture.accountsVisualFixtureMeta.collapsedStateCurrency,
     },
+    assertions: [
+      "distribution bar segment count equals legend item count",
+      "displayed currency segment colors are unique",
+      "legend marker colors match corresponding bar segment colors",
+      "MoM is absent",
+      "from May 2026 appears for the fixed visual QA date",
+      "visible USD equivalent label is absent from Accounts hero distribution",
+    ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,
     unhandledApiRequests,
