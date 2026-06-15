@@ -11,6 +11,7 @@ $ErrorActionPreference = 'Stop'
 
 $script:Checks = [System.Collections.Generic.List[object]]::new()
 $script:RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
+$script:LastPortInspectionError = $null
 
 function Write-Check {
     param(
@@ -51,6 +52,8 @@ function Test-PortListening {
         [int]$Port
     )
 
+    $script:LastPortInspectionError = $null
+
     try {
         if (Test-CommandExists 'Get-NetTCPConnection') {
             $connection = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
@@ -68,8 +71,8 @@ function Test-PortListening {
         return $null -ne $connection
     }
     catch {
-        Write-Check 'Port' "Port $Port listener check" 'WARN' 'Unable to inspect TCP listeners in this shell.'
-        return $false
+        $script:LastPortInspectionError = 'Unable to inspect TCP listeners in this shell.'
+        return $null
     }
 }
 
@@ -82,12 +85,226 @@ function Write-PortCheck {
         [int]$Port
     )
 
-    if (Test-PortListening $Port) {
+    $isListening = Test-PortListening $Port
+
+    if ($null -eq $isListening) {
+        Write-Check $Area "Port $Port listener check" 'WARN' $script:LastPortInspectionError
+    }
+    elseif ($isListening) {
         Write-Check $Area "Port $Port listening" 'WARN' 'Port is occupied; confirm it is the expected local dev process before starting another server.'
     }
     else {
         Write-Check $Area "Port $Port listening" 'INFO' 'Not listening.'
     }
+}
+
+function Write-PortAvailabilityCheck {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Area,
+
+        [Parameter(Mandatory = $true)]
+        [int]$Port,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Purpose
+    )
+
+    $isListening = Test-PortListening $Port
+
+    if ($null -eq $isListening) {
+        Write-Check $Area "Port $Port available" 'WARN' $script:LastPortInspectionError
+    }
+    elseif ($isListening) {
+        Write-Check $Area "Port $Port available" 'WARN' ("Port is occupied; confirm it is the expected {0} process or choose another port before starting visual QA." -f $Purpose)
+    }
+    else {
+        Write-Check $Area "Port $Port available" 'PASS' ("Available for {0}." -f $Purpose)
+    }
+}
+
+function Test-ViteChildProcess {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ClientRoot,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ViteShimPath
+    )
+
+    if (-not (Test-Path -LiteralPath $ViteShimPath -PathType Leaf)) {
+        return
+    }
+
+    $previousLocation = Get-Location
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        Set-Location -LiteralPath $ClientRoot
+        $ErrorActionPreference = 'SilentlyContinue'
+        & $ViteShimPath --version 1>$null 2>$null
+        $exitCode = $LASTEXITCODE
+    }
+    catch {
+        $message = $_.Exception.Message
+        if ($message -match 'EPERM|access.*denied|operation.*permitted|sandbox') {
+            Write-Check 'UI' 'Vite child-process startup viable' 'FAIL' 'Vite could not be spawned from this shell. In Codex, approve sandbox escalation for npm/Node/Vite startup, then rerun the doctor; outside Codex, check endpoint protection or AppLocker rules.'
+        }
+        else {
+            Write-Check 'UI' 'Vite child-process startup viable' 'FAIL' 'Vite could not be spawned from node_modules/.bin; run npm install from inex/ClientApp and verify Node.js can start local package binaries.'
+        }
+        return
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+        Set-Location -LiteralPath $previousLocation
+    }
+
+    if ($exitCode -eq 0) {
+        Write-Check 'UI' 'Vite child-process startup viable' 'PASS' 'Local vite --version process starts successfully.'
+    }
+    else {
+        Write-Check 'UI' 'Vite child-process startup viable' 'FAIL' 'Local vite --version exited non-zero; run npm install from inex/ClientApp and verify the Vite package is usable.'
+    }
+}
+
+function Test-VisualQaBrowser {
+    $envCandidates = @(
+        @{ Name = 'CHROME_PATH'; Path = $env:CHROME_PATH },
+        @{ Name = 'EDGE_PATH'; Path = $env:EDGE_PATH }
+    )
+
+    $validEnvCandidate = $false
+    $detectedBrowserPath = $null
+    $invalidEnvNames = @()
+    foreach ($candidate in $envCandidates) {
+        $pathValue = [string]$candidate.Path
+        if ([string]::IsNullOrWhiteSpace($pathValue)) {
+            continue
+        }
+
+        if (Test-Path -LiteralPath $pathValue -PathType Leaf) {
+            $validEnvCandidate = $true
+            if ($null -eq $detectedBrowserPath) {
+                $detectedBrowserPath = $pathValue
+            }
+        }
+        else {
+            $invalidEnvNames += $candidate.Name
+        }
+    }
+
+    if ($validEnvCandidate) {
+        Write-Check 'UI' 'CHROME_PATH/EDGE_PATH override' 'PASS' 'A configured browser override points to an existing file.'
+    }
+    elseif ($invalidEnvNames.Count -gt 0) {
+        Write-Check 'UI' 'CHROME_PATH/EDGE_PATH override' 'WARN' ("Configured {0} value does not point to an existing file; update it or unset it." -f ($invalidEnvNames -join '/'))
+    }
+    else {
+        Write-Check 'UI' 'CHROME_PATH/EDGE_PATH override' 'INFO' 'No override configured; default Chrome/Edge install paths will be checked.'
+    }
+
+    $defaultCandidates = @(
+        'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
+        'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
+        'C:\Program Files\Google\Chrome\Application\chrome.exe',
+        'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'
+    )
+
+    $hasDefaultBrowser = $false
+    foreach ($pathValue in $defaultCandidates) {
+        if (Test-Path -LiteralPath $pathValue -PathType Leaf) {
+            $hasDefaultBrowser = $true
+            if ($null -eq $detectedBrowserPath) {
+                $detectedBrowserPath = $pathValue
+            }
+            break
+        }
+    }
+
+    if ($validEnvCandidate -or $hasDefaultBrowser) {
+        Write-Check 'UI' 'Chrome/Edge executable detected' 'PASS' 'Visual QA can resolve a local Chromium browser. If launch still fails under Codex, rerun visual QA with sandbox escalation.'
+        Test-VisualQaBrowserProcess -BrowserPath $detectedBrowserPath
+    }
+    else {
+        Write-Check 'UI' 'Chrome/Edge executable detected' 'FAIL' 'Install Chrome or Edge, or set CHROME_PATH/EDGE_PATH to the browser executable. In Codex, approve sandbox escalation if the browser exists but process launch is blocked.'
+    }
+}
+
+function Test-VisualQaBrowserProcess {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$BrowserPath
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'SilentlyContinue'
+        & $BrowserPath --version 1>$null 2>$null
+        $exitCode = $LASTEXITCODE
+    }
+    catch {
+        $message = $_.Exception.Message
+        if ($message -match 'EPERM|access.*denied|operation.*permitted|sandbox') {
+            Write-Check 'UI' 'Chrome/Edge process startup viable' 'FAIL' 'The detected browser could not be spawned from this shell. In Codex, approve sandbox escalation for browser startup, then rerun visual QA.'
+        }
+        else {
+            Write-Check 'UI' 'Chrome/Edge process startup viable' 'FAIL' 'The detected browser could not be spawned. Set CHROME_PATH/EDGE_PATH to a working Chrome or Edge executable.'
+        }
+        return
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -eq 0) {
+        Write-Check 'UI' 'Chrome/Edge process startup viable' 'PASS' 'Detected browser starts for a version probe.'
+    }
+    else {
+        Write-Check 'UI' 'Chrome/Edge process startup viable' 'FAIL' 'Detected browser version probe exited non-zero. Set CHROME_PATH/EDGE_PATH to a working Chrome or Edge executable, or approve sandbox escalation if process launch is blocked.'
+    }
+}
+
+function Test-VisualQaOutputWriteAccess {
+    $visualQaRoot = Join-Path $script:RepoRoot 'docs\implementation\visual-qa'
+
+    if (-not (Test-Path -LiteralPath $visualQaRoot -PathType Container)) {
+        Write-Check 'UI' 'visual QA output directory writable' 'FAIL' 'Create docs/implementation/visual-qa before running visual QA.'
+        return
+    }
+
+    $testFile = Join-Path $visualQaRoot ('.doctor-write-test-{0}.tmp' -f [guid]::NewGuid().ToString('N'))
+    try {
+        Set-Content -LiteralPath $testFile -Value 'doctor write test' -NoNewline
+        Remove-Item -LiteralPath $testFile -Force
+        Write-Check 'UI' 'visual QA output directory writable' 'PASS' 'Doctor-owned temp file write/delete succeeded.'
+    }
+    catch {
+        Write-Check 'UI' 'visual QA output directory writable' 'FAIL' 'Cannot write visual QA output. Fix filesystem permissions for docs/implementation/visual-qa or run with an approved workspace that can write there.'
+    }
+    finally {
+        if (Test-Path -LiteralPath $testFile -PathType Leaf) {
+            Remove-Item -LiteralPath $testFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Get-VisualQaPorts {
+    $visualQaScriptRoot = Join-Path $script:RepoRoot 'inex\ClientApp\visual-qa'
+    if (-not (Test-Path -LiteralPath $visualQaScriptRoot -PathType Container)) {
+        return @()
+    }
+
+    $ports = [System.Collections.Generic.List[int]]::new()
+    $scripts = @(Get-ChildItem -LiteralPath $visualQaScriptRoot -Filter '*.mjs' -File -ErrorAction SilentlyContinue)
+    foreach ($script in $scripts) {
+        $content = Get-Content -LiteralPath $script.FullName -Raw
+        $matches = [regex]::Matches($content, 'defaultPort:\s*(\d+)')
+        foreach ($match in $matches) {
+            [void]$ports.Add([int]$match.Groups[1].Value)
+        }
+    }
+
+    return @($ports | Sort-Object -Unique)
 }
 
 function Test-Ui {
@@ -109,12 +326,23 @@ function Test-Ui {
         Write-Check 'UI' 'npm command available' 'FAIL' 'Install Node.js/npm and reopen the shell.'
     }
 
+    if (Test-CommandExists 'node') {
+        Write-Check 'UI' 'node command available' 'PASS' 'OK.'
+    }
+    else {
+        Write-Check 'UI' 'node command available' 'FAIL' 'Install Node.js and reopen the shell.'
+    }
+
     if (Test-Path -LiteralPath $viteShimPath -PathType Leaf) {
         Write-Check 'UI' 'Vite Windows command shim exists' 'PASS' 'OK.'
     }
     else {
         Write-Check 'UI' 'Vite Windows command shim exists' 'FAIL' 'Run npm install from inex/ClientApp before npm start.'
     }
+
+    Test-ViteChildProcess -ClientRoot $clientRoot -ViteShimPath $viteShimPath
+    Test-VisualQaBrowser
+    Test-VisualQaOutputWriteAccess
 
     if (Test-Path -LiteralPath $packagePath -PathType Leaf) {
         try {
@@ -140,8 +368,10 @@ function Test-Ui {
         }
     }
 
-    foreach ($port in @(3000, 5173, 5177)) {
-        Write-PortCheck 'UI' $port
+    Write-PortAvailabilityCheck 'UI' 3000 'Vite dev server'
+
+    foreach ($port in (Get-VisualQaPorts)) {
+        Write-PortAvailabilityCheck 'UI' $port 'visual QA harness'
     }
 }
 
