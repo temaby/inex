@@ -9,6 +9,7 @@ import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { CategoryDetails } from "../../model/Category/CategoryDetails";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { TransactionCreateValidationErrors } from "./TransactionCreate";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
@@ -17,16 +18,17 @@ interface TransactionCreateIncomeFormProps {
     categories: CategoryDetails[];
     category: CategoryDetails;
     comment: string;
-    date: Dayjs;
+    date: Dayjs | null;
     onSetCategory: (item: DropdownSelectInfo) => void;
     onSetComment: React.ChangeEventHandler<HTMLInputElement>;
-    onSetDate: (value: Dayjs) => void;
+    onSetDate: (value: Dayjs | null) => void;
     onSetTags: React.ChangeEventHandler<HTMLInputElement>;
     onSetToAccount: (item: DropdownSelectInfo) => void;
     onSetToAmount: (value: number | null) => void;
     tags: string;
     toAccount: AccountDetails;
     toAmount: number;
+    validationErrors: TransactionCreateValidationErrors;
 }
 
 const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = ({
@@ -44,12 +46,17 @@ const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = 
     tags,
     toAccount,
     toAmount,
+    validationErrors,
 }) => {
     const { t } = useTranslation();
 
     return (
         <Form layout="vertical" hideRequiredMark>
-            <Form.Item label={t("transactions.amount")}>
+            <Form.Item
+                help={validationErrors.toAmount}
+                label={t("transactions.amount")}
+                validateStatus={validationErrors.toAmount ? "error" : undefined}
+            >
                 <ExpressionInputNumber
                     addonAfter={toAccount.currency}
                     key="income_amount"
@@ -60,14 +67,26 @@ const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = 
                     value={toAmount}
                 />
             </Form.Item>
-            <Form.Item label={t("transactions.account")}>
+            <Form.Item
+                help={validationErrors.toAccount}
+                label={t("transactions.account")}
+                validateStatus={validationErrors.toAccount ? "error" : undefined}
+            >
                 <Dropdown id="income_account" items={accounts} multiple={false} onChange={onSetToAccount} selection={[toAccount]} />
             </Form.Item>
-            <Form.Item label={t("transactions.category")}>
+            <Form.Item
+                help={validationErrors.category}
+                label={t("transactions.category")}
+                validateStatus={validationErrors.category ? "error" : undefined}
+            >
                 <Dropdown id="income_category" items={categories} multiple={false} onChange={onSetCategory} selection={[category]} />
             </Form.Item>
-            <Form.Item label={t("transactions.date")}>
-                <DatePicker mode="date" onChange={(value) => value && onSetDate(value)} value={date} />
+            <Form.Item
+                help={validationErrors.date}
+                label={t("transactions.date")}
+                validateStatus={validationErrors.date ? "error" : undefined}
+            >
+                <DatePicker mode="date" onChange={onSetDate} value={date} />
             </Form.Item>
             <Form.Item label={t("transactions.comment")}>
                 <Input key="income_comment" onChange={onSetComment} size="large" value={comment} />

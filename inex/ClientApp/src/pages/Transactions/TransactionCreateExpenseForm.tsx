@@ -9,6 +9,7 @@ import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { CategoryDetails } from "../../model/Category/CategoryDetails";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { TransactionCreateValidationErrors } from "./TransactionCreate";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
@@ -17,16 +18,17 @@ interface TransactionCreateExpenseFormProps {
     categories: CategoryDetails[];
     category: CategoryDetails;
     comment: string;
-    date: Dayjs;
+    date: Dayjs | null;
     fromAccount: AccountDetails;
     fromAmount: number;
     onSetCategory: (item: DropdownSelectInfo) => void;
     onSetComment: React.ChangeEventHandler<HTMLInputElement>;
-    onSetDate: (value: Dayjs) => void;
+    onSetDate: (value: Dayjs | null) => void;
     onSetFromAccount: (item: DropdownSelectInfo) => void;
     onSetFromAmount: (value: number | null) => void;
     onSetTags: React.ChangeEventHandler<HTMLInputElement>;
     tags: string;
+    validationErrors: TransactionCreateValidationErrors;
 }
 
 const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> = ({
@@ -44,12 +46,17 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
     onSetFromAmount,
     onSetTags,
     tags,
+    validationErrors,
 }) => {
     const { t } = useTranslation();
 
     return (
         <Form layout="vertical" hideRequiredMark>
-            <Form.Item label={t("transactions.amount")}>
+            <Form.Item
+                help={validationErrors.fromAmount}
+                label={t("transactions.amount")}
+                validateStatus={validationErrors.fromAmount ? "error" : undefined}
+            >
                 <ExpressionInputNumber
                     addonAfter={fromAccount.currency}
                     key="expense_amount"
@@ -60,14 +67,26 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                     value={fromAmount}
                 />
             </Form.Item>
-            <Form.Item label={t("transactions.account")}>
+            <Form.Item
+                help={validationErrors.fromAccount}
+                label={t("transactions.account")}
+                validateStatus={validationErrors.fromAccount ? "error" : undefined}
+            >
                 <Dropdown id="expense_account" items={accounts} multiple={false} onChange={onSetFromAccount} selection={[fromAccount]} />
             </Form.Item>
-            <Form.Item label={t("transactions.category")}>
+            <Form.Item
+                help={validationErrors.category}
+                label={t("transactions.category")}
+                validateStatus={validationErrors.category ? "error" : undefined}
+            >
                 <Dropdown id="expense_category" items={categories} multiple={false} onChange={onSetCategory} selection={[category]} />
             </Form.Item>
-            <Form.Item label={t("transactions.date")}>
-                <DatePicker mode="date" onChange={(value) => value && onSetDate(value)} value={date} />
+            <Form.Item
+                help={validationErrors.date}
+                label={t("transactions.date")}
+                validateStatus={validationErrors.date ? "error" : undefined}
+            >
+                <DatePicker mode="date" onChange={onSetDate} value={date} />
             </Form.Item>
             <Form.Item label={t("transactions.comment")}>
                 <Input key="expense_comment" onChange={onSetComment} size="large" value={comment} />
