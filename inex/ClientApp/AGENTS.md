@@ -45,8 +45,10 @@ Run from `inex/ClientApp`:
 npm run build
 npm run lint
 npm start
+npm run visual-qa:verify
 ```
 
 - Run `npm run build` and `npm run lint` for frontend changes unless the task or environment makes that infeasible.
 - If a frontend test script or targeted Vitest command is relevant, run it in addition to build/lint.
+- After `npm run visual-qa:all`, run `npm run visual-qa:verify` and report its PASS/FAIL summary.
 - Do not commit generated build output from `build/`.
