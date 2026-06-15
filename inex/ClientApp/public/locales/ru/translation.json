@@ -332,7 +332,7 @@
     "searchPlaceholder": "Поиск счетов...",
     "clearSearch": "Очистить поиск",
     "filteringBy": "Фильтр: \"{{query}}\"",
-    "shareOfNetWorth": "{{value}}% от чистой стоимости",
+    "shareOfNetWorth": "{{value}}%",
     "scope": {
       "active": "Активные",
       "all": "Все"
@@ -366,7 +366,7 @@
       "allScope": "все счета"
     },
     "equivalent": {
-      "approx": "примерно",
+      "approx": "≈",
       "unavailable": "Эквивалент недоступен"
     },
     "snapshot": {

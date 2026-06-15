@@ -440,13 +440,25 @@
     gap: 10px;
     grid-template-columns: minmax(220px, 1.8fr) 100px minmax(120px, 130px) minmax(120px, 130px) 24px;
     padding: 9px 14px;
+    position: relative;
     text-align: left;
     transition: background var(--dur-1) var(--ease-standard);
     width: 100%;
 }
 
-.accounts-row:hover {
+.accounts-row:hover,
+.accounts-row[aria-expanded="true"] {
     background: var(--bg-stripe);
+}
+
+.accounts-row[aria-expanded="true"]::before {
+    background: var(--income-500);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 3px;
 }
 
 .accounts-row.is-disabled {
@@ -575,6 +587,7 @@
 .accounts-currency-badge {
     align-items: center;
     border-radius: var(--radius-pill);
+    color: var(--fg-2);
     display: inline-flex;
     font-family: var(--font-num);
     font-size: 12px;
@@ -586,27 +599,22 @@
 
 .is-teal {
     background: var(--income-bg);
-    color: var(--income-fg);
 }
 
 .is-slate {
     background: var(--transfer-bg);
-    color: var(--transfer-fg);
 }
 
 .is-amber {
     background: var(--warn-bg);
-    color: var(--warn-fg);
 }
 
 .is-terracotta {
     background: var(--expense-bg);
-    color: var(--expense-fg);
 }
 
 .is-ink {
     background: var(--bg-muted);
-    color: var(--brand-ink);
 }
 
 @keyframes accounts-pulse {

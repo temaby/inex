@@ -25,6 +25,7 @@ vi.mock("../utils/apiClient", () => ({
 vi.mock("react-i18next", async (importOriginal) => ({
     ...await importOriginal<typeof import("react-i18next")>(),
     useTranslation: () => ({
+        i18n: { language: "en" },
         t: (key: string, options?: Record<string, unknown>) => {
             const translations: Record<string, string> = {
                 "accounts.workspaceTitle": "Accounts",
