@@ -147,7 +147,9 @@ const ReportCategory = () => {
                         <h2 className="report-title">{t("reports.categoryReport")}</h2>
                     </div>
                     <div className="report-toolbar__control">
-                        <span className="report-toolbar__label">{t("reports.monthControl")}</span>
+                        <label className="report-toolbar__label" htmlFor="report_interval">
+                            {t("reports.monthControl")}
+                        </label>
                         <DatePicker
                             id="report_interval"
                             picker="month"

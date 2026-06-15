@@ -61,6 +61,7 @@
 .spending-heatmap__chart-scroll {
   min-width: 0;
   overflow-x: auto;
+  scrollbar-gutter: stable;
   width: 100%;
 }
 
@@ -115,4 +116,12 @@
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .spending-heatmap__chart-scroll {
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-2);
+    box-shadow: inset -18px 0 18px -18px rgba(15, 30, 46, 0.35);
+  }
 }
