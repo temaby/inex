@@ -587,6 +587,7 @@ export async function runBrowserState({
 
     return {
       ...metrics,
+      routePath,
       pngDimensions,
       requestLog: stateRequestLog,
       consoleMessages: consoleMessages.filter(Boolean),

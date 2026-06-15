@@ -16,6 +16,7 @@ npm run visual-qa:hero-consistency
 npm run visual-qa:profile
 npm run visual-qa:reports
 npm run visual-qa:transactions
+npm run visual-qa:verify
 ```
 
 Output is refreshed under:
@@ -36,6 +37,19 @@ Each output folder contains:
 - `qa-summary.json` with viewport metrics, overflow checks, mobile bottom-nav checks, request logs, and `dataMode: fixture`
 
 The command does not require a real user password and does not call the real backend. Any unhandled `/api` request is failed by the harness with HTTP 502 and recorded in `qa-summary.json`.
+
+After refreshing the full suite, run:
+
+```powershell
+npm run visual-qa:all
+npm run visual-qa:verify
+```
+
+`visual-qa:verify` reads only the canonical summary folders listed above. It checks required route coverage, `dataMode: fixture`, `checks.hasFailures: false`, `harness.realBackendCalled: false`, `unhandledApiRequests: []`, required screenshot entries/files, and `generatedAt` freshness. The default freshness window is 24 hours; for local diagnostics against older captured evidence, pass an explicit window:
+
+```powershell
+npm run visual-qa:verify -- --max-age-hours=72
+```
 
 Playwright is not currently installed in `inex/ClientApp/package.json`. This first harness uses Chrome DevTools Protocol with a local headless Chrome or Edge executable. If no browser is detected, set `CHROME_PATH` or `EDGE_PATH`; adding Playwright should be handled in a dedicated dependency PR.
 

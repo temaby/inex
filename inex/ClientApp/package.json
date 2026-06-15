@@ -56,6 +56,7 @@
     "visual-qa:profile": "node visual-qa/profile.mjs",
     "visual-qa:reports": "node visual-qa/reports.mjs",
     "visual-qa:transactions": "node visual-qa/transactions.mjs",
+    "visual-qa:verify": "node visual-qa/verify-summaries.mjs",
     "test:watch": "vitest"
   }
 }

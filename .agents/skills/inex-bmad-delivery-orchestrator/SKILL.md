@@ -72,6 +72,7 @@ Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and rel
 - Frontend changes: run relevant tests, `npm run lint`, and `npm run build` from `inex/ClientApp/` as applicable.
 - DB/schema/provider/concurrency changes: use MySQL MCP for read-only validation before Docker, local MySQL, migrations, or connection-string fallbacks.
 - Visual work: run project doctor before UI/browser work if available, capture visual QA evidence, and do not claim visual verification without evidence.
+- After `npm run visual-qa:all`, run `npm run visual-qa:verify` from `inex/ClientApp/` and include its concise PASS/FAIL result in the verification report. If only a page-specific harness ran, state that the full-suite verifier was not applicable.
 - Do not start the application or call live external/paid providers unless explicitly approved.
 - If app setup fails, run the project doctor and report setup blockers before continuing.
 

@@ -338,15 +338,16 @@ Required steps:
 4. Capture required desktop and mobile states.
 5. Check for horizontal overflow and mobile nav occlusion.
 6. Produce or update screenshots and `qa-summary.json`.
-7. Do not claim parity if tooling, fixtures, or browser verification are blocked.
+7. After `npm run visual-qa:all`, run `npm run visual-qa:verify` and include its concise PASS/FAIL result.
+8. Do not claim parity if tooling, fixtures, browser verification, or summary verification are blocked.
 
 Return evidence location, states captured, failures, and gaps.
 ```
 
 **Required inputs:** `<page>`, `<route>`, fixture/baseline doc, output location.
 
-**Expected output:** Refreshed screenshots, `qa-summary.json`, capture summary, blockers or gaps.
+**Expected output:** Refreshed screenshots, `qa-summary.json`, verifier result, capture summary, blockers or gaps.
 
-**Verification requirements:** Doctor run; fixture mode for parity; desktop/mobile captures; overflow and occlusion checks.
+**Verification requirements:** Doctor run; fixture mode for parity; desktop/mobile captures; overflow and occlusion checks; `npm run visual-qa:verify` after full-suite refresh.
 
-**Stop conditions:** Visual QA tooling missing, fixture baseline undecided, app/browser setup blocked, live data would make parity evidence non-deterministic.
+**Stop conditions:** Visual QA tooling missing, fixture baseline undecided, app/browser setup blocked, failing summary verifier, live data would make parity evidence non-deterministic.
