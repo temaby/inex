@@ -104,8 +104,6 @@ const ReportMonthlyHistory = () => {
     label: item.monthName,
     value: <Num value={item.savings} currency={currency} kind={item.savings >= 0 ? "income" : "expense"} />,
     detail: `${t("reports.income")}: ${tooltipFormatter(item.income)} | ${t("reports.expense")}: ${tooltipFormatter(item.expense)}`,
-    actionLabel: t("reports.viewCategoryReport"),
-    onAction: () => handleBarClick({ month: item.month }),
   }));
 
   return (
@@ -117,8 +115,17 @@ const ReportMonthlyHistory = () => {
             <h2 className="report-title">{t("reports.historyReport")}</h2>
           </div>
           <div className="report-toolbar__control">
-            <span className="report-toolbar__label">{t("reports.yearControl")}</span>
-            <DatePicker picker="year" value={dayjs().year(year)} onChange={handleYearChange} allowClear={false} inputReadOnly />
+            <label className="report-toolbar__label" htmlFor="report-history-year">
+              {t("reports.yearControl")}
+            </label>
+            <DatePicker
+              id="report-history-year"
+              picker="year"
+              value={dayjs().year(year)}
+              onChange={handleYearChange}
+              allowClear={false}
+              inputReadOnly
+            />
           </div>
         </div>
       </section>

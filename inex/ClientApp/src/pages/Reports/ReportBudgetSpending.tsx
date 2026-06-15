@@ -136,8 +136,17 @@ const ReportBudgetSpending: React.FC = () => {
                         <h2 className="report-title">{t("reports.budgetReport")}</h2>
                     </div>
                     <div className="report-toolbar__control">
-                        <span className="report-toolbar__label">{t("reports.monthControl")}</span>
-                        <DatePicker picker="month" value={localDate} onChange={handleDateChange} allowClear={false} inputReadOnly />
+                        <label className="report-toolbar__label" htmlFor="report-budget-month">
+                            {t("reports.monthControl")}
+                        </label>
+                        <DatePicker
+                            id="report-budget-month"
+                            picker="month"
+                            value={localDate}
+                            onChange={handleDateChange}
+                            allowClear={false}
+                            inputReadOnly
+                        />
                     </div>
                 </div>
             </section>
@@ -183,7 +192,43 @@ const ReportBudgetSpending: React.FC = () => {
                 </section>
 
                 <section className="report-panel">
-                    <div className="report-table-wrap">
+                    <div className="report-mobile-list" aria-label={t("reports.budgetSummaryTitle")}>
+                        {items.map((item) => (
+                            <article className="report-mobile-list__item" key={item.categoryName}>
+                                <div className="report-mobile-list__head">
+                                    <button type="button" className="reports-link-button" onClick={() => openBudgetTransactions(item)}>
+                                        {item.categoryName}
+                                    </button>
+                                    <Num
+                                        value={item.remainingAmount}
+                                        currency={currency}
+                                        kind={item.remainingAmount >= 0 ? "income" : "expense"}
+                                    />
+                                </div>
+                                <BudgetProgress
+                                    value={item.spentAmount}
+                                    max={item.budgetedAmount}
+                                    showLabel
+                                    overBudgetLabel={t("reports.overBudget")}
+                                />
+                                <dl className="report-mobile-list__metrics">
+                                    <div>
+                                        <dt>{t("reports.budget")}</dt>
+                                        <dd><Num value={item.budgetedAmount} currency={currency} kind="neutral" /></dd>
+                                    </div>
+                                    <div>
+                                        <dt>{t("reports.spent")}</dt>
+                                        <dd><Num value={item.spentAmount} currency={currency} kind="expense" /></dd>
+                                    </div>
+                                    <div>
+                                        <dt>{t("reports.used")}</dt>
+                                        <dd>{item.percentageUsed.toFixed(1)}%</dd>
+                                    </div>
+                                </dl>
+                            </article>
+                        ))}
+                    </div>
+                    <div className="report-table-wrap report-table-wrap--desktop">
                         <Table
                             className="report-table"
                             dataSource={items}
