@@ -217,6 +217,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".category-row"));
+    const columnHeaders = Array.from(document.querySelectorAll(".categories-list .inex-list-panel__columns span"));
+    const firstRowCells = rows[0]
+      ? Array.from(rows[0].children).filter((child) => child instanceof HTMLElement)
+      : [];
     const expandedRows = rows.filter((row) => row.getAttribute("aria-expanded") === "true");
     const inlineEdit = document.querySelector(".category-inline-edit");
     const hero = document.querySelector('[data-qa="hero-card"]');
@@ -274,6 +278,19 @@ async function collectMetrics(client, state, apiRequestCount) {
     const toolbarContentRight = toolbarRect && toolbarStyle
       ? toolbarRect.right - Number.parseFloat(toolbarStyle.paddingRight || "0")
       : null;
+    const columnAlignmentDeltas = columnHeaders.map((header, index) => {
+      const rowCell = firstRowCells[index];
+      const headerRect = header.getBoundingClientRect();
+      const rowCellRect = rowCell ? rowCell.getBoundingClientRect() : null;
+      return rowCellRect
+        ? {
+          header: header.textContent.trim().replace(/\\s+/g, " "),
+          left: Math.round(headerRect.left - rowCellRect.left),
+          right: Math.round(headerRect.right - rowCellRect.right),
+          width: Math.round(headerRect.width - rowCellRect.width),
+        }
+        : null;
+    });
 
     return {
       title: document.title,
@@ -310,6 +327,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       heroSecondaryTextHasDecimal: heroSecondaryText ? /\\d[\\d,]*\\.\\d/.test(heroSecondaryText.textContent) : null,
       heroComparisonVisible: heroSecondaryText ? /\\bChange from\\b/.test(heroSecondaryText.textContent) : false,
       toolbarLabels,
+      columnAlignmentDeltas,
       distributionText: distribution ? distribution.innerText.replace(/\\s+/g, " ").trim() : "",
       usdEquivalentVisibleInHeroDistribution: distribution ? distribution.innerText.includes("USD equivalent") : false,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
@@ -397,6 +415,14 @@ function collectAdditionalFailures(stateResults) {
     if (state.viewport.width >= 1024 && !nearZero(state.toolbarSearchRightOffset)) {
       failures.push(`${state.name}: Categories search right offset ${state.toolbarSearchRightOffset} is not aligned to the toolbar edge`);
     }
+    if (state.viewport.width >= 1024) {
+      const misalignedColumn = state.columnAlignmentDeltas
+        .filter(Boolean)
+        .find((delta) => !nearZero(delta.left, 1) || !nearZero(delta.right, 1) || !nearZero(delta.width, 1));
+      if (misalignedColumn) {
+        failures.push(`${state.name}: Categories ${misalignedColumn.header || "action"} column header is not aligned with row cells (${JSON.stringify(misalignedColumn)})`);
+      }
+    }
   }
 
   return failures;
@@ -441,6 +467,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "Status and View labels use the shared uppercase small-label treatment",
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
+      "desktop category table headers align with rendered row columns",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

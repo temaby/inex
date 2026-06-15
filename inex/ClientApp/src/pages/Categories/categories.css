@@ -267,8 +267,23 @@
 }
 
 .categories-list .inex-list-panel__columns {
+    gap: 0;
     grid-template-columns: var(--categories-list-columns);
-    padding: 10px 16px;
+    padding: 10px 0;
+}
+
+.categories-list .inex-list-panel__columns span {
+    padding: 0 16px;
+}
+
+.categories-list .inex-list-panel__columns span:nth-child(2),
+.categories-list .inex-list-panel__columns span:nth-child(3) {
+    text-align: right;
+}
+
+.categories-list .inex-list-panel__columns span:last-child {
+    padding-left: 0;
+    padding-right: 8px;
 }
 
 .category-row {

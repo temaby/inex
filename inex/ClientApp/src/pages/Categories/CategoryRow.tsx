@@ -145,12 +145,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                         <strong>
                             <Num value={spend} currency={currency} kind="expense" />
                         </strong>
-                        <small>
-                            {t("categories.activity.periodCurrency", {
-                                currency,
-                                period: periodLabel,
-                            })}
-                        </small>
+                        <small>{periodLabel}</small>
                     </React.Fragment>
                 ) : (
                     <strong
