@@ -330,7 +330,7 @@
     "searchPlaceholder": "Search accounts...",
     "clearSearch": "Clear search",
     "filteringBy": "Filtering by \"{{query}}\"",
-    "shareOfNetWorth": "{{value}}% of net worth",
+    "shareOfNetWorth": "{{value}}%",
     "scope": {
       "active": "Active",
       "all": "All"
@@ -364,7 +364,7 @@
       "allScope": "all accounts"
     },
     "equivalent": {
-      "approx": "approx",
+      "approx": "≈",
       "unavailable": "Equivalent unavailable"
     },
     "snapshot": {

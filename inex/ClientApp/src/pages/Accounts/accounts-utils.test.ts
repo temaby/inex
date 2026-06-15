@@ -6,6 +6,7 @@ import {
   getAccountDisplayDescription,
   getBaseCurrency,
   getTotalBaseValue,
+  makeCurrencyDistribution,
   makeCurrencyGroups,
   sortAccountsByBaseValue,
   toFixedMoney,
@@ -151,7 +152,8 @@ describe("accounts value helpers", () => {
     const groups = makeCurrencyGroups(displayAccounts, 33968.12);
 
     expect(toFixedMoney(getTotalBaseValue(displayAccounts))).toBe(accountsVisualFixtureMeta.expectedNetWorth);
-    expect(groups.map((group) => group.currency)).toEqual(accountsVisualFixtureMeta.expectedDistributionOrder);
+    expect(makeCurrencyDistribution(groups, "Other").map((item) => item.label))
+      .toEqual(accountsVisualFixtureMeta.expectedDistributionOrder);
     expect(accountsVisualFixtureMeta.defaultCollapsedCurrencies).toEqual([]);
     expect(accountsVisualFixtureMeta.comparisonPeriodLabel).toBe("Mar 2026");
   });

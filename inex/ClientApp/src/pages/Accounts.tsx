@@ -21,6 +21,7 @@ import {
     SegmentedControl,
     Tag as InExTag,
 } from "../components/primitives";
+import type { NumProps } from "../components/primitives";
 import BasicPage from "../layouts/BasicPage";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
@@ -295,7 +296,7 @@ const Accounts = () => {
 
     const renderBaseEquivalent = (
         value: number | null,
-        options: { approx?: boolean; className?: string } = {},
+        options: { approx?: boolean; className?: string; fractionDigits?: NumProps["fractionDigits"] } = {},
     ) => {
         if (value === null || !baseCurrency) {
             return (
@@ -314,6 +315,7 @@ const Accounts = () => {
                 )}
                 <Num
                     currency={baseCurrency}
+                    fractionDigits={options.fractionDigits}
                     kind={value < 0 ? "expense" : "neutral"}
                     value={toFixedMoney(value)}
                 />
@@ -466,8 +468,9 @@ const Accounts = () => {
                                         value={toFixedMoney(accountValue)}
                                     />
                                     {renderBaseEquivalent(account.baseValue, {
-                                        approx: true,
+                                        approx: account.currency !== baseCurrency,
                                         className: "accounts-row__balance-equivalent",
+                                        fractionDigits: account.currency !== baseCurrency ? 0 : undefined,
                                     })}
                                 </React.Fragment>
                             )}
@@ -589,8 +592,9 @@ const Accounts = () => {
                                             : t("accounts.hero.balanceUnavailable")}
                                     </span>
                                     {renderBaseEquivalent(group.baseSubtotal, {
-                                        approx: true,
+                                        approx: group.currency !== baseCurrency,
                                         className: "accounts-group__base",
+                                        fractionDigits: group.currency !== baseCurrency ? 0 : undefined,
                                     })}
                                 </span>
                             </button>
