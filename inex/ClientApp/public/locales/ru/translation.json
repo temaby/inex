@@ -819,6 +819,7 @@
     "amount.not_zero": "Сумма не может быть равна нулю",
     "amount_from.must_be_positive": "Сумма источника должна быть больше нуля",
     "amount_to.must_be_positive": "Сумма назначения должна быть больше нуля",
+    "date.required": "Дата обязательна",
     "account_id.invalid": "Выберите корректный счёт",
     "account_from_id.invalid": "Выберите корректный счёт источника",
     "account_to_id.invalid": "Выберите корректный счёт назначения",

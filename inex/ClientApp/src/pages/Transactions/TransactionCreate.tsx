@@ -28,8 +28,18 @@ interface TransactionCreateProps {
     onSubmit: () => void;
 }
 
-interface TransactionCreateState extends TransactionSetState {
+interface TransactionCreateState extends Omit<TransactionSetState, "date"> {
+    date: Dayjs | null;
     tagsInput: string;
+}
+
+export interface TransactionCreateValidationErrors {
+    category?: string;
+    date?: string;
+    fromAccount?: string;
+    fromAmount?: string;
+    toAccount?: string;
+    toAmount?: string;
 }
 
 type TransactionCreateAction =
@@ -39,7 +49,7 @@ type TransactionCreateAction =
     | { type: "SET_ACCOUNT_FROM"; value: AccountDetails }
     | { type: "SET_ACCOUNT_TO"; value: AccountDetails }
     | { type: "SET_CATEGORY"; value: CategoryDetails }
-    | { type: "SET_DATE"; value: Dayjs }
+    | { type: "SET_DATE"; value: Dayjs | null }
     | { type: "SET_COMMENT"; value: string }
     | { type: "SET_TAGS"; value: string }
     | { type: "RESET" };
@@ -106,6 +116,8 @@ const findCategoryById = (categories: CategoryDetails[], id: number): CategoryDe
     return undefined;
 };
 
+const isSelectedEntity = (id: number | undefined): boolean => typeof id === "number" && id > 0;
+
 const TransactionCreate: React.FC<TransactionCreateProps> = ({
     accounts,
     categories,
@@ -115,6 +127,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const [state, dispatchTransactionAction] = useReducer(reducer, undefined, createDefaultState);
+    const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
 
@@ -125,33 +138,54 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 
     const setModeHandler = (mode: string) => {
         dispatchTransactionAction({ type: "SET_MODE", value: mode as TransactionType });
+        setValidationErrors({});
+    };
+
+    const clearValidationError = (...fields: (keyof TransactionCreateValidationErrors)[]) => {
+        setValidationErrors(prev => {
+            const next = { ...prev };
+            for (const field of fields) delete next[field];
+            return next;
+        });
     };
 
     const setFromAmountHandler = (value: number | null) => {
         dispatchTransactionAction({ type: "SET_AMOUNT_FROM", value: value ?? 0 });
+        clearValidationError("fromAmount");
     };
 
     const setToAmountHandler = (value: number | null) => {
         dispatchTransactionAction({ type: "SET_AMOUNT_TO", value: value ?? 0 });
+        clearValidationError("toAmount");
     };
 
     const setFromAccountHandler = (item: DropdownSelectInfo) => {
         const account = accounts.find((candidate) => candidate.id === Number(item.key));
-        if (account) dispatchTransactionAction({ type: "SET_ACCOUNT_FROM", value: toAccountDetails(account) });
+        if (account) {
+            dispatchTransactionAction({ type: "SET_ACCOUNT_FROM", value: toAccountDetails(account) });
+            clearValidationError("fromAccount", "toAccount");
+        }
     };
 
     const setToAccountHandler = (item: DropdownSelectInfo) => {
         const account = accounts.find((candidate) => candidate.id === Number(item.key));
-        if (account) dispatchTransactionAction({ type: "SET_ACCOUNT_TO", value: toAccountDetails(account) });
+        if (account) {
+            dispatchTransactionAction({ type: "SET_ACCOUNT_TO", value: toAccountDetails(account) });
+            clearValidationError("toAccount");
+        }
     };
 
     const setCategoryHandler = (item: DropdownSelectInfo) => {
         const category = findCategoryById(categoryTree, Number(item.key));
-        if (category) dispatchTransactionAction({ type: "SET_CATEGORY", value: category });
+        if (category) {
+            dispatchTransactionAction({ type: "SET_CATEGORY", value: category });
+            clearValidationError("category");
+        }
     };
 
-    const setDateHandler = (value: Dayjs) => {
+    const setDateHandler = (value: Dayjs | null) => {
         dispatchTransactionAction({ type: "SET_DATE", value });
+        clearValidationError("date");
     };
 
     const setCommentHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,12 +198,52 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 
     const resetAndClose = (close: () => void) => {
         dispatchTransactionAction({ type: "RESET" });
+        setValidationErrors({});
         dispatch(transactionsActions.setError({ error: null }));
         close();
     };
 
+    const validateCurrentState = (): TransactionCreateValidationErrors => {
+        const errors: TransactionCreateValidationErrors = {};
+
+        if (!state.date) errors.date = t("errors.date.required");
+
+        if (state.mode === TransactionType.EXPENSE) {
+            if (!isSelectedEntity(state.fromAccount.id)) errors.fromAccount = t("errors.account_id.invalid");
+            if (!isSelectedEntity(state.category.id)) errors.category = t("errors.category_id.invalid");
+            if (state.fromAmount <= 0) errors.fromAmount = t("errors.amount.not_zero");
+        } else if (state.mode === TransactionType.INCOME) {
+            if (!isSelectedEntity(state.toAccount.id)) errors.toAccount = t("errors.account_id.invalid");
+            if (!isSelectedEntity(state.category.id)) errors.category = t("errors.category_id.invalid");
+            if (state.toAmount <= 0) errors.toAmount = t("errors.amount.not_zero");
+        } else if (state.mode === TransactionType.TRANSFER) {
+            if (!isSelectedEntity(state.fromAccount.id)) errors.fromAccount = t("errors.account_from_id.invalid");
+            if (!isSelectedEntity(state.toAccount.id)) errors.toAccount = t("errors.account_to_id.invalid");
+            if (state.fromAmount <= 0) errors.fromAmount = t("errors.amount_from.must_be_positive");
+            if (state.toAmount <= 0) errors.toAmount = t("errors.amount_to.must_be_positive");
+            if (
+                isSelectedEntity(state.fromAccount.id) &&
+                isSelectedEntity(state.toAccount.id) &&
+                state.fromAccount.id === state.toAccount.id
+            ) {
+                errors.toAccount = t("errors.account_to_id.same_as_source");
+            }
+        }
+
+        return errors;
+    };
+
     const saveTransactionHandler = async () => {
+        const nextValidationErrors = validateCurrentState();
+
+        if (Object.keys(nextValidationErrors).length > 0 || !state.date) {
+            setValidationErrors(nextValidationErrors);
+            return;
+        }
+
+        setValidationErrors({});
         const comment = mergeCommentWithTags(state.comment, state.tagsInput);
+        const created = state.date.format("YYYY-MM-DD");
 
         try {
             if (state.mode === TransactionType.EXPENSE) {
@@ -178,7 +252,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     categoryId: state.category.id,
                     amount: 0 - state.fromAmount,
                     comment,
-                    created: state.date.format("YYYY-MM-DD"),
+                    created,
                 }).unwrap();
             } else if (state.mode === TransactionType.INCOME) {
                 await createTransactionMutation({
@@ -186,7 +260,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     categoryId: state.category.id,
                     amount: state.toAmount,
                     comment,
-                    created: state.date.format("YYYY-MM-DD"),
+                    created,
                 }).unwrap();
             } else if (state.mode === TransactionType.TRANSFER) {
                 await createTransferMutation({
@@ -195,7 +269,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     amountFrom: state.fromAmount,
                     amountTo: state.toAmount,
                     comment,
-                    created: state.date.format("YYYY-MM-DD"),
+                    created,
                 }).unwrap();
             }
         } catch {
@@ -246,6 +320,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetFromAmount={setFromAmountHandler}
                     onSetTags={setTagsHandler}
                     tags={state.tagsInput}
+                    validationErrors={validationErrors}
                 />
             )}
 
@@ -265,6 +340,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     tags={state.tagsInput}
                     toAccount={state.toAccount}
                     toAmount={state.toAmount}
+                    validationErrors={validationErrors}
                 />
             )}
 
@@ -283,6 +359,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetToAmount={setToAmountHandler}
                     toAccount={state.toAccount}
                     toAmount={state.toAmount}
+                    validationErrors={validationErrors}
                 />
             )}
 
