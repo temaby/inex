@@ -285,7 +285,13 @@
     "toolbarCount": "{{visible}} из {{total}} транзакций за {{period}}",
     "paginationSummary": "Показано {{visible}} из {{total}} транзакций за {{period}}",
     "period": {
+      "currentMonth": "Текущий месяц",
       "allActiveDates": "Все активные даты"
+    },
+    "month": {
+      "chooser": "Месяц транзакций",
+      "previous": "Предыдущий месяц",
+      "next": "Следующий месяц"
     },
     "day": {
       "today": "Сегодня",

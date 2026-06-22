@@ -283,7 +283,13 @@
     "toolbarCount": "{{visible}} of {{total}} transactions in {{period}}",
     "paginationSummary": "Showing {{visible}} of {{total}} transactions for {{period}}",
     "period": {
+      "currentMonth": "Current month",
       "allActiveDates": "All active dates"
+    },
+    "month": {
+      "chooser": "Transaction month",
+      "previous": "Previous month",
+      "next": "Next month"
     },
     "day": {
       "today": "Today",

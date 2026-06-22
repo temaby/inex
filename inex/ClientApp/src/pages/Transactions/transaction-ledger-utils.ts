@@ -43,6 +43,8 @@ export interface BaseCurrencyEquivalent {
   value: number;
 }
 
+export type TransactionMonthRange = [number, number];
+
 export const emptyLedgerFilter: LedgerUiFilter = {
   type: "all",
   search: "",
@@ -169,6 +171,41 @@ export const formatTransactionPeriodLabel = (range: number[], fallback: string):
   }
 
   return `${dayjs.unix(range[0]).format("D MMM YYYY")} - ${dayjs.unix(range[1]).format("D MMM YYYY")}`;
+};
+
+export const getTransactionMonthRange = (month: dayjs.ConfigType = new Date()): TransactionMonthRange => {
+  const parsedMonth = dayjs(month);
+  return [parsedMonth.startOf("month").unix(), parsedMonth.endOf("month").unix()];
+};
+
+export const getCurrentTransactionMonthRange = (now: dayjs.ConfigType = new Date()): TransactionMonthRange =>
+  getTransactionMonthRange(now);
+
+const getMonthAnchor = (range: number[]): dayjs.Dayjs =>
+  range.length === 2 && range[0] > 0 ? dayjs.unix(range[0]) : dayjs();
+
+export const shiftTransactionMonthRange = (range: number[], monthDelta: number): TransactionMonthRange =>
+  getTransactionMonthRange(getMonthAnchor(range).add(monthDelta, "month"));
+
+export const isWholeTransactionMonthRange = (range: number[]): boolean => {
+  if (range.length !== 2 || range[0] <= 0 || range[1] <= 0) return false;
+
+  const start = dayjs.unix(range[0]);
+  const end = dayjs.unix(range[1]);
+  return start.isSame(start.startOf("month"), "second") && end.isSame(start.endOf("month"), "second");
+};
+
+export const isCurrentOrFutureTransactionMonth = (
+  range: number[],
+  now: dayjs.ConfigType = new Date(),
+): boolean =>
+  getMonthAnchor(range).startOf("month").isSame(dayjs(now).startOf("month")) ||
+  getMonthAnchor(range).startOf("month").isAfter(dayjs(now).startOf("month"));
+
+export const formatTransactionMonthLabel = (range: number[], fallback: string): string => {
+  if (range.length !== 2 || range[0] <= 0) return fallback;
+
+  return dayjs.unix(range[0]).format("MMMM YYYY");
 };
 
 export const mergeCommentWithTags = (comment: string, tagsInput: string): string => {

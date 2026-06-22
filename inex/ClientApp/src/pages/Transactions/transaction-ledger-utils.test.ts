@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { describe, expect, it } from "vitest";
 
 import type { CategoryResponse } from "../../store/categories/categories-api";
@@ -5,9 +6,13 @@ import type { TransactionResponse } from "../../model/Transaction/TransactionRes
 import {
   getBaseCurrencyEquivalent,
   getCategoryPathLabel,
+  getCurrentTransactionMonthRange,
   getFriendlyTransactionDayLabel,
   getLedgerTypeCounts,
+  isCurrentOrFutureTransactionMonth,
+  isWholeTransactionMonthRange,
   mergeCommentWithTags,
+  shiftTransactionMonthRange,
   toBaseCurrencyAmount,
 } from "./transaction-ledger-utils";
 
@@ -97,6 +102,28 @@ describe("transaction ledger helpers", () => {
       expense: 1,
       transfer: 1,
     });
+  });
+
+  it("builds inclusive calendar-month ranges and shifts between months", () => {
+    expect(getCurrentTransactionMonthRange("2026-06-22T10:00:00")).toEqual([
+      dayjs("2026-06-01T00:00:00").unix(),
+      dayjs("2026-06-30T23:59:59").unix(),
+    ]);
+
+    expect(shiftTransactionMonthRange(getCurrentTransactionMonthRange("2026-06-22T10:00:00"), -1)).toEqual([
+      dayjs("2026-05-01T00:00:00").unix(),
+      dayjs("2026-05-31T23:59:59").unix(),
+    ]);
+  });
+
+  it("recognizes whole-month ranges and prevents navigating past the current month", () => {
+    const june = getCurrentTransactionMonthRange("2026-06-22T10:00:00");
+    const may = shiftTransactionMonthRange(june, -1);
+
+    expect(isWholeTransactionMonthRange(june)).toBe(true);
+    expect(isWholeTransactionMonthRange([dayjs("2026-06-05").unix(), june[1]])).toBe(false);
+    expect(isCurrentOrFutureTransactionMonth(june, "2026-06-22T10:00:00")).toBe(true);
+    expect(isCurrentOrFutureTransactionMonth(may, "2026-06-22T10:00:00")).toBe(false);
   });
 
   it("merges tag input into comment tokens without changing the backend contract", () => {
