@@ -46,6 +46,8 @@ interface TransactionDateGroup {
     items: TransactionResponse[];
 }
 
+const emptyTransactions: TransactionResponse[] = [];
+
 const matchesAmount = (amount: number, min: string, max: string): boolean => {
     const absoluteAmount = Math.abs(amount);
     const minValue = min.trim() === "" ? null : Number(min);
@@ -148,7 +150,7 @@ const TransactionList = ({
         { skip: accounts.length === 0 || categories.length === 0 },
     );
 
-    const transactions = data?.data ?? [];
+    const transactions = data?.data ?? emptyTransactions;
     const total = data?.metadata.totalItems ?? 0;
     const hasRows = transactions.length > 0;
 
@@ -285,8 +287,7 @@ const TransactionList = ({
         queryFilter.accountIds.length > 0 ||
         queryFilter.categoryIds.length > 0 ||
         queryFilter.tags.length > 0 ||
-        queryFilter.refs.length > 0 ||
-        (queryFilter.range.length === 2 && (queryFilter.range[0] > 0 || queryFilter.range[1] > 0));
+        queryFilter.refs.length > 0;
 
     if (!isLoading && transactions.length === 0 && serverFilterActive) {
         return (

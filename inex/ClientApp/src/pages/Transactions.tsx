@@ -1,15 +1,15 @@
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "antd";
-import { Filter, Plus, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
-import type { TransactionFilter } from "../store/transactions/transactions-slice";
+import { transactionsActions, transactionsDefaultFilter, type TransactionFilter } from "../store/transactions/transactions-slice";
 import {
     InExButton,
     InExDrawer,
@@ -26,8 +26,13 @@ import { buildTransactionFilterSearch } from "./Transactions/transaction-filter-
 import {
     emptyLedgerFilter,
     emptyLedgerMetrics,
+    formatTransactionMonthLabel,
     formatTransactionPeriodLabel,
     getBaseCurrencyCode,
+    getCurrentTransactionMonthRange,
+    isCurrentOrFutureTransactionMonth,
+    isWholeTransactionMonthRange,
+    shiftTransactionMonthRange,
     type LedgerMetrics,
     type LedgerTypeFilter,
     type LedgerUiFilter,
@@ -44,8 +49,7 @@ const isTransactionFilterActive = (filter: TransactionFilter): boolean =>
     filter.accountIds.length > 0 ||
     filter.categoryIds.length > 0 ||
     filter.tags.length > 0 ||
-    filter.refs.length > 0 ||
-    (filter.range.length === 2 && (filter.range[0] > 0 || filter.range[1] > 0));
+    filter.refs.length > 0;
 
 const isLedgerUiFilterActive = (filter: LedgerUiFilter): boolean =>
     filter.type !== "all" ||
@@ -64,6 +68,7 @@ const formatDateRange = (range: number[]): string => {
 
 const Transactions = () => {
     const { t } = useTranslation();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -95,19 +100,80 @@ const Transactions = () => {
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
     const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
     const noMatchActive = filterActive && ledgerMetrics.totalCount > 0 && ledgerMetrics.visibleCount === 0;
+    const activeMonthRange = filterState.range.length === 2 ? filterState.range : getCurrentTransactionMonthRange();
     const periodLabel = useMemo(
-        () => formatTransactionPeriodLabel(filterState.range, t("transactions.period.allActiveDates")),
-        [filterState.range, t],
+        () => isWholeTransactionMonthRange(activeMonthRange)
+            ? formatTransactionMonthLabel(activeMonthRange, t("transactions.period.currentMonth"))
+            : formatTransactionPeriodLabel(activeMonthRange, t("transactions.period.currentMonth")),
+        [activeMonthRange, t],
+    );
+    const nextMonthDisabled = useMemo(
+        () => isCurrentOrFutureTransactionMonth(activeMonthRange),
+        [activeMonthRange],
     );
 
-    const clearServerFilter = (nextFilter: TransactionFilter) => {
-        navigate(`${location.pathname}${buildTransactionFilterSearch(nextFilter)}`, { replace: true });
-    };
+    const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {
+        dispatch(transactionsActions.setFilter({ filter: nextFilter }));
+        navigate(`${location.pathname}${buildTransactionFilterSearch(nextFilter)}`, { replace });
+    }, [dispatch, location.pathname, navigate]);
 
-    const clearAllFilters = () => {
+    useEffect(() => {
+        if (filterParam !== null) return;
+
+        applyServerFilter({
+            ...transactionsDefaultFilter,
+            range: getCurrentTransactionMonthRange(),
+        }, true);
+    }, [applyServerFilter, filterParam]);
+
+    const changeMonth = useCallback((monthDelta: number) => {
+        applyServerFilter({
+            ...filterState,
+            range: shiftTransactionMonthRange(activeMonthRange, monthDelta),
+        }, false);
+    }, [activeMonthRange, applyServerFilter, filterState]);
+
+    const resetToCurrentMonth = useCallback(() => {
+        applyServerFilter({
+            ...filterState,
+            range: getCurrentTransactionMonthRange(),
+        }, false);
+    }, [applyServerFilter, filterState]);
+
+    const clearAllFilters = useCallback(() => {
         setLedgerFilter(emptyLedgerFilter);
-        navigate(location.pathname, { replace: true });
-    };
+        applyServerFilter({
+            ...transactionsDefaultFilter,
+            range: getCurrentTransactionMonthRange(),
+        }, true);
+    }, [applyServerFilter]);
+
+    const clearServerFilter = useCallback((nextFilter: TransactionFilter) => {
+        applyServerFilter(nextFilter, true);
+    }, [applyServerFilter]);
+
+    const monthControls = (
+        <div className="transactions-month-controls" aria-label={t("transactions.month.chooser")}>
+            <InExButton
+                aria-label={t("transactions.month.previous")}
+                icon={<ChevronLeft size={15} />}
+                kind="ghost"
+                onClick={() => changeMonth(-1)}
+                size="sm"
+            />
+            <button className="transactions-month-current" onClick={resetToCurrentMonth} type="button">
+                {periodLabel}
+            </button>
+            <InExButton
+                aria-label={t("transactions.month.next")}
+                disabled={nextMonthDisabled}
+                icon={<ChevronRight size={15} />}
+                kind="ghost"
+                onClick={() => changeMonth(1)}
+                size="sm"
+            />
+        </div>
+    );
 
     const chips = useMemo<FilterChip[]>(() => {
         const accountById = new Map(allAccounts.map(account => [account.id, account.name]));
@@ -162,11 +228,11 @@ const Transactions = () => {
             });
         }
 
-        if (filterState.range.length === 2 && (filterState.range[0] > 0 || filterState.range[1] > 0)) {
+        if (filterState.range.length === 2 && !isWholeTransactionMonthRange(filterState.range)) {
             next.push({
                 key: "date",
                 label: `${t("transactions.date")}: ${formatDateRange(filterState.range)}`,
-                onClear: () => clearServerFilter({ ...filterState, range: [] }),
+                onClear: () => clearServerFilter({ ...filterState, range: getCurrentTransactionMonthRange() }),
             });
         }
 
@@ -179,7 +245,7 @@ const Transactions = () => {
         }
 
         return next;
-    }, [allAccounts, allCategories, filterState, ledgerFilter, location.pathname, navigate, t]);
+    }, [allAccounts, allCategories, clearServerFilter, filterState, ledgerFilter, t]);
 
     const kpiItems = [
         {
@@ -246,7 +312,7 @@ const Transactions = () => {
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
                                 <h2>{t("transactions.ledger")}</h2>
-                                <span className="transactions-period-badge">{periodLabel}</span>
+                                {monthControls}
                                 <span className="transactions-toolbar-count">
                                     {t("transactions.toolbarCount", {
                                         visible: ledgerMetrics.visibleCount,

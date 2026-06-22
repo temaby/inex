@@ -13,7 +13,7 @@ import { transactionsDefaultFilter, transactionsActions } from "../../store/tran
 import type { TransactionFilter } from "../../store/transactions/transactions-slice";
 import { useAppDispatch } from "../../store/hooks";
 import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./transaction-filter-url";
-import type { LedgerUiFilter } from "./transaction-ledger-utils";
+import { getCurrentTransactionMonthRange, type LedgerUiFilter } from "./transaction-ledger-utils";
 
 type FlatCategory = Omit<CategoryDetails, "children"> & { depth: number };
 
@@ -30,8 +30,12 @@ const hasActiveTransactionFilter = (filter: TransactionFilter): boolean =>
     filter.categoryIds.some((id) => id > 0) ||
     filter.accountIds.some((id) => id > 0) ||
     filter.tags.some((tag) => tag !== "") ||
-    filter.refs.some((ref) => ref !== "") ||
-    filter.range.length === 2;
+    filter.refs.some((ref) => ref !== "");
+
+const createCurrentMonthFilter = (): TransactionFilter => ({
+    ...transactionsDefaultFilter,
+    range: getCurrentTransactionMonthRange(),
+});
 
 const toDateInputValue = (timestamp: number | undefined): string =>
     timestamp && timestamp > 0 ? dayjs.unix(timestamp).format("YYYY-MM-DD") : "";
@@ -71,11 +75,12 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
         const queryFilter = parseTransactionFilterParam(filter);
 
         if (!queryFilter) {
-            dispatch(transactionsActions.resetFilter());
-            setLocalFilter(transactionsDefaultFilter);
+            const monthFilter = createCurrentMonthFilter();
+            dispatch(transactionsActions.setFilter({ filter: monthFilter }));
+            setLocalFilter(monthFilter);
             setTagsAndRefsInput("");
-            setFromDate("");
-            setToDate("");
+            setFromDate(toDateInputValue(monthFilter.range[0]));
+            setToDate(toDateInputValue(monthFilter.range[1]));
             return;
         }
 
@@ -186,17 +191,18 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
     };
 
     const resetFilterHandler = () => {
-        dispatch(transactionsActions.resetFilter());
-        setLocalFilter(transactionsDefaultFilter);
+        const monthFilter = createCurrentMonthFilter();
+        dispatch(transactionsActions.setFilter({ filter: monthFilter }));
+        setLocalFilter(monthFilter);
         setTagsAndRefsInput("");
-        setFromDate("");
-        setToDate("");
+        setFromDate(toDateInputValue(monthFilter.range[0]));
+        setToDate(toDateInputValue(monthFilter.range[1]));
         onLedgerFilterChange((prevState) => ({
             ...prevState,
             minAmount: "",
             maxAmount: "",
         }));
-        navigate(location.pathname, { replace: true });
+        navigate(`${location.pathname}${buildTransactionFilterSearch(monthFilter)}`, { replace: true });
     };
 
     const applyFilterHandler = () => {
