@@ -306,8 +306,8 @@
       "netFlow": "Net Flow",
       "filteredPage": "Current ledger page",
       "updatesWithLedger": "Updates with the visible ledger",
-      "visibleRows": "{{count}} visible rows for {{period}}",
-      "baseCurrencyContext": "Visible page shown in {{currency}} where rates exist"
+      "visibleRows": "{{count}} transactions in {{period}}",
+      "baseCurrencyContext": "Month summary shown in {{currency}} where rates exist"
     },
     "loading": {
       "initial": "Loading transactions",

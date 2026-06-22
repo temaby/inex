@@ -22,6 +22,26 @@ export interface TransactionsPagedResult {
   metadata: { totalItems: number };
 }
 
+export interface TransactionTypeCounts {
+  all: number;
+  income: number;
+  expense: number;
+  transfer: number;
+}
+
+export interface TransactionCurrencySummary {
+  currency: string;
+  income: number;
+  expense: number;
+  net: number;
+}
+
+export interface TransactionSummaryResult {
+  totalCount: number;
+  typeCounts: TransactionTypeCounts;
+  currencySummaries: TransactionCurrencySummary[];
+}
+
 export const formatTransactionFilterDateTime = (timestamp: number): string =>
   dayjs.unix(timestamp).format("YYYY-MM-DDTHH:mm:ss");
 
@@ -51,15 +71,10 @@ export interface UpdateTransactionArgs {
   created: string;
 }
 
-function buildTransactionParams(
-  pageSize: number,
-  page: number,
+function appendTransactionFilters(
+  params: URLSearchParams,
   filter: TransactionFilterParams,
-): URLSearchParams {
-  const params = new URLSearchParams();
-  params.set("mode", "active");
-  params.set("pageSize", String(pageSize));
-  params.set("page", String(page));
+): void {
   filter.accountIds.forEach((id) => params.append("accountId", String(id)));
   filter.categoryIds.forEach((id) => params.append("categoryId", String(id)));
   filter.tags.forEach((tag) => params.append("tag", tag));
@@ -70,6 +85,27 @@ function buildTransactionParams(
   if (filter.range.length === 2 && filter.range[1] > 0) {
     params.set("endDate", formatTransactionFilterDateTime(filter.range[1]));
   }
+}
+
+function buildTransactionFilterParams(
+  filter: TransactionFilterParams,
+): URLSearchParams {
+  const params = new URLSearchParams();
+  params.set("mode", "active");
+  appendTransactionFilters(params, filter);
+  return params;
+}
+
+function buildTransactionParams(
+  pageSize: number,
+  page: number,
+  filter: TransactionFilterParams,
+): URLSearchParams {
+  const params = new URLSearchParams();
+  params.set("mode", "active");
+  params.set("pageSize", String(pageSize));
+  params.set("page", String(page));
+  appendTransactionFilters(params, filter);
   return params;
 }
 
@@ -91,6 +127,12 @@ export const transactionsApi = createApi({
     getTransactions: builder.query<TransactionsPagedResult, GetTransactionsArgs>({
       query: ({ pageSize, page, filter }) => ({
         url: `/transactions?${buildTransactionParams(pageSize, page, filter).toString()}`,
+      }),
+      providesTags: [{ type: "Transaction", id: "LIST" }],
+    }),
+    getTransactionsSummary: builder.query<TransactionSummaryResult, TransactionFilterParams>({
+      query: (filter) => ({
+        url: `/transactions/summary?${buildTransactionFilterParams(filter).toString()}`,
       }),
       providesTags: [{ type: "Transaction", id: "LIST" }],
     }),
@@ -135,6 +177,7 @@ export const transactionsApi = createApi({
 
 export const {
   useGetTransactionsQuery,
+  useGetTransactionsSummaryQuery,
   useCreateTransactionMutation,
   useCreateTransferMutation,
   useUpdateTransactionMutation,

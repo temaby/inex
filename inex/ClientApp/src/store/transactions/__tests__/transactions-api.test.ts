@@ -5,7 +5,12 @@ import dayjs from "dayjs";
 import { vi } from "vitest";
 
 import apiClient from "../../../utils/apiClient";
-import { transactionsApi, type GetTransactionsArgs, type TransactionsPagedResult } from "../transactions-api";
+import {
+  transactionsApi,
+  type GetTransactionsArgs,
+  type TransactionSummaryResult,
+  type TransactionsPagedResult,
+} from "../transactions-api";
 
 vi.mock("../../../utils/apiClient", () => ({
   default: vi.fn(),
@@ -60,6 +65,24 @@ const updatedFixture: TransactionsPagedResult = {
     },
   ],
   metadata: { totalItems: 2 },
+};
+
+const summaryFixture: TransactionSummaryResult = {
+  totalCount: 2,
+  typeCounts: {
+    all: 2,
+    income: 1,
+    expense: 1,
+    transfer: 0,
+  },
+  currencySummaries: [
+    {
+      currency: "USD",
+      income: 100,
+      expense: -42,
+      net: 58,
+    },
+  ],
 };
 
 function createTestStore() {
@@ -125,6 +148,31 @@ describe("transactionsApi", () => {
     });
   });
 
+  it("getTransactionsSummary: serializes the same filters without pagination", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(summaryFixture));
+
+    await store.dispatch(
+      transactionsApi.endpoints.getTransactionsSummary.initiate({
+        accountIds: [10],
+        categoryIds: [20],
+        tags: ["food"],
+        refs: ["alice"],
+        range: [
+          dayjs("2026-06-01T00:00:00").unix(),
+          dayjs("2026-06-30T23:59:59").unix(),
+        ],
+      }),
+    );
+
+    expect(mockApiClient).toHaveBeenCalledWith({
+      url: "/transactions/summary?mode=active&accountId=10&categoryId=20&tag=food&ref=alice&startDate=2026-06-01T00%3A00%3A00&endDate=2026-06-30T23%3A59%3A59",
+      method: "get",
+      data: undefined,
+      params: undefined,
+    });
+  });
+
   it("cache invalidation on mutation triggers refetch", async () => {
     const store = createTestStore();
     mockApiClient.mockImplementation(async (config) => {
@@ -156,6 +204,48 @@ describe("transactionsApi", () => {
     await waitFor(() => {
       expect(mockApiClient).toHaveBeenCalledTimes(3);
       expect(transactionsApi.endpoints.getTransactions.select(args)(store.getState()).data).toEqual(updatedFixture);
+    });
+  });
+
+  it("cache invalidation on mutation refreshes subscribed summary data", async () => {
+    const store = createTestStore();
+    const updatedSummary: TransactionSummaryResult = {
+      ...summaryFixture,
+      totalCount: 3,
+      typeCounts: { ...summaryFixture.typeCounts, all: 3, expense: 2 },
+      currencySummaries: [
+        { currency: "USD", income: 100, expense: -54, net: 46 },
+      ],
+    };
+    mockApiClient.mockImplementation(async (config) => {
+      const request = config as AxiosRequestConfig;
+      if (request.method === "post") {
+        return axiosResponse(undefined);
+      }
+
+      const summaryResponse = mockApiClient.mock.calls.length >= 3 ? updatedSummary : summaryFixture;
+      return axiosResponse(summaryResponse);
+    });
+
+    store.dispatch(transactionsApi.endpoints.getTransactionsSummary.initiate(emptyFilter));
+
+    await waitFor(() => {
+      expect(transactionsApi.endpoints.getTransactionsSummary.select(emptyFilter)(store.getState()).data).toEqual(summaryFixture);
+    });
+
+    await store.dispatch(
+      transactionsApi.endpoints.createTransaction.initiate({
+        accountId: 2,
+        categoryId: 3,
+        amount: -12,
+        comment: "Coffee",
+        created: "2026-06-02",
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockApiClient).toHaveBeenCalledTimes(3);
+      expect(transactionsApi.endpoints.getTransactionsSummary.select(emptyFilter)(store.getState()).data).toEqual(updatedSummary);
     });
   });
 
