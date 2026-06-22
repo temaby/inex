@@ -56,6 +56,38 @@ public class TransactionService : InExService, ITransactionService
         return BuildPaginatedDataResponse<Transaction, TransactionResponse>(items, pageSize, page, TransactionMapper.ToResponse);
     }
 
+    public TransactionSummaryResponse GetSummary(int userId, ActivityMode mode, TransactionFilterQuery filter)
+    {
+        IQueryable<Transaction> items = GetTransactions(userId, mode, filter);
+
+        var currencySummaries = items
+            .GroupBy(i => i.Account.Currency.Key)
+            .Select(group => new TransactionCurrencySummary
+            {
+                Currency = group.Key,
+                Income = group.Sum(i => !i.Category.IsSystem && i.Value >= 0 ? i.Value : 0),
+                Expense = group.Sum(i => !i.Category.IsSystem && i.Value < 0 ? i.Value : 0),
+                Net = group.Sum(i => !i.Category.IsSystem ? i.Value : 0),
+            })
+            .OrderBy(summary => summary.Currency)
+            .ToList();
+
+        int totalCount = items.Count();
+
+        return new TransactionSummaryResponse
+        {
+            TotalCount = totalCount,
+            TypeCounts = new TransactionTypeCounts
+            {
+                All = totalCount,
+                Income = items.Count(i => !i.Category.IsSystem && i.Value >= 0),
+                Expense = items.Count(i => !i.Category.IsSystem && i.Value < 0),
+                Transfer = items.Count(i => i.Category.IsSystem)
+            },
+            CurrencySummaries = currencySummaries
+        };
+    }
+
     public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
         await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);

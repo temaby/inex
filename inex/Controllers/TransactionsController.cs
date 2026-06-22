@@ -26,6 +26,7 @@ public class TransactionsController : ApiControllerBase
 
     public const string GetSingleRoute = "{id}";
     public const string GetAllRoute = "";
+    public const string GetSummaryRoute = "summary";
 
     public const string PostAddRoute = "";
     public const string PostAddTransferRoute = "transfer";
@@ -72,6 +73,20 @@ public class TransactionsController : ApiControllerBase
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
         PagedResponse<TransactionResponse, PaginationMetadata> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, page, filter);
         return Ok(resultsDTO);
+    }
+
+    /// <summary>Get transaction summary for a user</summary>
+    /// <param name="mode">Activity mode (all, active, inactive)</param>
+    /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
+    /// <returns>Transaction summary for the filtered scope</returns>
+    [HttpGet]
+    [Route(GetSummaryRoute)]
+    [ProducesResponseType(typeof(TransactionSummaryResponse), StatusCodes.Status200OK)]
+    public ActionResult Summary(string? mode, [FromQuery] TransactionFilterQuery filter)
+    {
+        ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
+        TransactionSummaryResponse resultDTO = _transactionService.GetSummary(CurrentUserId, activityMode, filter);
+        return Ok(resultDTO);
     }
 
     /// <summary>Add a new transaction</summary>
