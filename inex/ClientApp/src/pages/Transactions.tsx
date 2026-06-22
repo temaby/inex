@@ -9,6 +9,7 @@ import BasicPage from "../layouts/BasicPage";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
+import { useGetTransactionsSummaryQuery, type TransactionFilterParams } from "../store/transactions/transactions-api";
 import { transactionsActions, transactionsDefaultFilter, type TransactionFilter } from "../store/transactions/transactions-slice";
 import {
     InExButton,
@@ -30,6 +31,7 @@ import {
     formatTransactionPeriodLabel,
     getBaseCurrencyCode,
     getCurrentTransactionMonthRange,
+    getLedgerMetricsFromSummary,
     isCurrentOrFutureTransactionMonth,
     isWholeTransactionMonthRange,
     shiftTransactionMonthRange,
@@ -99,8 +101,26 @@ const Transactions = () => {
     const filterActive = isTransactionFilterActive(filterState) || isLedgerUiFilterActive(ledgerFilter);
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
     const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
-    const noMatchActive = filterActive && ledgerMetrics.totalCount > 0 && ledgerMetrics.visibleCount === 0;
     const activeMonthRange = filterState.range.length === 2 ? filterState.range : getCurrentTransactionMonthRange();
+    const summaryFilter = useMemo<TransactionFilterParams>(() => ({
+        accountIds: filterState.accountIds,
+        categoryIds: filterState.categoryIds,
+        tags: filterState.tags,
+        refs: filterState.refs,
+        range: filterState.range,
+    }), [filterState]);
+    const summaryQuery = useGetTransactionsSummaryQuery(summaryFilter, {
+        skip: filterParam === null && filterState.range.length !== 2,
+    });
+    const summaryMetrics = useMemo(
+        () => summaryQuery.data
+            ? getLedgerMetricsFromSummary(summaryQuery.data, exchangeRates)
+            : null,
+        [exchangeRates, summaryQuery.data],
+    );
+    const scopedMetrics = summaryMetrics ?? ledgerMetrics;
+    const scopedTotalCount = scopedMetrics.totalCount;
+    const noMatchActive = filterActive && scopedTotalCount > 0 && ledgerMetrics.visibleCount === 0;
     const periodLabel = useMemo(
         () => isWholeTransactionMonthRange(activeMonthRange)
             ? formatTransactionMonthLabel(activeMonthRange, t("transactions.period.currentMonth"))
@@ -250,22 +270,22 @@ const Transactions = () => {
     const kpiItems = [
         {
             label: t("transactions.kpi.income"),
-            value: Math.abs(ledgerMetrics.income),
+            value: Math.abs(scopedMetrics.income),
             kind: "income" as MoneyKind,
             signage: "color-only" as Signage,
-            sub: t("transactions.kpi.visibleRows", { count: ledgerMetrics.visibleCount, period: periodLabel }),
+            sub: t("transactions.kpi.visibleRows", { count: scopedMetrics.totalCount, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.expenses"),
-            value: Math.abs(ledgerMetrics.expense),
+            value: Math.abs(scopedMetrics.expense),
             kind: "expense" as MoneyKind,
             signage: "color-only" as Signage,
-            sub: t("transactions.kpi.visibleRows", { count: ledgerMetrics.visibleCount, period: periodLabel }),
+            sub: t("transactions.kpi.visibleRows", { count: scopedMetrics.totalCount, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.netFlow"),
-            value: ledgerMetrics.net,
-            kind: ledgerMetrics.net > 0 ? "income" as MoneyKind : ledgerMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
+            value: scopedMetrics.net,
+            kind: scopedMetrics.net > 0 ? "income" as MoneyKind : scopedMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
             signage: "signed" as Signage,
             sub: t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency }),
             primary: true,
@@ -286,10 +306,10 @@ const Transactions = () => {
                 <section className="transactions-ledger">
                     <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card">
                         {kpiItems.map(item => (
-                            <div className={`transactions-kpi${ledgerInitialLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
+                            <div className={`transactions-kpi${ledgerInitialLoading || summaryQuery.isLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
                                 <div className="transactions-kpi__label" data-qa={item.primary ? "hero-primary-label" : undefined}>{item.label}</div>
                                 <div className="transactions-kpi__value" data-qa={item.primary ? "hero-primary-value" : undefined}>
-                                    {ledgerInitialLoading ? (
+                                    {ledgerInitialLoading || summaryQuery.isLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
                                         <Num
@@ -316,7 +336,7 @@ const Transactions = () => {
                                 <span className="transactions-toolbar-count">
                                     {t("transactions.toolbarCount", {
                                         visible: ledgerMetrics.visibleCount,
-                                        total: ledgerMetrics.totalCount,
+                                        total: scopedTotalCount,
                                         period: periodLabel,
                                     })}
                                 </span>
@@ -342,10 +362,10 @@ const Transactions = () => {
                                 label={t("transactions.view")}
                                 onChange={(value) => setLedgerFilter(prev => ({ ...prev, type: value as LedgerTypeFilter }))}
                                 options={[
-                                    { key: "all", label: `${t("transactions.all")} ${ledgerMetrics.typeCounts.all}` },
-                                    { key: "income", label: `${t("transactions.income")} ${ledgerMetrics.typeCounts.income}` },
-                                    { key: "expense", label: `${t("transactions.expense")} ${ledgerMetrics.typeCounts.expense}` },
-                                    { key: "transfer", label: `${t("transactions.transfer")} ${ledgerMetrics.typeCounts.transfer}` },
+                                    { key: "all", label: `${t("transactions.all")} ${scopedMetrics.typeCounts.all}` },
+                                    { key: "income", label: `${t("transactions.income")} ${scopedMetrics.typeCounts.income}` },
+                                    { key: "expense", label: `${t("transactions.expense")} ${scopedMetrics.typeCounts.expense}` },
+                                    { key: "transfer", label: `${t("transactions.transfer")} ${scopedMetrics.typeCounts.transfer}` },
                                 ]}
                                 size="compact"
                                 value={ledgerFilter.type}

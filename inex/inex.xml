@@ -176,6 +176,12 @@
             <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
             <returns>List of transactions with pagination metadata</returns>
         </member>
+        <member name="M:inex.Controllers.TransactionsController.Summary(System.String,inex.Services.Models.Records.Transaction.TransactionFilterQuery)">
+            <summary>Get transaction summary for a user</summary>
+            <param name="mode">Activity mode (all, active, inactive)</param>
+            <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
+            <returns>Transaction summary for the filtered scope</returns>
+        </member>
         <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransactionRequest,System.Threading.CancellationToken)">
             <summary>Add a new transaction</summary>
             <param name="itemDTO">Transaction details</param>

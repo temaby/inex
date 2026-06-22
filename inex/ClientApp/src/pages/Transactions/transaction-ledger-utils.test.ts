@@ -8,6 +8,7 @@ import {
   getCategoryPathLabel,
   getCurrentTransactionMonthRange,
   getFriendlyTransactionDayLabel,
+  getLedgerMetricsFromSummary,
   getLedgerTypeCounts,
   isCurrentOrFutureTransactionMonth,
   isWholeTransactionMonthRange,
@@ -101,6 +102,39 @@ describe("transaction ledger helpers", () => {
       income: 1,
       expense: 1,
       transfer: 1,
+    });
+  });
+
+  it("builds base-currency ledger metrics from full summary aggregates", () => {
+    const rates = [
+      { id: 1, currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4, isTemporary: false },
+    ];
+
+    expect(getLedgerMetricsFromSummary({
+      totalCount: 4,
+      typeCounts: {
+        all: 4,
+        income: 1,
+        expense: 2,
+        transfer: 1,
+      },
+      currencySummaries: [
+        { currency: "USD", income: 100, expense: -40, net: 60 },
+        { currency: "PLN", income: 400, expense: -80, net: 320 },
+        { currency: "EUR", income: 999, expense: -999, net: 0 },
+      ],
+    }, rates)).toEqual({
+      income: 200,
+      expense: -60,
+      net: 140,
+      visibleCount: 4,
+      totalCount: 4,
+      typeCounts: {
+        all: 4,
+        income: 1,
+        expense: 2,
+        transfer: 1,
+      },
     });
   });
 
