@@ -32,6 +32,19 @@ export interface LedgerMetrics extends LedgerSummary {
   typeCounts: LedgerTypeCounts;
 }
 
+export interface LedgerCurrencySummary {
+  currency: string;
+  income: number;
+  expense: number;
+  net: number;
+}
+
+export interface LedgerSummarySource {
+  totalCount: number;
+  typeCounts: LedgerTypeCounts;
+  currencySummaries: LedgerCurrencySummary[];
+}
+
 export interface ExchangeRateLike {
   currencyFrom: string;
   currencyTo: string;
@@ -100,6 +113,31 @@ export const toBaseCurrencyAmount = (
   if (sameCurrency(accountCurrency, baseCurrency)) return amount;
 
   return getBaseCurrencyEquivalent(amount, accountCurrency, exchangeRates)?.value ?? null;
+};
+
+export const getLedgerMetricsFromSummary = (
+  summary: LedgerSummarySource,
+  exchangeRates: ExchangeRateLike[],
+): LedgerMetrics => {
+  let income = 0;
+  let expense = 0;
+
+  for (const currencySummary of summary.currencySummaries) {
+    const convertedIncome = toBaseCurrencyAmount(currencySummary.income, currencySummary.currency, exchangeRates);
+    const convertedExpense = toBaseCurrencyAmount(currencySummary.expense, currencySummary.currency, exchangeRates);
+
+    if (convertedIncome !== null) income += convertedIncome;
+    if (convertedExpense !== null) expense += convertedExpense;
+  }
+
+  return {
+    income,
+    expense,
+    net: income + expense,
+    visibleCount: summary.totalCount,
+    totalCount: summary.totalCount,
+    typeCounts: summary.typeCounts,
+  };
 };
 
 export const getTransactionKind = (

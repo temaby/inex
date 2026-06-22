@@ -308,8 +308,8 @@
       "netFlow": "Чистый поток",
       "filteredPage": "Текущая страница журнала",
       "updatesWithLedger": "Обновляется по видимому журналу",
-      "visibleRows": "{{count}} видимых строк за {{period}}",
-      "baseCurrencyContext": "Видимая страница в {{currency}}, где есть курсы"
+      "visibleRows": "{{count}} транзакций за {{period}}",
+      "baseCurrencyContext": "Сводка месяца в {{currency}}, где есть курсы"
     },
     "loading": {
       "initial": "Загружаем транзакции",

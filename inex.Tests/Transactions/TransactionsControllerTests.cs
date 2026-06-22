@@ -377,6 +377,55 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task Summary_WithPaginationQuery_AggregatesFullFilteredScope()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "summary-pagination-account");
+        int categoryId = await CreateCategoryAsync(client, "summary-pagination-category");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 100m, "paycheck #month");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, -30m, "groceries #month");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, -20m, "transport #month");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 999m, "different #other");
+
+        var response = await client.GetAsync("/api/transactions/summary?tag=month&pageSize=1&page=1");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(3, body.GetProperty("totalCount").GetInt32());
+        Assert.Equal(3, body.GetProperty("typeCounts").GetProperty("all").GetInt32());
+        Assert.Equal(1, body.GetProperty("typeCounts").GetProperty("income").GetInt32());
+        Assert.Equal(2, body.GetProperty("typeCounts").GetProperty("expense").GetInt32());
+        Assert.Equal(0, body.GetProperty("typeCounts").GetProperty("transfer").GetInt32());
+
+        var currencySummary = Assert.Single(body.GetProperty("currencySummaries").EnumerateArray());
+        Assert.Equal("USD", currencySummary.GetProperty("currency").GetString());
+        Assert.Equal(100m, currencySummary.GetProperty("income").GetDecimal());
+        Assert.Equal(-50m, currencySummary.GetProperty("expense").GetDecimal());
+        Assert.Equal(50m, currencySummary.GetProperty("net").GetDecimal());
+    }
+
+    [Fact]
+    public async Task Summary_ExcludesOtherUsersTransactions()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int accountA = await CreateAccountAsync(userA, "summary-own-account");
+        int categoryA = await CreateCategoryAsync(userA, "summary-own-category");
+        int accountB = await CreateAccountAsync(userB, "summary-other-account");
+        int categoryB = await CreateCategoryAsync(userB, "summary-other-category");
+        await CreateTransactionWithAmountAndCommentAsync(userA, accountA, categoryA, 25m, "own #scope");
+        await CreateTransactionWithAmountAndCommentAsync(userB, accountB, categoryB, 100m, "other #scope");
+
+        var response = await userA.GetAsync("/api/transactions/summary?tag=scope");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, body.GetProperty("totalCount").GetInt32());
+        var currencySummary = Assert.Single(body.GetProperty("currencySummaries").EnumerateArray());
+        Assert.Equal(25m, currencySummary.GetProperty("income").GetDecimal());
+    }
+
+    [Fact]
     public void ApplyFilters_ByTagAndRef_ProducesDatabaseSideSql()
     {
         var options = new DbContextOptionsBuilder<InExDbContext>()
@@ -458,14 +507,17 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         return body.GetProperty("id").GetInt32();
     }
 
-    private static async Task<int> CreateTransactionWithCommentAsync(HttpClient client, int accountId, int categoryId, string comment)
+    private static Task<int> CreateTransactionWithCommentAsync(HttpClient client, int accountId, int categoryId, string comment)
+        => CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 10m, comment);
+
+    private static async Task<int> CreateTransactionWithAmountAndCommentAsync(HttpClient client, int accountId, int categoryId, decimal amount, string comment)
     {
         var response = await client.PostAsJsonAsync("/api/transactions", new
         {
             accountId,
             categoryId,
             created = DateTime.UtcNow,
-            amount  = 10m,
+            amount,
             comment,
         });
         response.EnsureSuccessStatusCode();
