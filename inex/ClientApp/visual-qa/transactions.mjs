@@ -127,6 +127,20 @@ const states = [
     interaction: "open-add-drawer",
   },
   {
+    name: "filter-drawer-open-390",
+    screenshot: "filter-drawer-open-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "open-filter-drawer",
+  },
+  {
+    name: "filter-drawer-open-360",
+    screenshot: "filter-drawer-open-360.png",
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "open-filter-drawer",
+  },
+  {
     name: "expanded-row-1440",
     screenshot: "expanded-row-1440.png",
     viewport: { width: 1440, height: 1000 },
@@ -209,6 +223,10 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
       return;
+    case "open-filter-drawer":
+      await evaluate(client, clickButtonByTextExpression("Filters"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Advanced filters')");
+      return;
     case "open-row-edit":
       await evaluate(client, `(() => {
         const row = document.querySelector(".transactions-ledger-row");
@@ -254,6 +272,11 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".transactions-ledger-row"));
     const groups = Array.from(document.querySelectorAll(".transactions-day-group"));
+    const amountFilterItem = Array.from(document.querySelectorAll(".ant-form-item"))
+      .find((item) => item.innerText.includes("Amount equivalent"));
+    const amountFilterAddons = amountFilterItem
+      ? Array.from(amountFilterItem.querySelectorAll(".ant-input-group-addon")).map((addon) => addon.textContent.trim()).filter(Boolean)
+      : [];
 
     return {
       title: document.title,
@@ -272,6 +295,9 @@ async function collectMetrics(client, state, apiRequestCount) {
       dayGroupCount: groups.length,
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       addDrawerOpen: document.body.innerText.includes("New transaction"),
+      advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
+      amountFilterAddons,
+      amountFilterDefaultUsdAddonVisible: amountFilterAddons.includes("USD"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
       loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
       filterEmptyVisible: document.body.innerText.includes("No transactions match these filters"),
@@ -331,7 +357,12 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     apiRequests: requestLog,
     unhandledApiRequests,
     states: stateResults,
-    checks: buildCommonChecks(stateResults, failures, unhandledApiRequests),
+    checks: {
+      ...buildCommonChecks(stateResults, failures, unhandledApiRequests),
+      advancedFilterDefaultCurrencyClear: stateResults
+        .filter((state) => state.interaction === "open-filter-drawer")
+        .every((state) => !state.amountFilterDefaultUsdAddonVisible),
+    },
   };
 }
 

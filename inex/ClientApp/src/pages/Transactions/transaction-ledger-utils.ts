@@ -51,6 +51,11 @@ export interface ExchangeRateLike {
   rate: number;
 }
 
+export interface AccountCurrencyLike {
+  id: number;
+  currency: string;
+}
+
 export interface BaseCurrencyEquivalent {
   currency: string;
   value: number;
@@ -113,6 +118,42 @@ export const toBaseCurrencyAmount = (
   if (sameCurrency(accountCurrency, baseCurrency)) return amount;
 
   return getBaseCurrencyEquivalent(amount, accountCurrency, exchangeRates)?.value ?? null;
+};
+
+export const toCurrencyAmount = (
+  amount: number,
+  accountCurrency: string,
+  targetCurrency: string,
+  exchangeRates: ExchangeRateLike[],
+): number | null => {
+  if (sameCurrency(accountCurrency, targetCurrency)) return amount;
+
+  const baseAmount = toBaseCurrencyAmount(amount, accountCurrency, exchangeRates);
+  if (baseAmount === null) return null;
+
+  const baseCurrency = getBaseCurrencyCode(exchangeRates);
+  if (sameCurrency(targetCurrency, baseCurrency)) return baseAmount;
+
+  const targetRate = exchangeRates.find((item) => sameCurrency(item.currencyTo, targetCurrency));
+  if (!targetRate || targetRate.rate <= 0) return null;
+
+  return baseAmount * targetRate.rate;
+};
+
+export const getAccountFilterCurrency = (
+  accounts: AccountCurrencyLike[],
+  accountIds: number[],
+): string | null => {
+  const selectedCurrencies = accountIds
+    .map((id) => accounts.find((account) => account.id === id)?.currency)
+    .filter((currency): currency is string => Boolean(currency));
+
+  if (selectedCurrencies.length === 0) return null;
+
+  const [firstCurrency] = selectedCurrencies;
+  return selectedCurrencies.every((currency) => sameCurrency(currency, firstCurrency))
+    ? firstCurrency
+    : null;
 };
 
 export const getLedgerMetricsFromSummary = (

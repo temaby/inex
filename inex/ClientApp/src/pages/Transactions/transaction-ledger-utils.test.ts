@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import {
+  getAccountFilterCurrency,
   getBaseCurrencyEquivalent,
   getCategoryPathLabel,
   getCurrentTransactionMonthRange,
@@ -14,6 +15,7 @@ import {
   isWholeTransactionMonthRange,
   shiftTransactionMonthRange,
   toBaseCurrencyAmount,
+  toCurrencyAmount,
 } from "./transaction-ledger-utils";
 
 const categories: CategoryResponse[] = [
@@ -81,14 +83,31 @@ describe("transaction ledger helpers", () => {
   it("returns base-currency equivalents only when matching rate data exists", () => {
     const rates = [
       { id: 1, currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4, isTemporary: false },
+      { id: 2, currencyFrom: "USD", currencyTo: "EUR", date: "2026-06-05", rate: 2, isTemporary: false },
     ];
 
     expect(getBaseCurrencyEquivalent(-80, "PLN", rates)).toEqual({ currency: "USD", value: -20 });
     expect(getBaseCurrencyEquivalent(-80, "USD", rates)).toBeNull();
-    expect(getBaseCurrencyEquivalent(-80, "EUR", rates)).toBeNull();
     expect(toBaseCurrencyAmount(-80, "USD", rates)).toBe(-80);
     expect(toBaseCurrencyAmount(-80, "PLN", rates)).toBe(-20);
-    expect(toBaseCurrencyAmount(-80, "EUR", rates)).toBeNull();
+    expect(toBaseCurrencyAmount(-80, "EUR", rates)).toBe(-40);
+    expect(toCurrencyAmount(-80, "PLN", "EUR", rates)).toBe(-40);
+    expect(toCurrencyAmount(-80, "PLN", "PLN", rates)).toBe(-80);
+    expect(toCurrencyAmount(-80, "EUR", "USD", rates)).toBe(-40);
+    expect(toCurrencyAmount(-80, "UZS", "PLN", rates)).toBeNull();
+  });
+
+  it("derives filter currency only when selected accounts share one currency", () => {
+    const accounts = [
+      { id: 1, currency: "PLN" },
+      { id: 2, currency: "PLN" },
+      { id: 3, currency: "USD" },
+    ];
+
+    expect(getAccountFilterCurrency(accounts, [])).toBeNull();
+    expect(getAccountFilterCurrency(accounts, [1])).toBe("PLN");
+    expect(getAccountFilterCurrency(accounts, [1, 2])).toBe("PLN");
+    expect(getAccountFilterCurrency(accounts, [1, 3])).toBeNull();
   });
 
   it("counts ledger types from category semantics", () => {
