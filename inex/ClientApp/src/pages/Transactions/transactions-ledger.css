@@ -247,12 +247,15 @@
 
 .transactions-day-header {
     align-items: center;
-    background: var(--bg-muted);
+    background: var(--bg-stripe);
     border-bottom: 1px solid var(--border-1);
-    color: var(--fg-2);
+    border-top: 1px solid var(--border-1);
+    color: var(--brand-ink);
+    display: flex;
     font-size: 12px;
-    font-weight: 700;
-    padding: 10px 20px;
+    font-weight: 800;
+    justify-content: space-between;
+    padding: 9px 20px;
 }
 
 .transactions-day-header__date {
@@ -260,21 +263,11 @@
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
-    grid-column: 1 / 3;
 }
 
 .transactions-day-header__date span {
     color: var(--fg-4);
     font-weight: 600;
-}
-
-.transactions-day-header__totals {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    grid-column: 4;
-    justify-content: flex-end;
-    min-width: 0;
 }
 
 .transactions-ledger-row {
@@ -452,8 +445,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.transactions-native-input,
-.transactions-native-select {
+.transactions-native-input {
     background: #fff;
     border: 1px solid var(--border-2);
     border-radius: var(--radius-2);
@@ -468,14 +460,26 @@
     width: 100%;
 }
 
-.transactions-native-select {
-    min-height: 92px;
+.transactions-multi-select {
+    width: 100%;
+}
+
+.transactions-multi-select .ant-select-selector {
+    border-color: var(--border-2) !important;
+    border-radius: var(--radius-2) !important;
+    min-height: 42px;
+    padding: 4px 8px !important;
+}
+
+.transactions-filter-option {
+    display: inline-block;
+    min-width: 0;
 }
 
 .transactions-native-input:focus,
-.transactions-native-select:focus {
+.transactions-multi-select.ant-select-focused .ant-select-selector {
     border-color: var(--income-500);
-    box-shadow: var(--focus-ring);
+    box-shadow: var(--focus-ring) !important;
 }
 
 .transactions-drawer-actions {
@@ -571,18 +575,8 @@
     }
 
     .transactions-day-header {
-        display: flex;
         justify-content: space-between;
         padding: 10px 14px;
-    }
-
-    .transactions-day-header__date,
-    .transactions-day-header__totals {
-        grid-column: auto;
-    }
-
-    .transactions-day-header__totals {
-        flex-wrap: wrap;
     }
 
     .transactions-ledger-row {
