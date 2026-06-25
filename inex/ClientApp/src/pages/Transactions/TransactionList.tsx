@@ -15,12 +15,14 @@ import { EmptyState, FilterEmpty, InExButton, InExDrawer, ListPanelNoMatchRow, N
 import TransactionEditForm from "./TransactionEditForm";
 import { buildSingleTagOrRefFilterSearch } from "./transaction-filter-url";
 import {
+    getAccountFilterCurrency,
     getBaseCurrencyEquivalent,
     getCategoryPathLabel,
     getFriendlyTransactionDayLabel,
     getLedgerTypeCounts,
     getTransactionKind,
     toBaseCurrencyAmount,
+    toCurrencyAmount,
     type ExchangeRateLike,
     type LedgerMetrics,
     type LedgerUiFilter,
@@ -141,6 +143,10 @@ const TransactionList = ({
 
     const accountsById = useMemo(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
     const categoriesById = useMemo(() => new Map(categories.map(category => [category.id, category])), [categories]);
+    const amountFilterCurrency = useMemo(
+        () => getAccountFilterCurrency(accounts, filter.accountIds),
+        [accounts, filter.accountIds],
+    );
 
     const locallyScopedTransactions = useMemo(() => {
         const search = ledgerFilter.search.trim().toLowerCase();
@@ -150,15 +156,18 @@ const TransactionList = ({
             const category = categoriesById.get(transaction.categoryId);
             const categoryPath = getCategoryPathLabel(category, categoriesById);
             const currency = account?.currency ?? transaction.accountCurrency;
-            const baseAmount = toBaseCurrencyAmount(transaction.amount, currency, exchangeRates);
-            const amountFilterActive = ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "";
+            const amountFilterActive = amountFilterCurrency !== null &&
+                (ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "");
+            const filterAmount = amountFilterActive
+                ? toCurrencyAmount(transaction.amount, currency, amountFilterCurrency, exchangeRates)
+                : null;
 
             if (search && !buildSearchHaystack(transaction, account, category, categoryPath).includes(search)) return false;
-            if (amountFilterActive && baseAmount === null) return false;
-            if (baseAmount === null) return true;
-            return matchesAmount(baseAmount, ledgerFilter.minAmount, ledgerFilter.maxAmount);
+            if (!amountFilterActive) return true;
+            if (filterAmount === null) return false;
+            return matchesAmount(filterAmount, ledgerFilter.minAmount, ledgerFilter.maxAmount);
         });
-    }, [accountsById, categoriesById, exchangeRates, ledgerFilter.maxAmount, ledgerFilter.minAmount, ledgerFilter.search, transactions]);
+    }, [accountsById, amountFilterCurrency, categoriesById, exchangeRates, ledgerFilter.maxAmount, ledgerFilter.minAmount, ledgerFilter.search, transactions]);
 
     const visibleTransactions = useMemo(() => (
         locallyScopedTransactions.filter(transaction => {

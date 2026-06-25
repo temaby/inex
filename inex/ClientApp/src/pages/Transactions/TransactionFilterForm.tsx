@@ -13,13 +13,12 @@ import { transactionsDefaultFilter, transactionsActions } from "../../store/tran
 import type { TransactionFilter } from "../../store/transactions/transactions-slice";
 import { useAppDispatch } from "../../store/hooks";
 import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./transaction-filter-url";
-import { getCurrentTransactionMonthRange, type LedgerUiFilter } from "./transaction-ledger-utils";
+import { getAccountFilterCurrency, getCurrentTransactionMonthRange, type LedgerUiFilter } from "./transaction-ledger-utils";
 
 type FlatCategory = Omit<CategoryDetails, "children"> & { depth: number };
 
 interface TransactionFilterFormProps {
     accounts: AccountResponse[];
-    baseCurrency: string;
     categories: CategoryResponse[];
     filter: string | null;
     ledgerFilter: LedgerUiFilter;
@@ -55,7 +54,6 @@ const toCategoryDetails = (category: CategoryResponse): CategoryDetails =>
 
 const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
     accounts,
-    baseCurrency,
     categories,
     filter,
     ledgerFilter,
@@ -114,8 +112,14 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
         };
     }, [localFilter.refs, localFilter.tags, tagsAndRefsInput]);
 
-    const amountFilterActive = ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "";
+    const amountFilterCurrency = useMemo(
+        () => getAccountFilterCurrency(accounts, localFilter.accountIds),
+        [accounts, localFilter.accountIds],
+    );
+    const amountFilterActive = amountFilterCurrency !== null &&
+        (ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "");
     const filterActive = hasActiveTransactionFilter(localFilter) || amountFilterActive;
+    const amountCurrencyAddonProps = amountFilterCurrency ? { addonAfter: amountFilterCurrency } : {};
 
     const accountOptions = useMemo(
         () => accounts.map((account) => ({
@@ -141,10 +145,20 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
     );
 
     const setSelectedIds = (ids: number[], key: "accountIds" | "categoryIds") => {
+        const selectedIds = ids.filter((id) => id > 0);
+
         setLocalFilter((prevState) => ({
             ...prevState,
-            [key]: ids.filter((id) => id > 0),
+            [key]: selectedIds,
         }));
+
+        if (key === "accountIds" && getAccountFilterCurrency(accounts, selectedIds) === null) {
+            onLedgerFilterChange((prevState) => ({
+                ...prevState,
+                minAmount: "",
+                maxAmount: "",
+            }));
+        }
     };
 
     const setTagsAndRefsHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,7 +305,8 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
             <Form.Item label={t("transactions.amountEquivalent")}>
                 <div className="transactions-filter-form__amount-grid">
                     <Input
-                        addonAfter={baseCurrency}
+                        {...amountCurrencyAddonProps}
+                        disabled={amountFilterCurrency === null}
                         id="transactions-min-amount"
                         onChange={setMinAmountHandler}
                         placeholder={t("transactions.min")}
@@ -299,7 +314,8 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
                         value={ledgerFilter.minAmount}
                     />
                     <Input
-                        addonAfter={baseCurrency}
+                        {...amountCurrencyAddonProps}
+                        disabled={amountFilterCurrency === null}
                         id="transactions-max-amount"
                         onChange={setMaxAmountHandler}
                         placeholder={t("transactions.max")}

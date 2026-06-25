@@ -454,7 +454,6 @@ const Transactions = () => {
                 <TransactionFilterForm
                     accounts={activeAccounts}
                     categories={activeCategories}
-                    baseCurrency={baseCurrency}
                     filter={filterParam}
                     ledgerFilter={ledgerFilter}
                     onLedgerFilterChange={setLedgerFilter}
