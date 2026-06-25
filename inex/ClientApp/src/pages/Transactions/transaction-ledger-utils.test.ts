@@ -12,7 +12,6 @@ import {
   getLedgerTypeCounts,
   isCurrentOrFutureTransactionMonth,
   isWholeTransactionMonthRange,
-  mergeCommentWithTags,
   shiftTransactionMonthRange,
   toBaseCurrencyAmount,
 } from "./transaction-ledger-utils";
@@ -160,9 +159,4 @@ describe("transaction ledger helpers", () => {
     expect(isCurrentOrFutureTransactionMonth(may, "2026-06-22T10:00:00")).toBe(false);
   });
 
-  it("merges tag input into comment tokens without changing the backend contract", () => {
-    expect(mergeCommentWithTags("Lunch #food", "food family ALINA_SHAPOVA")).toBe("Lunch #food #family #ALINA_SHAPOVA");
-    expect(mergeCommentWithTags("", "#groceries, BIEDRONKA")).toBe("#groceries #BIEDRONKA");
-    expect(mergeCommentWithTags("Plain comment", "   ")).toBe("Plain comment");
-  });
 });

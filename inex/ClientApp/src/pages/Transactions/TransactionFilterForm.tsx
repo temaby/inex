@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Form, Input } from "antd";
+import { Form, Input, Select } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -117,15 +117,33 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
     const amountFilterActive = ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "";
     const filterActive = hasActiveTransactionFilter(localFilter) || amountFilterActive;
 
-    const setSelectedIds = (
-        event: React.ChangeEvent<HTMLSelectElement>,
-        key: "accountIds" | "categoryIds",
-    ) => {
-        const ids = Array.from(event.target.selectedOptions, option => Number(option.value))
-            .filter((id) => id > 0);
+    const accountOptions = useMemo(
+        () => accounts.map((account) => ({
+            label: account.name,
+            title: account.name,
+            value: account.id,
+        })),
+        [accounts],
+    );
+
+    const categoryOptions = useMemo(
+        () => categoryTree.map((category) => ({
+            disabled: category.id <= 0,
+            label: (
+                <span className="transactions-filter-option" style={{ paddingLeft: category.depth * 12 }}>
+                    {category.name}
+                </span>
+            ),
+            title: category.name,
+            value: category.id,
+        })),
+        [categoryTree],
+    );
+
+    const setSelectedIds = (ids: number[], key: "accountIds" | "categoryIds") => {
         setLocalFilter((prevState) => ({
             ...prevState,
-            [key]: ids,
+            [key]: ids.filter((id) => id > 0),
         }));
     };
 
@@ -233,35 +251,31 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({
             </div>
 
             <Form.Item label={t("transactions.account")}>
-                <select
-                    className="transactions-native-select"
+                <Select
+                    aria-label={t("transactions.account")}
+                    className="transactions-multi-select"
                     id="filter_account"
-                    multiple
-                    onChange={(event) => setSelectedIds(event, "accountIds")}
-                    value={localFilter.accountIds.map(String)}
-                >
-                    {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                            {account.name}
-                        </option>
-                    ))}
-                </select>
+                    mode="multiple"
+                    onChange={(ids) => setSelectedIds(ids, "accountIds")}
+                    optionFilterProp="title"
+                    options={accountOptions}
+                    placeholder={t("transactions.allAccounts")}
+                    value={localFilter.accountIds}
+                />
             </Form.Item>
 
             <Form.Item label={t("transactions.category")}>
-                <select
-                    className="transactions-native-select"
+                <Select
+                    aria-label={t("transactions.category")}
+                    className="transactions-multi-select"
                     id="filter_category"
-                    multiple
-                    onChange={(event) => setSelectedIds(event, "categoryIds")}
-                    value={localFilter.categoryIds.map(String)}
-                >
-                    {categoryTree.map((category) => (
-                        <option disabled={category.id <= 0} key={category.id} value={category.id}>
-                            {`${"\u00A0".repeat(category.depth * 2)}${category.name}`}
-                        </option>
-                    ))}
-                </select>
+                    mode="multiple"
+                    onChange={(ids) => setSelectedIds(ids, "categoryIds")}
+                    optionFilterProp="title"
+                    options={categoryOptions}
+                    placeholder={t("transactions.allCategories")}
+                    value={localFilter.categoryIds}
+                />
             </Form.Item>
 
             <Form.Item label={t("transactions.keyword")}>

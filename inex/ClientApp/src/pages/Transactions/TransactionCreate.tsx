@@ -14,7 +14,6 @@ import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
 import { useAppDispatch } from "../../store/hooks";
-import { mergeCommentWithTags } from "./transaction-ledger-utils";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
@@ -25,12 +24,12 @@ interface TransactionCreateProps {
     accounts: AccountResponse[];
     categories: CategoryResponse[];
     onCancel: () => void;
+    onModeChange?: (mode: TransactionType) => void;
     onSubmit: () => void;
 }
 
 interface TransactionCreateState extends Omit<TransactionSetState, "date"> {
     date: Dayjs | null;
-    tagsInput: string;
 }
 
 export interface TransactionCreateValidationErrors {
@@ -51,12 +50,10 @@ type TransactionCreateAction =
     | { type: "SET_CATEGORY"; value: CategoryDetails }
     | { type: "SET_DATE"; value: Dayjs | null }
     | { type: "SET_COMMENT"; value: string }
-    | { type: "SET_TAGS"; value: string }
     | { type: "RESET" };
 
 const createDefaultState = (): TransactionCreateState => ({
     ...new TransactionSetState(),
-    tagsInput: "",
 });
 
 const reducer = (state: TransactionCreateState, action: TransactionCreateAction): TransactionCreateState => {
@@ -77,8 +74,6 @@ const reducer = (state: TransactionCreateState, action: TransactionCreateAction)
             return { ...state, date: action.value };
         case "SET_COMMENT":
             return { ...state, comment: action.value };
-        case "SET_TAGS":
-            return { ...state, tagsInput: action.value };
         case "RESET":
             return createDefaultState();
     }
@@ -122,6 +117,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     accounts,
     categories,
     onCancel,
+    onModeChange,
     onSubmit,
 }) => {
     const { t } = useTranslation();
@@ -130,6 +126,10 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
+
+    React.useEffect(() => {
+        onModeChange?.(state.mode);
+    }, [onModeChange, state.mode]);
 
     const categoryTree = useMemo(
         () => getCategoriesTree(categories.map(toCategoryDetails), false, t("categories.systemGroup")) as CategoryDetails[],
@@ -192,10 +192,6 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         dispatchTransactionAction({ type: "SET_COMMENT", value: event.target.value });
     };
 
-    const setTagsHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-        dispatchTransactionAction({ type: "SET_TAGS", value: event.target.value });
-    };
-
     const resetAndClose = (close: () => void) => {
         dispatchTransactionAction({ type: "RESET" });
         setValidationErrors({});
@@ -242,7 +238,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         }
 
         setValidationErrors({});
-        const comment = mergeCommentWithTags(state.comment, state.tagsInput);
+        const comment = state.comment;
         const created = state.date.format("YYYY-MM-DD");
 
         try {
@@ -318,8 +314,6 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetDate={setDateHandler}
                     onSetFromAccount={setFromAccountHandler}
                     onSetFromAmount={setFromAmountHandler}
-                    onSetTags={setTagsHandler}
-                    tags={state.tagsInput}
                     validationErrors={validationErrors}
                 />
             )}
@@ -334,10 +328,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetCategory={setCategoryHandler}
                     onSetComment={setCommentHandler}
                     onSetDate={setDateHandler}
-                    onSetTags={setTagsHandler}
                     onSetToAccount={setToAccountHandler}
                     onSetToAmount={setToAmountHandler}
-                    tags={state.tagsInput}
                     toAccount={state.toAccount}
                     toAmount={state.toAmount}
                     validationErrors={validationErrors}

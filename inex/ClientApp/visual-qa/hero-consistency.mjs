@@ -79,6 +79,48 @@ function dashboardBudgetReportForMonth(fixture, month) {
   return fixture.dashboardVisualFixtureCurrentBudgetReport;
 }
 
+function createTransactionsSummary(fixture) {
+  const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
+  const currencySummariesByCurrency = new Map();
+  const typeCounts = {
+    all: fixture.transactionsVisualFixtureTransactions.length,
+    income: 0,
+    expense: 0,
+    transfer: 0,
+  };
+
+  for (const transaction of fixture.transactionsVisualFixtureTransactions) {
+    const category = categoriesById.get(transaction.categoryId);
+    const kind = category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
+    typeCounts[kind] += 1;
+
+    if (kind === "transfer") {
+      continue;
+    }
+
+    const summary = currencySummariesByCurrency.get(transaction.accountCurrency) ?? {
+      currency: transaction.accountCurrency,
+      income: 0,
+      expense: 0,
+      net: 0,
+    };
+
+    if (kind === "income") {
+      summary.income += transaction.amount;
+    } else {
+      summary.expense += transaction.amount;
+    }
+    summary.net = summary.income + summary.expense;
+    currencySummariesByCurrency.set(transaction.accountCurrency, summary);
+  }
+
+  return {
+    totalCount: fixture.transactionsVisualFixtureTransactions.length,
+    typeCounts,
+    currencySummaries: Array.from(currencySummariesByCurrency.values()),
+  };
+}
+
 function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRef) {
   return createApiFixtureHandler({
     requestLog,
@@ -132,6 +174,16 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
             metadata: { totalItems: fixture.categoriesVisualFixtureTransactions.length },
           });
         }
+      }
+      if (url.pathname === "/api/transactions/summary" && method === "GET") {
+        if (page === "transactions") {
+          return jsonResponse(createTransactionsSummary(fixture));
+        }
+        return jsonResponse({
+          totalCount: 0,
+          typeCounts: { all: 0, income: 0, expense: 0, transfer: 0 },
+          currencySummaries: [],
+        });
       }
       if (url.pathname === "/api/budgets" && method === "GET") {
         if (page === "categories") return jsonResponse({ data: fixture.categoriesVisualFixtureBudgets });

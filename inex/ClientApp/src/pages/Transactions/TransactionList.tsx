@@ -41,8 +41,6 @@ interface TransactionListProps {
 interface TransactionDateGroup {
     dateKey: string;
     label: string;
-    income: number;
-    expense: number;
     items: TransactionResponse[];
 }
 
@@ -79,9 +77,6 @@ const buildSearchHaystack = (
 
 const groupTransactions = (
     transactions: TransactionResponse[],
-    accountsById: Map<number, AccountResponse>,
-    categoriesById: Map<number, CategoryResponse>,
-    exchangeRates: ExchangeRateLike[],
     dayLabels: { today: string; yesterday: string },
 ): TransactionDateGroup[] => {
     const groups = new Map<string, TransactionDateGroup>();
@@ -91,18 +86,8 @@ const groupTransactions = (
         const existing = groups.get(dateKey) ?? {
             dateKey,
             label: getFriendlyTransactionDayLabel(transaction.created, dayLabels),
-            income: 0,
-            expense: 0,
             items: [],
         };
-        const account = accountsById.get(transaction.accountId);
-        const category = categoriesById.get(transaction.categoryId);
-        const kind = getTransactionKind(transaction, category);
-        const currency = account?.currency ?? transaction.accountCurrency;
-        const baseAmount = toBaseCurrencyAmount(transaction.amount, currency, exchangeRates);
-
-        if (baseAmount !== null && kind === "income") existing.income += baseAmount;
-        if (baseAmount !== null && kind === "expense") existing.expense += baseAmount;
         existing.items.push(transaction);
         groups.set(dateKey, existing);
     }
@@ -187,15 +172,12 @@ const TransactionList = ({
     const groups = useMemo(
         () => groupTransactions(
             visibleTransactions,
-            accountsById,
-            categoriesById,
-            exchangeRates,
             {
                 today: t("transactions.day.today"),
                 yesterday: t("transactions.day.yesterday"),
             },
         ),
-        [accountsById, categoriesById, exchangeRates, t, visibleTransactions],
+        [t, visibleTransactions],
     );
     const ledgerMetrics = useMemo<LedgerMetrics>(() => {
         let income = 0;
@@ -357,10 +339,6 @@ const TransactionList = ({
                             <div className="transactions-day-header__date">
                                 {group.label}
                                 <span>&middot; {t("transactions.itemCount", { count: group.items.length })}</span>
-                            </div>
-                            <div className="transactions-day-header__totals">
-                                {group.income > 0 && <Num value={group.income} kind="income" signage="signed" size={12} />}
-                                {group.expense < 0 && <Num value={group.expense} kind="expense" signage="signed" size={12} />}
                             </div>
                         </header>
                         {group.items.map(transaction => {

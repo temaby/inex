@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Filter, Plus, SlidersHorizontal, X } from "l
 import { useLocation, useNavigate } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
+import { TransactionType } from "../model/Transaction/TransactionType";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
@@ -85,6 +86,7 @@ const Transactions = () => {
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
+    const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerFilter, setLedgerFilter] = useState<LedgerUiFilter>(emptyLedgerFilter);
     const [ledgerMetrics, setLedgerMetrics] = useState<LedgerMetrics>(emptyLedgerMetrics);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
@@ -294,11 +296,25 @@ const Transactions = () => {
 
     const headerActions = (
         <div className="transactions-header-actions">
-            <InExButton icon={<Plus size={16} />} kind="primary" onClick={() => setAddDrawerOpen(true)} size="md">
+            <InExButton
+                icon={<Plus size={16} />}
+                kind="primary"
+                onClick={() => {
+                    setCreateMode(TransactionType.EXPENSE);
+                    setAddDrawerOpen(true);
+                }}
+                size="md"
+            >
                 {t("transactions.addTransaction")}
             </InExButton>
         </div>
     );
+
+    const addDrawerSubtitle = {
+        [TransactionType.EXPENSE]: t("transactions.newExpenseSubtitle"),
+        [TransactionType.INCOME]: t("transactions.newIncomeSubtitle"),
+        [TransactionType.TRANSFER]: t("transactions.newTransferSubtitle"),
+    }[createMode];
 
     return (
         <>
@@ -413,16 +429,19 @@ const Transactions = () => {
             <InExDrawer
                 onClose={() => setAddDrawerOpen(false)}
                 open={addDrawerOpen}
-                subtitle={t("transactions.newExpenseSubtitle")}
+                subtitle={addDrawerSubtitle}
                 title={t("transactions.addDrawerTitle")}
                 width={460}
             >
-                <TransactionCreate
-                    accounts={activeAccounts}
-                    categories={activeCategories}
-                    onCancel={() => setAddDrawerOpen(false)}
-                    onSubmit={() => setAddDrawerOpen(false)}
-                />
+                {addDrawerOpen && (
+                    <TransactionCreate
+                        accounts={activeAccounts}
+                        categories={activeCategories}
+                        onCancel={() => setAddDrawerOpen(false)}
+                        onModeChange={setCreateMode}
+                        onSubmit={() => setAddDrawerOpen(false)}
+                    />
+                )}
             </InExDrawer>
 
             <InExDrawer

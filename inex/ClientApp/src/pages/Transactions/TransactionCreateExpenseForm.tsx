@@ -26,10 +26,17 @@ interface TransactionCreateExpenseFormProps {
     onSetDate: (value: Dayjs | null) => void;
     onSetFromAccount: (item: DropdownSelectInfo) => void;
     onSetFromAmount: (value: number | null) => void;
-    onSetTags: React.ChangeEventHandler<HTMLInputElement>;
-    tags: string;
     validationErrors: TransactionCreateValidationErrors;
 }
+
+const getSelectedCurrency = (account: AccountDetails): string | undefined =>
+    account.id > 0 && account.currency ? account.currency : undefined;
+
+const getSelectedAccount = (account: AccountDetails): AccountDetails[] =>
+    account.id > 0 ? [account] : [];
+
+const getSelectedCategory = (category: CategoryDetails): CategoryDetails[] =>
+    category.id > 0 ? [category] : [];
 
 const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> = ({
     accounts,
@@ -44,21 +51,34 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
     onSetDate,
     onSetFromAccount,
     onSetFromAmount,
-    onSetTags,
-    tags,
     validationErrors,
 }) => {
     const { t } = useTranslation();
+    const amountCurrency = getSelectedCurrency(fromAccount);
 
     return (
         <Form layout="vertical" hideRequiredMark>
+            <Form.Item
+                help={validationErrors.fromAccount}
+                label={t("transactions.account")}
+                validateStatus={validationErrors.fromAccount ? "error" : undefined}
+            >
+                <Dropdown
+                    id="expense_account"
+                    items={accounts}
+                    multiple={false}
+                    onChange={onSetFromAccount}
+                    placeholder={t("transactions.selectAccount")}
+                    selection={getSelectedAccount(fromAccount)}
+                />
+            </Form.Item>
             <Form.Item
                 help={validationErrors.fromAmount}
                 label={t("transactions.amount")}
                 validateStatus={validationErrors.fromAmount ? "error" : undefined}
             >
                 <ExpressionInputNumber
-                    addonAfter={fromAccount.currency}
+                    addonAfter={amountCurrency}
                     key="expense_amount"
                     onChange={onSetFromAmount}
                     placeholder={t("common.enterAmount")}
@@ -68,18 +88,18 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                 />
             </Form.Item>
             <Form.Item
-                help={validationErrors.fromAccount}
-                label={t("transactions.account")}
-                validateStatus={validationErrors.fromAccount ? "error" : undefined}
-            >
-                <Dropdown id="expense_account" items={accounts} multiple={false} onChange={onSetFromAccount} selection={[fromAccount]} />
-            </Form.Item>
-            <Form.Item
                 help={validationErrors.category}
                 label={t("transactions.category")}
                 validateStatus={validationErrors.category ? "error" : undefined}
             >
-                <Dropdown id="expense_category" items={categories} multiple={false} onChange={onSetCategory} selection={[category]} />
+                <Dropdown
+                    id="expense_category"
+                    items={categories}
+                    multiple={false}
+                    onChange={onSetCategory}
+                    placeholder={t("transactions.selectCategory")}
+                    selection={getSelectedCategory(category)}
+                />
             </Form.Item>
             <Form.Item
                 help={validationErrors.date}
@@ -89,15 +109,12 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                 <DatePicker mode="date" onChange={onSetDate} value={date} />
             </Form.Item>
             <Form.Item label={t("transactions.comment")}>
-                <Input key="expense_comment" onChange={onSetComment} size="large" value={comment} />
-            </Form.Item>
-            <Form.Item label={t("transactions.tags")}>
                 <Input
-                    key="expense_tags"
-                    onChange={onSetTags}
-                    placeholder={t("transactions.tagsPlaceholder")}
+                    key="expense_comment"
+                    onChange={onSetComment}
+                    placeholder={t("transactions.commentPlaceholder")}
                     size="large"
-                    value={tags}
+                    value={comment}
                 />
             </Form.Item>
         </Form>

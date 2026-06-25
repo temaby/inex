@@ -31,6 +31,49 @@ const authUser = {
 
 const defaultViewportHeight = 900;
 
+function createTransactionsSummary(fixture, scenario) {
+  const transactions = scenario === "empty" ? [] : fixture.transactionsVisualFixtureTransactions;
+  const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
+  const currencySummariesByCurrency = new Map();
+  const typeCounts = {
+    all: transactions.length,
+    income: 0,
+    expense: 0,
+    transfer: 0,
+  };
+
+  for (const transaction of transactions) {
+    const category = categoriesById.get(transaction.categoryId);
+    const kind = category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
+    typeCounts[kind] += 1;
+
+    if (kind === "transfer") {
+      continue;
+    }
+
+    const summary = currencySummariesByCurrency.get(transaction.accountCurrency) ?? {
+      currency: transaction.accountCurrency,
+      income: 0,
+      expense: 0,
+      net: 0,
+    };
+
+    if (kind === "income") {
+      summary.income += transaction.amount;
+    } else {
+      summary.expense += transaction.amount;
+    }
+    summary.net = summary.income + summary.expense;
+    currencySummariesByCurrency.set(transaction.accountCurrency, summary);
+  }
+
+  return {
+    totalCount: transactions.length,
+    typeCounts,
+    currencySummaries: Array.from(currencySummariesByCurrency.values()),
+  };
+}
+
 const states = [
   {
     name: "populated-1440",
@@ -125,6 +168,13 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
         return jsonResponse({ data: fixture.transactionsVisualFixtureRates });
+      }
+      if (url.pathname === "/api/transactions/summary" && method === "GET") {
+        if (scenario === "transactions-error") {
+          return problemResponse("Transactions fixture failure", "Controlled Transactions summary failure.", 500);
+        }
+
+        return jsonResponse(createTransactionsSummary(fixture, scenario));
       }
       if (url.pathname === "/api/transactions" && method === "GET") {
         if (scenario === "transactions-error") {
