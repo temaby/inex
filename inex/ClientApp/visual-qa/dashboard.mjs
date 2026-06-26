@@ -142,7 +142,7 @@ async function waitForDashboardReady(client, state) {
     return;
   }
 
-  await waitFor(client, "document.querySelectorAll('[data-qa=\"dashboard-top-card\"]').length === 4 && document.querySelectorAll('.dashboard-category-row').length === 5 && document.body.innerText.includes('Net worth data summary')");
+  await waitFor(client, "document.querySelectorAll('[data-qa=\"dashboard-top-card\"]').length === 4 && document.querySelectorAll('.dashboard-category-row').length === 5 && document.querySelectorAll('.recharts-surface').length >= 1");
 }
 
 async function collectMetrics(client, state, apiRequestCount) {
@@ -165,7 +165,6 @@ async function collectMetrics(client, state, apiRequestCount) {
     const dashboardPanels = Array.from(document.querySelectorAll(".dashboard-panel"));
     const alerts = Array.from(document.querySelectorAll(".dashboard-alert, .ant-alert"));
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
-    const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary"));
     const topCategoryRows = Array.from(document.querySelectorAll(".dashboard-category-row"));
     const dashboardTopText = topCardSelectors.map((card) => card.textContent.trim().replace(/\\s+/g, " ")).join(" | ");
     const dashboardCardTitles = Array.from(document.querySelectorAll('[data-qa="dashboard-card-title"]')).map((title) => title.textContent.trim().replace(/\\s+/g, " "));
@@ -194,7 +193,6 @@ async function collectMetrics(client, state, apiRequestCount) {
       dashboardPanelCount: dashboardPanels.length,
       alertCount: alerts.length,
       chartSurfaceCount: chartSurfaces.length,
-      accessibleSummaryCount: accessibleSummaries.length,
       topCategoryRowCount: topCategoryRows.length,
       netWorthSummaryVisible: document.body.innerText.includes("Net worth data summary"),
       topCategoriesVisible: document.body.innerText.includes("Top spending categories"),
@@ -267,6 +265,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.topCategoryRowCount !== fixture.dashboardVisualFixtureMeta.expectedTopCategoryCount) {
       failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedTopCategoryCount} top category rows, found ${state.topCategoryRowCount}`);
+    }
+    if (state.netWorthSummaryVisible) {
+      failures.push(`${state.name}: Dashboard still shows the net worth data summary table`);
     }
   }
 
