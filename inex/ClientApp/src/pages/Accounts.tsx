@@ -426,12 +426,16 @@ const Accounts = () => {
         const accountValue = account.value;
         const balanceUnavailable = accountValue === undefined;
         const displayDescription = getAccountDisplayDescription(account.name, account.description);
+        const isZeroValue = !balanceUnavailable
+            && accountValue === 0
+            && (account.baseValue === null || account.baseValue === 0)
+            && (share === null || share === 0);
 
         return (
             <div className="accounts-row-wrap" key={account.id}>
                 <button
                     aria-expanded={expanded}
-                    className={`accounts-row${account.isEnabled ? "" : " is-disabled"}`}
+                    className={`accounts-row${account.isEnabled ? "" : " is-disabled"}${isZeroValue ? " is-zero-value" : ""}`}
                     onClick={() => setExpandedId(expanded ? null : account.id)}
                     type="button"
                 >
@@ -444,29 +448,26 @@ const Accounts = () => {
                             )}
                         </span>
                     </span>
-                    <span className={`accounts-currency-badge is-${currencyToneClass(account.currency)}`}>
+                    <span className="accounts-row__currency">
                         {account.currency}
                     </span>
                     <span className="accounts-row__share">
-                        <span>
-                            {share === null
-                                ? t("accounts.equivalent.unavailable")
-                                : t("accounts.shareOfNetWorth", { value: share.toFixed(1) })}
-                        </span>
-                        {account.baseValue !== null && renderBaseEquivalent(account.baseValue, {
-                            className: "accounts-row__equivalent",
-                        })}
+                        {share === null
+                            ? t("accounts.equivalent.unavailable")
+                            : t("accounts.shareOfNetWorth", { value: share.toFixed(1) })}
                     </span>
                     <span className="accounts-row__balance">
                         {balanceUnavailable
                             ? <span className="accounts-muted-metric">{t("accounts.hero.balanceUnavailable")}</span>
                             : (
                                 <React.Fragment>
-                                    <Num
-                                        currency={account.currency}
-                                        kind={accountValue < 0 ? "expense" : "neutral"}
-                                        value={toFixedMoney(accountValue)}
-                                    />
+                                    <span className="accounts-row__balance-primary">
+                                        <Num
+                                            currency={account.currency}
+                                            kind={accountValue < 0 ? "expense" : "neutral"}
+                                            value={toFixedMoney(accountValue)}
+                                        />
+                                    </span>
                                     {renderBaseEquivalent(account.baseValue, {
                                         approx: account.currency !== baseCurrency,
                                         className: "accounts-row__balance-equivalent",
@@ -580,22 +581,24 @@ const Accounts = () => {
                                 </span>
                                 <span className="accounts-group__metrics">
                                     <span className="accounts-group__share">{groupShare}</span>
-                                    <span className="accounts-group__subtotal">
-                                        {group.accounts.every((account) => account.value !== undefined)
-                                            ? (
-                                                <Num
-                                                    currency={group.currency}
-                                                    kind={group.subtotal < 0 ? "expense" : "neutral"}
-                                                    value={toFixedMoney(group.subtotal)}
-                                                />
-                                            )
-                                            : t("accounts.hero.balanceUnavailable")}
+                                    <span className="accounts-group__balance">
+                                        <span className="accounts-group__subtotal">
+                                            {group.accounts.every((account) => account.value !== undefined)
+                                                ? (
+                                                    <Num
+                                                        currency={group.currency}
+                                                        kind={group.subtotal < 0 ? "expense" : "neutral"}
+                                                        value={toFixedMoney(group.subtotal)}
+                                                    />
+                                                )
+                                                : t("accounts.hero.balanceUnavailable")}
+                                        </span>
+                                        {renderBaseEquivalent(group.baseSubtotal, {
+                                            approx: group.currency !== baseCurrency,
+                                            className: "accounts-group__base",
+                                            fractionDigits: group.currency !== baseCurrency ? 0 : undefined,
+                                        })}
                                     </span>
-                                    {renderBaseEquivalent(group.baseSubtotal, {
-                                        approx: group.currency !== baseCurrency,
-                                        className: "accounts-group__base",
-                                        fractionDigits: group.currency !== baseCurrency ? 0 : undefined,
-                                    })}
                                 </span>
                             </button>
                             {!collapsed && <div className="accounts-list">{group.accounts.map(renderRow)}</div>}
