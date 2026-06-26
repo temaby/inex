@@ -96,7 +96,6 @@ const canonicalSummaries = [
       "first-use-empty-390.png",
       "summary-error-390.png",
       "net-worth-error-390.png",
-      "heatmap-error-390.png",
     ],
   },
   {

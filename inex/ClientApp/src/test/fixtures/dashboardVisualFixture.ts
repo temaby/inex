@@ -1,6 +1,5 @@
 import type { BudgetReportResponse } from "../../model/Report/BudgetReport";
 import type { NetWorthHistoryResponse } from "../../model/Report/NetWorthHistory";
-import type { SpendingHeatmapResponse } from "../../model/Report/SpendingHeatmap";
 import type { CategoryExchangeRate } from "../../pages/Categories/categories.utils";
 
 interface DashboardVisualFixtureRate extends CategoryExchangeRate {
@@ -16,9 +15,10 @@ export const dashboardVisualFixtureMeta = {
   fixedNow: "2026-04-30T12:00:00.000Z",
   expectedBaseCurrency: "USD",
   expectedSummaryCardCount: 4,
+  expectedSummaryCardTitles: ["Total Income", "Total Expenses", "Net Savings", "Budget Remaining"],
   expectedPanelCount: 2,
+  expectedTopCategoryCount: 5,
   expectedNetWorthMonths: 12,
-  expectedHeatmapDays: 30,
   nonApplicableStates: ["filter-empty", "drawer-open", "expanded-row"],
 } as const;
 
@@ -58,6 +58,22 @@ export const dashboardVisualFixtureCurrentBudgetReport: BudgetReportResponse = {
       spentAmount: 56,
       remainingAmount: 64,
       percentageUsed: 46.67,
+    },
+    {
+      categoryName: "Utilities",
+      categoryIds: [406],
+      budgetedAmount: 220,
+      spentAmount: 80,
+      remainingAmount: 140,
+      percentageUsed: 36.36,
+    },
+    {
+      categoryName: "Dining out",
+      categoryIds: [407],
+      budgetedAmount: 180,
+      spentAmount: 14,
+      remainingAmount: 166,
+      percentageUsed: 7.78,
     },
   ],
   metadata: {
@@ -126,31 +142,4 @@ export const dashboardVisualFixtureNetWorthHistory: NetWorthHistoryResponse = {
     { month: "2026-03", monthEnd: "2026-03-31", netWorth: 25330, currency: "USD" },
     { month: "2026-04", monthEnd: "2026-04-30", netWorth: 26425, currency: "USD" },
   ],
-};
-
-export const dashboardVisualFixtureHeatmapReport: SpendingHeatmapResponse = {
-  metadata: {
-    currency: "USD",
-    start: "2026-04-01",
-    end: "2026-04-30",
-  },
-  data: Array.from({ length: 30 }, (_, index) => {
-    const day = index + 1;
-    const spendPattern = [0, 18, 44, 0, 84, 122, 0, 12, 0, 64];
-
-    return {
-      date: `2026-04-${day.toString().padStart(2, "0")}`,
-      totalSpend: spendPattern[index % spendPattern.length] + (day % 6 === 0 ? 38 : 0),
-      currency: "USD",
-    };
-  }),
-};
-
-export const dashboardVisualFixtureEmptyHeatmapReport: SpendingHeatmapResponse = {
-  metadata: {
-    currency: "USD",
-    start: "2026-04-01",
-    end: "2026-04-30",
-  },
-  data: [],
 };
