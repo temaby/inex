@@ -14,9 +14,8 @@ import {
     YAxis,
 } from "recharts";
 import BasicPage from "../layouts/BasicPage";
-import SpendingHeatmap from "../components/SpendingHeatmap";
-import { Num } from "../components/primitives";
-import type { BudgetReportResponse, ReportMetadataDTO } from "../model/Report/BudgetReport";
+import { Num, type MoneyKind } from "../components/primitives";
+import type { BudgetComparisonDTO, BudgetReportResponse, ReportMetadataDTO } from "../model/Report/BudgetReport";
 import type { NetWorthHistoryPoint, NetWorthHistoryResponse } from "../model/Report/NetWorthHistory";
 import ReportAccessibleSummary from "./Reports/ReportAccessibleSummary";
 import { useAppSelector } from "../store/hooks";
@@ -40,7 +39,25 @@ interface SummaryState {
     previous: MonthTotals | null;
 }
 
+interface BudgetMetrics {
+    budgeted: number;
+    spent: number;
+    remaining: number;
+    percentageUsed: number;
+}
+
 type TrendMode = "higherIsBetter" | "lowerIsBetter";
+
+interface SummaryCard {
+    key: string;
+    title: string;
+    value: number;
+    previous?: number;
+    icon: React.ReactNode;
+    kind: MoneyKind;
+    trendMode: TrendMode;
+    customDelta?: string;
+}
 
 const emptyTotals: MonthTotals = {
     income: 0,
@@ -60,6 +77,22 @@ const totalsFromMetadata = (metadata?: ReportMetadataDTO | null): MonthTotals =>
     };
 };
 
+const budgetMetricsFromReport = (report?: BudgetReportResponse | null): BudgetMetrics => {
+    const totals = (report?.data ?? []).reduce(
+        (accumulator, item) => ({
+            budgeted: accumulator.budgeted + item.budgetedAmount,
+            spent: accumulator.spent + item.spentAmount,
+            remaining: accumulator.remaining + item.remainingAmount,
+        }),
+        { budgeted: 0, spent: 0, remaining: 0 },
+    );
+
+    return {
+        ...totals,
+        percentageUsed: totals.budgeted > 0 ? (totals.spent / totals.budgeted) * 100 : 0,
+    };
+};
+
 const getDeltaPercent = (current: number, previous: number | null | undefined) => {
     if (previous === null || previous === undefined || Math.abs(previous) < 0.01) return null;
 
@@ -73,11 +106,28 @@ const getDeltaColor = (delta: number | null, mode: TrendMode) => {
     return isPositiveTrend ? "good" : "bad";
 };
 
+const getNetWorthDomain = (points: NetWorthHistoryPoint[]): [number, number] | undefined => {
+    if (points.length === 0) return undefined;
+
+    const values = points.map((point) => point.netWorth);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min;
+    const padding = range > 0
+        ? Math.max(range * 0.12, 1)
+        : Math.max(Math.abs(max) * 0.02, 1);
+    const lower = min >= 0 ? Math.max(0, min - padding) : min - padding;
+    const upper = max + padding;
+
+    return lower === upper ? [lower - 1, upper + 1] : [lower, upper];
+};
+
 const Dashboard = () => {
     const { t } = useTranslation();
     const user = useAppSelector((state) => state.auth.user);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [summary, setSummary] = useState<SummaryState>({ current: emptyTotals, previous: null });
+    const [currentBudgetReport, setCurrentBudgetReport] = useState<BudgetReportResponse | null>(null);
     const [netWorthHistory, setNetWorthHistory] = useState<NetWorthHistoryPoint[]>([]);
     const [isLoadingCurrency, setIsLoadingCurrency] = useState(false);
     const [isLoadingSummary, setIsLoadingSummary] = useState(false);
@@ -146,11 +196,13 @@ const Dashboard = () => {
                     current: totalsFromMetadata(currentResponse.data.metadata),
                     previous: totalsFromMetadata(previousResponse.data.metadata),
                 });
+                setCurrentBudgetReport(currentResponse.data);
             })
             .catch(() => {
                 if (!isMounted) return;
 
                 setSummary({ current: emptyTotals, previous: null });
+                setCurrentBudgetReport(null);
                 setError(t("dashboard.summary.error"));
             })
             .finally(() => {
@@ -214,22 +266,29 @@ const Dashboard = () => {
         ...point,
         monthLabel: formatMonth(point.month),
     }));
+    const netWorthYAxisDomain = useMemo(() => getNetWorthDomain(netWorthHistory), [netWorthHistory]);
     const netWorthSummaryRows = netWorthHistory.slice(-6).reverse().map((point) => ({
         key: point.month,
         label: formatMonth(point.month),
         value: <Num value={point.netWorth} currency={point.currency || chartCurrency} kind="neutral" />,
-        detail: point.monthEnd,
     }));
-    const currentMonthRange = useMemo(() => {
-        const month = dayjs();
-        return {
-            start: month.startOf("month"),
-            end: month.endOf("month"),
-        };
-    }, []);
+    const budgetMetrics = useMemo(() => budgetMetricsFromReport(currentBudgetReport), [currentBudgetReport]);
+    const topCategories = useMemo(() => {
+        const rows = currentBudgetReport?.data ?? [];
+        const rankedRows = rows
+            .filter((row) => row.spentAmount > 0)
+            .slice()
+            .sort((left, right) => right.spentAmount - left.spentAmount)
+            .slice(0, 5);
+        const maxSpent = Math.max(...rankedRows.map((row) => row.spentAmount), 0);
 
-    const momDelta = getDeltaPercent(summary.current.savings, summary.previous?.savings);
-    const cards = [
+        return {
+            rows: rankedRows,
+            maxSpent,
+        };
+    }, [currentBudgetReport]);
+
+    const cards: SummaryCard[] = [
         {
             key: "income",
             title: t("dashboard.summary.totalIncome"),
@@ -238,7 +297,6 @@ const Dashboard = () => {
             icon: <ArrowUp size={18} />,
             kind: "income" as const,
             trendMode: "higherIsBetter" as const,
-            hasBaseline: true,
         },
         {
             key: "expenses",
@@ -248,7 +306,6 @@ const Dashboard = () => {
             icon: <ArrowDown size={18} />,
             kind: "expense" as const,
             trendMode: "lowerIsBetter" as const,
-            hasBaseline: true,
         },
         {
             key: "savings",
@@ -258,18 +315,24 @@ const Dashboard = () => {
             icon: <Banknote size={18} />,
             kind: summary.current.savings >= 0 ? "income" as const : "expense" as const,
             trendMode: "higherIsBetter" as const,
-            hasBaseline: true,
         },
         {
-            key: "mom",
-            title: t("dashboard.summary.momDelta"),
-            value: momDelta ?? 0,
+            key: "budgetRemaining",
+            title: t("dashboard.summary.budgetRemaining"),
+            value: budgetMetrics.remaining,
             previous: undefined,
-            icon: <TrendingUp size={18} />,
-            kind: "neutral" as const,
+            icon: <Landmark size={18} />,
+            kind: budgetMetrics.remaining < 0 ? "expense" as const : "income" as const,
             trendMode: "higherIsBetter" as const,
-            percent: true,
-            hasBaseline: momDelta !== null,
+            customDelta: budgetMetrics.budgeted > 0
+                ? budgetMetrics.remaining < 0
+                    ? t("dashboard.summary.budgetOver", {
+                        value: formatMoney(Math.abs(budgetMetrics.remaining), 2),
+                    })
+                    : t("dashboard.summary.budgetUsed", {
+                        value: `${budgetMetrics.percentageUsed.toFixed(0)}%`,
+                    })
+                : t("dashboard.summary.noBudgetData"),
         },
     ];
 
@@ -284,20 +347,19 @@ const Dashboard = () => {
                     <div className="dashboard-summary-grid" data-qa="dashboard-top-cards">
                         {cards.map((card) => {
                             const delta = getDeltaPercent(card.value, card.previous);
-                            const deltaColor = hasNoCurrentMonthActivity ? undefined : getDeltaColor(delta, card.trendMode);
-                            const deltaText = card.key === "mom"
-                                ? (hasNoCurrentMonthActivity || !card.hasBaseline
-                                    ? t("dashboard.summary.noPreviousMonth")
-                                    : t("dashboard.summary.vsLastMonth", {
-                                        value: `${card.value > 0 ? "+" : ""}${card.value.toFixed(0)}%`,
-                                    }))
-                                : hasNoCurrentMonthActivity
+                            const isExtremeDelta = delta !== null && Math.abs(delta) > 999;
+                            const deltaColor = hasNoCurrentMonthActivity || isExtremeDelta
+                                ? undefined
+                                : getDeltaColor(delta, card.trendMode);
+                            const deltaText = card.customDelta ?? (hasNoCurrentMonthActivity
                                 ? t("dashboard.summary.noCurrentMonthData")
                                 : delta === null
                                 ? t("dashboard.summary.noPreviousMonth")
+                                : isExtremeDelta
+                                ? t("dashboard.summary.baselineTooSmall")
                                 : t("dashboard.summary.vsLastMonth", {
                                     value: `${delta > 0 ? "+" : ""}${delta.toFixed(0)}%`,
-                                });
+                                }));
 
                             return (
                                 <article className="dashboard-card" data-qa="dashboard-top-card" key={card.key}>
@@ -306,16 +368,12 @@ const Dashboard = () => {
                                         <span className="dashboard-card__icon" aria-hidden="true">{card.icon}</span>
                                     </div>
                                     <div className="dashboard-card__value" data-qa="dashboard-card-value">
-                                        {card.percent
-                                            ? <span>{card.hasBaseline ? `${card.value > 0 ? "+" : ""}${card.value.toFixed(0)}%` : "-"}</span>
-                                            : (
-                                                <Num
-                                                    value={card.value}
-                                                    currency={currency ?? ""}
-                                                    kind={card.kind}
-                                                    currencyDataQa="dashboard-card-currency"
-                                                />
-                                            )}
+                                        <Num
+                                            value={card.value}
+                                            currency={currency ?? ""}
+                                            kind={card.kind}
+                                            currencyDataQa="dashboard-card-currency"
+                                        />
                                     </div>
                                     <span
                                         className={`dashboard-card__delta${deltaColor ? ` is-${deltaColor}` : ""}`}
@@ -334,20 +392,43 @@ const Dashboard = () => {
                         <div className="dashboard-panel__header">
                             <div>
                                 <span className="dashboard-panel__eyebrow">{t("dashboard.analyticsLabel")}</span>
-                                <h2 className="dashboard-panel__title">{t("reports.heatmapReport")}</h2>
+                                <h2 className="dashboard-panel__title">{t("dashboard.topCategories.title")}</h2>
                             </div>
-                            <Landmark size={18} aria-hidden="true" />
+                            <Banknote size={18} aria-hidden="true" />
                         </div>
-                        <div className="dashboard-chart-scroll">
-                            <SpendingHeatmap
-                                start={currentMonthRange.start}
-                                end={currentMonthRange.end}
-                                height={210}
-                                minWidth={320}
-                                padding={0}
-                                showRange={false}
-                            />
-                        </div>
+                        <Spin spinning={isLoadingSummary} tip={t("dashboard.topCategories.loading")}>
+                            {topCategories.rows.length === 0 ? (
+                                <p className="dashboard-intro">{t("dashboard.topCategories.empty")}</p>
+                            ) : (
+                                <ol className="dashboard-category-list" aria-label={t("dashboard.topCategories.summaryTitle")}>
+                                    {topCategories.rows.map((category: BudgetComparisonDTO) => {
+                                        const share = topCategories.maxSpent > 0
+                                            ? Math.max((category.spentAmount / topCategories.maxSpent) * 100, 4)
+                                            : 0;
+
+                                        return (
+                                            <li className="dashboard-category-row" key={category.categoryName}>
+                                                <div className="dashboard-category-row__main">
+                                                    <span className="dashboard-category-row__name">{category.categoryName}</span>
+                                                    <Num
+                                                        value={category.spentAmount}
+                                                        currency={currency ?? ""}
+                                                        kind="expense"
+                                                        currencySize="sm"
+                                                    />
+                                                </div>
+                                                <div className="dashboard-category-row__track" aria-hidden="true">
+                                                    <span
+                                                        className="dashboard-category-row__bar"
+                                                        style={{ width: `${share}%` }}
+                                                    />
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ol>
+                            )}
+                        </Spin>
                     </section>
                     <section className="dashboard-panel">
                         <div className="dashboard-panel__header">
@@ -381,6 +462,7 @@ const Dashboard = () => {
                                                     tickFormatter={(value) => formatMoney(Number(value))}
                                                     tickLine={false}
                                                     axisLine={false}
+                                                    domain={netWorthYAxisDomain}
                                                     width={88}
                                                 />
                                                 <Tooltip

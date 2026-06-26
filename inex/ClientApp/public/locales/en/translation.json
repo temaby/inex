@@ -173,12 +173,23 @@
       "totalExpenses": "Total Expenses",
       "netSavings": "Net Savings",
       "momDelta": "MoM Delta",
+      "budgetRemaining": "Budget Remaining",
       "vsLastMonth": "{{value}} vs last month",
       "noPreviousMonth": "No previous month baseline",
       "noCurrentMonthData": "No current month activity",
+      "baselineTooSmall": "Baseline too small to compare",
+      "budgetUsed": "{{value}} used",
+      "budgetOver": "{{value}} over budget",
+      "noBudgetData": "No budgets this month",
       "loading": "Loading month summary",
       "error": "Failed to load month summary",
       "currencyUnavailable": "Unable to resolve your base currency"
+    },
+    "topCategories": {
+      "title": "Top spending categories",
+      "loading": "Loading category spend",
+      "empty": "No category spend for this month",
+      "summaryTitle": "Top spending categories data summary"
     },
     "netWorth": {
       "title": "Historical net worth",

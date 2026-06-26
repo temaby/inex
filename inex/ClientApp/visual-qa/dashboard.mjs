@@ -73,12 +73,6 @@ const states = [
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "net-worth-error",
   },
-  {
-    name: "heatmap-error-390",
-    screenshot: "heatmap-error-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "heatmap-error",
-  },
 ];
 
 function budgetReportForMonth(fixture, month) {
@@ -123,14 +117,6 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           ? { data: [] }
           : fixture.dashboardVisualFixtureNetWorthHistory);
       }
-      if (url.pathname === "/api/reports/spending-heatmap" && method === "GET") {
-        if (scenario === "heatmap-error") {
-          return problemResponse("Dashboard heatmap fixture failure", "Controlled Dashboard heatmap failure.", 500);
-        }
-        return jsonResponse(scenario === "empty"
-          ? fixture.dashboardVisualFixtureEmptyHeatmapReport
-          : fixture.dashboardVisualFixtureHeatmapReport);
-      }
       return null;
     },
   });
@@ -151,16 +137,12 @@ async function waitForDashboardReady(client, state) {
     await waitFor(client, "document.body.innerText.includes('Failed to load net worth history')");
     return;
   }
-  if (state.scenario === "heatmap-error") {
-    await waitFor(client, "document.body.innerText.includes('Failed to load spending heatmap')");
-    return;
-  }
   if (state.scenario === "empty") {
-    await waitFor(client, "document.body.innerText.includes('No current month activity') && document.body.innerText.includes('No heatmap data available') && document.body.innerText.includes('No net worth history available')");
+    await waitFor(client, "document.body.innerText.includes('No current month activity') && document.body.innerText.includes('No category spend for this month') && document.body.innerText.includes('No net worth history available')");
     return;
   }
 
-  await waitFor(client, "document.body.innerText.includes('TOTAL INCOME') && document.body.innerText.includes('Net worth data summary') && document.body.innerText.includes('Spending heatmap data summary')");
+  await waitFor(client, "document.querySelectorAll('[data-qa=\"dashboard-top-card\"]').length === 4 && document.querySelectorAll('.dashboard-category-row').length === 5 && document.body.innerText.includes('Net worth data summary')");
 }
 
 async function collectMetrics(client, state, apiRequestCount) {
@@ -183,9 +165,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const dashboardPanels = Array.from(document.querySelectorAll(".dashboard-panel"));
     const alerts = Array.from(document.querySelectorAll(".dashboard-alert, .ant-alert"));
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
-    const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary, .spending-heatmap__summary"));
-    const heatmapCells = Array.from(document.querySelectorAll(".spending-heatmap rect"));
+    const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary"));
+    const topCategoryRows = Array.from(document.querySelectorAll(".dashboard-category-row"));
     const dashboardTopText = topCardSelectors.map((card) => card.textContent.trim().replace(/\\s+/g, " ")).join(" | ");
+    const dashboardCardTitles = Array.from(document.querySelectorAll('[data-qa="dashboard-card-title"]')).map((title) => title.textContent.trim().replace(/\\s+/g, " "));
 
     return {
       title: document.title,
@@ -207,17 +190,17 @@ async function collectMetrics(client, state, apiRequestCount) {
       dashboardCardCurrencySelectorCount: document.querySelectorAll('[data-qa="dashboard-card-currency"]').length,
       dashboardCardDeltaSelectorCount: document.querySelectorAll('[data-qa="dashboard-card-delta"]').length,
       dashboardTopText,
+      dashboardCardTitles,
       dashboardPanelCount: dashboardPanels.length,
       alertCount: alerts.length,
       chartSurfaceCount: chartSurfaces.length,
       accessibleSummaryCount: accessibleSummaries.length,
-      heatmapCellCount: heatmapCells.length,
+      topCategoryRowCount: topCategoryRows.length,
       netWorthSummaryVisible: document.body.innerText.includes("Net worth data summary"),
-      heatmapSummaryVisible: document.body.innerText.includes("Spending heatmap data summary"),
-      firstUseEmptyVisible: document.body.innerText.includes("No current month activity") && document.body.innerText.includes("No heatmap data available") && document.body.innerText.includes("No net worth history available"),
+      topCategoriesVisible: document.body.innerText.includes("Top spending categories"),
+      firstUseEmptyVisible: document.body.innerText.includes("No current month activity") && document.body.innerText.includes("No category spend for this month") && document.body.innerText.includes("No net worth history available"),
       summaryErrorVisible: document.body.innerText.includes("Failed to load month summary"),
       netWorthErrorVisible: document.body.innerText.includes("Failed to load net worth history"),
-      heatmapErrorVisible: document.body.innerText.includes("Failed to load spending heatmap"),
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
@@ -271,11 +254,19 @@ function collectAdditionalFailures(stateResults) {
     if (state.dashboardCardDeltaSelectorCount !== fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount) {
       failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount} Dashboard secondary delta selectors, found ${state.dashboardCardDeltaSelectorCount}`);
     }
+    for (const title of fixture.dashboardVisualFixtureMeta.expectedSummaryCardTitles) {
+      if (!state.dashboardCardTitles.includes(title)) {
+        failures.push(`${state.name}: expected Dashboard card title ${title}`);
+      }
+    }
     if (state.dashboardPanelCount !== fixture.dashboardVisualFixtureMeta.expectedPanelCount) {
       failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedPanelCount} dashboard panels, found ${state.dashboardPanelCount}`);
     }
-    if (state.chartSurfaceCount < 2) {
-      failures.push(`${state.name}: expected heatmap and net-worth chart surfaces, found ${state.chartSurfaceCount}`);
+    if (state.chartSurfaceCount < 1) {
+      failures.push(`${state.name}: expected net-worth chart surface, found ${state.chartSurfaceCount}`);
+    }
+    if (state.topCategoryRowCount !== fixture.dashboardVisualFixtureMeta.expectedTopCategoryCount) {
+      failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedTopCategoryCount} top category rows, found ${state.topCategoryRowCount}`);
     }
   }
 
@@ -285,6 +276,12 @@ function collectAdditionalFailures(stateResults) {
     }
     if (/Current month/.test(state.dashboardTopText)) {
       failures.push(`${state.name}: Dashboard top card still contains Current month`);
+    }
+    if (/MoM Delta/.test(state.dashboardTopText)) {
+      failures.push(`${state.name}: Dashboard top card still contains standalone MoM Delta`);
+    }
+    if (/Spending Heatmap/.test(state.textSample)) {
+      failures.push(`${state.name}: Dashboard still contains Spending Heatmap as the primary insight`);
     }
   }
 
@@ -312,9 +309,10 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       baseline: fixture.dashboardVisualFixtureMeta.baseline,
       expectedBaseCurrency: fixture.dashboardVisualFixtureMeta.expectedBaseCurrency,
       expectedSummaryCardCount: fixture.dashboardVisualFixtureMeta.expectedSummaryCardCount,
+      expectedSummaryCardTitles: fixture.dashboardVisualFixtureMeta.expectedSummaryCardTitles,
       expectedPanelCount: fixture.dashboardVisualFixtureMeta.expectedPanelCount,
+      expectedTopCategoryCount: fixture.dashboardVisualFixtureMeta.expectedTopCategoryCount,
       expectedNetWorthMonths: fixture.dashboardVisualFixtureMeta.expectedNetWorthMonths,
-      expectedHeatmapDays: fixture.dashboardVisualFixtureMeta.expectedHeatmapDays,
       nonApplicableStates: fixture.dashboardVisualFixtureMeta.nonApplicableStates,
     },
     screenshots: stateResults.map((state) => state.screenshot),

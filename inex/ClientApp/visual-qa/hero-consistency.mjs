@@ -198,9 +198,6 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
       if (url.pathname === "/api/reports/net-worth" && method === "GET" && page === "dashboard") {
         return jsonResponse(fixture.dashboardVisualFixtureNetWorthHistory);
       }
-      if (url.pathname === "/api/reports/spending-heatmap" && method === "GET" && page === "dashboard") {
-        return jsonResponse(fixture.dashboardVisualFixtureHeatmapReport);
-      }
 
       return null;
     },
@@ -466,6 +463,12 @@ function collectAdditionalFailures(stateResults) {
       }
       if (/Current month/.test(state.dashboardTopText)) {
         failures.push(`${state.name}: Dashboard top card still contains Current month`);
+      }
+      if (/MoM Delta/.test(state.dashboardTopText)) {
+        failures.push(`${state.name}: Dashboard top card still contains standalone MoM Delta`);
+      }
+      if (!/Budget Remaining/.test(state.dashboardTopText)) {
+        failures.push(`${state.name}: Dashboard top cards do not include Budget Remaining`);
       }
     } else {
       if (!state.heroCard) failures.push(`${state.name}: missing hero card selector`);
