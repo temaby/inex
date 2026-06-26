@@ -196,9 +196,7 @@
       "valueLabel": "Net worth",
       "loading": "Loading net worth history",
       "empty": "No net worth history available",
-      "error": "Failed to load net worth history",
-      "summaryTitle": "Net worth data summary",
-      "summaryCaption": "Recent monthly values shown in the chart."
+      "error": "Failed to load net worth history"
     },
     "placeholders": {
       "monthSummary": {

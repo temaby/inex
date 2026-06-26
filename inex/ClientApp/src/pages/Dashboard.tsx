@@ -17,7 +17,6 @@ import BasicPage from "../layouts/BasicPage";
 import { Num, type MoneyKind } from "../components/primitives";
 import type { BudgetComparisonDTO, BudgetReportResponse, ReportMetadataDTO } from "../model/Report/BudgetReport";
 import type { NetWorthHistoryPoint, NetWorthHistoryResponse } from "../model/Report/NetWorthHistory";
-import ReportAccessibleSummary from "./Reports/ReportAccessibleSummary";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
 import "./Dashboard/dashboard.css";
@@ -267,11 +266,6 @@ const Dashboard = () => {
         monthLabel: formatMonth(point.month),
     }));
     const netWorthYAxisDomain = useMemo(() => getNetWorthDomain(netWorthHistory), [netWorthHistory]);
-    const netWorthSummaryRows = netWorthHistory.slice(-6).reverse().map((point) => ({
-        key: point.month,
-        label: formatMonth(point.month),
-        value: <Num value={point.netWorth} currency={point.currency || chartCurrency} kind="neutral" />,
-    }));
     const budgetMetrics = useMemo(() => budgetMetricsFromReport(currentBudgetReport), [currentBudgetReport]);
     const topCategories = useMemo(() => {
         const rows = currentBudgetReport?.data ?? [];
@@ -438,66 +432,57 @@ const Dashboard = () => {
                             </div>
                             <TrendingUp size={18} aria-hidden="true" />
                         </div>
-                            {netWorthError && (
-                                <div className="dashboard-alert" role="alert">{netWorthError}</div>
+                        {netWorthError && (
+                            <div className="dashboard-alert" role="alert">{netWorthError}</div>
+                        )}
+                        <Spin spinning={isLoadingNetWorth} tip={t("dashboard.netWorth.loading")}>
+                            {!isLoadingNetWorth && netWorthChartData.length === 0 && !netWorthError ? (
+                                <p className="dashboard-intro">{t("dashboard.netWorth.empty")}</p>
+                            ) : (
+                                <div className="dashboard-chart">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart
+                                            data={netWorthChartData}
+                                            margin={{ top: 12, right: 16, bottom: 12, left: 16 }}
+                                        >
+                                            <CartesianGrid stroke="var(--border-1)" />
+                                            <XAxis
+                                                dataKey="monthLabel"
+                                                tickLine={false}
+                                                axisLine={false}
+                                                minTickGap={16}
+                                            />
+                                            <YAxis
+                                                tickFormatter={(value) => formatMoney(Number(value))}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                domain={netWorthYAxisDomain}
+                                                width={88}
+                                            />
+                                            <Tooltip
+                                                labelFormatter={(_, payload) => {
+                                                    const point = payload?.[0]?.payload as NetWorthHistoryPoint | undefined;
+                                                    return point ? formatMonth(point.month) : "";
+                                                }}
+                                                formatter={(value) => [
+                                                    formatMoney(Number(value), 2),
+                                                    t("dashboard.netWorth.valueLabel"),
+                                                ]}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="netWorth"
+                                                name={t("dashboard.netWorth.valueLabel")}
+                                                stroke="var(--income-500)"
+                                                strokeWidth={2}
+                                                dot={{ r: 3 }}
+                                                activeDot={{ r: 5 }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
                             )}
-                            <Spin spinning={isLoadingNetWorth} tip={t("dashboard.netWorth.loading")}>
-                                {!isLoadingNetWorth && netWorthChartData.length === 0 && !netWorthError ? (
-                                    <p className="dashboard-intro">{t("dashboard.netWorth.empty")}</p>
-                                ) : (
-                                    <div className="dashboard-chart">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <LineChart
-                                                data={netWorthChartData}
-                                                margin={{ top: 12, right: 16, bottom: 12, left: 16 }}
-                                            >
-                                                <CartesianGrid stroke="var(--border-1)" />
-                                                <XAxis
-                                                    dataKey="monthLabel"
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                    minTickGap={16}
-                                                />
-                                                <YAxis
-                                                    tickFormatter={(value) => formatMoney(Number(value))}
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                    domain={netWorthYAxisDomain}
-                                                    width={88}
-                                                />
-                                                <Tooltip
-                                                    labelFormatter={(_, payload) => {
-                                                        const point = payload?.[0]?.payload as NetWorthHistoryPoint | undefined;
-                                                        return point ? formatMonth(point.month) : "";
-                                                    }}
-                                                    formatter={(value) => [
-                                                        formatMoney(Number(value), 2),
-                                                        t("dashboard.netWorth.valueLabel"),
-                                                    ]}
-                                                />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="netWorth"
-                                                    name={t("dashboard.netWorth.valueLabel")}
-                                                    stroke="var(--income-500)"
-                                                    strokeWidth={2}
-                                                    dot={{ r: 3 }}
-                                                    activeDot={{ r: 5 }}
-                                                />
-                                            </LineChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                )}
-                            </Spin>
-                            {netWorthSummaryRows.length > 0 && (
-                                <ReportAccessibleSummary
-                                    title={t("dashboard.netWorth.summaryTitle")}
-                                    caption={t("dashboard.netWorth.summaryCaption")}
-                                    labelHeader={t("reports.month")}
-                                    valueHeader={t("reports.summaryValue")}
-                                    rows={netWorthSummaryRows}
-                                />
-                            )}
+                        </Spin>
                     </section>
                 </div>
             </div>
