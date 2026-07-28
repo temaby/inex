@@ -99,6 +99,7 @@ describe("budgetsApi", () => {
       method: "get",
       data: undefined,
       params: mayParams,
+      signal: expect.any(AbortSignal),
     });
   });
 

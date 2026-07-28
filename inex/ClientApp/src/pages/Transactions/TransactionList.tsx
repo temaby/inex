@@ -126,7 +126,7 @@ const TransactionList = ({
     }), [filter]);
 
     const {
-        data,
+        currentData,
         error,
         isError,
         isFetching,
@@ -137,9 +137,10 @@ const TransactionList = ({
         { skip: accounts.length === 0 || categories.length === 0 },
     );
 
-    const transactions = data?.data ?? emptyTransactions;
-    const total = data?.metadata.totalItems ?? 0;
+    const transactions = currentData?.data ?? emptyTransactions;
+    const total = currentData?.metadata.totalItems ?? 0;
     const hasRows = transactions.length > 0;
+    const isCurrentDataLoading = isLoading || (isFetching && currentData === undefined);
 
     const accountsById = useMemo(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
     const categoriesById = useMemo(() => new Map(categories.map(category => [category.id, category])), [categories]);
@@ -226,8 +227,8 @@ const TransactionList = ({
     }, [ledgerMetrics, onMetricsChange]);
 
     useEffect(() => {
-        onInitialLoadingChange(isLoading && !hasRows);
-    }, [hasRows, isLoading, onInitialLoadingChange]);
+        onInitialLoadingChange(isCurrentDataLoading && !hasRows);
+    }, [hasRows, isCurrentDataLoading, onInitialLoadingChange]);
 
     const paginationChangedHandler = (page: number, size: number) => {
         setPagination(prev => ({ ...prev, current: prev.size === size ? page : 1, size }));
@@ -242,7 +243,7 @@ const TransactionList = ({
         navigate(`../../transactions${buildSingleTagOrRefFilterSearch("refs", ref)}`, { replace: false });
     };
 
-    if (isLoading && !hasRows) {
+    if (isCurrentDataLoading && !hasRows) {
         return (
             <div className="transactions-loading" aria-label={t("transactions.loading.initial")}>
                 {Array.from({ length: 6 }).map((_, index) => (
@@ -280,7 +281,7 @@ const TransactionList = ({
         queryFilter.tags.length > 0 ||
         queryFilter.refs.length > 0;
 
-    if (!isLoading && transactions.length === 0 && serverFilterActive) {
+    if (!isCurrentDataLoading && transactions.length === 0 && serverFilterActive) {
         return (
             <div className="transactions-empty-wrap">
                 <FilterEmpty
@@ -292,7 +293,7 @@ const TransactionList = ({
         );
     }
 
-    if (!isLoading && transactions.length === 0) {
+    if (!isCurrentDataLoading && transactions.length === 0) {
         return (
             <div className="transactions-empty-wrap">
                 <EmptyState

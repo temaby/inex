@@ -81,6 +81,7 @@ describe("budgetReportApi", () => {
       method: "get",
       data: undefined,
       params: usdParams,
+      signal: expect.any(AbortSignal),
     });
   });
 

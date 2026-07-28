@@ -119,6 +119,7 @@ describe("transactionsApi", () => {
       method: "get",
       data: undefined,
       params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -145,6 +146,7 @@ describe("transactionsApi", () => {
       method: "get",
       data: undefined,
       params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -170,6 +172,7 @@ describe("transactionsApi", () => {
       method: "get",
       data: undefined,
       params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 

@@ -115,33 +115,38 @@
     background: var(--bg-muted);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-1);
-    display: inline-grid;
+    display: inline-flex;
+    flex-wrap: nowrap;
     gap: 2px;
-    grid-template-columns: 30px minmax(100px, min(190px, 44vw)) 30px;
     min-height: 32px;
+    min-width: 0;
     padding: 2px;
 }
 
-.transactions-month-current {
+.transactions-month-picker.ant-picker {
     background: transparent;
     border: 0;
+    box-shadow: none;
+    height: 28px;
+    max-width: min(210px, 44vw);
+    min-width: 132px;
+    padding: 0 8px;
+}
+
+.transactions-month-picker .ant-picker-input > input {
     color: var(--fg-2);
     cursor: pointer;
     font-family: var(--font-sans);
     font-size: 12px;
     font-weight: 700;
-    min-width: 0;
     overflow: hidden;
-    padding: 0 8px;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.transactions-month-current:focus-visible {
-    border-radius: var(--radius-1);
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 1px;
+.transactions-month-picker .ant-picker-suffix {
+    color: var(--fg-3);
 }
 
 .transactions-toolbar-count {
@@ -159,6 +164,11 @@
     font-weight: 700;
     gap: 5px;
     padding: 3px 8px;
+}
+
+.transactions-search {
+    flex: 0 1 280px !important;
+    min-width: 220px;
 }
 
 .transactions-ledger-controls {
@@ -563,7 +573,7 @@
     }
 
     .transactions-search {
-        flex-basis: auto;
+        flex: 0 1 auto !important;
         margin-left: 0;
         max-width: none;
         min-width: 0;

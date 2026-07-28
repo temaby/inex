@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert } from "antd";
+import { Alert, DatePicker } from "antd";
+import dayjs, { type Dayjs } from "dayjs";
 import { ChevronLeft, ChevronRight, Filter, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -42,6 +43,8 @@ import {
 } from "./Transactions/transaction-ledger-utils";
 import "./Transactions/transactions-ledger.css";
 
+const MONTH_FILTER_COMMIT_DELAY_MS = 250;
+
 interface FilterChip {
     key: string;
     label: string;
@@ -68,6 +71,9 @@ const formatDateRange = (range: number[]): string => {
 
     return `${format(range[0], "start")} - ${format(range[1], "end")}`;
 };
+
+const areRangesEqual = (left: number[], right: number[]): boolean =>
+    left.length === right.length && left.every((value, index) => value === right[index]);
 
 const Transactions = () => {
     const { t } = useTranslation();
@@ -104,6 +110,9 @@ const Transactions = () => {
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
     const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
     const activeMonthRange = filterState.range.length === 2 ? filterState.range : getCurrentTransactionMonthRange();
+    const activeMonthRangeKey = activeMonthRange.join(":");
+    const [pendingMonthRange, setPendingMonthRange] = useState<number[]>(activeMonthRange);
+    const pendingMonthRangeKey = pendingMonthRange.join(":");
     const summaryFilter = useMemo<TransactionFilterParams>(() => ({
         accountIds: filterState.accountIds,
         categoryIds: filterState.categoryIds,
@@ -114,11 +123,13 @@ const Transactions = () => {
     const summaryQuery = useGetTransactionsSummaryQuery(summaryFilter, {
         skip: filterParam === null && filterState.range.length !== 2,
     });
+    const summaryData = summaryQuery.currentData;
+    const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
     const summaryMetrics = useMemo(
-        () => summaryQuery.data
-            ? getLedgerMetricsFromSummary(summaryQuery.data, exchangeRates)
+        () => summaryData
+            ? getLedgerMetricsFromSummary(summaryData, exchangeRates)
             : null,
-        [exchangeRates, summaryQuery.data],
+        [exchangeRates, summaryData],
     );
     const scopedMetrics = summaryMetrics ?? ledgerMetrics;
     const scopedTotalCount = scopedMetrics.totalCount;
@@ -130,14 +141,37 @@ const Transactions = () => {
         [activeMonthRange, t],
     );
     const nextMonthDisabled = useMemo(
-        () => isCurrentOrFutureTransactionMonth(activeMonthRange),
-        [activeMonthRange],
+        () => isCurrentOrFutureTransactionMonth(pendingMonthRange),
+        [pendingMonthRange],
+    );
+    const pendingMonthPickerValue = useMemo(
+        () => pendingMonthRange.length === 2 && pendingMonthRange[0] > 0
+            ? dayjs.unix(pendingMonthRange[0])
+            : dayjs(),
+        [pendingMonthRangeKey],
     );
 
     const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {
         dispatch(transactionsActions.setFilter({ filter: nextFilter }));
         navigate(`${location.pathname}${buildTransactionFilterSearch(nextFilter)}`, { replace });
     }, [dispatch, location.pathname, navigate]);
+
+    useEffect(() => {
+        setPendingMonthRange(activeMonthRange);
+    }, [activeMonthRangeKey]);
+
+    useEffect(() => {
+        if (areRangesEqual(pendingMonthRange, activeMonthRange)) return undefined;
+
+        const timeoutId = window.setTimeout(() => {
+            applyServerFilter({
+                ...filterState,
+                range: pendingMonthRange,
+            }, false);
+        }, MONTH_FILTER_COMMIT_DELAY_MS);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [activeMonthRange, applyServerFilter, filterState, pendingMonthRange, pendingMonthRangeKey]);
 
     useEffect(() => {
         if (filterParam !== null) return;
@@ -149,18 +183,29 @@ const Transactions = () => {
     }, [applyServerFilter, filterParam]);
 
     const changeMonth = useCallback((monthDelta: number) => {
-        applyServerFilter({
-            ...filterState,
-            range: shiftTransactionMonthRange(activeMonthRange, monthDelta),
-        }, false);
-    }, [activeMonthRange, applyServerFilter, filterState]);
+        setPendingMonthRange((currentRange) => {
+            if (monthDelta > 0 && isCurrentOrFutureTransactionMonth(currentRange)) {
+                return currentRange;
+            }
 
-    const resetToCurrentMonth = useCallback(() => {
-        applyServerFilter({
-            ...filterState,
-            range: getCurrentTransactionMonthRange(),
-        }, false);
-    }, [applyServerFilter, filterState]);
+            return shiftTransactionMonthRange(currentRange.length === 2 ? currentRange : activeMonthRange, monthDelta);
+        });
+    }, [activeMonthRange]);
+
+    const selectMonth = useCallback((month: Dayjs | null) => {
+        if (!month) return;
+
+        const selectedMonth = month.startOf("month");
+        if (selectedMonth.isAfter(dayjs().startOf("month"))) return;
+
+        setPendingMonthRange([
+            selectedMonth.unix(),
+            selectedMonth.endOf("month").unix(),
+        ]);
+    }, []);
+
+    const isFutureMonth = useCallback((date: Dayjs) =>
+        date.startOf("month").isAfter(dayjs().startOf("month")), []);
 
     const clearAllFilters = useCallback(() => {
         setLedgerFilter(emptyLedgerFilter);
@@ -183,9 +228,17 @@ const Transactions = () => {
                 onClick={() => changeMonth(-1)}
                 size="sm"
             />
-            <button className="transactions-month-current" onClick={resetToCurrentMonth} type="button">
-                {periodLabel}
-            </button>
+            <DatePicker
+                allowClear={false}
+                aria-label={t("transactions.month.chooser")}
+                className="transactions-month-picker"
+                disabledDate={isFutureMonth}
+                format="MMMM YYYY"
+                inputReadOnly
+                onChange={selectMonth}
+                picker="month"
+                value={pendingMonthPickerValue}
+            />
             <InExButton
                 aria-label={t("transactions.month.next")}
                 disabled={nextMonthDisabled}
@@ -322,10 +375,10 @@ const Transactions = () => {
                 <section className="transactions-ledger">
                     <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card">
                         {kpiItems.map(item => (
-                            <div className={`transactions-kpi${ledgerInitialLoading || summaryQuery.isLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
+                            <div className={`transactions-kpi${ledgerInitialLoading || summaryInitialLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
                                 <div className="transactions-kpi__label" data-qa={item.primary ? "hero-primary-label" : undefined}>{item.label}</div>
                                 <div className="transactions-kpi__value" data-qa={item.primary ? "hero-primary-value" : undefined}>
-                                    {ledgerInitialLoading || summaryQuery.isLoading ? (
+                                    {ledgerInitialLoading || summaryInitialLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
                                         <Num
@@ -391,7 +444,6 @@ const Transactions = () => {
                                 className="transactions-search"
                                 onChange={(event) => setLedgerFilter(prev => ({ ...prev, search: event.target.value }))}
                                 placeholder={t("transactions.searchPlaceholder")}
-                                style={{ flex: "0 1 280px", minWidth: 220 }}
                                 value={ledgerFilter.search}
                                 variant="search"
                             />
