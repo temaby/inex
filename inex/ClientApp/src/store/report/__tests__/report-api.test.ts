@@ -89,6 +89,7 @@ describe("reportApi", () => {
       method: "get",
       data: undefined,
       params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -113,6 +114,7 @@ describe("reportApi", () => {
       method: "get",
       data: undefined,
       params: { currency: "USD" },
+      signal: expect.any(AbortSignal),
     });
   });
 

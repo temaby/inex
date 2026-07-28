@@ -19,9 +19,9 @@ const axiosBaseQuery: BaseQueryFn<
   AxiosBaseQueryArgs,
   unknown,
   AxiosBaseQueryError
-> = async ({ url, method = "get", data, params }) => {
+> = async ({ url, method = "get", data, params }, api) => {
   try {
-    const result = await apiClient({ url, method, data, params });
+    const result = await apiClient({ url, method, data, params, signal: api.signal });
     return { data: result.data ?? null };
   } catch (axiosError) {
     const err = axiosError as AxiosError;

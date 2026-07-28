@@ -78,6 +78,7 @@ describe("accountsApi", () => {
       method: "get",
       data: undefined,
       params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -95,6 +96,7 @@ describe("accountsApi", () => {
       method: "get",
       data: undefined,
       params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 

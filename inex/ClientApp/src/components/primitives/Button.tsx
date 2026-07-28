@@ -3,14 +3,10 @@ import * as React from 'react';
 export type ButtonKind = "primary" | "danger" | "default" | "ghost" | "soft" | "link";
 export type ButtonSize = "sm" | "md" | "lg";
 
-export interface InExButtonProps {
+export interface InExButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
     kind?: ButtonKind;
     size?: ButtonSize;
     icon?: React.ReactNode;
-    onClick?: React.MouseEventHandler<HTMLButtonElement>;
-    disabled?: boolean;
-    children?: React.ReactNode;
-    style?: React.CSSProperties;
     type?: "button" | "submit" | "reset";
 }
 
@@ -71,6 +67,7 @@ export const InExButton: React.FC<InExButtonProps> = ({
     children,
     style,
     type = "button",
+    ...buttonProps
 }) => {
     const buttonStyle: React.CSSProperties = {
         alignItems: "center",
@@ -91,7 +88,7 @@ export const InExButton: React.FC<InExButtonProps> = ({
     };
 
     return (
-        <button disabled={disabled} onClick={onClick} style={buttonStyle} type={type}>
+        <button {...buttonProps} disabled={disabled} onClick={onClick} style={buttonStyle} type={type}>
             {icon}
             {children}
         </button>
