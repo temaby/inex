@@ -10,7 +10,7 @@ const NotFound = () => {
     const { t } = useTranslation();
 
     return (
-        <main className="not-found-page">
+        <main className="not-found-page inex-page-frame inex-page-frame--reading">
             <EmptyState
                 iconNode={<SearchX size={26} aria-hidden="true" />}
                 title="404"

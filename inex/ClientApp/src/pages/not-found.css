@@ -2,7 +2,6 @@
 
 .not-found-page {
   margin: 0 auto;
-  max-width: 720px;
   padding: var(--space-12) var(--space-5);
 }
 

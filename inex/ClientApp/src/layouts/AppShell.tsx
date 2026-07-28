@@ -20,11 +20,14 @@ import { logoutUser } from "../store/auth/auth-actions";
 import "./AppShell.css";
 
 interface AppShellProps {
+    frame: PageFrame;
     title: string;
     subtitle?: string;
     extra?: React.ReactNode;
     children: React.ReactNode;
 }
+
+type PageFrame = "management" | "analytics" | "analytics-wide" | "settings" | "reading";
 
 type NavKey = "dashboard" | "transactions" | "accounts" | "categories" | "budgets" | "reports";
 
@@ -61,7 +64,7 @@ const Logo = () => (
     </div>
 );
 
-const AppShell = ({ title, subtitle, extra, children }: AppShellProps) => {
+const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -149,14 +152,18 @@ const AppShell = ({ title, subtitle, extra, children }: AppShellProps) => {
             </header>
 
             <div className="inex-page-head r-page-head">
-                <div className="inex-page-head__main">
-                    {subtitle && <div className="inex-page-head__subtitle" data-qa="page-eyebrow">{subtitle}</div>}
-                    <h1 className="inex-page-head__title r-page-head-title" data-qa="page-title">{title}</h1>
+                <div className={`inex-page-frame inex-page-frame--${frame} inex-page-head__frame`}>
+                    <div className="inex-page-head__main">
+                        {subtitle && <div className="inex-page-head__subtitle" data-qa="page-eyebrow">{subtitle}</div>}
+                        <h1 className="inex-page-head__title r-page-head-title" data-qa="page-title">{title}</h1>
+                    </div>
+                    {extra && <div className="inex-page-head__right r-page-head-right" data-qa="page-primary-action">{extra}</div>}
                 </div>
-                {extra && <div className="inex-page-head__right r-page-head-right" data-qa="page-primary-action">{extra}</div>}
             </div>
 
-            <main className="inex-page-body r-page-body">{children}</main>
+            <main className="inex-page-body r-page-body">
+                <div className={`inex-page-frame inex-page-frame--${frame}`}>{children}</div>
+            </main>
 
             <nav className="r-bottom-nav" aria-label={t("nav.mainNav")}>
                 {NAV_ITEMS.map((item) => {
@@ -184,5 +191,5 @@ const AppShell = ({ title, subtitle, extra, children }: AppShellProps) => {
 };
 
 export { AppShell };
-export type { AppShellProps };
+export type { AppShellProps, PageFrame };
 export default AppShell;

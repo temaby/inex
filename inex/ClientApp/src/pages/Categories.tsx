@@ -450,6 +450,7 @@ const Categories = () => {
                 />
             </InExDrawer>
             <BasicPage
+                frame="management"
                 title={t("categories.title")}
                 subtitle={t("categories.subtitle")}
                 extra={pageExtra}
@@ -525,8 +526,8 @@ const Categories = () => {
                             <ListPanelColumnHeader
                                 columns={[
                                     t("categories.category"),
-                                    t("categories.activity.title"),
                                     t("categories.snapshot.spend"),
+                                    t("categories.activity.title"),
                                     "",
                                 ]}
                             />

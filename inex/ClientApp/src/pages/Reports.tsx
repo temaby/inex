@@ -104,7 +104,7 @@ const Reports = () => {
     );
 
     return (
-        <BasicPage title={title} subtitle={isHub ? t("reports.subtitleHub") : t("reports.subtitleDrilldown")} extra={extra}>
+        <BasicPage frame="analytics" title={title} subtitle={isHub ? t("reports.subtitleHub") : t("reports.subtitleDrilldown")} extra={extra}>
             <div className="reports-route">
                 <Outlet context={{ period: hubPeriod, periodLabel } satisfies ReportsHubContext} />
             </div>

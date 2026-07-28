@@ -110,6 +110,24 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                     </span>
                 ) : null}
             </span>
+            <span className="category-row__spent">
+                {hasActivity && spend > 0 ? (
+                    <React.Fragment>
+                        <strong>
+                            <Num value={spend} currency={currency} kind="expense" />
+                        </strong>
+                        <small>{periodLabel}</small>
+                    </React.Fragment>
+                ) : (
+                    <strong
+                        className="category-row__placeholder"
+                        aria-label={noSpendLabel}
+                        title={noSpendLabel}
+                    >
+                        —
+                    </strong>
+                )}
+            </span>
             <span className="category-row__activity r-category-activity">
                 {hasActivity ? (
                     <React.Fragment>
@@ -134,24 +152,6 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                         className="category-row__placeholder"
                         aria-label={noActivityLabel}
                         title={noActivityLabel}
-                    >
-                        —
-                    </strong>
-                )}
-            </span>
-            <span className="category-row__spent">
-                {hasActivity && spend > 0 ? (
-                    <React.Fragment>
-                        <strong>
-                            <Num value={spend} currency={currency} kind="expense" />
-                        </strong>
-                        <small>{periodLabel}</small>
-                    </React.Fragment>
-                ) : (
-                    <strong
-                        className="category-row__placeholder"
-                        aria-label={noSpendLabel}
-                        title={noSpendLabel}
                     >
                         —
                     </strong>

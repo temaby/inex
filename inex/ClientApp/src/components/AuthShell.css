@@ -9,6 +9,8 @@
   background: var(--bg-app);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin-inline: auto;
+  max-width: var(--frame-auth-shell-max);
   min-height: 100vh;
   overflow-x: hidden;
   width: 100%;

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-26T11:47:53.707Z",
+  "generatedAt": "2026-07-28T21:47:30.578Z",
   "page": "hero-consistency",
   "dataMode": "fixture",
   "harness": {
@@ -58,28 +58,28 @@
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-06-14",
     "GET /currencies",
     "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-14",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /categories?mode=ALL",
     "GET /budgets?year=2026&month=4",
     "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
     "GET /currencies",
+    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /currencies",
     "GET /budgets?year=2026&month=4",
     "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /currencies",
+    "GET /exchange/rates/2026-04-30",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "GET /reports/budget/comparison?year=2026&month=3&currency=USD",
     "GET /reports/net-worth?months=12",
@@ -340,7 +340,7 @@
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
       "heroText": "Income3,200.00USD6 transactions in April 2026Expenses96.70USD6 transactions in April 2026Net Flow+3,103.30USDMonth summary shown in USD where rates exist",
-      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger April 2026 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 20 / page",
+      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION AMOUNT ACCOUNT DATE Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 20 / page",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1425,
@@ -807,7 +807,7 @@
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
       "heroText": "Net worth33,968USD+383 USD+1%from May 2026By currencyUZS16,591.12 USD48.8%USD9,200.00 USD27.1%PLN3,625.00 USD10.7%RUB2,608.70 USD7.7%BYN1,354.84 USD4.0%Other588.46 USD1.7%",
-      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% BYN 1,354.84 USD 4.0% Other 588.46 USD 1.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT CURRENCY SHARE BALANCE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves UZS 48.8% 199,093,440.00 UZS ≈ 16,591 USD USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors USD 27.1% 9,200.00 USD 9,200.00 USD PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses PLN 10.7% 14,500.00 PLN ≈ 3,625 USD RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings RUB 7.7% 240,000.00 RUB ≈ 2,609 USD BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve BYN 4.0% 4,200.00 BYN ≈ 1,355 USD GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer GEL 1.7% 1,735.96 GEL ≈ 588 USD",
+      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% BYN 1,354.84 USD 4.0% Other 588.46 USD 1.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
@@ -817,9 +817,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-06-14",
         "GET /currencies",
         "GET /accounts?mode=ALL",
+        "GET /exchange/rates/2026-06-14",
         "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
       ],
       "consoleMessages": [
@@ -1273,7 +1273,7 @@
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
       "heroText": "April 2026 spend1,937USDMost spent in Home1,450USD75% of totalBy categoryHome1,450.00USD75%Living186.50USD10%Travel90.00USD5%Health80.00USD4%Learning70.00USD4%Other60.00USD3%",
-      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,937 USD Most spent in Home 1,450 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only STATUS Active All VIEW Tree By spend CATEGORY ACTIVITY SPEND Living Daily life 4 txns last 24 Apr 186.50 USD April 2026 Groceries Food and household Budgeted 2 txns last 18 Apr 142.50 USD April 2026 Transport Transit and fuel 2 txns last 24 Apr 44.00 USD April 2026 Home Rent and utilities Budgeted 1 txn last 2 Apr 1,450.00 USD April 2026 Rent Apartment rent Budgeted 1 txn last 2 Apr 1,450.00 USD April 2026 Income Money in — — Health Health and care 1 txn last 14 Apr 80.00 USD April 2026 Travel Trips and visas 1 txn last 12 Apr 90.00 USD April 2026 Learning Books and courses 1 txn last 16 Apr 70.00 USD April 2026 Fees Bank and service fees 1 txn last 20 Apr 60.00 USD April 2026 Transfer Internal movement — —",
+      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,937 USD Most spent in Home 1,450 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Learning 70.00 USD 4% Other 60.00 USD 3% Categories 11 of 12 categories · active only STATUS Active All VIEW Tree By spend CATEGORY SPEND ACTIVITY Living Daily life 186.50 USD April 2026 4 txns last 24 Apr Groceries Food and household Budgeted 142.50 USD April 2026 2 txns last 18 Apr Transport Transit and fuel 44.00 USD April 2026 2 txns last 24 Apr Home Rent and utilities Budgeted 1,450.00 USD April 2026 1 txn last 2 Apr Rent Apartment rent Budgeted 1,450.00 USD April 2026 1 txn last 2 Apr Income Money in — — Health Health and care 80.00 USD April 2026 1 txn last 14 Apr Travel Trips and visas 90.00 USD April 2026 1 txn last 12 Apr Learning Books and courses 70.00 USD April 2026 1 txn last 16 Apr Fees Bank and service fees 60.00 USD April 2026 1 txn last 20 Apr Transfer Internal movement — —",
       "routePath": "/categories",
       "pngDimensions": {
         "width": 1425,
@@ -1283,11 +1283,11 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /categories?mode=ALL",
         "GET /budgets?year=2026&month=4",
         "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
-        "GET /currencies"
+        "GET /currencies",
+        "GET /exchange/rates/2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1659,7 +1659,7 @@
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
       "heroText": "Apr 2026 budget2,105/2,390USD285 USD left/285 USD under paceBurn rate% of budget consumedOn trackClose to limitAt limitOver budgetNot touchedGroceries cap120% usedRent envelope100% usedTransport buffer47% usedUtilities reserve36% usedDining out8% used",
-      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105 / 2,390 USD 285 USD left / 285 USD under pace BURN RATE % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 SORT Burn rate Remaining Amount Name Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 BUDGET CATEGORIES PROGRESS DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD",
+      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105 / 2,390 USD 285 USD left / 285 USD under pace BURN RATE % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 SORT Burn rate Remaining Amount Name Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 BUDGET PROGRESS CATEGORIES DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD",
       "routePath": "/budgets?year=2026&month=4",
       "pngDimensions": {
         "width": 1425,
@@ -1669,10 +1669,10 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /currencies",
         "GET /budgets?year=2026&month=4",
         "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
         "GET /reports/budget/comparison?year=2026&month=4&currency=USD"
       ],
       "consoleMessages": [
@@ -1698,14 +1698,14 @@
       "drawerWithinViewport": null,
       "apiRequestCount": 7,
       "title": "InEx",
-      "scrollWidth": 1425,
-      "clientWidth": 1425,
-      "bodyScrollWidth": 1425,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
       "hasHorizontalOverflow": false,
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 967.984375,
+      "lastContentBottom": 693.890625,
       "pageTitle": {
         "text": "Dashboard",
         "top": 112,
@@ -1779,7 +1779,7 @@
           "text": "Total Income3,200.00USD+3% vs last month",
           "top": 163,
           "left": 40,
-          "width": 324,
+          "width": 328,
           "height": 151,
           "bottom": 313,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -1799,8 +1799,8 @@
         {
           "text": "Total Expenses2,105.00USD-17% vs last month",
           "top": 163,
-          "left": 380,
-          "width": 324,
+          "left": 384,
+          "width": 328,
           "height": 151,
           "bottom": 313,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -1820,8 +1820,8 @@
         {
           "text": "Net Savings1,095.00USD+99% vs last month",
           "top": 163,
-          "left": 721,
-          "width": 324,
+          "left": 728,
+          "width": 328,
           "height": 151,
           "bottom": 313,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -1841,8 +1841,8 @@
         {
           "text": "Budget Remaining285.00USD88% used",
           "top": 163,
-          "left": 1061,
-          "width": 324,
+          "left": 1072,
+          "width": 328,
           "height": 151,
           "bottom": 313,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -1885,7 +1885,7 @@
         {
           "text": "Total Expenses",
           "top": 192,
-          "left": 401,
+          "left": 405,
           "width": 98,
           "height": 17,
           "bottom": 208,
@@ -1906,7 +1906,7 @@
         {
           "text": "Net Savings",
           "top": 192,
-          "left": 742,
+          "left": 749,
           "width": 78,
           "height": 17,
           "bottom": 208,
@@ -1927,7 +1927,7 @@
         {
           "text": "Budget Remaining",
           "top": 192,
-          "left": 1082,
+          "left": 1093,
           "width": 120,
           "height": 17,
           "bottom": 208,
@@ -1971,7 +1971,7 @@
         {
           "text": "2,105.00USD",
           "top": 228,
-          "left": 401,
+          "left": 405,
           "width": 172,
           "height": 33,
           "bottom": 261,
@@ -1992,7 +1992,7 @@
         {
           "text": "1,095.00USD",
           "top": 228,
-          "left": 742,
+          "left": 749,
           "width": 172,
           "height": 33,
           "bottom": 261,
@@ -2013,7 +2013,7 @@
         {
           "text": "285.00USD",
           "top": 228,
-          "left": 1082,
+          "left": 1093,
           "width": 139,
           "height": 33,
           "bottom": 261,
@@ -2057,7 +2057,7 @@
         {
           "text": "USD",
           "top": 236,
-          "left": 537,
+          "left": 541,
           "width": 36,
           "height": 22,
           "bottom": 257,
@@ -2078,7 +2078,7 @@
         {
           "text": "USD",
           "top": 236,
-          "left": 877,
+          "left": 885,
           "width": 36,
           "height": 22,
           "bottom": 257,
@@ -2099,7 +2099,7 @@
         {
           "text": "USD",
           "top": 236,
-          "left": 1185,
+          "left": 1196,
           "width": 36,
           "height": 22,
           "bottom": 257,
@@ -2123,7 +2123,7 @@
           "text": "+3% vs last month",
           "top": 273,
           "left": 61,
-          "width": 282,
+          "width": 286,
           "height": 20,
           "bottom": 292,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2143,8 +2143,8 @@
         {
           "text": "-17% vs last month",
           "top": 273,
-          "left": 401,
-          "width": 282,
+          "left": 405,
+          "width": 286,
           "height": 20,
           "bottom": 292,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2164,8 +2164,8 @@
         {
           "text": "+99% vs last month",
           "top": 273,
-          "left": 742,
-          "width": 282,
+          "left": 749,
+          "width": 286,
           "height": 20,
           "bottom": 292,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2185,8 +2185,8 @@
         {
           "text": "88% used",
           "top": 273,
-          "left": 1082,
-          "width": 282,
+          "left": 1093,
+          "width": 286,
           "height": 20,
           "bottom": 292,
           "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2206,18 +2206,18 @@
       ],
       "dashboardTopText": "Total Income3,200.00USD+3% vs last month | Total Expenses2,105.00USD-17% vs last month | Net Savings1,095.00USD+99% vs last month | Budget Remaining285.00USD88% used",
       "heroText": "",
-      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA HOME Dashboard TOTAL INCOME 3,200.00 USD +3% vs last month TOTAL EXPENSES 2,105.00 USD -17% vs last month NET SAVINGS 1,095.00 USD +99% vs last month BUDGET REMAINING 285.00 USD 88% used INSIGHT Top spending categories Rent 1,450.00 USD Groceries 505.00 USD Utilities 80.00 USD Transport 56.00 USD Dining out 14.00 USD INSIGHT Historical net worth Jun 2025 Aug 2025 Oct 2025 Dec 2025 Feb 2026 Apr 2026 $17,549 $20,049 $22,549 $27,376 Net worth data summary Recent monthly values shown in the chart. MONTH VALUE Apr 2026 26,425.00 USD Mar 2026 25,330.00 USD Feb 2026 24,780.00 USD Jan 2026 24,110.00 USD Dec 2025 23,240.00 USD Nov 2025 22,680.00 USD Apr",
+      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA HOME Dashboard TOTAL INCOME 3,200.00 USD +3% vs last month TOTAL EXPENSES 2,105.00 USD -17% vs last month NET SAVINGS 1,095.00 USD +99% vs last month BUDGET REMAINING 285.00 USD 88% used INSIGHT Top spending categories Rent 1,450.00 USD Groceries 505.00 USD Utilities 80.00 USD Transport 56.00 USD Dining out 14.00 USD INSIGHT Historical net worth Jun 2025 Aug 2025 Oct 2025 Dec 2025 Feb 2026 Apr 2026 $17,549 $20,049 $22,549 $27,376 Apr",
       "routePath": "/dashboard",
       "pngDimensions": {
-        "width": 1425,
+        "width": 1440,
         "height": 1000,
         "mode": "viewport"
       },
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /currencies",
+        "GET /exchange/rates/2026-04-30",
         "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
         "GET /reports/budget/comparison?year=2026&month=3&currency=USD",
         "GET /reports/net-worth?months=12"
@@ -2252,7 +2252,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.578125,
+      "lastContentBottom": 772.078125,
       "pageTitle": {
         "text": "Transactions",
         "top": 100,
@@ -2450,7 +2450,7 @@
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
       "heroText": "Income3,200.00USD6 transactions in April 2026Expenses96.70USD6 transactions in April 2026Net Flow+3,103.30USDMonth summary shown in USD where rates exist",
-      "bodyText": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger April 2026 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
+      "bodyText": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 375,
@@ -2917,7 +2917,7 @@
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
       "heroText": "Net worth33,968USD+383 USD+1%from May 2026By currencyUZS16,591.12 USD48.8%USD9,200.00 USD27.1%PLN3,625.00 USD10.7%RUB2,608.70 USD7.7%BYN1,354.84 USD4.0%Other588.46 USD1.7%",
-      "bodyText": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% BYN 1,354.84 USD 4.0% Other 588.46 USD 1.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves UZS 48.8% 199,093,440.00 UZS ≈ 16,591 USD USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors USD 27.1% 9,200.00 USD 9,200.00 USD PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses PLN 10.7% 14,500.00 PLN ≈ 3,625 USD RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings RUB 7.7% 240,000.00 RUB ≈ 2,609 USD BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve BYN 4.0% 4,200.00 BYN ≈ 1,355 USD GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer GEL 1.7% 1,735.96 GEL ≈ 588 USD Dashboard Transactions Accounts Categories Budgets Reports",
+      "bodyText": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% BYN 1,354.84 USD 4.0% Other 588.46 USD 1.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
@@ -3815,7 +3815,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.46875,
+      "lastContentBottom": 772.375,
       "pageTitle": {
         "text": "Dashboard",
         "top": 100,
@@ -4316,7 +4316,7 @@
       ],
       "dashboardTopText": "Total Income3,200.00USD+3% vs last month | Total Expenses2,105.00USD-17% vs last month | Net Savings1,095.00USD+99% vs last month | Budget Remaining285.00USD88% used",
       "heroText": "",
-      "bodyText": "InEx QA HOME Dashboard TOTAL INCOME 3,200.00 USD +3% vs last month TOTAL EXPENSES 2,105.00 USD -17% vs last month NET SAVINGS 1,095.00 USD +99% vs last month BUDGET REMAINING 285.00 USD 88% used INSIGHT Top spending categories Rent 1,450.00 USD Groceries 505.00 USD Utilities 80.00 USD Transport 56.00 USD Dining out 14.00 USD INSIGHT Historical net worth Jun 2025 Nov 2025 Apr 2026 $17,549 $20,049 $22,549 $27,376 Net worth data summary Recent monthly values shown in the chart. MONTH VALUE Apr 2026 26,425.00 USD Mar 2026 25,330.00 USD Feb 2026 24,780.00 USD Jan 2026 24,110.00 USD Dec 2025 23,240.00 USD Nov 2025 22,680.00 USD Dashboard Transactions Accounts Categories Budgets Reports $17,549",
+      "bodyText": "InEx QA HOME Dashboard TOTAL INCOME 3,200.00 USD +3% vs last month TOTAL EXPENSES 2,105.00 USD -17% vs last month NET SAVINGS 1,095.00 USD +99% vs last month BUDGET REMAINING 285.00 USD 88% used INSIGHT Top spending categories Rent 1,450.00 USD Groceries 505.00 USD Utilities 80.00 USD Transport 56.00 USD Dining out 14.00 USD INSIGHT Historical net worth Jun 2025 Nov 2025 Apr 2026 $17,549 $20,049 $22,549 $27,376 Dashboard Transactions Accounts Categories Budgets Reports 2026",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,

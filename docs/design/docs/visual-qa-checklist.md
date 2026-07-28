@@ -67,6 +67,13 @@ npm run lint
 | Profile | 2026-06-14T08:46:15.728Z | 8 | PASS: fixture, no failures, no backend calls |
 | Auth | 2026-06-14T08:46:45.410Z | 12 | PASS: fixture, no failures, no backend calls |
 
+### 2026-07-28 Page-Frame Update
+
+- Data mode: fixture.
+- Commands: `npm run visual-qa:all`, `npm run visual-qa:verify`, `npm run build`, and `npm run lint`.
+- Result: PASS. The verifier found 9 canonical folders, 94 fresh screenshots, and no blocking failures.
+- Manual review: the updated Accounts, Transactions, Categories, Budgets, Profile, and authentication screenshots were inspected for frame alignment, management value adjacency, overflow, and bottom-nav clearance.
+
 ## Desktop QA Results
 
 | Route | State | 1440px | 1024px | Screenshot | Notes |
