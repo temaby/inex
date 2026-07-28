@@ -47,6 +47,7 @@ const renderShell = () => {
             <MemoryRouter initialEntries={["/dashboard"]}>
                 <AppShell
                     extra={<InExButton kind="primary">Primary action</InExButton>}
+                    frame="analytics"
                     subtitle="Overview"
                     title="Dashboard"
                 >
@@ -58,6 +59,12 @@ const renderShell = () => {
 };
 
 describe("AppShell keyboard navigation", () => {
+    it("applies the selected page frame to the header and content", () => {
+        const { container } = renderShell();
+
+        expect(container.querySelectorAll(".inex-page-frame--analytics")).toHaveLength(2);
+    });
+
     it("tabs through shell navigation, profile, page controls, content controls, and bottom navigation", async () => {
         const user = userEvent.setup();
         renderShell();

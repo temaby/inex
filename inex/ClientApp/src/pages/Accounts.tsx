@@ -448,14 +448,6 @@ const Accounts = () => {
                             )}
                         </span>
                     </span>
-                    <span className="accounts-row__currency">
-                        {account.currency}
-                    </span>
-                    <span className="accounts-row__share">
-                        {share === null
-                            ? t("accounts.equivalent.unavailable")
-                            : t("accounts.shareOfNetWorth", { value: share.toFixed(1) })}
-                    </span>
                     <span className="accounts-row__balance">
                         {balanceUnavailable
                             ? <span className="accounts-muted-metric">{t("accounts.hero.balanceUnavailable")}</span>
@@ -475,6 +467,14 @@ const Accounts = () => {
                                     })}
                                 </React.Fragment>
                             )}
+                    </span>
+                    <span className="accounts-row__currency">
+                        {account.currency}
+                    </span>
+                    <span className="accounts-row__share">
+                        {share === null
+                            ? t("accounts.equivalent.unavailable")
+                            : t("accounts.shareOfNetWorth", { value: share.toFixed(1) })}
                     </span>
                     <span className="accounts-row__chevron" aria-hidden="true">
                         {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
@@ -498,9 +498,9 @@ const Accounts = () => {
         return (
             <div className="accounts-list-header">
                 <span>{t("accounts.headers.account")}</span>
+                <span>{t("accounts.headers.balance")}</span>
                 <span>{t("accounts.headers.currency")}</span>
                 <span>{t("accounts.headers.share")}</span>
-                <span>{t("accounts.headers.balance")}</span>
                 <span aria-hidden="true" />
             </div>
         );
@@ -630,7 +630,7 @@ const Accounts = () => {
         return (
             <React.Fragment>
                 {drawer}
-                <BasicPage title={t("accounts.title")} subtitle={t("accounts.subtitle")} extra={pageExtra}>
+                <BasicPage frame="management" title={t("accounts.title")} subtitle={t("accounts.subtitle")} extra={pageExtra}>
                     <div className="accounts-workspace accounts-workspace--empty">
                         <div className="accounts-first-empty">
                             <EmptyState
@@ -653,7 +653,7 @@ const Accounts = () => {
     return (
         <React.Fragment>
             {drawer}
-            <BasicPage title={t("accounts.title")} subtitle={t("accounts.subtitle")} extra={pageExtra}>
+            <BasicPage frame="management" title={t("accounts.title")} subtitle={t("accounts.subtitle")} extra={pageExtra}>
                 <div className="accounts-workspace">
                     <section className="accounts-hero" data-qa="hero-card">
                         <div className="accounts-hero__net">

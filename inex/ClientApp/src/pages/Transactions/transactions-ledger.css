@@ -237,7 +237,7 @@
 .transactions-ledger-row {
     display: grid;
     gap: 16px;
-    grid-template-columns: minmax(260px, 1.8fr) minmax(140px, 1fr) minmax(110px, 0.8fr) minmax(150px, 180px);
+    grid-template-columns: minmax(280px, 440px) minmax(150px, 180px) minmax(140px, 200px) minmax(110px, 140px);
 }
 
 .transactions-ledger-head {
@@ -251,7 +251,7 @@
     text-transform: uppercase;
 }
 
-.transactions-ledger-head div:last-child {
+.transactions-ledger-head div:nth-child(2) {
     text-align: right;
 }
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T20:40:10.514Z",
+  "generatedAt": "2026-07-28T21:47:58.579Z",
   "page": "reports",
   "dataMode": "fixture",
   "harness": {
@@ -54,26 +54,26 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /categories?mode=ALL",
     "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;",
-    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /categories?mode=ALL",
     "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;",
     "GET /exchange/rates/2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
+    "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
-    "GET /exchange/rates/2026-04-30",
-    "POST /auth/refresh",
-    "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /reports/history/2026?currency=USD",
+    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /exchange/rates/2026-04-30",
@@ -365,9 +365,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /categories?mode=ALL",
-        "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;",
-        "GET /exchange/rates/2026-04-30"
+        "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -485,8 +485,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
-        "GET /exchange/rates/2026-04-30"
+        "GET /exchange/rates/2026-04-30",
+        "GET /reports/budget/comparison?year=2026&month=4&currency=USD"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -603,8 +603,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
-        "GET /reports/history/2026?currency=USD"
+        "GET /reports/history/2026?currency=USD",
+        "GET /exchange/rates/2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",

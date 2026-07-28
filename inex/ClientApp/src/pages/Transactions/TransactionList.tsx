@@ -335,9 +335,9 @@ const TransactionList = ({
 
             <div className="transactions-ledger-head">
                 <div>{t("transactions.description")}</div>
+                <div>{t("transactions.amount")}</div>
                 <div>{t("transactions.account")}</div>
                 <div>{t("transactions.date")}</div>
-                <div>{t("transactions.amount")}</div>
             </div>
 
             {visibleTransactions.length === 0 ? (
@@ -411,8 +411,6 @@ const TransactionList = ({
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div>
-                                    <div className="transactions-row-date">{dayjs(transaction.created).format("YYYY-MM-DD")}</div>
                                     <div className="transactions-row-amount">
                                         <Num
                                             currency={currency}
@@ -433,6 +431,8 @@ const TransactionList = ({
                                             </span>
                                         )}
                                     </div>
+                                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div>
+                                    <div className="transactions-row-date">{dayjs(transaction.created).format("YYYY-MM-DD")}</div>
                                 </div>
                             );
                         })}

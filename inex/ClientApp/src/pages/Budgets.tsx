@@ -573,7 +573,7 @@ const Budgets = () => {
                 </Form>
             </InExDrawer>
 
-            <BasicPage title={t("budgets.title")} subtitle={t("budgets.subtitle")} extra={pageActions}>
+            <BasicPage frame="management" title={t("budgets.title")} subtitle={t("budgets.subtitle")} extra={pageActions}>
                 <div className="budgets-workspace">
                     {!showFirstUseEmpty && (
                     <section className="budgets-hero" data-qa="hero-card">
@@ -853,8 +853,8 @@ const Budgets = () => {
                                     <ListPanelColumnHeader
                                         columns={[
                                             t("budgets.budget"),
-                                            t("budgets.categories"),
                                             t("budgets.progress"),
+                                            t("budgets.categories"),
                                             t("budgets.dailyPace"),
                                             t("budgets.remaining"),
                                         ]}

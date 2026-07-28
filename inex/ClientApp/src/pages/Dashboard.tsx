@@ -331,7 +331,7 @@ const Dashboard = () => {
     ];
 
     return (
-        <BasicPage title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
+        <BasicPage frame="analytics" title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
             <div className="dashboard-workspace">
                 {error && (
                     <div className="dashboard-alert" role="alert">{error}</div>

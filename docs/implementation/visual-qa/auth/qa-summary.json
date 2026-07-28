@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T08:46:45.410Z",
+  "generatedAt": "2026-07-28T21:46:36.910Z",
   "page": "auth",
   "dataMode": "fixture",
   "harness": {
@@ -110,7 +110,8 @@
       "textSample": "In InEx Every penny. Every account. One picture. Personal finance for people with multiple accounts, multiple currencies, and a strong opinion about where their money goes. Multi-currency, multi-account Track PLN, USD, EUR, UZS and more - all reconciled into one net worth. Budgets that actually work Set monthly caps per category. See burn rate and projected overruns in real time. Reports built for reflection Cashflow, net worth, and trends - without spreadsheet maintenance. © InEx 2026 · Self-hosted, single-user · Your data stays yours WELCOME BACK Sign in to InEx Use your account credentials to access your dashboard. Email Password Sign In Don't have an account? Register",
       "pngDimensions": {
         "width": 1440,
-        "height": 1000
+        "height": 1000,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh"
@@ -167,7 +168,8 @@
       "textSample": "In InEx Every penny. Every account. One picture. Personal finance for people with multiple accounts, multiple currencies, and a strong opinion about where their money goes. Multi-currency, multi-account Track PLN, USD, EUR, UZS and more - all reconciled into one net worth. Budgets that actually work Set monthly caps per category. See burn rate and projected overruns in real time. Reports built for reflection Cashflow, net worth, and trends - without spreadsheet maintenance. © InEx 2026 · Self-hosted, single-user · Your data stays yours WELCOME BACK Sign in to InEx Use your account credentials to access your dashboard. Email Password Sign In Don't have an account? Register",
       "pngDimensions": {
         "width": 1024,
-        "height": 900
+        "height": 900,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh"
@@ -224,7 +226,8 @@
       "textSample": "In InEx WELCOME BACK Sign in to InEx Use your account credentials to access your dashboard. Email Password Sign In Don't have an account? Register",
       "pngDimensions": {
         "width": 390,
-        "height": 900
+        "height": 900,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh"
@@ -281,7 +284,8 @@
       "textSample": "In InEx WELCOME BACK Sign in to InEx Use your account credentials to access your dashboard. Email Password Sign In Don't have an account? Register",
       "pngDimensions": {
         "width": 360,
-        "height": 900
+        "height": 900,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh"
@@ -338,7 +342,8 @@
       "textSample": "In InEx WELCOME BACK Sign in to InEx Use your account credentials to access your dashboard. Invalid credentials Email Password Sign In Don't have an account? Register",
       "pngDimensions": {
         "width": 390,
-        "height": 900
+        "height": 900,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -396,7 +401,8 @@
       "textSample": "In InEx Every penny. Every account. One picture. Personal finance for people with multiple accounts, multiple currencies, and a strong opinion about where their money goes. Multi-currency, multi-account Track PLN, USD, EUR, UZS and more - all reconciled into one net worth. Budgets that actually work Set monthly caps per category. See burn rate and projected overruns in real time. Reports built for reflection Cashflow, net worth, and trends - without spreadsheet maintenance. © InEx 2026 · Self-hosted, single-user · Your data stays yours GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Username Email Password Confirm Password Currency EUR - Euro Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 1440,
-        "height": 1000
+        "height": 1000,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -454,7 +460,8 @@
       "textSample": "In InEx Every penny. Every account. One picture. Personal finance for people with multiple accounts, multiple currencies, and a strong opinion about where their money goes. Multi-currency, multi-account Track PLN, USD, EUR, UZS and more - all reconciled into one net worth. Budgets that actually work Set monthly caps per category. See burn rate and projected overruns in real time. Reports built for reflection Cashflow, net worth, and trends - without spreadsheet maintenance. © InEx 2026 · Self-hosted, single-user · Your data stays yours GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Username Email Password Confirm Password Currency EUR - Euro Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 1009,
-        "height": 974
+        "height": 974,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -512,7 +519,8 @@
       "textSample": "In InEx GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Username Email Password Confirm Password Currency EUR - Euro Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 375,
-        "height": 1017
+        "height": 1017,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -570,7 +578,8 @@
       "textSample": "In InEx GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Username Email Password Confirm Password Currency EUR - Euro Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 345,
-        "height": 1017
+        "height": 1017,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -628,7 +637,8 @@
       "textSample": "In InEx GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Username Email Password Strong Confirm Password Currency EUR - Euro Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 375,
-        "height": 1054
+        "height": 1054,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -686,7 +696,8 @@
       "textSample": "In InEx GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Invite token is invalid or expired Username Email Password Strong Confirm Password Currency EUR - Euro Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 375,
-        "height": 1120
+        "height": 1120,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -745,7 +756,8 @@
       "textSample": "In InEx GET STARTED Create your InEx account Bring your accounts together in one private dashboard. Username Email Password Confirm Password Currency Select currency Please select a valid currency Language English Invite Token InEx is invite-only Create Account Already have an account? Sign In",
       "pngDimensions": {
         "width": 375,
-        "height": 1017
+        "height": 1017,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",

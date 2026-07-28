@@ -372,7 +372,7 @@ const Profile = () => {
     ];
 
     return (
-        <BasicPage title={t("profile.title")} subtitle={t("profile.subtitle")}>
+        <BasicPage frame="settings" title={t("profile.title")} subtitle={t("profile.subtitle")}>
             <div className="profile-workspace">
                 <aside className="profile-sidebar" aria-label={t("profile.tabs.label")}>
                     <div className="profile-sidebar__summary">

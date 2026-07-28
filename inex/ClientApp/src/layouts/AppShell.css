@@ -178,6 +178,35 @@
 
 .inex-page-head {
     padding: 28px 40px 20px;
+}
+
+.inex-page-frame {
+    margin-inline: auto;
+    min-width: 0;
+    width: 100%;
+}
+
+.inex-page-frame--management {
+    max-width: var(--frame-management-max);
+}
+
+.inex-page-frame--analytics {
+    max-width: var(--frame-analytics-max);
+}
+
+.inex-page-frame--analytics-wide {
+    max-width: var(--frame-analytics-wide-max);
+}
+
+.inex-page-frame--settings {
+    max-width: var(--frame-settings-max);
+}
+
+.inex-page-frame--reading {
+    max-width: var(--frame-reading-max);
+}
+
+.inex-page-head__frame {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -416,6 +445,9 @@
 
     .inex-page-head {
         padding: 20px 16px 12px;
+    }
+
+    .inex-page-head__frame {
         align-items: flex-start;
         flex-direction: column;
         gap: 12px;

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T08:46:15.728Z",
+  "generatedAt": "2026-07-28T21:47:42.776Z",
   "page": "profile",
   "dataMode": "fixture",
   "harness": {
@@ -92,7 +92,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 967.796875,
+      "lastContentBottom": 968.296875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -113,9 +113,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported.",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 1425,
-        "height": 1448
+        "height": 1467,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -170,9 +172,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported.",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 1009,
-        "height": 1467
+        "height": 1467,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -227,9 +231,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported. Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 375,
-        "height": 2510
+        "height": 2510,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -284,9 +290,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported. Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 345,
-        "height": 2549
+        "height": 2549,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -341,9 +349,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported. Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 375,
-        "height": 2510
+        "height": 2510,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -398,9 +408,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: strong Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported. Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 375,
-        "height": 2510
+        "height": 2510,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -455,9 +467,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 4,
       "textSample": "InEx QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency Not selected Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Could not load currencies. Email Username Currency 1 Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY Not selected PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported. Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 375,
-        "height": 2564
+        "height": 2564,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",
@@ -512,9 +526,11 @@
       "dataModeLabel": "fixture",
       "apiRequestCount": 5,
       "textSample": "InEx QA ACCOUNT Profile & Settings Q QA qa@example.test Account Security PROFILE Account settings Manage the identity, currency, language, and password used by your InEx session. Preferred currency USD Language English Session Protected PREFERENCES Profile details Update the account information returned by the current authenticated profile endpoint. Failed to update profile. Email Username Currency USD - US Dollar Language English Save profile Language and currency Saved preferences update the active session through the existing profile flow. CURRENT LANGUAGE English CURRENT CURRENCY USD - US Dollar PASSWORD Password update Change your password without changing route or session ownership. Current Password New Password Strength: weak Confirm new password Change password Password guidance Use a password manager and keep this password unique to InEx. Use at least 8 characters; 12 or more is stronger. Avoid reusing passwords from other services. Password manager autofill is supported. Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/profile",
       "pngDimensions": {
         "width": 375,
-        "height": 2564
+        "height": 2564,
+        "mode": "fullPage"
       },
       "requestLog": [
         "POST /auth/refresh",

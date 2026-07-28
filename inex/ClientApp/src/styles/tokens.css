@@ -2,6 +2,14 @@
    Font files are intentionally not loaded here; these are fallback stacks only. */
 
 :root {
+  --frame-management-max: 1360px;
+  --frame-analytics-max: 1440px;
+  --frame-analytics-wide-max: 1600px;
+  --frame-settings-max: 1120px;
+  --frame-reading-max: 760px;
+  --frame-auth-shell-max: 1200px;
+  --frame-auth-form-max: 440px;
+
   --brand-ink: #0f1e2e;
   --brand-ink-soft: #1c2e44;
 

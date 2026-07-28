@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T15:34:03.600Z",
+  "generatedAt": "2026-07-28T21:48:18.559Z",
   "page": "transactions",
   "dataMode": "fixture",
   "harness": {
@@ -36,13 +36,6 @@
   "apiRequests": [
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
-    "GET /accounts?mode=ALL",
-    "GET /categories?mode=ALL",
-    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
-    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
-    "POST /auth/refresh",
-    "GET /auth/me",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
     "GET /exchange/rates/2026-04-30",
@@ -71,9 +64,16 @@
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
     "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "POST /auth/refresh",
@@ -163,7 +163,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 20 / page",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION AMOUNT ACCOUNT DATE Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 20 / page",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1425,
@@ -173,9 +173,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /accounts?mode=ALL",
         "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
       ],
@@ -222,7 +222,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 20 / page",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION AMOUNT ACCOUNT DATE Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 20 / page",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1009,
@@ -281,7 +281,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 375,
@@ -340,7 +340,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
@@ -468,9 +468,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /accounts?mode=ALL",
         "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
       ],
@@ -521,7 +521,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports New transaction Record a new expense Expense Income Transfer Account Select account Amount Category Select category Date Comment Cancel Save expense",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports New transaction Record a new expense Expense Income Transfer Account Select account Amount Category Select category Date Comment Cancel Save expense",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 390,
@@ -585,7 +585,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports New transaction Record a new expense Expense Income Transfer Account Select account Amount Category Select category Date Comment Cancel Save expense",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports New transaction Record a new expense Expense Income Transfer Account Select account Amount Category Select category Date Comment Cancel Save expense",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 360,
@@ -649,7 +649,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports Advanced filters Narrow the ledger without leaving Transactions. From To Account All accounts Category All categories Keyword Amount equivalent Clear all Apply filters",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports Advanced filters Narrow the ledger without leaving Transactions. From To Account All accounts Category All categories Keyword Amount equivalent Clear all Apply filters",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 390,
@@ -712,7 +712,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports Advanced filters Narrow the ledger without leaving Transactions. From To Account All accounts Category All categories Keyword Amount equivalent Clear all Apply filters",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports Advanced filters Narrow the ledger without leaving Transactions. From To Account All accounts Category All categories Keyword Amount equivalent Clear all Apply filters",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 360,
@@ -775,7 +775,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 20 / page Edit transaction Update or remove the selected ledger row. Account PLN card Category Groceries Amount PLN Date Comment Delete Save",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION AMOUNT ACCOUNT DATE Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 20 / page Edit transaction Update or remove the selected ledger row. Account PLN card Category Groceries Amount PLN Date Comment Delete Save",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1440,
@@ -839,7 +839,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 84.50 PLN ≈ 21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 3,200.00 USD Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge USD operating 2026-04-29 -500.00 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 96,000.00 UZS ≈ 8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 142.30 PLN ≈ 35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 32.00 USD Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports Edit transaction Update or remove the selected ledger row. Account PLN card Category Groceries Amount PLN Date Comment Delete Save",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports Edit transaction Update or remove the selected ledger row. Account PLN card Category Groceries Amount PLN Date Comment Delete Save",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 390,

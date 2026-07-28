@@ -371,7 +371,7 @@ const Transactions = () => {
 
     return (
         <>
-            <BasicPage title={t("transactions.title")} subtitle={t("transactions.subtitle")} extra={headerActions}>
+            <BasicPage frame="management" title={t("transactions.title")} subtitle={t("transactions.subtitle")} extra={headerActions}>
                 <section className="transactions-ledger">
                     <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card">
                         {kpiItems.map(item => (
