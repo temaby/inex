@@ -200,7 +200,7 @@
 }
 
 .accounts-card {
-    --accounts-inventory-grid: minmax(260px, 420px) minmax(210px, 250px) 88px minmax(96px, 112px) 24px;
+    --accounts-inventory-grid: minmax(260px, 1.2fr) minmax(210px, 1fr) 88px minmax(96px, 112px) 24px;
     overflow: hidden;
 }
 

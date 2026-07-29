@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T21:48:18.559Z",
+  "generatedAt": "2026-07-29T07:34:02.022Z",
   "page": "transactions",
   "dataMode": "fixture",
   "harness": {
@@ -36,16 +36,16 @@
   "apiRequests": [
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
-    "GET /exchange/rates/2026-04-30",
     "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
-    "GET /exchange/rates/2026-04-30",
     "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "POST /auth/refresh",
@@ -173,9 +173,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /accounts?mode=ALL",
         "GET /categories?mode=ALL",
-        "GET /exchange/rates/2026-04-30",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
       ],
@@ -232,9 +232,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /accounts?mode=ALL",
         "GET /categories?mode=ALL",
-        "GET /exchange/rates/2026-04-30",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
       ],
