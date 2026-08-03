@@ -17,6 +17,10 @@ inputDocuments:
 
 <!-- UX design content will be appended sequentially through collaborative workflow steps -->
 
+## Scope Boundary
+
+This document defines shared cross-route experience, visual-system, page-frame, and responsive rules. The page-level design for Transactions, including its ledger, filters, KPIs, rate evidence, account-balance context, drawers, states, and accessibility criteria, is maintained in [Transactions UX Design Specification](transactions-ux-design-specification.md).
+
 ## Executive Summary
 
 ### Project Vision
@@ -261,7 +265,7 @@ Keep the existing InEx semantic tokens and calm finance palette. The width-patte
 | Route | Frame | Desktop rule | Tablet/mobile rule | Primary scan target |
 | --- | --- | --- | --- | --- |
 | Dashboard | Analytics, 1440px | Summary cards and panels may use the full analytics frame; no full-viewport card stretching. Intro copy remains 760px. | Grid reduces before cards become unreadably wide; one-column mobile layout. | KPI label to value; chart to its legend/summary. |
-| Transactions | Management, 1360px | Ledger header, filters, groups, and rows align to one frame. Put amount immediately after the primary description/identity zone; no secondary column may separate them. | At 1024px, combine secondary account/category metadata; at 768px, stack row with amount first and metadata below. | Transaction description to signed amount. |
+| Transactions | Management, 1360px | See [Transactions UX Design Specification](transactions-ux-design-specification.md). | See [Transactions UX Design Specification](transactions-ux-design-specification.md). | See [Transactions UX Design Specification](transactions-ux-design-specification.md). |
 | Accounts | Management, 1360px | Hero, toolbar, list, and currency groups align to one frame. Each row orders Account, Balance, base equivalent, then supporting currency/share and action. Group subtotal follows the same balance alignment. | At 1024px, currency and share become secondary metadata; at 768px, stack balance above name metadata using the existing mobile pattern. | Account name to balance. |
 | Categories | Management, 1360px | Keep Category and Spend adjacent. Activity, budget indicator, and action follow them; hierarchy remains in the category zone. | At 1024px, combine activity/budget support; at 768px, preserve hierarchy and place spend in the compact value area. | Category name to spend. |
 | Budgets | Management, 1360px | Keep Category and Usage adjacent. Usage combines progress plus spent-of-budget. Remaining and pace are supporting values, not widely separated columns. | At 1048px, reduce to the existing one-column compact row; at 768px retain mobile toolbar and month-switcher behavior. | Category to usage and remaining. |
@@ -273,7 +277,7 @@ Keep the existing InEx semantic tokens and calm finance palette. The width-patte
 
 ### Management-Row Rules
 
-1. Each page declares a primary pair: Account/Balance, Transaction/Amount, Category/Spend, or Budget/Usage.
+1. Each page declares its primary identity/value pair; page-level specifications define the pair and its ordering.
 2. The primary value column is the first numeric column after the primary identity zone.
 3. Currency, percentage, base equivalent, status, pace, tags, hierarchy metadata, and row action are secondary. They cannot be placed between the primary pair.
 4. Use an explicit page-specific column template with bounded columns. Do not use an unconstrained `1fr` identity column that absorbs ultra-wide space.

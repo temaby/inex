@@ -36,13 +36,16 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-26T16:11:20.6477763+02:00
-last_updated: 2026-06-14T00:00:00+02:00
+last_updated: 2026-08-03T00:00:00+02:00
 project: inex
 project_key: NOKEY
 tracking_system: file-system
 story_location: D:\work\inex/docs/implementation
 
 development_status:
+  # Transactions sequencing: 7.4a -> 11.1a -> 11.1 -> 11.2 -> 11.3 -> 11.4.
+  # Story 12.1 may start after 11.1 only as an Epic 12 prerequisite; it never blocks Epic 11.
+  # Story 12.4 additionally requires Story 11.3.
   epic-1: done
   1-1-enforce-object-level-authorization-in-service-methods: done
   1-2-fix-refresh-token-rotation-race-condition: done
@@ -78,7 +81,7 @@ development_status:
   7-1-frontend-typed-api-models-eliminate-any-in-core-flows: review
   7-2-frontend-route-based-code-splitting-and-vendor-chunks: in-progress
   7-3-frontend-introduce-vitest-and-react-testing-library: review
-  7-4a-frontend-rtk-query-pattern-for-transactions: review
+  7-4a-frontend-rtk-query-pattern-for-transactions: done
   7-4b-frontend-rtk-query-migration-for-accounts-and-categories: review
   7-4c-frontend-rtk-query-migration-for-budgets-and-reports: review
   epic-7-retrospective: optional
@@ -123,3 +126,17 @@ development_status:
   10-5b-frontend-ux-login-and-registration-redesign: done
   10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: review
   epic-10-retrospective: optional
+  epic-11: backlog
+  11-1a-harden-transaction-mutation-boundaries: backlog
+  11-1-find-transactions-across-the-full-selected-period: backlog
+  11-2-restore-and-control-selected-period-filters: backlog
+  11-3-understand-trustworthy-period-summaries: backlog
+  11-4-recognize-ledger-state-and-recover-without-losing-context: backlog
+  epic-11-retrospective: optional
+  epic-12: backlog
+  12-1-retrieve-trustworthy-native-account-balances: backlog
+  12-2-open-account-balances-on-demand: backlog
+  12-3-see-native-balance-while-entering-a-transaction: backlog
+  12-4-scan-the-ledger-naturally-on-every-screen: backlog
+  12-5-return-to-the-updated-ledger-after-an-edit: backlog
+  epic-12-retrospective: optional

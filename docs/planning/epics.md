@@ -1,10 +1,19 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
+transactionsEnhancementStepsCompleted: [1, 2, 3, 4]
+transactionsEnhancementStatus: 'validated-and-approved-for-implementation'
 inputDocuments:
   - docs/planning/prds/prd-inex-2026-05-20/prd.md
   - docs/project-context.md
   - docs/design/docs/design-implementation-guide.md
   - docs/planning/design-update-plan.md
+  - docs/planning/prds/prd-inex-2026-08-03/prd.md
+  - docs/planning/transactions-ux-design-specification.md
+  - docs/planning/transactions-architecture.md
+transactionsEnhancementInputDocuments:
+  - docs/planning/prds/prd-inex-2026-08-03/prd.md
+  - docs/planning/transactions-ux-design-specification.md
+  - docs/planning/transactions-architecture.md
 ---
 
 # inex - Epic Breakdown
@@ -1412,6 +1421,8 @@ Implementation source of truth: `docs/implementation/10-1e-frontend-ux-shared-mo
 
 ### Story 10.2: Frontend UX - Transactions Ledger Redesign
 
+> **Superseded requirement notice — Transactions enhancements:** The current Transactions PRD and Epic 11 supersede this story's legacy Amount-filter wording. Do not add, retain, or restore an Amount filter in the Transactions UI, URL state, fixtures, or API contract.
+
 As an invited account holder,
 I want the Transactions page to behave like a dense financial ledger,
 So that I can scan recent movement, filter quickly, and understand cash flow without leaving the page.
@@ -1423,7 +1434,7 @@ So that I can scan recent movement, filter quickly, and understand cash flow wit
 **Then** it includes the KPI strip, ledger toolbar, type segmented control, search input, active filter chips, grouped day headers, right-aligned amounts, and pagination controls
 
 **Given** transaction filtering is available
-**When** any filter, search, date range, account, category, tag, reference, or amount condition is active
+**When** any filter, search, date range, account, category, tag, or reference condition is active
 **Then** the page shows a visible active-filter indicator and clearable chips without relying only on URL query text
 
 **Given** the add/edit transaction flows
@@ -1443,6 +1454,8 @@ So that I can scan recent movement, filter quickly, and understand cash flow wit
 **Then** screenshots are captured for desktop populated, mobile populated, filter-active, filter-empty, and drawer-open states
 
 ### Story 10.2a: Frontend UX - Transactions Design Gap Remediation
+
+> **Superseded requirement notice — Transactions enhancements:** This story's former `Amount equivalent` requirement is superseded by the current Transactions PRD and Epic 11. Amount filtering is out of scope.
 
 **Dependency:** Story 10.2 must be complete. This story must complete before Story 10.6.
 
@@ -1466,7 +1479,7 @@ So that transaction review is self-explanatory without hidden context or color-o
 
 **Given** the advanced filter drawer is opened
 **When** filters render
-**Then** there is one intentional filter entry point, the drawer contains Date range, Account, Category, Tags/refs, and Amount equivalent in one typed form, URL/filter-chip compatibility is preserved, and touched TypeScript files add no new `any`
+**Then** there is one intentional filter entry point, the drawer contains Date range, Account, Category, and Tags/refs in one typed form, URL/filter-chip compatibility is preserved, and touched TypeScript files add no new `any`
 
 **Given** the story is complete
 **When** `npm run build`, `npm run lint`, and visual QA run
@@ -1715,3 +1728,523 @@ So that responsive and layout regressions are caught before production.
 **Given** the story is complete
 **When** the design guide is updated
 **Then** it records the current QA workflow and any known exceptions with owner-visible rationale
+
+---
+
+## Transactions Page Enhancements (2026-08-03) — Requirements Inventory
+
+This additive inventory preserves the existing product epic catalogue. It is the input for the Transactions Page Enhancements epic and stories.
+
+### Functional Requirements
+
+FR-TXN-ENH-1: Apply every Transactions server filter to the authenticated user's complete Selected Period before summary calculation and pagination; reset to page 1 when a filter changes.
+
+FR-TXN-ENH-2: Support full-period, database-side Type (All, Income, Expense, Transfer) and case-insensitive Search filters across the documented ledger fields; remove Amount filtering from the UI, URL, API contract, chips, and no-match logic.
+
+FR-TXN-ENH-3: Restore every valid server filter from a stable Transactions URL, ignore invalid values independently, normalize the displayed URL/state, preserve drawer values, and provide individual and global clear actions that restore the current whole month.
+
+FR-TXN-ENH-4: Show full filtered-scope Income and Expenses counts and a preceding-comparable-period Net flow comparison, including the defined zero-flow and no-activity cases.
+
+FR-TXN-ENH-5: Display `N/A` with affected-currency and period Rate Warning evidence whenever a converted KPI or comparison lacks a required exchange rate, without calling an exchange-rate provider.
+
+FR-TXN-ENH-6: Render the desktop ledger as Description, Account, Date, Amount with a right-aligned final Amount column; retain an Amount-first mobile row and existing semantic amounts, grouping, tags/references, and keyboard activation.
+
+FR-TXN-ENH-7: Document the Transactions reusable visual patterns, shared primitives, responsive behaviour, and accessibility contract for later page work.
+
+FR-TXN-ENH-8: Provide an explicit Account balances control that shows every active account's Native Balance in a desktop companion panel or mobile drawer, without a converted cross-account total.
+
+FR-TXN-ENH-9: Show the selected active account's Native Balance below Account fields in create/edit flows; use the required Expense/Income field order and retain distinct transfer account/amount fields.
+
+FR-TXN-ENH-10: After a successful single-record update, close the edit drawer, refresh ledger and summary data, and return focus predictably; failures keep the drawer open with actionable errors and delete remains confirmed.
+
+### NonFunctional Requirements
+
+NFR-TXN-ENH-1: All transaction and account-balance list, summary, and mutation paths derive the current user from the authenticated principal, apply ownership before relations or predicates, and return not found for cross-user resources.
+
+NFR-TXN-ENH-2: Server validation rejects omitted or default transaction dates on create, update, and transfer requests; entered dates remain local calendar dates without a time-zone model.
+
+NFR-TXN-ENH-3: Type/Search filtering remains MySQL-translated and database-side before aggregation or paging; no result set is materialized for client-side filtering.
+
+NFR-TXN-ENH-4: All controls, filter state, monetary direction, Rate Warnings, ledger rows, and drawers are keyboard and screen-reader operable; colour alone conveys neither direction nor incomplete conversion.
+
+NFR-TXN-ENH-5: All added user-visible copy is localized in English and Russian, with Russian used to test long labels.
+
+NFR-TXN-ENH-6: The route has no page-level horizontal overflow, clipped controls, or mobile-bottom-navigation occlusion at 1440px, 1024px, 390px, and 360px.
+
+NFR-TXN-ENH-7: Tests, visual fixtures, and rendering never invoke a live exchange-rate provider; query-sensitive work is verified against MySQL, not EF InMemory alone.
+
+### Additional Requirements
+
+- Implement within the existing InEx .NET 8/EF Core/Pomelo MySQL and React/Redux/RTK Query architecture; no new starter, dependency, route version, time-zone, transfer-linking, or bulk-operation scope.
+- Extend `TransactionFilterQuery` additively with typed `type` and `search` fields while preserving existing account/category/tag/reference/date names and AND semantics.
+- Construct one canonical, ownership-scoped query pipeline that applies active-data mode and all filters before deterministic ordering, aggregation, or paging; list and summary consume the same normalized scope.
+- Preserve provider-translated case-insensitive Search over comment, account name, category name/path, account currency, tags, and references; verify SQL translation, collation, and query plans against MySQL.
+- Keep `/api/transactions` paginated and `/api/transactions/summary` unpaginated with the same normalized filters; new filters reset page/result navigation and participate in every RTK Query key.
+- Extend summary data with current and preceding comparable native-currency scopes; retain client-side pure conversion but return structured complete-or-unavailable results with affected currency/period evidence.
+- Reuse the authenticated account-summary endpoint/cache for Native Balances and correct its transaction aggregate to apply `Transaction.UserId == userId`; do not add a Transactions-specific balance endpoint.
+- Persist all server filters in the existing `filter` URL representation, trim/omit empty Search, fail soft per invalid value, and normalize visible state.
+- Use progressive server-page loading with an accessible Load more fallback for ranges no longer than one calendar month; use numbered pagination only for longer custom ranges and discard accumulated pages on key changes.
+- Preserve the existing authenticated `apiClient`, i18n, shared drawer, Redux/RTK Query invalidation, error parsing, routes, date grouping, and financial semantics.
+- Add a migration only when MySQL query-plan evidence demonstrates a missing index; pair it with explicit configuration and provider verification.
+- Verify ownership, filter-before-page behavior, Type/Search, summary scopes, comparison ranges, default-date validation, URL normalization, conversion incompleteness, navigation reset/deduplication, mutation focus, EN/RU copy, build/lint, MySQL plans, and fixture-backed visual states.
+
+### UX Design Requirements
+
+UX-DR-TXN-1: Use the shared Management page frame, shell gutters, header hierarchy, and one primary `Add transaction` action; align header, KPI strip, ledger, companion, and pagination.
+
+UX-DR-TXN-2: Render Income, Expenses, and Net flow as a single continuous bordered KPI surface with equal desktop regions, restrained dividers, and stacked mobile regions.
+
+UX-DR-TXN-3: Use tabular numeric KPI treatment with adjacent currency suffixes and explicit semantic direction signage; display full-scope income/expense counts and comparison copy according to the PRD states.
+
+UX-DR-TXN-4: Make each incomplete conversion visibly `N/A` and expose a named-currency/period Rate Warning with accessible explanatory text or tooltip, never colour-only evidence.
+
+UX-DR-TXN-5: Provide a ledger toolbar with period controls, count context, text-labelled Account balances and Filters controls, visible Type segmented control, Search, retained advanced filters, actionable chips, and global Clear filters.
+
+UX-DR-TXN-6: Exclude Amount filtering from all Transactions controls, chips, URL-restored state, no-match treatment, and fixtures.
+
+UX-DR-TXN-7: Render desktop ledger headers and rows in Description, Account, Date, Amount order; right-align the final Amount column, preserve a clear right boundary, and avoid overflow at 1440px and 1024px.
+
+UX-DR-TXN-8: At 768px and below, render pressable Amount-first ledger stacks without a trailing chevron; preserve visible focus and click, Enter, and Space activation.
+
+UX-DR-TXN-9: Implement skeleton initial loading, compact refresh feedback, retryable initial/refresh failure states, first-use empty, filter-empty with Clear filters, and usable ledger behaviour under rate incompleteness.
+
+UX-DR-TXN-10: Implement Account balances as progressive disclosure: a named desktop companion listing all active accounts including zero balances, and a full-width accessible mobile drawer; preserve page-session visibility only.
+
+UX-DR-TXN-11: Use the shared drawer contract in create/edit/balance flows: visible close, contained scrolling, focus trap, Escape close, and focus return.
+
+UX-DR-TXN-12: Show selected-account Native Balance below Account in Expense, Income, and Edit forms; use Account, Category, Amount, Date, Comment for Expense and Income while preserving separate Transfer source/destination/amount fields.
+
+UX-DR-TXN-13: Keep entered values and show actionable localized errors on failed mutations; after successful update, close the drawer, refresh affected data, and restore focus by transaction ID with a predictable fallback.
+
+UX-DR-TXN-14: Compose existing semantic tokens, buttons, segmented controls, inputs/selects, chips, drawers, empty/error states, and money rendering rather than reimplementing shared primitives.
+
+UX-DR-TXN-15: Capture fixture-backed visual evidence at 1440px, 1024px, 390px, and 360px for populated, first-use empty, filter-empty, missing-rate, filter drawer, account-balances panel, create/edit drawer, progressive-loading, long-range pagination, long EN/RU labels, and long amounts; record data mode and absence of real backend/provider calls.
+
+### Transactions Enhancement FR Coverage Map
+
+FR-TXN-ENH-1: Epic 11 — complete-period server filtering before pagination and summaries.
+
+FR-TXN-ENH-2: Epic 11 — Type/Search server filters and Amount-filter removal.
+
+FR-TXN-ENH-3: Epic 11 — URL-restorable filters, normalization, chips, and clear state.
+
+FR-TXN-ENH-4: Epic 11 — full-scope KPI counts and comparable-period Net flow.
+
+FR-TXN-ENH-5: Epic 11 — complete-or-`N/A` conversion display with rate evidence.
+
+FR-TXN-ENH-6: Epic 12 — desktop/mobile ledger scan order and accessible responsive rendering.
+
+FR-TXN-ENH-7: Epic 11 — reusable Transactions visual-pattern documentation and validation.
+
+FR-TXN-ENH-8: Epic 12 — on-demand Native Balance companion.
+
+FR-TXN-ENH-9: Epic 12 — selected-account Native Balance and form layout.
+
+FR-TXN-ENH-10: Epic 12 — successful edit refresh, drawer close, and focus return.
+
+### Approved Transactions Enhancement Epic List
+
+#### Epic 11: Find and Trust Every Transaction in a Selected Period
+
+Manual ledger managers can reliably locate every matching transaction in a selected period and understand complete financial summaries without page-local filtering or silently partial currency totals.
+
+**FRs covered:** FR-TXN-ENH-1, FR-TXN-ENH-2, FR-TXN-ENH-3, FR-TXN-ENH-4, FR-TXN-ENH-5, FR-TXN-ENH-7.
+
+#### Epic 12: Record and Correct Transactions with Account Context
+
+Manual ledger managers can scan a responsive ledger, check Native Balances while entering records, and complete edits without losing their place.
+
+**FRs covered:** FR-TXN-ENH-6, FR-TXN-ENH-8, FR-TXN-ENH-9, FR-TXN-ENH-10.
+
+## Epic 11: Find and Trust Every Transaction in a Selected Period
+
+Manual ledger managers can reliably locate every matching transaction in a selected period and understand complete financial summaries without page-local filtering or silently partial currency totals.
+
+**Dependencies and delivery order:** Story 7.4a is the completed RTK Query/API-cache prerequisite. Complete Story 11.1a, then Story 11.1, then continue Epic 11 in order: 11.2 -> 11.3 -> 11.4. After Story 11.1, Story 12.1 may proceed as the security prerequisite for Epic 12 account-context UI, but it never blocks Stories 11.2--11.4. Start Epic 12 UI only after Story 12.1; Story 12.4 additionally waits for Story 11.3. The recommended Epic 12 UI order is 12.4 -> 12.2 -> 12.3 -> 12.5. Story 11.4 establishes ledger-state fixture coverage only; each Epic 12 story owns evidence for the state it introduces.
+
+### Story 11.1a: Harden Transaction Mutation Boundaries
+
+**Dependency:** Complete before Story 11.1 and any Transactions enhancement UI work.
+
+As an authenticated manual ledger manager,
+I want transaction mutations and related resource lookups to reject invalid dates and foreign resources consistently,
+So that selected-period work cannot weaken financial data integrity or user isolation.
+
+**Acceptance Criteria:**
+
+**Given** a create, update, or transfer request omits its transaction date or supplies `default(DateTime)`,
+**When** server validation runs,
+**Then** it returns the established validation response with a stable machine-readable error key,
+**And** a valid user-entered local calendar date remains unchanged by time-zone conversion.
+
+**Given** a transaction mutation resolves an account, category, source account, destination account, or transaction record,
+**When** the request is authenticated,
+**Then** every user-owned lookup includes the current authenticated user predicate,
+**And** a foreign resource follows the existing not-found path.
+
+**Verification:** Service and integration tests cover omitted/default dates, cross-user single-record access, and cross-user transfer source/destination accounts; no test calls an external rate provider.
+
+### Story 11.1: Find Transactions Across the Full Selected Period
+
+As an authenticated manual ledger manager,
+I want Type and Search filters to return every matching transaction in my selected period,
+So that the ledger, counts, and summaries are based on the same complete result set rather than the currently loaded page.
+
+**Acceptance Criteria:**
+
+**Given** an authenticated user with matching transactions across multiple ledger pages,
+**When** they request Transactions with account, category, tag, reference, date, Type, or Search filters,
+**Then** the backend applies authenticated ownership, active-data mode, and every filter before ordering, counting, aggregating, or paginating,
+**And** the list and summary use the same normalized unpaginated scope.
+
+**Given** Type and Search are supplied,
+**When** the server processes the query,
+**Then** Type supports All, Income, Expense, and system-category Transfer semantics, and trimmed case-insensitive Search is database-translated across comment, account name, category name/path, account currency, tags, and references,
+**And** whitespace-only Search is ignored without materializing records or filtering in memory.
+
+**Given** the Transactions query contract changes,
+**When** the page requests list or summary data,
+**Then** it accepts additive `type` and `search` parameters while preserving existing filter semantics,
+**And** it exposes no Amount-filter parameter or behavior.
+
+**Given** an authenticated user accesses another user’s transaction or matching relation,
+**When** filtering, querying, or aggregating Transactions,
+**Then** those records cannot be returned or included,
+**And** cross-user single-record access remains indistinguishable from a missing resource.
+
+**Given** the query implementation is complete,
+**When** it is verified against MySQL,
+**Then** Search SQL translation, case behavior, and list/summary query plans are validated without relying solely on EF InMemory tests,
+**And** representative data for one user with 50,000 transactions verifies list and summary Search complete in at most one second under the documented local MySQL verification conditions.
+
+**Verification:** Service and integration tests prove filter-before-count/aggregate/page behavior, Type/Search semantics, and user isolation. Capture `EXPLAIN`/timing evidence for the 50,000-transaction gate; add an ownership/date/filter-aligned index only when that evidence demonstrates need, with its migration and MySQL re-verification.
+
+### Story 11.2: Restore and Control Selected-Period Filters
+
+As an authenticated manual ledger manager,
+I want Transactions filters to survive sharing, refresh, and drawer interactions,
+So that I can return to the exact full-period ledger view I intended without stale or hidden criteria.
+
+**Acceptance Criteria:**
+
+**Given** a Transactions URL contains account, category, tag, reference, date range, Type, and Search filters,
+**When** the route loads,
+**Then** each valid value is restored into one canonical normalized filter state used by both list and summary requests,
+**And** each malformed, unknown, or invalid value is ignored independently without blocking valid values.
+
+**Given** URL filters are restored or edited,
+**When** the client serializes Transactions state,
+**Then** it uses a stable URL-safe representation, trims Search, omits empty Search, and rewrites the URL to valid normalized state,
+**And** changing a filter, date range, page size, or navigation mode discards accumulated results and restarts at page 1.
+
+**Given** a user changes Type, Search, or advanced filters,
+**When** the route refreshes,
+**Then** the canonical filter state and RTK Query arguments/cache keys include every normalized server filter,
+**And** Type/Search are never reintroduced as page-local filtering state.
+
+**Given** the user opens and closes the advanced-filter drawer,
+**When** no clear action is taken,
+**Then** current account, category, tag, reference, date, Type, and Search values remain available,
+**And** Amount controls, values, chips, URL state, fixture data, and no-match logic are absent.
+
+**Given** active filters are shown,
+**When** the user clears one chip,
+**Then** only that criterion is removed and the complete selected-period result set refreshes from page 1,
+**And** Clear filters removes all server filters, restores the current whole month, and leaves no stale local filtering criterion.
+
+**Given** a selected range is no longer than one calendar month,
+**When** more server-paginated results are available,
+**Then** progressive loading appends only the next sequential page for the current key and provides a keyboard-operable Load more fallback,
+**And** longer custom ranges use numbered pagination without changing the server contract.
+
+**Given** a progressive-page request resolves after the canonical normalized filter key has changed,
+**When** the client receives that obsolete response,
+**Then** it discards the response and does not append its rows to the current ledger,
+**And** only the next sequential response for the current key may change the accumulated result set.
+
+**Verification:** Frontend tests cover URL normalization, independent invalid-value handling, clear-to-current-month behavior, cache-key construction, stale-response rejection, sequential-page deduplication, and keyboard Load more behavior.
+
+### Story 11.3: Understand Trustworthy Period Summaries
+
+As an authenticated manual ledger manager,
+I want income, expense, and net-flow summaries to disclose whether their conversions are complete,
+So that I can make financial decisions without mistaking a partial total for an accurate one.
+
+**Acceptance Criteria:**
+
+**Given** a normalized Transactions filter,
+**When** the summary endpoint calculates the current selected period,
+**Then** it derives the base currency from the authenticated user's preferred currency and returns current-scope date-and-currency Income/Expense cash-flow buckets plus separate Income, Expense, and Transfer counts from the same unpaginated filtered query as the ledger,
+**And** transfer records do not contribute to income, expense, or net monetary aggregates.
+
+**Given** a selected period,
+**When** the summary calculates Net flow comparison data,
+**Then** it derives the immediately preceding whole month for a whole-month selection or the immediately preceding equal-length range for a custom range,
+**And** it applies every non-date filter, including Type and Search, to that comparable scope and returns the same date-and-currency cash-flow buckets and period descriptor.
+
+**Given** the frontend converts a KPI or comparison cash-flow bucket,
+**When** every non-zero bucket has a usable cached rate for its local transaction date, including an explicitly recorded cache-effective prior business date where the established cache policy supplies one,
+**Then** it displays a complete converted value with any allowed concise conversion hint,
+**And** it makes no provider call while rendering, testing, or recovering rate data.
+
+**Given** any non-zero date-and-currency cash-flow bucket has no usable cached rate,
+**When** a KPI or its comparison is rendered,
+**Then** it displays `N/A` rather than a partial numeric sum or `NaN`,
+**And** it exposes visible and accessible Rate Warning evidence naming each affected currency, local transaction date, and relevant period without attempting a cache repair or provider call.
+
+**Given** Type is Transfer only,
+**When** the KPI strip renders,
+**Then** Income, Expenses, and Net flow remain visible with zero values and the Transfer count remains available,
+**And** no rate lookup or Rate Warning is produced solely because the scope contains only Transfers.
+
+**Given** the prior comparable net flow is non-zero, zero, or has no transactions,
+**When** Net flow support information renders,
+**Then** it shows absolute and percentage change for non-zero flow, absolute change only for zero flow, and absolute change plus localized `No activity in [period]` for no activity,
+**And** it renders `N/A` with the same Rate Warning evidence when either comparison scope is conversion-incomplete.
+
+**Given** the KPI strip is shown at desktop or mobile widths,
+**When** its content renders,
+**Then** Income, Expenses, and Net flow use the shared continuous KPI surface, tabular numerics, semantic text/signage, localized EN/RU copy, and non-colour-only monetary direction.
+
+**Verification:** Service/integration tests cover current and comparable date-and-currency buckets, preferred-base selection, Transfer-only zero cards, missing-rate evidence, and no provider calls. Frontend unit and fixture tests cover complete, missing, weekend/holiday effective-date, zero, no-activity, and conversion-incomplete comparison states.
+
+### Story 11.4: Recognize Ledger State and Recover Without Losing Context
+
+As an authenticated manual ledger manager,
+I want Transactions to make loading, empty, filter-empty, refresh, and error states clear and actionable,
+So that I always know whether the ledger is loading, has no records, has no matches, or needs recovery.
+
+**Acceptance Criteria:**
+
+**Given** Transactions initially loads,
+**When** list or summary data is pending,
+**Then** it renders KPI skeletons and ledger skeleton rows rather than a blank page,
+**And** a refresh with existing data keeps prior rows visible with compact refreshing feedback.
+
+**Given** Transactions fails to load initially or during refresh,
+**When** the failure state appears,
+**Then** an initial failure presents an actionable Retry alert,
+**And** a refresh failure preserves existing rows and presents inline Retry feedback.
+
+**Given** the selected period has no active records,
+**When** no filters are active,
+**Then** Transactions shows the first-use empty state with a localized Add transaction action,
+**And** when server total count is zero after active filters, it instead shows compact filter-empty treatment with Clear filters.
+
+**Given** the toolbar, filters, chips, segmented Type control, Search, period controls, Load more fallback, warnings, and state actions are rendered,
+**When** a keyboard or screen-reader user operates them,
+**Then** every control has an accessible name and required state, is keyboard operable, and communicates recovery/action paths without relying on colour alone.
+
+**Given** Transactions visual patterns are maintained for reuse,
+**When** the design implementation documentation is updated,
+**Then** it distinguishes shared tokens/primitives from Transactions-specific layout rules for the page frame, header, KPI strip, ledger panel, day group, filter state, drawers, empty/error states, numeric treatment, and responsive behavior.
+
+**Given** fixture-backed visual QA runs,
+**When** populated, first-use empty, filter-empty, missing-rate, progressive-loading, and long-range pagination ledger states are captured at 1440px, 1024px, 390px, and 360px,
+**Then** evidence records fixture data mode and no real backend or rate-provider use,
+**And** overlap, clipped text, page-level horizontal overflow, and bottom-navigation occlusion fail acceptance.
+
+**And** this story does not close visual QA for Account balances, create/edit drawers, or edit return; Stories 12.2--12.5 own those feature-specific states.
+
+**Verification:** Fixture harness/unit coverage proves ledger loading, refresh, failure, first-use empty, filter-empty, missing-rate, progressive-loading, and long-range pagination states. Record visual evidence only for these ledger-owned states.
+
+## Epic 12: Record and Correct Transactions with Account Context
+
+Manual ledger managers can scan a responsive ledger, check Native Balances while entering records, and complete edits without losing their place.
+
+### Story 12.1: Retrieve Trustworthy Native Account Balances
+
+**Dependency:** Complete immediately after Story 11.1 and before Stories 12.2 and 12.3. This is a security prerequisite, not deferred UI preparation.
+
+As an authenticated manual ledger manager,
+I want Transactions to use my existing active-account summaries for Native Balances,
+So that every balance shown in the ledger context is accurate, user-scoped, and remains in its own currency.
+
+**Acceptance Criteria:**
+
+**Given** an authenticated user requests existing account details,
+**When** active-account summaries are calculated,
+**Then** each returned account belongs to the current user and includes its Native Balance in that account’s currency,
+**And** the underlying transaction aggregate also constrains `Transaction.UserId` to the authenticated user.
+
+**Given** an active account has no transactions or a zero balance,
+**When** its summary is requested for Transactions,
+**Then** it remains available with its Native Balance,
+**And** inactive or foreign-user accounts are excluded.
+
+**Given** Transactions needs balances,
+**When** it loads account context,
+**Then** it reuses the existing authenticated account-summary endpoint and RTK Query cache,
+**And** it does not introduce a Transactions-specific balance endpoint or duplicate balance calculation.
+
+**Given** multiple active accounts use different currencies,
+**When** their balances are presented to Transactions,
+**Then** each is displayed as a native-currency amount,
+**And** no converted cross-account total is calculated or shown.
+
+**Given** account context is refreshed after a successful transaction mutation,
+**When** transaction, account, budget, and report data are invalidated,
+**Then** Native Balance context refreshes with the existing dependent data,
+**And** user-owned data remains isolated throughout list, aggregate, and response paths.
+
+**Verification:** MySQL-backed verification and integration tests prove the account query and its `Transaction.UserId` aggregate exclude foreign data, retain zero-balance active accounts, and preserve the existing account-summary response contract.
+
+### Story 12.2: Open Account Balances on Demand
+
+As an authenticated manual ledger manager,
+I want to open a clear Account balances view from Transactions,
+So that I can check every active account’s Native Balance without leaving my ledger or crowding it permanently.
+
+**Acceptance Criteria:**
+
+**Given** the Transactions toolbar is rendered,
+**When** the user encounters Account balances,
+**Then** it is a text-labelled, non-icon-only control with an accessible name and expanded/collapsed state,
+**And** it is a secondary workspace action rather than a second page-level primary action.
+
+**Given** a desktop viewport,
+**When** the user opens Account balances,
+**Then** a named optional companion panel appears beside the ledger and lists every active account by name and Native Balance,
+**And** the panel does not permanently reduce ledger width or cause horizontal overflow at 1440px or 1024px.
+
+**Given** a mobile viewport,
+**When** the user opens Account balances,
+**Then** it uses the shared full-width drawer pattern with a visible close control, focus containment, Escape support, and focus return to the trigger,
+**And** it fits the viewport without clipping or bottom-navigation occlusion at 390px or 360px.
+
+**Given** the user has opened or closed the balance companion,
+**When** they continue working in the current Transactions session,
+**Then** the chosen open/closed state remains unchanged,
+**And** the companion never opens automatically because an Account field receives focus.
+
+**Given** the balance companion is displayed,
+**When** the user reviews its content,
+**Then** it includes zero-balance active accounts and only Native Balance amounts,
+**And** it does not show a converted cross-account total.
+
+**Given** Account balances is loading, returns no active accounts, or fails,
+**When** the companion is open,
+**Then** it shows a companion-local loading treatment, localized empty state, or actionable Retry error without replacing or clearing the ledger,
+**And** the desktop panel and mobile drawer preserve their accessible close and focus behavior.
+
+**Given** visual QA runs,
+**When** the desktop companion and mobile drawer states are captured with populated and long-label fixtures,
+**Then** they demonstrate accessible controls, readable amounts, and no page-level overflow.
+
+**Verification:** Frontend tests cover open/closed session state and loading, empty, error, and retry states. Fixture-backed visual QA covers desktop panel and mobile drawer populated, zero-balance, long-label, loading, empty, and error states.
+
+### Story 12.3: See Native Balance While Entering a Transaction
+
+As an authenticated manual ledger manager,
+I want to see the selected account’s Native Balance while I create or edit a transaction,
+So that I can make an informed entry without navigating away from the ledger.
+
+**Acceptance Criteria:**
+
+**Given** an Expense or Income create drawer is open,
+**When** its form renders,
+**Then** fields appear in the order Account, Category, Amount, Date, Comment,
+**And** no shared form behavior or existing validation contract is bypassed.
+
+**Given** a user selects or changes the Account in an Expense, Income, or Edit form,
+**When** the account selection resolves,
+**Then** that active account’s Native Balance appears directly below the Account field in its own currency,
+**And** changing the selection updates this supporting balance without a live-region announcement for every change.
+
+**Given** a Transfer form is open,
+**When** it renders,
+**Then** it retains distinct source-account and destination-account fields plus its amount fields, Date, and Comment,
+**And** this story does not introduce linked-transfer editing or paired-record management.
+
+**Given** any transaction create or edit drawer is open,
+**When** the user uses keyboard or assistive technology,
+**Then** it follows the shared right-side desktop/full-width mobile drawer contract with title, subtitle, visible close, contained scrolling, focus trap, Escape close, and focus return,
+**And** all balance labels and error feedback are localized in English and Russian.
+
+**Given** create or update validation/API submission fails,
+**When** errors are shown,
+**Then** entered values remain intact, the drawer stays open, and parsed actionable localized feedback is associated with the relevant field or form state,
+**And** no external exchange-rate provider is called to show Native Balances.
+
+**Given** visual QA runs for create and edit drawers at 1440px, 1024px, 390px, and 360px,
+**When** long English/Russian labels and amounts are used,
+**Then** balance context, fields, actions, and validation states remain readable without clipping, overlap, horizontal overflow, or mobile-nav occlusion.
+
+**Verification:** Frontend tests cover selected-account updates, no live-region spam, failed submissions, and retained values. Fixture-backed visual QA covers create and edit drawers, validation errors, long EN/RU labels, and mobile focus/close behavior.
+
+### Story 12.4: Scan the Ledger Naturally on Every Screen
+
+**Dependency:** Consume the date-and-currency conversion result helper and contract from Story 11.3. This story must not calculate row base-currency equivalents independently.
+
+As an authenticated manual ledger manager,
+I want the ledger to present financial impact in the right scan order on desktop and mobile,
+So that I can review transactions quickly without sacrificing accessible details.
+
+**Acceptance Criteria:**
+
+**Given** Transactions is viewed at 1440px or 1024px,
+**When** desktop ledger headers and rows render,
+**Then** their logical order is Description, Account, Date, Amount,
+**And** Amount is the final right-aligned column with tabular numerics and no following secondary column.
+
+**Given** a desktop ledger row contains native and available base-currency values,
+**When** the row renders,
+**Then** the native amount remains the primary final-column value and an optional muted approximate base equivalent appears beneath it,
+**And** income, expense, and transfer semantics use text/signage as well as the established visual treatment.
+
+**Given** Transactions is viewed at 768px or below,
+**When** a ledger row renders,
+**Then** the desktop header is hidden and the row is a pressable Amount-first stack followed by title, category/transfer context, tags/references, Account, and Date,
+**And** it has no trailing chevron.
+
+**Given** ledger rows are grouped,
+**When** a user reviews transactions,
+**Then** records remain grouped newest-first by local calendar day using Today, Yesterday, or localized date labels plus item count,
+**And** row activation works by click, Enter, and Space with a visible focus state.
+
+**Given** populated ledger fixtures with long labels, tags, references, and amounts render at 1440px, 1024px, 390px, and 360px,
+**When** visual QA checks the layout,
+**Then** key financial information remains visible without horizontal overflow, overlap, clipped controls, or mobile bottom-navigation occlusion,
+**And** desktop remains a dense table rather than separate transaction cards or hover-only detail.
+
+**Verification:** Unit tests cover row rendering from the shared complete/unavailable conversion result. Fixture-backed visual QA covers desktop/mobile order, available and unavailable base equivalents, long metadata, keyboard focus, and responsive overflow guardrails.
+
+### Story 12.5: Return to the Updated Ledger After an Edit
+
+As an authenticated manual ledger manager,
+I want a successful transaction edit to return me to an updated, predictable ledger location,
+So that I can verify the correction without reorienting myself.
+
+**Acceptance Criteria:**
+
+**Given** a user updates a transaction successfully,
+**When** the mutation completes,
+**Then** the edit drawer closes and invalidates Transactions list/summary plus dependent account, budget, and report data,
+**And** the refreshed ledger and Native Balance context reflect the saved result.
+
+**Given** the edited transaction remains in the active filtered result set,
+**When** the refreshed ledger is available,
+**Then** keyboard focus returns to that edited ledger row by transaction ID,
+**And** the focus target has visible focus styling and remains operable by click, Enter, and Space.
+
+**Given** the edited transaction no longer matches active filters or is not available after refresh,
+**When** focus restoration runs,
+**Then** focus moves to a predictable ledger fallback such as the ledger heading or first available row,
+**And** focus is never left in an unmounted drawer or lost to the document body.
+
+**Given** an update fails,
+**When** the server returns validation or API errors,
+**Then** the edit drawer remains open with entered values preserved and localized actionable feedback,
+**And** no success focus-restoration or false data-refresh success state occurs.
+
+**Given** a user chooses single-record deletion from the edit UI,
+**When** they confirm the action,
+**Then** deletion remains independently scoped to that record and requires confirmation,
+**And** the refreshed ledger uses the same predictable focus fallback behavior.
+
+**Given** automated and visual verification run,
+**When** success, failure, deletion, and filtered-out update paths are exercised,
+**Then** tests cover mutation invalidation and focus behavior,
+**And** desktop and mobile drawer evidence shows no inaccessible or occluded return flow.
+
+**Verification:** Frontend tests cover success, validation/API failure, delete confirmation, matching-row focus return, and filtered-out fallback. Fixture-backed visual QA covers edit success return, failure, deletion confirmation, and mobile drawer return states.

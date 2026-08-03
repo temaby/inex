@@ -750,6 +750,10 @@ This architecture document is ready for Epic 1 implementation and, through the E
 
 ### Implementation Handoff
 
+### Transactions Page Enhancements Addendum
+
+The Transactions Page Enhancements architecture is maintained separately in [transactions-architecture.md](transactions-architecture.md). It supplements this document for server-wide filtering, trustworthy summaries, adaptive result navigation, Native Balance context, and related validation; it does not supersede the Epic 1 or Epic 10 decisions here.
+
 **AI Agent Guidelines:**
 - Follow all architectural decisions exactly as documented.
 - Use implementation patterns consistently across all affected components.

@@ -1,6 +1,6 @@
 # Story 7.4a: Frontend — RTK Query Pattern For Transactions
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
