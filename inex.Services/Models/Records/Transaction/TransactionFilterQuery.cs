@@ -22,4 +22,10 @@ public record TransactionFilterQuery
 
     [FromQuery(Name = "endDate")]
     public DateTime? EndDate { get; init; }
+
+    [FromQuery(Name = "type")]
+    public string? Type { get; init; }
+
+    [FromQuery(Name = "search")]
+    public string? Search { get; init; }
 }

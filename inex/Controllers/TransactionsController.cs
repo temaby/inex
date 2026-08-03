@@ -63,7 +63,7 @@ public class TransactionsController : ApiControllerBase
     /// <param name="mode">Activity mode (all, active, inactive)</param>
     /// <param name="pageSize">Amount of items per page</param>
     /// <param name="page">Current page number</param>
-    /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
+    /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate, type, search.</param>
     /// <returns>List of transactions with pagination metadata</returns>
     [HttpGet]
     [Route(GetAllRoute)]
@@ -77,7 +77,7 @@ public class TransactionsController : ApiControllerBase
 
     /// <summary>Get transaction summary for a user</summary>
     /// <param name="mode">Activity mode (all, active, inactive)</param>
-    /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
+    /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate, type, search.</param>
     /// <returns>Transaction summary for the filtered scope</returns>
     [HttpGet]
     [Route(GetSummaryRoute)]

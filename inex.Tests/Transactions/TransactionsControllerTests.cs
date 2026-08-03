@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using inex.Data;
+using inex.Services.Models.Records.Transaction;
 using inex.Services.Services;
 using inex.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -455,6 +456,115 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task ListAndSummary_SearchUseTheCompleteFilteredScopeBeforePagination()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "full-scope-account");
+        int categoryId = await CreateCategoryAsync(client, "full-scope-category");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 100m, "Selected ledger item one");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, -40m, "Selected ledger item two");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 15m, "Selected ledger item three");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 999m, "different scope");
+
+        var listResponse = await client.GetAsync("/api/transactions?search=SELECTED%20LEDGER&pageSize=2&page=1");
+        var summaryResponse = await client.GetAsync("/api/transactions/summary?search=SELECTED%20LEDGER");
+
+        listResponse.EnsureSuccessStatusCode();
+        summaryResponse.EnsureSuccessStatusCode();
+
+        var list = await listResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var summary = await summaryResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(2, list.GetProperty("data").GetArrayLength());
+        Assert.Equal(3, list.GetProperty("metadata").GetProperty("totalItems").GetInt32());
+        Assert.Equal(3, summary.GetProperty("totalCount").GetInt32());
+        Assert.Equal(2, summary.GetProperty("typeCounts").GetProperty("income").GetInt32());
+        Assert.Equal(1, summary.GetProperty("typeCounts").GetProperty("expense").GetInt32());
+    }
+
+    [Fact]
+    public async Task Search_IsTrimmedCaseInsensitiveAndMatchesLedgerRelations()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "needle-account");
+        int parentCategoryId = await CreateCategoryAsync(client, "needle-parent");
+        int categoryId = await CreateCategoryAsync(client, "needle-category", parentCategoryId);
+        int commentId = await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 10m, "needle-comment");
+        int tagId = await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 10m, "tagged #needle-tag");
+        int refId = await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 10m, "referenced @needle-ref");
+        await UpdateTransactionCommentAsync(client, tagId, accountId, categoryId, "tag relation only");
+        await UpdateTransactionCommentAsync(client, refId, accountId, categoryId, "reference relation only");
+
+        await AssertSearchContainsAsync(client, "  NEEDLE-COMMENT  ", commentId);
+        await AssertSearchContainsAsync(client, "NEEDLE-TAG", tagId);
+        await AssertSearchContainsAsync(client, "NEEDLE-REF", refId);
+        await AssertSearchContainsAsync(client, "NEEDLE-ACCOUNT", commentId, tagId, refId);
+        await AssertSearchContainsAsync(client, "NEEDLE-CATEGORY", commentId, tagId, refId);
+        await AssertSearchContainsAsync(client, "NEEDLE-PARENT", commentId, tagId, refId);
+        await AssertSearchContainsAsync(client, "USD", commentId, tagId, refId);
+
+        var whitespaceResponse = await client.GetAsync("/api/transactions?search=%20%20%20&pageSize=20&page=1");
+        whitespaceResponse.EnsureSuccessStatusCode();
+        var whitespaceList = await whitespaceResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(3, whitespaceList.GetProperty("metadata").GetProperty("totalItems").GetInt32());
+    }
+
+    [Theory]
+    [InlineData("all", 4, 1, 1, 2)]
+    [InlineData("income", 1, 1, 0, 0)]
+    [InlineData("expense", 1, 0, 1, 0)]
+    [InlineData("transfer", 2, 0, 0, 2)]
+    public async Task TypeFilter_UsesIncomeExpenseAndTransferSemantics(string type, int total, int income, int expense, int transfer)
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int sourceAccountId = await CreateAccountAsync(client, "type-source");
+        int destinationAccountId = await CreateAccountAsync(client, "type-destination");
+        int categoryId = await CreateCategoryAsync(client, "type-category");
+        await CreateTransactionWithAmountAndCommentAsync(client, sourceAccountId, categoryId, 10m, "income");
+        await CreateTransactionWithAmountAndCommentAsync(client, sourceAccountId, categoryId, -5m, "expense");
+
+        var transferResponse = await client.PostAsJsonAsync("/api/transactions/transfer", new
+        {
+            accountFromId = sourceAccountId,
+            accountToId = destinationAccountId,
+            created = DateTime.UtcNow,
+            amountFrom = 7m,
+            amountTo = 7m,
+            comment = "transfer",
+        });
+        transferResponse.EnsureSuccessStatusCode();
+
+        var response = await client.GetAsync($"/api/transactions/summary?type={type}");
+        response.EnsureSuccessStatusCode();
+        var summary = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var counts = summary.GetProperty("typeCounts");
+        Assert.Equal(total, summary.GetProperty("totalCount").GetInt32());
+        Assert.Equal(total, counts.GetProperty("all").GetInt32());
+        Assert.Equal(income, counts.GetProperty("income").GetInt32());
+        Assert.Equal(expense, counts.GetProperty("expense").GetInt32());
+        Assert.Equal(transfer, counts.GetProperty("transfer").GetInt32());
+    }
+
+    [Fact]
+    public async Task Search_ExcludesOtherUsersMatchingTransactions()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int ownAccountId = await CreateAccountAsync(userA, "own-search-account");
+        int ownCategoryId = await CreateCategoryAsync(userA, "own-search-category");
+        int otherAccountId = await CreateAccountAsync(userB, "other-search-account");
+        int otherCategoryId = await CreateCategoryAsync(userB, "other-search-category");
+        await CreateTransactionWithAmountAndCommentAsync(userA, ownAccountId, ownCategoryId, 10m, "shared-search-term");
+        await CreateTransactionWithAmountAndCommentAsync(userB, otherAccountId, otherCategoryId, 100m, "shared-search-term");
+
+        var response = await userA.GetAsync("/api/transactions/summary?search=shared-search-term");
+
+        response.EnsureSuccessStatusCode();
+        var summary = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, summary.GetProperty("totalCount").GetInt32());
+        Assert.Equal(10m, Assert.Single(summary.GetProperty("currencySummaries").EnumerateArray()).GetProperty("income").GetDecimal());
+    }
+
+    [Fact]
     public void ApplyFilters_ByTagAndRef_ProducesDatabaseSideSql()
     {
         var options = new DbContextOptionsBuilder<InExDbContext>()
@@ -474,6 +584,27 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         Assert.Contains("transaction_tag_map", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("`key`", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("tag_type", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ApplyFilters_WithTypeAndSearch_ProducesDatabaseSideSql()
+    {
+        var options = new DbContextOptionsBuilder<InExDbContext>()
+            .UseMySql("Server=localhost;Database=inex;User=root;Password=password;", new MySqlServerVersion(new Version(8, 0, 0)))
+            .Options;
+
+        using var db = new InExDbContext(options);
+        var query = TransactionService.ApplyFilters(db.Transactions, new TransactionFilterQuery
+        {
+            Type = "expense",
+            Search = "Ledger",
+        });
+
+        string sql = query.ToQueryString();
+
+        Assert.Contains("LOWER", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("transaction_tag_map", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("category", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     private Task<HttpClient> CreateAuthenticatedClientAsync() =>
@@ -505,12 +636,13 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         return body.GetProperty("id").GetInt32();
     }
 
-    private static async Task<int> CreateCategoryAsync(HttpClient client, string key)
+    private static async Task<int> CreateCategoryAsync(HttpClient client, string key, int? parentId = null)
     {
         var response = await client.PostAsJsonAsync("/api/categories", new
         {
             key,
             name      = key,
+            parentId,
             isEnabled = true,
             isSystem  = false,
         });
@@ -553,6 +685,30 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         return body.GetProperty("id").GetInt32();
+    }
+
+    private static async Task AssertSearchContainsAsync(HttpClient client, string search, params int[] expectedIds)
+    {
+        var response = await client.GetAsync($"/api/transactions?search={Uri.EscapeDataString(search)}&pageSize=20&page=1");
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var ids = body.GetProperty("data").EnumerateArray().Select(transaction => transaction.GetProperty("id").GetInt32());
+        Assert.Equal(expectedIds.OrderBy(id => id), ids.OrderBy(id => id));
+    }
+
+    private static async Task UpdateTransactionCommentAsync(HttpClient client, int transactionId, int accountId, int categoryId, string comment)
+    {
+        var response = await client.PutAsJsonAsync($"/api/transactions/{transactionId}", new
+        {
+            id = transactionId,
+            accountId,
+            categoryId,
+            created = DateTime.UtcNow,
+            amount = 10m,
+            comment,
+        });
+        response.EnsureSuccessStatusCode();
     }
 
     private sealed record TransactionFixtureIds(int AccountId, int CategoryId, int TransactionId);
