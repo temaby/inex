@@ -59,6 +59,35 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task Create_DateOnlyCreated_RoundTripsWithoutCalendarDateConversion()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "date-only-account");
+        int categoryId = await CreateCategoryAsync(client, "date-only-category");
+        var localCalendarDate = new DateTime(2026, 3, 29);
+        const string localCalendarDateInput = "2026-03-29";
+
+        var createResponse = await client.PostAsJsonAsync("/api/transactions", new
+        {
+            accountId,
+            categoryId,
+            created = localCalendarDateInput,
+            amount = 25m,
+            comment = "date-only",
+        });
+        createResponse.EnsureSuccessStatusCode();
+
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        int transactionId = createBody.GetProperty("id").GetInt32();
+
+        var getResponse = await client.GetAsync($"/api/transactions/{transactionId}");
+        getResponse.EnsureSuccessStatusCode();
+
+        var transaction = await getResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(localCalendarDate, transaction.GetProperty("created").GetDateTime());
+    }
+
+    [Fact]
     public async Task Update_OtherUsersTransaction_Returns404Problem()
     {
         var userA = await CreateAuthenticatedClientAsync();

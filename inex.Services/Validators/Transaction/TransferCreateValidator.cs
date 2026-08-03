@@ -20,5 +20,8 @@ public class TransferCreateValidator : AbstractValidator<CreateTransferRequest>
             .GreaterThan(0).WithMessage("account_to_id.invalid")
             .Must((dto, toId) => toId != dto.AccountFromId)
             .WithMessage("account_to_id.same_as_source");
+
+        RuleFor(x => x.Created)
+            .NotEqual(default(DateTime)).WithMessage("created.required");
     }
 }

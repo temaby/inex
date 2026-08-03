@@ -15,5 +15,8 @@ public class TransactionCreateValidator : AbstractValidator<CreateTransactionReq
 
         RuleFor(x => x.CategoryId)
             .GreaterThan(0).WithMessage("category_id.invalid");
+
+        RuleFor(x => x.Created)
+            .NotEqual(default(DateTime)).WithMessage("created.required");
     }
 }
