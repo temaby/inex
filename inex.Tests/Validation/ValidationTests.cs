@@ -29,6 +29,7 @@ public class ValidationTests : IClassFixture<InExWebApplicationFactory>
     private static async Task AssertValidationError(HttpResponseMessage response, string? expectedCode = null)
     {
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("/errors/validation-failed", body.GetProperty("type").GetString());
         Assert.Equal(422, body.GetProperty("status").GetInt32());
@@ -87,6 +88,70 @@ public class ValidationTests : IClassFixture<InExWebApplicationFactory>
         await AssertValidationError(response, "category_id.invalid");
     }
 
+    [Fact]
+    public async Task Transaction_OmittedCreated_Returns422WithCode()
+    {
+        var client = await AuthenticatedClient();
+        var fixture = await CreateTransactionFixtureAsync(client);
+        var response = await client.PostAsJsonAsync("/api/transactions", new
+        {
+            fixture.AccountId,
+            fixture.CategoryId,
+            amount = 100,
+        });
+
+        await AssertValidationError(response, "created.required");
+    }
+
+    [Fact]
+    public async Task Transaction_DefaultCreated_Returns422WithCode()
+    {
+        var client = await AuthenticatedClient();
+        var fixture = await CreateTransactionFixtureAsync(client);
+        var response = await client.PostAsJsonAsync("/api/transactions", new
+        {
+            fixture.AccountId,
+            fixture.CategoryId,
+            created = DateTime.MinValue,
+            amount = 100,
+        });
+
+        await AssertValidationError(response, "created.required");
+    }
+
+    [Fact]
+    public async Task TransactionUpdate_OmittedCreated_Returns422WithCode()
+    {
+        var client = await AuthenticatedClient();
+        var fixture = await CreateTransactionFixtureAsync(client, createTransaction: true);
+        var response = await client.PutAsJsonAsync($"/api/transactions/{fixture.TransactionId}", new
+        {
+            id = fixture.TransactionId,
+            fixture.AccountId,
+            fixture.CategoryId,
+            amount = 100,
+        });
+
+        await AssertValidationError(response, "created.required");
+    }
+
+    [Fact]
+    public async Task TransactionUpdate_DefaultCreated_Returns422WithCode()
+    {
+        var client = await AuthenticatedClient();
+        var fixture = await CreateTransactionFixtureAsync(client, createTransaction: true);
+        var response = await client.PutAsJsonAsync($"/api/transactions/{fixture.TransactionId}", new
+        {
+            id = fixture.TransactionId,
+            fixture.AccountId,
+            fixture.CategoryId,
+            created = DateTime.MinValue,
+            amount = 100,
+        });
+
+        await AssertValidationError(response, "created.required");
+    }
+
     // ── Transfers ──────────────────────────────────────────────────────────────
 
     [Fact]
@@ -117,6 +182,41 @@ public class ValidationTests : IClassFixture<InExWebApplicationFactory>
             created       = "2026-01-01",
         });
         await AssertValidationError(response, "amount_from.must_be_positive");
+    }
+
+    [Fact]
+    public async Task Transfer_OmittedCreated_Returns422WithCode()
+    {
+        var client = await AuthenticatedClient();
+        int sourceAccountId = await CreateAccountAsync(client);
+        int destinationAccountId = await CreateAccountAsync(client);
+        var response = await client.PostAsJsonAsync("/api/transactions/transfer", new
+        {
+            accountFromId = sourceAccountId,
+            accountToId = destinationAccountId,
+            amountFrom = 100,
+            amountTo = 100,
+        });
+
+        await AssertValidationError(response, "created.required");
+    }
+
+    [Fact]
+    public async Task Transfer_DefaultCreated_Returns422WithCode()
+    {
+        var client = await AuthenticatedClient();
+        int sourceAccountId = await CreateAccountAsync(client);
+        int destinationAccountId = await CreateAccountAsync(client);
+        var response = await client.PostAsJsonAsync("/api/transactions/transfer", new
+        {
+            accountFromId = sourceAccountId,
+            accountToId = destinationAccountId,
+            amountFrom = 100,
+            amountTo = 100,
+            created = DateTime.MinValue,
+        });
+
+        await AssertValidationError(response, "created.required");
     }
 
     // ── Accounts ──────────────────────────────────────────────────────────────
@@ -222,4 +322,62 @@ public class ValidationTests : IClassFixture<InExWebApplicationFactory>
         });
         await AssertValidationError(response, "name.required");
     }
+
+    private static async Task<TransactionFixture> CreateTransactionFixtureAsync(HttpClient client, bool createTransaction = false)
+    {
+        int accountId = await CreateAccountAsync(client);
+        int categoryId = await CreateCategoryAsync(client);
+        int? transactionId = null;
+
+        if (createTransaction)
+        {
+            var response = await client.PostAsJsonAsync("/api/transactions", new
+            {
+                accountId,
+                categoryId,
+                created = "2026-03-29",
+                amount = 100,
+            });
+            response.EnsureSuccessStatusCode();
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            transactionId = body.GetProperty("id").GetInt32();
+        }
+
+        return new TransactionFixture(accountId, categoryId, transactionId);
+    }
+
+    private static async Task<int> CreateAccountAsync(HttpClient client)
+    {
+        string key = $"acc-{Guid.NewGuid():N}";
+        var response = await client.PostAsJsonAsync("/api/accounts", new
+        {
+            key,
+            name = key,
+            currencyId = 1,
+            isEnabled = true,
+        });
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
+    }
+
+    private static async Task<int> CreateCategoryAsync(HttpClient client)
+    {
+        string key = $"cat-{Guid.NewGuid():N}";
+        var response = await client.PostAsJsonAsync("/api/categories", new
+        {
+            key,
+            name = key,
+            isEnabled = true,
+            isSystem = false,
+        });
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
+    }
+
+    private sealed record TransactionFixture(int AccountId, int CategoryId, int? TransactionId);
 }
