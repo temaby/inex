@@ -176,6 +176,58 @@ describe("transactionsApi", () => {
     });
   });
 
+  it("serializes normalized Type and Search for both list and summary", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(fixture));
+    const filter = { ...emptyFilter, type: "expense" as const, search: "  groceries  " };
+
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate({ pageSize: 25, page: 1, filter }));
+    await store.dispatch(transactionsApi.endpoints.getTransactionsSummary.initiate(filter));
+
+    expect(mockApiClient).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      url: "/transactions?mode=active&pageSize=25&page=1&type=expense&search=groceries",
+    }));
+    expect(mockApiClient).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      url: "/transactions/summary?mode=active&type=expense&search=groceries",
+    }));
+  });
+
+  it("omits blank Search and the all Type from transaction query parameters", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(fixture));
+
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate({
+      pageSize: 25,
+      page: 1,
+      filter: { ...emptyFilter, type: "all", search: "   " },
+    }));
+
+    expect(mockApiClient).toHaveBeenCalledWith(expect.objectContaining({
+      url: "/transactions?mode=active&pageSize=25&page=1",
+    }));
+  });
+
+  it("shares a cache entry for equivalent normalized Type and Search filters", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(fixture));
+    const firstArgs = {
+      pageSize: 25,
+      page: 1,
+      filter: { ...emptyFilter, type: "expense" as const, search: "  groceries  " },
+    };
+    const equivalentArgs = {
+      pageSize: 25,
+      page: 1,
+      filter: { ...emptyFilter, type: "expense" as const, search: "groceries" },
+    };
+
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate(firstArgs));
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate(equivalentArgs));
+
+    expect(mockApiClient).toHaveBeenCalledTimes(1);
+    expect(transactionsApi.endpoints.getTransactions.select(equivalentArgs)(store.getState()).data).toEqual(fixture);
+  });
+
   it("cache invalidation on mutation triggers refetch", async () => {
     const store = createTestStore();
     mockApiClient.mockImplementation(async (config) => {

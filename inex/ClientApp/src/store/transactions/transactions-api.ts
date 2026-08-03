@@ -9,7 +9,12 @@ import { budgetReportApi } from "../budgetReport/budgetReport-api";
 import { reportApi } from "../report/report-api";
 import type { TransactionFilter } from "./transactions-slice";
 
-export type TransactionFilterParams = TransactionFilter;
+export type TransactionFilterType = "all" | "income" | "expense" | "transfer";
+
+export type TransactionFilterParams = TransactionFilter & {
+  type?: TransactionFilterType;
+  search?: string;
+};
 
 export interface GetTransactionsArgs {
   pageSize: number;
@@ -41,6 +46,20 @@ export interface TransactionSummaryResult {
   typeCounts: TransactionTypeCounts;
   currencySummaries: TransactionCurrencySummary[];
 }
+
+const normalizeTransactionFilterParams = (
+  filter: TransactionFilterParams,
+): TransactionFilterParams => {
+  const normalizedType = filter.type?.trim().toLowerCase();
+  const type: TransactionFilterType | undefined = normalizedType === "income" ||
+    normalizedType === "expense" ||
+    normalizedType === "transfer"
+    ? normalizedType
+    : undefined;
+  const search = filter.search?.trim() || undefined;
+
+  return { ...filter, type, search };
+};
 
 export const formatTransactionFilterDateTime = (timestamp: number): string =>
   dayjs.unix(timestamp).format("YYYY-MM-DDTHH:mm:ss");
@@ -75,15 +94,25 @@ function appendTransactionFilters(
   params: URLSearchParams,
   filter: TransactionFilterParams,
 ): void {
-  filter.accountIds.forEach((id) => params.append("accountId", String(id)));
-  filter.categoryIds.forEach((id) => params.append("categoryId", String(id)));
-  filter.tags.forEach((tag) => params.append("tag", tag));
-  filter.refs.forEach((ref) => params.append("ref", ref));
-  if (filter.range.length === 2 && filter.range[0] > 0) {
-    params.set("startDate", formatTransactionFilterDateTime(filter.range[0]));
+  const normalizedFilter = normalizeTransactionFilterParams(filter);
+
+  normalizedFilter.accountIds.forEach((id) => params.append("accountId", String(id)));
+  normalizedFilter.categoryIds.forEach((id) => params.append("categoryId", String(id)));
+  normalizedFilter.tags.forEach((tag) => params.append("tag", tag));
+  normalizedFilter.refs.forEach((ref) => params.append("ref", ref));
+  if (normalizedFilter.range.length === 2 && normalizedFilter.range[0] > 0) {
+    params.set("startDate", formatTransactionFilterDateTime(normalizedFilter.range[0]));
   }
-  if (filter.range.length === 2 && filter.range[1] > 0) {
-    params.set("endDate", formatTransactionFilterDateTime(filter.range[1]));
+  if (normalizedFilter.range.length === 2 && normalizedFilter.range[1] > 0) {
+    params.set("endDate", formatTransactionFilterDateTime(normalizedFilter.range[1]));
+  }
+
+  if (normalizedFilter.type) {
+    params.set("type", normalizedFilter.type);
+  }
+
+  if (normalizedFilter.search) {
+    params.set("search", normalizedFilter.search);
   }
 }
 
@@ -129,12 +158,22 @@ export const transactionsApi = createApi({
         url: `/transactions?${buildTransactionParams(pageSize, page, filter).toString()}`,
       }),
       providesTags: [{ type: "Transaction", id: "LIST" }],
+      serializeQueryArgs: ({ endpointName, queryArgs }) => ({
+        endpointName,
+        pageSize: queryArgs.pageSize,
+        page: queryArgs.page,
+        filter: normalizeTransactionFilterParams(queryArgs.filter),
+      }),
     }),
     getTransactionsSummary: builder.query<TransactionSummaryResult, TransactionFilterParams>({
       query: (filter) => ({
         url: `/transactions/summary?${buildTransactionFilterParams(filter).toString()}`,
       }),
       providesTags: [{ type: "Transaction", id: "LIST" }],
+      serializeQueryArgs: ({ endpointName, queryArgs }) => ({
+        endpointName,
+        filter: normalizeTransactionFilterParams(queryArgs),
+      }),
     }),
     createTransaction: builder.mutation<void, CreateTransactionArgs>({
       query: (body) => ({ url: "/transactions", method: "post", data: body }),

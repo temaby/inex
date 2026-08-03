@@ -270,6 +270,34 @@ public class TransactionService : InExService, ITransactionService
             items = items.Where(i => i.Created <= endDate);
         }
 
+        switch (filter.Type?.Trim().ToLowerInvariant())
+        {
+            case "income":
+                items = items.Where(i => !i.Category.IsSystem && i.Value >= 0);
+                break;
+            case "expense":
+                items = items.Where(i => !i.Category.IsSystem && i.Value < 0);
+                break;
+            case "transfer":
+                items = items.Where(i => i.Category.IsSystem);
+                break;
+        }
+
+        string? search = filter.Search?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrEmpty(search))
+        {
+            items = items.Where(i =>
+                (i.Comment != null && i.Comment.ToLower().Contains(search)) ||
+                i.Account.Name.ToLower().Contains(search) ||
+                i.Category.Name.ToLower().Contains(search) ||
+                (i.Category.ParentCategory != null &&
+                    i.Category.ParentCategory.UserId == i.UserId &&
+                    i.Category.ParentCategory.Name.ToLower().Contains(search)) ||
+                i.Account.Currency.Key.ToLower().Contains(search) ||
+                i.TransactionTagDetails.Any(detail =>
+                    detail.Tag.UserId == i.UserId && detail.Tag.Key.ToLower().Contains(search)));
+        }
+
         return items;
     }
 
@@ -296,20 +324,26 @@ public class TransactionService : InExService, ITransactionService
 
     internal IQueryable<Transaction> GetTransactions(int userId, ActivityMode mode, TransactionFilterQuery filter)
     {
-        IQueryable<Transaction> items = ApplyFilters(DbInEx.TransactionRepository
+        IQueryable<Transaction> items = DbInEx.TransactionRepository
             .GetWithIncludePaths(true, null, "Account.Currency", "Category")
-            .Where(i => i.UserId == userId)
-            .OrderByDescending(i => i.Created)
-            .ThenByDescending(i => i.Id), filter);
+            .Where(i => i.UserId == userId && i.Account.UserId == userId && i.Category.UserId == userId);
 
-        return mode switch
+        items = ApplyActivityMode(items, mode);
+        items = ApplyFilters(items, filter);
+
+        return items
+            .OrderByDescending(i => i.Created)
+            .ThenByDescending(i => i.Id);
+    }
+
+    private static IQueryable<Transaction> ApplyActivityMode(IQueryable<Transaction> items, ActivityMode mode) =>
+        mode switch
         {
             ActivityMode.ACTIVE => items.Where(i => i.Account.IsEnabled && i.Category.IsEnabled),
             ActivityMode.INACTIVE => items.Where(i => !i.Account.IsEnabled || !i.Category.IsEnabled),
             ActivityMode.ALL => items,
             _ => throw new ArgumentException($"Unknown ActivityMode: {mode}")
         };
-    }
 
     private Transaction ProcessTagsRefs(Transaction transaction, int userId)
     {
