@@ -326,7 +326,7 @@ public class TransactionService : InExService, ITransactionService
     {
         IQueryable<Transaction> items = DbInEx.TransactionRepository
             .GetWithIncludePaths(true, null, "Account.Currency", "Category")
-            .Where(i => i.UserId == userId && i.Account.UserId == userId && i.Category.UserId == userId);
+            .Where(i => i.UserId == userId);
 
         items = ApplyActivityMode(items, mode);
         items = ApplyFilters(items, filter);
