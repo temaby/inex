@@ -127,7 +127,7 @@ development_status:
   10-6-frontend-ux-visual-qa-baseline-and-responsive-regression-checklist: review
   epic-10-retrospective: optional
   epic-11: in-progress
-  11-1a-harden-transaction-mutation-boundaries: in-progress
+  11-1a-harden-transaction-mutation-boundaries: done
   11-1-find-transactions-across-the-full-selected-period: backlog
   11-2-restore-and-control-selected-period-filters: backlog
   11-3-understand-trustworthy-period-summaries: backlog

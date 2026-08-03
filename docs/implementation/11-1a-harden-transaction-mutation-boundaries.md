@@ -1,6 +1,6 @@
 # Story 11.1a: Harden Transaction Mutation Boundaries
 
-Status: in-progress
+Status: done
 
 ## Story
 
@@ -26,9 +26,9 @@ so that selected-period work cannot weaken financial data integrity or user isol
 - [x] Verify current mutation ownership boundaries (AC: 2, 3)
   - [x] Retain the existing `Id && UserId` service predicates and existing integration coverage for foreign transactions, accounts, categories, and transfer source/destination accounts.
   - [x] Do not alter generic repository ID-only helpers or widen the story into transfer-category provisioning.
-- [ ] Run verification and document results (AC: 1-3)
-  - [ ] Run focused integration and service tests, then solution build and full tests when feasible.
-  - [ ] Use a MySQL-backed read-only validation path before claiming calendar-date storage behavior is provider-verified; record a setup blocker if unavailable.
+- [x] Run verification and document results (AC: 1-3)
+  - [x] Run focused integration and service tests, then solution build and full tests when feasible.
+  - [x] Use a MySQL-backed read-only validation path before claiming calendar-date storage behavior is provider-verified; record a setup blocker if unavailable.
 
 ## Dev Notes
 
@@ -81,7 +81,8 @@ GPT-5 Codex
 - Added `created.required` validation for create, update (through the included create validator), and transfer requests; default-bound `DateTime` values can no longer reach persistence.
 - Added validator unit tests plus API regression coverage for omitted/default dates, RFC 7807 validation media type and error codes, and an owned-fixture DST-boundary date round trip.
 - Confirmed the existing service-level user predicates and cross-user integration tests already cover transaction, account, category, and both transfer-account boundaries.
-- Review passes fixed fixture ownership and strengthened the calendar-date assertion. MySQL calendar-date round-trip verification remains blocked by read-only database access, so the story stays in progress.
+- Review passes fixed fixture ownership and strengthened the calendar-date assertion. MySQL calendar-date round-trip verification remains blocked by read-only database access.
+- User accepted the remaining MySQL write/read verification risk and marked the story done on 2026-08-03.
 
 ### File List
 
@@ -96,4 +97,5 @@ GPT-5 Codex
 ## Change Log
 
 - 2026-08-03: Created implementation context from Epic 11; status set to ready-for-dev.
-- 2026-08-03: Added date validation and regression coverage; status remains in-progress pending MySQL write/read calendar-date verification.
+- 2026-08-03: Added date validation and regression coverage; status remained in-progress pending MySQL write/read calendar-date verification.
+- 2026-08-03: Marked done with the remaining MySQL provider round-trip verification accepted as a documented risk.
