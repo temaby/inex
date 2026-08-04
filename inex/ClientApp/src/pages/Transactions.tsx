@@ -11,8 +11,8 @@ import { TransactionType } from "../model/Transaction/TransactionType";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
-import { useGetTransactionsSummaryQuery, type TransactionFilterParams } from "../store/transactions/transactions-api";
-import { transactionsActions, transactionsDefaultFilter, type TransactionFilter } from "../store/transactions/transactions-slice";
+import { useGetTransactionsSummaryQuery } from "../store/transactions/transactions-api";
+import { normalizeTransactionFilter, transactionsActions, transactionsDefaultFilter, type TransactionFilter } from "../store/transactions/transactions-slice";
 import {
     InExButton,
     InExDrawer,
@@ -25,9 +25,8 @@ import type { Signage } from "../components/primitives";
 import TransactionCreate from "./Transactions/TransactionCreate";
 import TransactionFilterForm from "./Transactions/TransactionFilterForm";
 import TransactionList from "./Transactions/TransactionList";
-import { buildTransactionFilterSearch } from "./Transactions/transaction-filter-url";
+import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./Transactions/transaction-filter-url";
 import {
-    emptyLedgerFilter,
     emptyLedgerMetrics,
     formatTransactionMonthLabel,
     formatTransactionPeriodLabel,
@@ -37,9 +36,6 @@ import {
     isCurrentOrFutureTransactionMonth,
     isWholeTransactionMonthRange,
     shiftTransactionMonthRange,
-    type LedgerMetrics,
-    type LedgerTypeFilter,
-    type LedgerUiFilter,
 } from "./Transactions/transaction-ledger-utils";
 import "./Transactions/transactions-ledger.css";
 
@@ -56,12 +52,6 @@ const isTransactionFilterActive = (filter: TransactionFilter): boolean =>
     filter.categoryIds.length > 0 ||
     filter.tags.length > 0 ||
     filter.refs.length > 0;
-
-const isLedgerUiFilterActive = (filter: LedgerUiFilter): boolean =>
-    filter.type !== "all" ||
-    filter.search.trim() !== "" ||
-    filter.minAmount.trim() !== "" ||
-    filter.maxAmount.trim() !== "";
 
 const formatDateRange = (range: number[]): string => {
     if (range.length !== 2) return "";
@@ -86,15 +76,13 @@ const Transactions = () => {
 
     const { data: allAccounts = [] } = useGetAccountsQuery("ALL");
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
-    const filterState = useAppSelector(state => state.transactions.filter);
     const formError = useAppSelector(state => state.transactions.error);
     const exchangeRates = useAppSelector(state => state.rates.items);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
-    const [ledgerFilter, setLedgerFilter] = useState<LedgerUiFilter>(emptyLedgerFilter);
-    const [ledgerMetrics, setLedgerMetrics] = useState<LedgerMetrics>(emptyLedgerMetrics);
+    const [ledgerVisibleCount, setLedgerVisibleCount] = useState(0);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
 
     const activeAccounts = useMemo(
@@ -106,23 +94,20 @@ const Transactions = () => {
         [allCategories],
     );
 
-    const filterActive = isTransactionFilterActive(filterState) || isLedgerUiFilterActive(ledgerFilter);
+    const canonicalFilter = useMemo(() => normalizeTransactionFilter(
+        parseTransactionFilterParam(filterParam) ?? {
+            ...transactionsDefaultFilter,
+            range: getCurrentTransactionMonthRange(),
+        },
+    ), [filterParam]);
+    const filterActive = isTransactionFilterActive(canonicalFilter) || canonicalFilter.type !== "all" || canonicalFilter.search !== "";
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
     const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
-    const activeMonthRange = filterState.range.length === 2 ? filterState.range : getCurrentTransactionMonthRange();
+    const activeMonthRange = canonicalFilter.range;
     const activeMonthRangeKey = activeMonthRange.join(":");
     const [pendingMonthRange, setPendingMonthRange] = useState<number[]>(activeMonthRange);
     const pendingMonthRangeKey = pendingMonthRange.join(":");
-    const summaryFilter = useMemo<TransactionFilterParams>(() => ({
-        accountIds: filterState.accountIds,
-        categoryIds: filterState.categoryIds,
-        tags: filterState.tags,
-        refs: filterState.refs,
-        range: filterState.range,
-    }), [filterState]);
-    const summaryQuery = useGetTransactionsSummaryQuery(summaryFilter, {
-        skip: filterParam === null && filterState.range.length !== 2,
-    });
+    const summaryQuery = useGetTransactionsSummaryQuery(canonicalFilter);
     const summaryData = summaryQuery.currentData;
     const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
     const summaryMetrics = useMemo(
@@ -131,9 +116,9 @@ const Transactions = () => {
             : null,
         [exchangeRates, summaryData],
     );
-    const scopedMetrics = summaryMetrics ?? ledgerMetrics;
+    const scopedMetrics = summaryMetrics ?? emptyLedgerMetrics;
     const scopedTotalCount = scopedMetrics.totalCount;
-    const noMatchActive = filterActive && scopedTotalCount > 0 && ledgerMetrics.visibleCount === 0;
+    const noMatchActive = filterActive && summaryData?.totalCount === 0;
     const periodLabel = useMemo(
         () => isWholeTransactionMonthRange(activeMonthRange)
             ? formatTransactionMonthLabel(activeMonthRange, t("transactions.period.currentMonth"))
@@ -152,9 +137,18 @@ const Transactions = () => {
     );
 
     const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {
-        dispatch(transactionsActions.setFilter({ filter: nextFilter }));
-        navigate(`${location.pathname}${buildTransactionFilterSearch(nextFilter)}`, { replace });
+        const normalizedFilter = normalizeTransactionFilter(nextFilter);
+        dispatch(transactionsActions.setFilter({ filter: normalizedFilter }));
+        navigate(`${location.pathname}${buildTransactionFilterSearch(normalizedFilter)}`, { replace });
     }, [dispatch, location.pathname, navigate]);
+
+    useEffect(() => {
+        dispatch(transactionsActions.setFilter({ filter: canonicalFilter }));
+        const normalizedSearch = buildTransactionFilterSearch(canonicalFilter);
+        if (location.search !== normalizedSearch) {
+            navigate(`${location.pathname}${normalizedSearch}`, { replace: true });
+        }
+    }, [canonicalFilter, dispatch, location.pathname, location.search, navigate]);
 
     useEffect(() => {
         setPendingMonthRange(activeMonthRange);
@@ -165,22 +159,13 @@ const Transactions = () => {
 
         const timeoutId = window.setTimeout(() => {
             applyServerFilter({
-                ...filterState,
+                ...canonicalFilter,
                 range: pendingMonthRange,
             }, false);
         }, MONTH_FILTER_COMMIT_DELAY_MS);
 
         return () => window.clearTimeout(timeoutId);
-    }, [activeMonthRange, applyServerFilter, filterState, pendingMonthRange, pendingMonthRangeKey]);
-
-    useEffect(() => {
-        if (filterParam !== null) return;
-
-        applyServerFilter({
-            ...transactionsDefaultFilter,
-            range: getCurrentTransactionMonthRange(),
-        }, true);
-    }, [applyServerFilter, filterParam]);
+    }, [activeMonthRange, applyServerFilter, canonicalFilter, pendingMonthRange, pendingMonthRangeKey]);
 
     const changeMonth = useCallback((monthDelta: number) => {
         setPendingMonthRange((currentRange) => {
@@ -208,7 +193,6 @@ const Transactions = () => {
         date.startOf("month").isAfter(dayjs().startOf("month")), []);
 
     const clearAllFilters = useCallback(() => {
-        setLedgerFilter(emptyLedgerFilter);
         applyServerFilter({
             ...transactionsDefaultFilter,
             range: getCurrentTransactionMonthRange(),
@@ -255,72 +239,64 @@ const Transactions = () => {
         const categoryById = new Map(allCategories.map(category => [category.id, category.name]));
         const next: FilterChip[] = [];
 
-        if (ledgerFilter.type !== "all") {
+        if (canonicalFilter.type !== "all") {
             next.push({
                 key: "type",
-                label: `${t("transactions.type")}: ${t(`transactions.${ledgerFilter.type}`)}`,
-                onClear: () => setLedgerFilter(prev => ({ ...prev, type: "all" })),
+                label: `${t("transactions.type")}: ${t(`transactions.${canonicalFilter.type}`)}`,
+                onClear: () => applyServerFilter({ ...canonicalFilter, type: "all" }),
             });
         }
 
-        if (ledgerFilter.search.trim() !== "") {
+        if (canonicalFilter.search !== "") {
             next.push({
                 key: "search",
-                label: `${t("transactions.search")}: ${ledgerFilter.search.trim()}`,
-                onClear: () => setLedgerFilter(prev => ({ ...prev, search: "" })),
+                label: `${t("transactions.search")}: ${canonicalFilter.search}`,
+                onClear: () => applyServerFilter({ ...canonicalFilter, search: "" }),
             });
         }
 
-        if (filterState.accountIds.length > 0) {
+        if (canonicalFilter.accountIds.length > 0) {
             next.push({
                 key: "accounts",
-                label: `${t("transactions.account")}: ${filterState.accountIds.map(id => accountById.get(id) ?? id).join(", ")}`,
-                onClear: () => clearServerFilter({ ...filterState, accountIds: [] }),
+                label: `${t("transactions.account")}: ${canonicalFilter.accountIds.map(id => accountById.get(id) ?? id).join(", ")}`,
+                onClear: () => clearServerFilter({ ...canonicalFilter, accountIds: [] }),
             });
         }
 
-        if (filterState.categoryIds.length > 0) {
+        if (canonicalFilter.categoryIds.length > 0) {
             next.push({
                 key: "categories",
-                label: `${t("transactions.category")}: ${filterState.categoryIds.map(id => categoryById.get(id) ?? id).join(", ")}`,
-                onClear: () => clearServerFilter({ ...filterState, categoryIds: [] }),
+                label: `${t("transactions.category")}: ${canonicalFilter.categoryIds.map(id => categoryById.get(id) ?? id).join(", ")}`,
+                onClear: () => clearServerFilter({ ...canonicalFilter, categoryIds: [] }),
             });
         }
 
-        if (filterState.tags.length > 0) {
+        if (canonicalFilter.tags.length > 0) {
             next.push({
                 key: "tags",
-                label: `${t("transactions.tags")}: ${filterState.tags.map(tag => `#${tag}`).join(" ")}`,
-                onClear: () => clearServerFilter({ ...filterState, tags: [] }),
+                label: `${t("transactions.tags")}: ${canonicalFilter.tags.map(tag => `#${tag}`).join(" ")}`,
+                onClear: () => clearServerFilter({ ...canonicalFilter, tags: [] }),
             });
         }
 
-        if (filterState.refs.length > 0) {
+        if (canonicalFilter.refs.length > 0) {
             next.push({
                 key: "refs",
-                label: `${t("transactions.refs")}: ${filterState.refs.map(ref => `@${ref}`).join(" ")}`,
-                onClear: () => clearServerFilter({ ...filterState, refs: [] }),
+                label: `${t("transactions.refs")}: ${canonicalFilter.refs.map(ref => `@${ref}`).join(" ")}`,
+                onClear: () => clearServerFilter({ ...canonicalFilter, refs: [] }),
             });
         }
 
-        if (filterState.range.length === 2 && !isWholeTransactionMonthRange(filterState.range)) {
+        if (canonicalFilter.range.length === 2 && !isWholeTransactionMonthRange(canonicalFilter.range)) {
             next.push({
                 key: "date",
-                label: `${t("transactions.date")}: ${formatDateRange(filterState.range)}`,
-                onClear: () => clearServerFilter({ ...filterState, range: getCurrentTransactionMonthRange() }),
-            });
-        }
-
-        if (ledgerFilter.minAmount.trim() !== "" || ledgerFilter.maxAmount.trim() !== "") {
-            next.push({
-                key: "amount",
-                label: `${t("transactions.amount")}: ${ledgerFilter.minAmount || "0"} - ${ledgerFilter.maxAmount || t("transactions.anyAmount")}`,
-                onClear: () => setLedgerFilter(prev => ({ ...prev, minAmount: "", maxAmount: "" })),
+                label: `${t("transactions.date")}: ${formatDateRange(canonicalFilter.range)}`,
+                onClear: () => clearServerFilter({ ...canonicalFilter, range: getCurrentTransactionMonthRange() }),
             });
         }
 
         return next;
-    }, [allAccounts, allCategories, clearServerFilter, filterState, ledgerFilter, t]);
+    }, [allAccounts, allCategories, applyServerFilter, canonicalFilter, clearServerFilter, t]);
 
     const kpiItems = [
         {
@@ -404,7 +380,7 @@ const Transactions = () => {
                                 {monthControls}
                                 <span className="transactions-toolbar-count">
                                     {t("transactions.toolbarCount", {
-                                        visible: ledgerMetrics.visibleCount,
+                                        visible: ledgerVisibleCount,
                                         total: scopedTotalCount,
                                         period: periodLabel,
                                     })}
@@ -429,7 +405,7 @@ const Transactions = () => {
                         <div className="transactions-ledger-controls">
                             <SegmentedControl
                                 label={t("transactions.view")}
-                                onChange={(value) => setLedgerFilter(prev => ({ ...prev, type: value as LedgerTypeFilter }))}
+                                onChange={(value) => applyServerFilter({ ...canonicalFilter, type: value as TransactionFilter["type"] })}
                                 options={[
                                     { key: "all", label: `${t("transactions.all")} ${scopedMetrics.typeCounts.all}` },
                                     { key: "income", label: `${t("transactions.income")} ${scopedMetrics.typeCounts.income}` },
@@ -437,14 +413,14 @@ const Transactions = () => {
                                     { key: "transfer", label: `${t("transactions.transfer")} ${scopedMetrics.typeCounts.transfer}` },
                                 ]}
                                 size="compact"
-                                value={ledgerFilter.type}
+                                value={canonicalFilter.type}
                             />
                             <Input
                                 aria-label={t("transactions.search")}
                                 className="transactions-search"
-                                onChange={(event) => setLedgerFilter(prev => ({ ...prev, search: event.target.value }))}
+                                onChange={(event) => applyServerFilter({ ...canonicalFilter, search: event.target.value })}
                                 placeholder={t("transactions.searchPlaceholder")}
-                                value={ledgerFilter.search}
+                                value={canonicalFilter.search}
                                 variant="search"
                             />
                         </div>
@@ -467,11 +443,11 @@ const Transactions = () => {
                             accounts={allAccounts}
                             categories={allCategories}
                             exchangeRates={exchangeRates}
-                            ledgerFilter={ledgerFilter}
+                            filter={canonicalFilter}
                             onAddTransaction={() => setAddDrawerOpen(true)}
                             onClearFilters={clearAllFilters}
                             onInitialLoadingChange={setLedgerInitialLoading}
-                            onMetricsChange={setLedgerMetrics}
+                            onVisibleCountChange={setLedgerVisibleCount}
                             periodLabel={periodLabel}
                         />
                     </section>
@@ -506,9 +482,11 @@ const Transactions = () => {
                 <TransactionFilterForm
                     accounts={activeAccounts}
                     categories={activeCategories}
-                    filter={filterParam}
-                    ledgerFilter={ledgerFilter}
-                    onLedgerFilterChange={setLedgerFilter}
+                    filter={canonicalFilter}
+                    onApply={(nextFilter) => {
+                        applyServerFilter(nextFilter);
+                        setFilterDrawerOpen(false);
+                    }}
                 />
                 {formError && (
                     <Alert

@@ -4,18 +4,19 @@ import { describe, expect, it } from "vitest";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import {
-  getAccountFilterCurrency,
   getBaseCurrencyEquivalent,
   getCategoryPathLabel,
   getCurrentTransactionMonthRange,
   getFriendlyTransactionDayLabel,
   getLedgerMetricsFromSummary,
   getLedgerTypeCounts,
+  appendSequentialPage,
+  createProgressivePageAccumulator,
+  getTransactionNavigationMode,
   isCurrentOrFutureTransactionMonth,
   isWholeTransactionMonthRange,
   shiftTransactionMonthRange,
   toBaseCurrencyAmount,
-  toCurrencyAmount,
 } from "./transaction-ledger-utils";
 
 const categories: CategoryResponse[] = [
@@ -91,23 +92,6 @@ describe("transaction ledger helpers", () => {
     expect(toBaseCurrencyAmount(-80, "USD", rates)).toBe(-80);
     expect(toBaseCurrencyAmount(-80, "PLN", rates)).toBe(-20);
     expect(toBaseCurrencyAmount(-80, "EUR", rates)).toBe(-40);
-    expect(toCurrencyAmount(-80, "PLN", "EUR", rates)).toBe(-40);
-    expect(toCurrencyAmount(-80, "PLN", "PLN", rates)).toBe(-80);
-    expect(toCurrencyAmount(-80, "EUR", "USD", rates)).toBe(-40);
-    expect(toCurrencyAmount(-80, "UZS", "PLN", rates)).toBeNull();
-  });
-
-  it("derives filter currency only when selected accounts share one currency", () => {
-    const accounts = [
-      { id: 1, currency: "PLN" },
-      { id: 2, currency: "PLN" },
-      { id: 3, currency: "USD" },
-    ];
-
-    expect(getAccountFilterCurrency(accounts, [])).toBeNull();
-    expect(getAccountFilterCurrency(accounts, [1])).toBe("PLN");
-    expect(getAccountFilterCurrency(accounts, [1, 2])).toBe("PLN");
-    expect(getAccountFilterCurrency(accounts, [1, 3])).toBeNull();
   });
 
   it("counts ledger types from category semantics", () => {
@@ -176,6 +160,29 @@ describe("transaction ledger helpers", () => {
     expect(isWholeTransactionMonthRange([dayjs("2026-06-05").unix(), june[1]])).toBe(false);
     expect(isCurrentOrFutureTransactionMonth(june, "2026-06-22T10:00:00")).toBe(true);
     expect(isCurrentOrFutureTransactionMonth(may, "2026-06-22T10:00:00")).toBe(false);
+  });
+
+  it("uses progressive loading through one calendar month and pagination for longer ranges", () => {
+    expect(getTransactionNavigationMode([
+      dayjs("2026-06-01T00:00:00").unix(),
+      dayjs("2026-06-30T23:59:59").unix(),
+    ])).toBe("progressive");
+    expect(getTransactionNavigationMode([
+      dayjs("2026-06-01T00:00:00").unix(),
+      dayjs("2026-07-02T00:00:00").unix(),
+    ])).toBe("pagination");
+  });
+
+  it("rejects stale or out-of-sequence progressive pages and deduplicates sequential rows", () => {
+    const initial = createProgressivePageAccumulator<{ id: number }>("current");
+    const pageOne = appendSequentialPage(initial, "current", 1, 3, [{ id: 1 }, { id: 2 }]);
+    expect(appendSequentialPage(pageOne, "stale", 2, 3, [{ id: 3 }])).toBe(pageOne);
+    expect(appendSequentialPage(pageOne, "current", 3, 3, [{ id: 3 }])).toBe(pageOne);
+    expect(appendSequentialPage(pageOne, "current", 2, 3, [{ id: 2 }, { id: 3 }])).toMatchObject({
+      nextPage: 3,
+      total: 3,
+      items: [{ id: 1 }, { id: 2 }, { id: 3 }],
+    });
   });
 
 });

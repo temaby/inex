@@ -5,13 +5,7 @@ import type { TransactionResponse } from "../../model/Transaction/TransactionRes
 
 export type LedgerTypeFilter = "all" | "income" | "expense" | "transfer";
 export type LedgerTransactionKind = Exclude<LedgerTypeFilter, "all">;
-
-export interface LedgerUiFilter {
-  type: LedgerTypeFilter;
-  search: string;
-  minAmount: string;
-  maxAmount: string;
-}
+export type TransactionNavigationMode = "progressive" | "pagination";
 
 export interface LedgerSummary {
   income: number;
@@ -51,24 +45,12 @@ export interface ExchangeRateLike {
   rate: number;
 }
 
-export interface AccountCurrencyLike {
-  id: number;
-  currency: string;
-}
-
 export interface BaseCurrencyEquivalent {
   currency: string;
   value: number;
 }
 
 export type TransactionMonthRange = [number, number];
-
-export const emptyLedgerFilter: LedgerUiFilter = {
-  type: "all",
-  search: "",
-  minAmount: "",
-  maxAmount: "",
-};
 
 export const emptyLedgerMetrics: LedgerMetrics = {
   income: 0,
@@ -118,42 +100,6 @@ export const toBaseCurrencyAmount = (
   if (sameCurrency(accountCurrency, baseCurrency)) return amount;
 
   return getBaseCurrencyEquivalent(amount, accountCurrency, exchangeRates)?.value ?? null;
-};
-
-export const toCurrencyAmount = (
-  amount: number,
-  accountCurrency: string,
-  targetCurrency: string,
-  exchangeRates: ExchangeRateLike[],
-): number | null => {
-  if (sameCurrency(accountCurrency, targetCurrency)) return amount;
-
-  const baseAmount = toBaseCurrencyAmount(amount, accountCurrency, exchangeRates);
-  if (baseAmount === null) return null;
-
-  const baseCurrency = getBaseCurrencyCode(exchangeRates);
-  if (sameCurrency(targetCurrency, baseCurrency)) return baseAmount;
-
-  const targetRate = exchangeRates.find((item) => sameCurrency(item.currencyTo, targetCurrency));
-  if (!targetRate || targetRate.rate <= 0) return null;
-
-  return baseAmount * targetRate.rate;
-};
-
-export const getAccountFilterCurrency = (
-  accounts: AccountCurrencyLike[],
-  accountIds: number[],
-): string | null => {
-  const selectedCurrencies = accountIds
-    .map((id) => accounts.find((account) => account.id === id)?.currency)
-    .filter((currency): currency is string => Boolean(currency));
-
-  if (selectedCurrencies.length === 0) return null;
-
-  const [firstCurrency] = selectedCurrencies;
-  return selectedCurrencies.every((currency) => sameCurrency(currency, firstCurrency))
-    ? firstCurrency
-    : null;
 };
 
 export const getLedgerMetricsFromSummary = (
@@ -285,4 +231,44 @@ export const formatTransactionMonthLabel = (range: number[], fallback: string): 
   if (range.length !== 2 || range[0] <= 0) return fallback;
 
   return dayjs.unix(range[0]).format("MMMM YYYY");
+};
+
+export const getTransactionNavigationMode = (range: number[]): TransactionNavigationMode => {
+  if (range.length !== 2 || range[0] <= 0 || range[1] < range[0]) return "progressive";
+
+  return dayjs.unix(range[1]).isAfter(dayjs.unix(range[0]).add(1, "month"))
+    ? "pagination"
+    : "progressive";
+};
+
+export interface ProgressivePageAccumulator<T> {
+  key: string;
+  nextPage: number;
+  total: number;
+  items: T[];
+}
+
+export const createProgressivePageAccumulator = <T>(key: string): ProgressivePageAccumulator<T> => ({
+  key,
+  nextPage: 1,
+  total: 0,
+  items: [],
+});
+
+export const appendSequentialPage = <T extends { id: number }>(
+  accumulator: ProgressivePageAccumulator<T>,
+  key: string,
+  page: number,
+  total: number,
+  items: T[],
+): ProgressivePageAccumulator<T> => {
+  if (accumulator.key !== key || page !== accumulator.nextPage) return accumulator;
+
+  const existingIds = new Set(accumulator.items.map((item) => item.id));
+  return {
+    key,
+    nextPage: page + 1,
+    total,
+    items: [...accumulator.items, ...items.filter((item) => !existingIds.has(item.id))],
+  };
 };

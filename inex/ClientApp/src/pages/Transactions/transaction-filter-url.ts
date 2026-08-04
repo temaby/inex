@@ -1,7 +1,10 @@
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
-import type { TransactionFilter } from "../../store/transactions/transactions-slice";
+import {
+    normalizeTransactionFilter,
+    type TransactionFilter,
+} from "../../store/transactions/transactions-slice";
 
 const FILTER_PARAM = "filter";
 const DATE_FORMAT = "YYYY-MM-DD";
@@ -46,6 +49,8 @@ export const parseTransactionFilterParam = (filter: string | null): TransactionF
         tags: [],
         refs: [],
         range: [],
+        type: "all",
+        search: "",
     };
     let startDate = "";
     let endDate = "";
@@ -79,6 +84,16 @@ export const parseTransactionFilterParam = (filter: string | null): TransactionF
             case "refs":
                 parsedFilter.refs = parseTextValues(values);
                 break;
+            case "type": {
+                const type = decodeFilterValue(values[0] || "").trim().toLowerCase();
+                if (type === "income" || type === "expense" || type === "transfer") {
+                    parsedFilter.type = type;
+                }
+                break;
+            }
+            case "search":
+                parsedFilter.search = decodeFilterValue(values[0] || "").trim();
+                break;
         }
     });
 
@@ -91,37 +106,49 @@ export const parseTransactionFilterParam = (filter: string | null): TransactionF
         }
     }
 
+    const normalizedFilter = normalizeTransactionFilter(parsedFilter);
     const hasActiveFilter =
-        parsedFilter.accountIds.length > 0 ||
-        parsedFilter.categoryIds.length > 0 ||
-        parsedFilter.tags.length > 0 ||
-        parsedFilter.refs.length > 0 ||
-        parsedFilter.range.length === 2;
+        normalizedFilter.accountIds.length > 0 ||
+        normalizedFilter.categoryIds.length > 0 ||
+        normalizedFilter.tags.length > 0 ||
+        normalizedFilter.refs.length > 0 ||
+        normalizedFilter.range.length === 2 ||
+        normalizedFilter.type !== "all" ||
+        normalizedFilter.search !== "";
 
-    return hasActiveFilter ? parsedFilter : null;
+    return hasActiveFilter ? normalizedFilter : null;
 };
 
 export const buildTransactionFilterSearch = (filter: TransactionFilter): string => {
+    const normalizedFilter = normalizeTransactionFilter(filter);
     let filterValue = "";
 
-    if (filter.categoryIds.length > 0) {
-        filterValue += `categoryIds:${filter.categoryIds.join(",")};`;
+    if (normalizedFilter.categoryIds.length > 0) {
+        filterValue += `categoryIds:${normalizedFilter.categoryIds.join(",")};`;
     }
 
-    if (filter.accountIds.length > 0) {
-        filterValue += `accountIds:${filter.accountIds.join(",")};`;
+    if (normalizedFilter.accountIds.length > 0) {
+        filterValue += `accountIds:${normalizedFilter.accountIds.join(",")};`;
     }
 
-    if (filter.range.length === 2) {
-        filterValue += `start:${dayjs.unix(filter.range[0]).format("YYYY-MM-DD")};end:${dayjs.unix(filter.range[1]).format("YYYY-MM-DD")};`;
+    if (normalizedFilter.range.length === 2) {
+        filterValue += `start:${dayjs.unix(normalizedFilter.range[0]).format("YYYY-MM-DD")};end:${dayjs.unix(normalizedFilter.range[1]).format("YYYY-MM-DD")};`;
     }
 
-    if (filter.tags.length > 0) {
-        filterValue += `tags:${filter.tags.map(encodeFilterValue).join(",")};`;
+    if (normalizedFilter.tags.length > 0) {
+        filterValue += `tags:${normalizedFilter.tags.map(encodeFilterValue).join(",")};`;
     }
 
-    if (filter.refs.length > 0) {
-        filterValue += `refs:${filter.refs.map(encodeFilterValue).join(",")};`;
+    if (normalizedFilter.refs.length > 0) {
+        filterValue += `refs:${normalizedFilter.refs.map(encodeFilterValue).join(",")};`;
+    }
+
+    if (normalizedFilter.type !== "all") {
+        filterValue += `type:${normalizedFilter.type};`;
+    }
+
+    if (normalizedFilter.search !== "") {
+        filterValue += `search:${encodeFilterValue(normalizedFilter.search)};`;
     }
 
     if (filterValue === "") return "";

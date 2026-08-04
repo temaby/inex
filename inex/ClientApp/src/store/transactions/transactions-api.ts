@@ -7,14 +7,9 @@ import axiosBaseQuery from "../axiosBaseQuery";
 import { accountsApi } from "../accounts/accounts-api";
 import { budgetReportApi } from "../budgetReport/budgetReport-api";
 import { reportApi } from "../report/report-api";
-import type { TransactionFilter } from "./transactions-slice";
+import { normalizeTransactionFilter, type NormalizedTransactionFilter, type TransactionFilter } from "./transactions-slice";
 
-export type TransactionFilterType = "all" | "income" | "expense" | "transfer";
-
-export type TransactionFilterParams = TransactionFilter & {
-  type?: TransactionFilterType;
-  search?: string;
-};
+export type TransactionFilterParams = TransactionFilter;
 
 export interface GetTransactionsArgs {
   pageSize: number;
@@ -47,19 +42,9 @@ export interface TransactionSummaryResult {
   currencySummaries: TransactionCurrencySummary[];
 }
 
-const normalizeTransactionFilterParams = (
+export const normalizeTransactionFilterParams = (
   filter: TransactionFilterParams,
-): TransactionFilterParams => {
-  const normalizedType = filter.type?.trim().toLowerCase();
-  const type: TransactionFilterType | undefined = normalizedType === "income" ||
-    normalizedType === "expense" ||
-    normalizedType === "transfer"
-    ? normalizedType
-    : undefined;
-  const search = filter.search?.trim() || undefined;
-
-  return { ...filter, type, search };
-};
+): NormalizedTransactionFilter => normalizeTransactionFilter(filter);
 
 export const formatTransactionFilterDateTime = (timestamp: number): string =>
   dayjs.unix(timestamp).format("YYYY-MM-DDTHH:mm:ss");
@@ -107,7 +92,7 @@ function appendTransactionFilters(
     params.set("endDate", formatTransactionFilterDateTime(normalizedFilter.range[1]));
   }
 
-  if (normalizedFilter.type) {
+  if (normalizedFilter.type !== "all") {
     params.set("type", normalizedFilter.type);
   }
 
