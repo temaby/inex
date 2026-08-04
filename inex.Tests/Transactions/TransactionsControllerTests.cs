@@ -432,6 +432,42 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         Assert.Equal(100m, currencySummary.GetProperty("income").GetDecimal());
         Assert.Equal(-50m, currencySummary.GetProperty("expense").GetDecimal());
         Assert.Equal(50m, currencySummary.GetProperty("net").GetDecimal());
+
+        var currentScope = body.GetProperty("currentScope");
+        Assert.Equal(3, currentScope.GetProperty("totalCount").GetInt32());
+        var cashFlowBucket = Assert.Single(currentScope.GetProperty("cashFlowBuckets").EnumerateArray());
+        Assert.Equal("USD", cashFlowBucket.GetProperty("currency").GetString());
+        Assert.Equal(100m, cashFlowBucket.GetProperty("income").GetDecimal());
+        Assert.Equal(-50m, cashFlowBucket.GetProperty("expense").GetDecimal());
+        Assert.False(body.TryGetProperty("previousScope", out _));
+    }
+
+    [Fact]
+    public async Task Summary_ReturnsComparableDateAndCurrencyBucketsWithAllNonDateFilters()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "comparable-summary-account");
+        int categoryId = await CreateCategoryAsync(client, "comparable-summary-category");
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 20m, "matching #period", new DateTime(2026, 3, 10, 8, 0, 0, DateTimeKind.Utc));
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, -5m, "matching #period", new DateTime(2026, 3, 20, 8, 0, 0, DateTimeKind.Utc));
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 100m, "matching #period", new DateTime(2026, 4, 10, 8, 0, 0, DateTimeKind.Utc));
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, -30m, "matching #period", new DateTime(2026, 4, 20, 8, 0, 0, DateTimeKind.Utc));
+        await CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 999m, "outside #other", new DateTime(2026, 3, 15, 8, 0, 0, DateTimeKind.Utc));
+
+        var response = await client.GetAsync("/api/transactions/summary?tag=period&search=MATCHING&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("USD", body.GetProperty("baseCurrency").GetString());
+        Assert.Equal(2, body.GetProperty("currentScope").GetProperty("totalCount").GetInt32());
+        Assert.Equal(2, body.GetProperty("currentScope").GetProperty("cashFlowBuckets").GetArrayLength());
+        Assert.Equal("2026-04-01T00:00:00", body.GetProperty("currentScope").GetProperty("period").GetProperty("startDate").GetString());
+
+        var previousScope = body.GetProperty("previousScope");
+        Assert.Equal(2, previousScope.GetProperty("totalCount").GetInt32());
+        Assert.Equal(2, previousScope.GetProperty("cashFlowBuckets").GetArrayLength());
+        Assert.Equal("2026-03-01T00:00:00", previousScope.GetProperty("period").GetProperty("startDate").GetString());
+        Assert.Equal("2026-03-31T23:59:59.9999999", previousScope.GetProperty("period").GetProperty("endDate").GetString());
     }
 
     [Fact]
@@ -671,13 +707,13 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     private static Task<int> CreateTransactionWithCommentAsync(HttpClient client, int accountId, int categoryId, string comment)
         => CreateTransactionWithAmountAndCommentAsync(client, accountId, categoryId, 10m, comment);
 
-    private static async Task<int> CreateTransactionWithAmountAndCommentAsync(HttpClient client, int accountId, int categoryId, decimal amount, string comment)
+    private static async Task<int> CreateTransactionWithAmountAndCommentAsync(HttpClient client, int accountId, int categoryId, decimal amount, string comment, DateTime? created = null)
     {
         var response = await client.PostAsJsonAsync("/api/transactions", new
         {
             accountId,
             categoryId,
-            created = DateTime.UtcNow,
+            created = created ?? DateTime.UtcNow,
             amount,
             comment,
         });

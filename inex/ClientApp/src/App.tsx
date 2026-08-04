@@ -13,7 +13,7 @@ import { restoreSession } from './store/auth/auth-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
 
 import "antd/dist/reset.css";
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import { SignageProvider } from "./components/primitives";
 import AuthShell from "./components/AuthShell";
@@ -44,6 +44,7 @@ const App = () => {
     const dispatch = useAppDispatch();
     const accessToken = useAppSelector(s => s.auth.accessToken);
     const { i18n } = useTranslation();
+    const location = useLocation();
     const antdLocale = i18n.language === "ru" ? ruRU : enUS;
 
     useEffect(() => {
@@ -69,9 +70,9 @@ const App = () => {
      * the same tab, the data is re-fetched automatically.
      */
     useEffect(() => {
-        if (!accessToken) return;
+        if (!accessToken || location.pathname === "/transactions") return;
         dispatch(fetchRatesForDate(date));
-    }, [accessToken]);
+    }, [accessToken, date, dispatch, location.pathname]);
 
     return (
         <SignageProvider>

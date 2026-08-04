@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
 import { useGetTransactionsSummaryQuery } from "../store/transactions/transactions-api";
+import { fetchCachedRatesForRange } from "../store/rates/rates-action";
 import { normalizeTransactionFilter, transactionsActions, transactionsDefaultFilter, type TransactionFilter } from "../store/transactions/transactions-slice";
 import {
     InExButton,
@@ -30,9 +31,8 @@ import {
     emptyLedgerMetrics,
     formatTransactionMonthLabel,
     formatTransactionPeriodLabel,
-    getBaseCurrencyCode,
+    getCashFlowConversionResult,
     getCurrentTransactionMonthRange,
-    getLedgerMetricsFromSummary,
     isCurrentOrFutureTransactionMonth,
     isWholeTransactionMonthRange,
     shiftTransactionMonthRange,
@@ -66,7 +66,7 @@ const areRangesEqual = (left: number[], right: number[]): boolean =>
     left.length === right.length && left.every((value, index) => value === right[index]);
 
 const Transactions = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -78,6 +78,9 @@ const Transactions = () => {
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
     const formError = useAppSelector(state => state.transactions.error);
     const exchangeRates = useAppSelector(state => state.rates.items);
+    const cachedExchangeRates = useAppSelector(state => state.rates.cached?.items ?? []);
+    const cachedRatesLoading = useAppSelector(state => state.rates.cached?.loading ?? false);
+    const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
@@ -102,7 +105,6 @@ const Transactions = () => {
     ), [filterParam]);
     const filterActive = isTransactionFilterActive(canonicalFilter) || canonicalFilter.type !== "all" || canonicalFilter.search !== "";
     const filterIndicatorTitle = filterActive ? t("transactions.filtersActive") : undefined;
-    const baseCurrency = useMemo(() => getBaseCurrencyCode(exchangeRates), [exchangeRates]);
     const activeMonthRange = canonicalFilter.range;
     const activeMonthRangeKey = activeMonthRange.join(":");
     const [pendingMonthRange, setPendingMonthRange] = useState<number[]>(activeMonthRange);
@@ -110,15 +112,44 @@ const Transactions = () => {
     const summaryQuery = useGetTransactionsSummaryQuery(canonicalFilter);
     const summaryData = summaryQuery.currentData;
     const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
-    const summaryMetrics = useMemo(
+    const baseCurrency = summaryData?.baseCurrency ?? "USD";
+    const cachedRateRange = useMemo(() => {
+        const currentPeriod = summaryData?.currentScope.period;
+        if (!currentPeriod) return null;
+
+        const needsCachedRate = [summaryData.currentScope, summaryData.previousScope]
+            .flatMap(scope => scope?.cashFlowBuckets ?? [])
+            .some(bucket => (bucket.income !== 0 || bucket.expense !== 0) && bucket.currency !== baseCurrency);
+        if (!needsCachedRate) return null;
+
+        const startDate = summaryData.previousScope?.period?.startDate.slice(0, 10) ?? currentPeriod.startDate.slice(0, 10);
+        const endDate = currentPeriod.endDate.slice(0, 10);
+        return { startDate, endDate, key: `${startDate}:${endDate}` };
+    }, [baseCurrency, summaryData]);
+    const currentConversion = useMemo(
         () => summaryData
-            ? getLedgerMetricsFromSummary(summaryData, exchangeRates)
+            ? getCashFlowConversionResult(summaryData.currentScope, baseCurrency, cachedExchangeRates)
             : null,
-        [exchangeRates, summaryData],
+        [baseCurrency, cachedExchangeRates, summaryData],
     );
-    const scopedMetrics = summaryMetrics ?? emptyLedgerMetrics;
+    const previousConversion = useMemo(
+        () => summaryData?.previousScope
+            ? getCashFlowConversionResult(summaryData.previousScope, baseCurrency, cachedExchangeRates)
+            : null,
+        [baseCurrency, cachedExchangeRates, summaryData],
+    );
+    const scopedMetrics = summaryData
+        ? {
+            ...emptyLedgerMetrics,
+            income: currentConversion?.income ?? 0,
+            expense: currentConversion?.expense ?? 0,
+            net: currentConversion?.net ?? 0,
+            totalCount: summaryData.currentScope.totalCount,
+            typeCounts: summaryData.currentScope.typeCounts,
+        }
+        : emptyLedgerMetrics;
     const scopedTotalCount = scopedMetrics.totalCount;
-    const noMatchActive = filterActive && summaryData?.totalCount === 0;
+    const noMatchActive = filterActive && summaryData?.currentScope.totalCount === 0;
     const periodLabel = useMemo(
         () => isWholeTransactionMonthRange(activeMonthRange)
             ? formatTransactionMonthLabel(activeMonthRange, t("transactions.period.currentMonth"))
@@ -135,6 +166,11 @@ const Transactions = () => {
             : dayjs(),
         [pendingMonthRangeKey],
     );
+
+    useEffect(() => {
+        if (!cachedRateRange) return;
+        dispatch(fetchCachedRatesForRange(cachedRateRange.startDate, cachedRateRange.endDate));
+    }, [cachedRateRange, dispatch]);
 
     const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {
         const normalizedFilter = normalizeTransactionFilter(nextFilter);
@@ -298,27 +334,55 @@ const Transactions = () => {
         return next;
     }, [allAccounts, allCategories, applyServerFilter, canonicalFilter, clearServerFilter, t]);
 
+    const conversionLoading = cachedRateRange !== null
+        && (cachedRatesLoading || cachedRatesCompletedKey !== cachedRateRange.key);
+    const currentConversionUnavailable = !conversionLoading && summaryData !== undefined && currentConversion?.isComplete === false;
+    const comparisonUnavailable = !conversionLoading && (currentConversionUnavailable || previousConversion?.isComplete === false);
+    const previousPeriodLabel = summaryData?.previousScope?.period
+        ? `${dayjs(summaryData.previousScope.period.startDate).format("D MMM YYYY")} – ${dayjs(summaryData.previousScope.period.endDate).format("D MMM YYYY")}`
+        : "";
+    const netChange = previousConversion ? scopedMetrics.net - previousConversion.net : 0;
+    const formattedNetChange = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 2 }).format(Math.abs(netChange));
+    const netComparison = comparisonUnavailable
+        ? t("transactions.kpi.conversionUnavailable")
+        : previousConversion && summaryData?.previousScope
+            ? summaryData.previousScope.totalCount === 0
+                ? t("transactions.kpi.noPreviousActivity", { change: formattedNetChange, period: previousPeriodLabel })
+                : previousConversion.net === 0
+                    ? t("transactions.kpi.absoluteChange", { change: formattedNetChange })
+                    : t("transactions.kpi.percentChange", {
+                        change: formattedNetChange,
+                        percent: new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 }).format((netChange / Math.abs(previousConversion.net)) * 100),
+                    })
+            : t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency });
+    const rateWarnings = (conversionLoading ? [] : [
+        ...(currentConversion?.warnings ?? []).map(warning => ({ ...warning, period: periodLabel })),
+        ...(previousConversion?.warnings ?? []).map(warning => ({ ...warning, period: previousPeriodLabel })),
+    ]).filter((warning, index, warnings) => warnings.findIndex(candidate =>
+        candidate.currency === warning.currency && candidate.date === warning.date && candidate.period === warning.period,
+    ) === index);
+
     const kpiItems = [
         {
             label: t("transactions.kpi.income"),
-            value: Math.abs(scopedMetrics.income),
+            value: currentConversionUnavailable ? null : Math.abs(scopedMetrics.income),
             kind: "income" as MoneyKind,
             signage: "color-only" as Signage,
-            sub: t("transactions.kpi.visibleRows", { count: scopedMetrics.totalCount, period: periodLabel }),
+            sub: t("transactions.kpi.incomeCount", { count: scopedMetrics.typeCounts.income, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.expenses"),
-            value: Math.abs(scopedMetrics.expense),
+            value: currentConversionUnavailable ? null : Math.abs(scopedMetrics.expense),
             kind: "expense" as MoneyKind,
             signage: "color-only" as Signage,
-            sub: t("transactions.kpi.visibleRows", { count: scopedMetrics.totalCount, period: periodLabel }),
+            sub: t("transactions.kpi.expenseCount", { count: scopedMetrics.typeCounts.expense, period: periodLabel }),
         },
         {
             label: t("transactions.kpi.netFlow"),
-            value: scopedMetrics.net,
+            value: currentConversionUnavailable ? null : scopedMetrics.net,
             kind: scopedMetrics.net > 0 ? "income" as MoneyKind : scopedMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
             signage: "signed" as Signage,
-            sub: t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency }),
+            sub: netComparison,
             primary: true,
         },
     ];
@@ -351,27 +415,37 @@ const Transactions = () => {
                 <section className="transactions-ledger">
                     <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card">
                         {kpiItems.map(item => (
-                            <div className={`transactions-kpi${ledgerInitialLoading || summaryInitialLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
+                            <div className={`transactions-kpi${ledgerInitialLoading || summaryInitialLoading || conversionLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
                                 <div className="transactions-kpi__label" data-qa={item.primary ? "hero-primary-label" : undefined}>{item.label}</div>
                                 <div className="transactions-kpi__value" data-qa={item.primary ? "hero-primary-value" : undefined}>
-                                    {ledgerInitialLoading || summaryInitialLoading ? (
+                                    {ledgerInitialLoading || summaryInitialLoading || conversionLoading ? (
                                         <span className="transactions-kpi__skeleton" />
                                     ) : (
-                                        <Num
-                                            currency={baseCurrency}
-                                            currencyDataQa={item.primary ? "hero-primary-currency" : undefined}
-                                            currencySize="sm"
-                                            kind={item.kind}
-                                            signage={item.signage}
-                                            size={30}
-                                            value={item.value}
-                                        />
+                                        item.value === null
+                                            ? <span aria-label={t("transactions.kpi.conversionUnavailable")}>{t("transactions.kpi.notAvailable")}</span>
+                                            : <Num
+                                                currency={baseCurrency}
+                                                currencyDataQa={item.primary ? "hero-primary-currency" : undefined}
+                                                currencySize="sm"
+                                                kind={item.kind}
+                                                signage={item.signage}
+                                                size={30}
+                                                value={item.value}
+                                            />
                                     )}
                                 </div>
                                 <div className="transactions-kpi__sub" data-qa={item.primary ? "hero-secondary-text" : undefined}>{item.sub}</div>
                             </div>
                         ))}
                     </div>
+                    {rateWarnings.length > 0 && <Alert
+                        className="transactions-rate-warning"
+                        description={rateWarnings.map(warning => t("transactions.kpi.rateWarningDetail", warning)).join(" ")}
+                        message={t("transactions.kpi.rateWarning")}
+                        role="status"
+                        showIcon
+                        type="warning"
+                    />}
 
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">

@@ -18,9 +18,35 @@ public record TransactionCurrencySummary
     public decimal Net { get; init; }
 }
 
+public record TransactionSummaryPeriod
+{
+    public DateTime StartDate { get; init; }
+    public DateTime EndDate { get; init; }
+}
+
+public record TransactionCashFlowBucket
+{
+    public DateTime Date { get; init; }
+    public string Currency { get; init; } = string.Empty;
+    public decimal Income { get; init; }
+    public decimal Expense { get; init; }
+    public int RecordCount { get; init; }
+}
+
+public record TransactionSummaryScope
+{
+    public int TotalCount { get; init; }
+    public TransactionTypeCounts TypeCounts { get; init; } = new();
+    public TransactionSummaryPeriod? Period { get; init; }
+    public IEnumerable<TransactionCashFlowBucket> CashFlowBuckets { get; init; } = new List<TransactionCashFlowBucket>();
+}
+
 public record TransactionSummaryResponse
 {
     public int TotalCount { get; init; }
     public TransactionTypeCounts TypeCounts { get; init; } = new();
     public IEnumerable<TransactionCurrencySummary> CurrencySummaries { get; init; } = new List<TransactionCurrencySummary>();
+    public string BaseCurrency { get; init; } = string.Empty;
+    public TransactionSummaryScope CurrentScope { get; init; } = new();
+    public TransactionSummaryScope? PreviousScope { get; init; }
 }

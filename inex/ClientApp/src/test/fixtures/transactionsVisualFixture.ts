@@ -122,8 +122,9 @@ export const transactionsVisualFixtureCategories: CategoryResponse[] = [
 ];
 
 export const transactionsVisualFixtureRates: TransactionsVisualFixtureRate[] = [
-  { id: 1, currencyFrom: "USD", currencyTo: "PLN", date: "2026-04-30", rate: 4, isTemporary: false },
-  { id: 2, currencyFrom: "USD", currencyTo: "UZS", date: "2026-04-30", rate: 12000, isTemporary: false },
+  { id: 1, currencyFrom: "USD", currencyTo: "PLN", date: "2026-04-27", rate: 4, isTemporary: false },
+  { id: 2, currencyFrom: "USD", currencyTo: "PLN", date: "2026-04-30", rate: 4, isTemporary: false },
+  { id: 3, currencyFrom: "USD", currencyTo: "UZS", date: "2026-04-29", rate: 12000, isTemporary: false },
 ];
 
 export const transactionsVisualFixtureTransactions: TransactionResponse[] = [

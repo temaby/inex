@@ -324,7 +324,16 @@
       "filteredPage": "Current ledger page",
       "updatesWithLedger": "Updates with the visible ledger",
       "visibleRows": "{{count}} transactions in {{period}}",
-      "baseCurrencyContext": "Month summary shown in {{currency}} where rates exist"
+      "baseCurrencyContext": "Summary shown in {{currency}}",
+      "incomeCount": "{{count}} income transactions in {{period}}",
+      "expenseCount": "{{count}} expense transactions in {{period}}",
+      "notAvailable": "N/A",
+      "conversionUnavailable": "Conversion unavailable",
+      "absoluteChange": "Net change: {{change}}",
+      "percentChange": "Net change: {{change}} ({{percent}}%)",
+      "noPreviousActivity": "Net change: {{change}}. No activity in {{period}}",
+      "rateWarning": "Rate warning",
+      "rateWarningDetail": "No cached {{currency}} rate for {{date}} in {{period}}."
     },
     "loading": {
       "initial": "Loading transactions",

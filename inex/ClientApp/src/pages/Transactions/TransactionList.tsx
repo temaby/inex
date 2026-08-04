@@ -150,7 +150,7 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
     }
 
     if (!isCurrentDataLoading && transactions.length === 0 && serverFilterActive) {
-        return <div className="transactions-empty-wrap"><FilterEmpty description={t("transactions.emptyDescription")} onClear={onClearFilters} title={t("transactions.empty")} /></div>;
+        return <div className="transactions-empty-wrap"><FilterEmpty description={t("transactions.emptyDescription")} onClear={onClearFilters} title={t("transactions.noMatch")} /></div>;
     }
 
     if (!isCurrentDataLoading && transactions.length === 0) {

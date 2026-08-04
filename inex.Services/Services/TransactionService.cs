@@ -72,19 +72,26 @@ public class TransactionService : InExService, ITransactionService
             .OrderBy(summary => summary.Currency)
             .ToList();
 
-        int totalCount = items.Count();
+        TransactionSummaryScope currentScope = BuildSummaryScope(items, filter.StartDate, filter.EndDate);
+        TransactionSummaryScope? previousScope = TryGetComparablePeriod(filter, out DateTime previousStartDate, out DateTime previousEndDate)
+            ? BuildSummaryScope(
+                GetTransactions(userId, mode, filter with { StartDate = previousStartDate, EndDate = previousEndDate }),
+                previousStartDate,
+                previousEndDate)
+            : null;
 
         return new TransactionSummaryResponse
         {
-            TotalCount = totalCount,
-            TypeCounts = new TransactionTypeCounts
-            {
-                All = totalCount,
-                Income = items.Count(i => !i.Category.IsSystem && i.Value >= 0),
-                Expense = items.Count(i => !i.Category.IsSystem && i.Value < 0),
-                Transfer = items.Count(i => i.Category.IsSystem)
-            },
-            CurrencySummaries = currencySummaries
+            TotalCount = currentScope.TotalCount,
+            TypeCounts = currentScope.TypeCounts,
+            CurrencySummaries = currencySummaries,
+            BaseCurrency = DbInEx.UserRepository
+                .Get(true, null, user => user.Currency)
+                .Where(user => user.Id == userId)
+                .Select(user => user.Currency.Key)
+                .Single(),
+            CurrentScope = currentScope,
+            PreviousScope = previousScope
         };
     }
 
@@ -334,6 +341,68 @@ public class TransactionService : InExService, ITransactionService
         return items
             .OrderByDescending(i => i.Created)
             .ThenByDescending(i => i.Id);
+    }
+
+    private static TransactionSummaryScope BuildSummaryScope(IQueryable<Transaction> items, DateTime? startDate, DateTime? endDate)
+    {
+        int totalCount = items.Count();
+
+        var cashFlowBuckets = items
+            .Where(item => !item.Category.IsSystem)
+            .GroupBy(item => new { Date = item.Created.Date, Currency = item.Account.Currency.Key })
+            .Select(group => new TransactionCashFlowBucket
+            {
+                Date = group.Key.Date,
+                Currency = group.Key.Currency,
+                Income = group.Sum(item => item.Value >= 0 ? item.Value : 0),
+                Expense = group.Sum(item => item.Value < 0 ? item.Value : 0),
+                RecordCount = group.Count()
+            })
+            .OrderBy(bucket => bucket.Date)
+            .ThenBy(bucket => bucket.Currency)
+            .ToList();
+
+        return new TransactionSummaryScope
+        {
+            TotalCount = totalCount,
+            TypeCounts = new TransactionTypeCounts
+            {
+                All = totalCount,
+                Income = items.Count(item => !item.Category.IsSystem && item.Value >= 0),
+                Expense = items.Count(item => !item.Category.IsSystem && item.Value < 0),
+                Transfer = items.Count(item => item.Category.IsSystem)
+            },
+            Period = startDate is not null && endDate is not null
+                ? new TransactionSummaryPeriod { StartDate = startDate.Value, EndDate = endDate.Value }
+                : null,
+            CashFlowBuckets = cashFlowBuckets
+        };
+    }
+
+    private static bool TryGetComparablePeriod(TransactionFilterQuery filter, out DateTime previousStartDate, out DateTime previousEndDate)
+    {
+        previousStartDate = default;
+        previousEndDate = default;
+
+        if (filter.StartDate is not DateTime startDate || filter.EndDate is not DateTime endDate || endDate < startDate)
+        {
+            return false;
+        }
+
+        DateTime startDay = startDate.Date;
+        DateTime endDay = endDate.Date;
+        bool isWholeMonth = startDay.Day == 1 && endDay == startDay.AddMonths(1).AddDays(-1);
+        if (isWholeMonth)
+        {
+            previousStartDate = startDay.AddMonths(-1);
+            previousEndDate = startDay.AddTicks(-1);
+            return true;
+        }
+
+        int dayCount = (endDay - startDay).Days + 1;
+        previousStartDate = startDay.AddDays(-dayCount);
+        previousEndDate = startDay.AddTicks(-1);
+        return true;
     }
 
     private static IQueryable<Transaction> ApplyActivityMode(IQueryable<Transaction> items, ActivityMode mode) =>

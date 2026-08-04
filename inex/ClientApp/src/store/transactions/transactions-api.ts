@@ -36,15 +36,38 @@ export interface TransactionCurrencySummary {
   net: number;
 }
 
+export interface TransactionSummaryPeriod {
+  startDate: string;
+  endDate: string;
+}
+
+export interface TransactionCashFlowBucket {
+  date: string;
+  currency: string;
+  income: number;
+  expense: number;
+  recordCount: number;
+}
+
+export interface TransactionSummaryScope {
+  totalCount: number;
+  typeCounts: TransactionTypeCounts;
+  period: TransactionSummaryPeriod | null;
+  cashFlowBuckets: TransactionCashFlowBucket[];
+}
+
 export interface TransactionSummaryResult {
   totalCount: number;
   typeCounts: TransactionTypeCounts;
   currencySummaries: TransactionCurrencySummary[];
+  baseCurrency: string;
+  currentScope: TransactionSummaryScope;
+  previousScope: TransactionSummaryScope | null;
 }
 
 export const normalizeTransactionFilterParams = (
-  filter: TransactionFilterParams,
-): NormalizedTransactionFilter => normalizeTransactionFilter(filter);
+  filter: TransactionFilterParams | undefined,
+): NormalizedTransactionFilter => normalizeTransactionFilter(filter ?? {});
 
 export const formatTransactionFilterDateTime = (timestamp: number): string =>
   dayjs.unix(timestamp).format("YYYY-MM-DDTHH:mm:ss");

@@ -22,6 +22,7 @@ public class ExchangeRateController : ApiControllerBase
     public const string RoutePrefix = "api/exchange";
 
     public const string GetDateRatesRoute = "rates/{date}";
+    public const string GetCachedRatesRoute = "rates/cached";
 
     #endregion Routes
 
@@ -45,6 +46,16 @@ public class ExchangeRateController : ApiControllerBase
     public async Task<ActionResult> Get(DateTime date, CancellationToken ct)
     {
         ListResponse<ExchangeRateResponse> resultsDTO = await _exchangeService.Get(CurrentUserId, date, ct: ct);
+        return Ok(resultsDTO);
+    }
+
+    /// <summary>Get already-cached exchange rates without contacting an external provider.</summary>
+    [HttpGet]
+    [Route(GetCachedRatesRoute)]
+    [ProducesResponseType(typeof(IEnumerable<ExchangeRateResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult> GetCached([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, CancellationToken ct)
+    {
+        ListResponse<ExchangeRateResponse> resultsDTO = await _exchangeService.GetCached(CurrentUserId, startDate, endDate, ct: ct);
         return Ok(resultsDTO);
     }
 

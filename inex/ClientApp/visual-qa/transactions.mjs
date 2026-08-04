@@ -71,6 +71,25 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch) {
     totalCount: transactions.length,
     typeCounts,
     currencySummaries: Array.from(currencySummariesByCurrency.values()),
+    baseCurrency: fixture.transactionsVisualFixtureMeta.expectedBaseCurrency,
+    currentScope: {
+      totalCount: transactions.length,
+      typeCounts,
+      period: { startDate: "2026-04-01T00:00:00", endDate: "2026-04-30T23:59:59" },
+      cashFlowBuckets: transactions.filter((transaction) => !categoriesById.get(transaction.categoryId)?.isSystem).map((transaction) => ({
+        date: transaction.created,
+        currency: transaction.accountCurrency,
+        income: transaction.amount >= 0 ? transaction.amount : 0,
+        expense: transaction.amount < 0 ? transaction.amount : 0,
+        recordCount: 1,
+      })),
+    },
+    previousScope: {
+      totalCount: 0,
+      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0 },
+      period: { startDate: "2026-03-01T00:00:00", endDate: "2026-03-31T23:59:59" },
+      cashFlowBuckets: [],
+    },
   };
 }
 
@@ -111,6 +130,12 @@ const states = [
     screenshot: "first-use-empty-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "empty",
+  },
+  {
+    name: "missing-rate-390",
+    screenshot: "missing-rate-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "missing-rate",
   },
   {
     name: "drawer-open-390",
@@ -182,7 +207,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ data: fixture.transactionsVisualFixtureCategories });
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
-        return jsonResponse({ data: fixture.transactionsVisualFixtureRates });
+        return jsonResponse({ data: scenario === "missing-rate" ? [] : fixture.transactionsVisualFixtureRates });
       }
       if (url.pathname === "/api/transactions/summary" && method === "GET") {
         if (scenario === "transactions-error") {
@@ -216,6 +241,7 @@ async function applyInteraction(client, state) {
         const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
         setter.call(input, "zzzz-no-match");
         input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
         return true;
       })()`);
       await waitFor(client, "document.body.innerText.includes('No transactions match these filters')");
