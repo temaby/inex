@@ -225,6 +225,7 @@
     "accountBalancesLoading": "Loading account balances",
     "accountBalancesEmpty": "No active accounts to display.",
     "accountBalancesError": "Could not load account balances.",
+    "nativeBalance": "Native balance",
     "filtersActive": "Filters active",
     "status": "Status",
     "amount": "Amount",

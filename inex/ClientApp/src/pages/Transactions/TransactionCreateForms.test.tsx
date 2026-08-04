@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { CategoryDetails } from "../../model/Category/CategoryDetails";
-import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
@@ -19,6 +19,7 @@ vi.mock("react-i18next", () => ({
             "transactions.comment": "Comment",
             "transactions.commentPlaceholder": "Comment with optional #tag or @reference",
             "transactions.date": "Date",
+            "transactions.nativeBalance": "Native balance",
             "transactions.selectAccount": "Select account",
             "transactions.selectCategory": "Select category",
             "transactions.transferFrom": "Transfer from",
@@ -37,6 +38,10 @@ const accounts: AccountResponse[] = [
         currencyId: 1,
         currency: "PLN",
     },
+];
+
+const accountSummaries: AccountSummary[] = [
+    { ...accounts[0], value: 253.2, thisMonthNet: 0 },
 ];
 
 const categories: CategoryDetails[] = [
@@ -90,10 +95,11 @@ describe("Transaction create mode forms", () => {
         });
     });
 
-    it("renders expense account before amount without a default currency or separate tags field", () => {
+    it("renders expense account before category and amount without a default currency or separate tags field", () => {
         const { container } = render(
             <TransactionCreateExpenseForm
                 accounts={accounts}
+                accountSummaries={accountSummaries}
                 categories={categories}
                 category={unselectedCategory}
                 comment=""
@@ -110,16 +116,18 @@ describe("Transaction create mode forms", () => {
         );
 
         const text = container.textContent ?? "";
-        expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Amount"));
+        expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Category"));
+        expect(text.indexOf("Category")).toBeLessThan(text.indexOf("Amount"));
         expect(screen.getByText("Select account")).toBeInTheDocument();
         expect(screen.queryByText("Tags")).not.toBeInTheDocument();
         expect(screen.queryByText("USD")).not.toBeInTheDocument();
     });
 
-    it("renders income account before amount without a default currency or separate tags field", () => {
+    it("renders income account before category and amount without a default currency or separate tags field", () => {
         const { container } = render(
             <TransactionCreateIncomeForm
                 accounts={accounts}
+                accountSummaries={accountSummaries}
                 categories={categories}
                 category={unselectedCategory}
                 comment=""
@@ -136,10 +144,38 @@ describe("Transaction create mode forms", () => {
         );
 
         const text = container.textContent ?? "";
-        expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Amount"));
+        expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Category"));
+        expect(text.indexOf("Category")).toBeLessThan(text.indexOf("Amount"));
         expect(screen.getByText("Select account")).toBeInTheDocument();
         expect(screen.queryByText("Tags")).not.toBeInTheDocument();
         expect(screen.queryByText("USD")).not.toBeInTheDocument();
+    });
+
+    it("shows the selected account's native balance without a live region", () => {
+        render(
+            <TransactionCreateExpenseForm
+                accounts={accounts}
+                accountSummaries={accountSummaries}
+                categories={categories}
+                category={unselectedCategory}
+                comment=""
+                date={null}
+                fromAccount={{ ...unselectedAccount, ...accounts[0], description: accounts[0].description ?? "" }}
+                fromAmount={0}
+                onSetCategory={noop}
+                onSetComment={noop}
+                onSetDate={noop}
+                onSetFromAccount={noop}
+                onSetFromAmount={noop}
+                validationErrors={{}}
+            />,
+        );
+
+        const balance = screen.getByTestId("selected-account-native-balance");
+        expect(balance).toHaveTextContent("Native balance");
+        expect(balance).toHaveTextContent("253.2");
+        expect(balance).not.toHaveAttribute("role", "status");
+        expect(balance).not.toHaveAttribute("aria-live");
     });
 
     it("renders each transfer account before its related amount without default currency suffixes", () => {

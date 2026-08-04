@@ -613,6 +613,37 @@
     padding-top: 4px;
 }
 
+.transactions-selected-account-balance {
+    align-items: baseline;
+    color: var(--fg-3);
+    display: flex;
+    font-size: 13px;
+    gap: 8px;
+    justify-content: space-between;
+    min-width: 0;
+    padding-top: 2px;
+}
+
+.transactions-selected-account-balance > span {
+    min-width: 0;
+}
+
+.transactions-selected-account-balance .inex-num {
+    color: var(--fg-2);
+    flex: 0 0 auto;
+}
+
+.transactions-create-form .ant-menu-submenu-title {
+    min-width: 0;
+    white-space: normal;
+}
+
+.transactions-create-form .ant-menu-title-content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
 .transactions-empty-drawer {
     align-items: center;
     color: var(--fg-4);
