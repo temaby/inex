@@ -58,11 +58,11 @@ public class AccountService : InExService, IAccountService
         var monthEnd = monthStart.AddMonths(1);
 
         IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency)
-            .Where(i => i.UserId == userId && ids.Contains(i.Id))
+            .Where(i => i.UserId == userId && i.IsEnabled && ids.Contains(i.Id))
             .OrderBy(i => i.Name);
 
         var accountDetails = DbInEx.TransactionRepository.Get(true)
-            .Where(i => ids.Contains(i.AccountId))
+            .Where(i => i.UserId == userId && ids.Contains(i.AccountId))
             .GroupBy(i => i.AccountId)
             .Select(i => new
             {

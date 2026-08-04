@@ -1,5 +1,9 @@
 using System.Net.Http.Json;
+using inex.Data;
+using inex.Data.Models;
 using inex.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace inex.Tests.Accounts;
 
@@ -35,6 +39,46 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
         var response = await client.GetAsync("/api/accounts?mode=ALL");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DetailsForList_ForeignTransactionOnOwnedAccount_DoesNotAffectBalance()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(userA, "balance-owner-account");
+        int inactiveAccountId = await CreateAccountAsync(userA, "balance-inactive-account", isEnabled: false);
+        int foreignCategoryId = await CreateCategoryAsync(userB, "balance-foreign-category");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            var ownedAccount = await db.Accounts.SingleAsync(account => account.Id == accountId);
+            var foreignCategory = await db.Categories.SingleAsync(category => category.Id == foreignCategoryId);
+            var now = DateTime.UtcNow;
+
+            db.Transactions.Add(new Transaction
+            {
+                AccountId = ownedAccount.Id,
+                CategoryId = foreignCategory.Id,
+                UserId = foreignCategory.UserId,
+                Value = 125m,
+                Created = now,
+                Updated = now,
+                CreatedBy = foreignCategory.UserId,
+                UpdatedBy = foreignCategory.UserId,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var response = await userA.GetAsync($"/api/accounts/details?mode=active&ids[0]={accountId}&ids[1]={inactiveAccountId}");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var summary = Assert.Single(body.GetProperty("data").EnumerateArray());
+        Assert.Equal(accountId, summary.GetProperty("id").GetInt32());
+        Assert.Equal(0m, summary.GetProperty("value").GetDecimal());
+        Assert.Equal(0m, summary.GetProperty("thisMonthNet").GetDecimal());
     }
 
     // ── POST /api/accounts ────────────────────────────────────────────────────
@@ -197,18 +241,33 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
             email: $"{Guid.NewGuid()}@example.com",
             username: $"user-{Guid.NewGuid():N}");
 
-    private static async Task<int> CreateAccountAsync(HttpClient client, string key)
+    private static async Task<int> CreateAccountAsync(HttpClient client, string key, bool isEnabled = true)
     {
         var createResponse = await client.PostAsJsonAsync("/api/accounts", new
         {
             key,
             name       = key,
             currencyId = 1,
-            isEnabled  = true,
+            isEnabled,
         });
         createResponse.EnsureSuccessStatusCode();
 
         var body = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
+    }
+
+    private static async Task<int> CreateCategoryAsync(HttpClient client, string key)
+    {
+        var response = await client.PostAsJsonAsync("/api/categories", new
+        {
+            key,
+            name = key,
+            isEnabled = true,
+            isSystem = false,
+        });
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         return body.GetProperty("id").GetInt32();
     }
 }
