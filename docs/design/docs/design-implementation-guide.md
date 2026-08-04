@@ -762,3 +762,14 @@ Known exceptions must be listed here and in the Exceptions table of `visual-qa-c
 | Route | Viewport | Issue | Rationale | Accepted by | Date |
 | --- | --- | --- | --- | --- | --- |
 | `/budgets` | 1440px, 390px | Burn-rate legend remains above the bars instead of matching Accounts/Categories distribution legend placement. | Budgets presents burn-rate progress and budget status, not a category distribution summary. Keeping the legend above the bars preserves scan order for planned/spent/remaining values while the hero still follows the shared page title, action, metric, and mobile overflow contract. | Product/Design | 2026-06-14 |
+
+## 19. Transactions Ledger State Patterns
+
+Transactions uses shared `InExButton`, `EmptyState`, `FilterEmpty`, `InExDrawer`, typography, numeric, and token primitives. The following rules are Transactions-specific and belong in the page and ledger stylesheet rather than in a new shared variant.
+
+- Keep the page frame, header action, three KPI cards, and ledger panel visible while list or summary data is resolving. KPI value skeletons and ledger skeleton rows replace only unavailable content; never render a blank workspace.
+- During a refresh, retain the last successful rows and show compact status feedback above the ledger. If that refresh fails, retain the rows and place an inline retry action before the ledger contents. Initial failures use the same localized retry action in the otherwise empty ledger body.
+- With no active server filters, a zero-row selected period is a first-use state with the primary Add transaction action. With active filters, it is a filter-empty state with Clear filters; do not use the first-use call to action for a no-match result.
+- The desktop ledger stays table-scannable with date groups, right-aligned tabular amounts, and an explicit account/date column. Mobile rows stack the same data without horizontal overflow; the fixed bottom navigation must not cover state actions or pagination.
+- Ledger rows, filter controls, segmented type controls, month controls, warnings, drawers, pagination, and recovery actions must have keyboard-operable semantic controls and accessible names. Status feedback uses text plus iconography, never colour alone.
+- Fixture QA for this page must cover populated, first-use empty, filter-empty, missing-rate, initial loading, progressive loading, and long-range pagination at 1440px, 1024px, 390px, and 360px; it also includes initial-failure and refresh-failure recovery captures. It must record fixture mode, block unhandled API calls, and fail on page overflow, clipped content, drawer bounds, or bottom-navigation occlusion.

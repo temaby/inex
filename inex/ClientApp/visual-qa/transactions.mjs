@@ -30,9 +30,37 @@ const authUser = {
 };
 
 const defaultViewportHeight = 900;
+const visualQaViewports = [
+  { suffix: "1440", viewport: { width: 1440, height: 1000 } },
+  { suffix: "1024", viewport: { width: 1024, height: defaultViewportHeight } },
+  { suffix: "390", viewport: { width: 390, height: defaultViewportHeight } },
+  { suffix: "360", viewport: { width: 360, height: defaultViewportHeight } },
+];
+const longRangeRoutePath = "/transactions?filter=start%3A2026-01-01%3Bend%3A2026-04-30%3B";
+
+const delayedResponse = (response, delayMs = 1400) => new Promise((resolve) => {
+  setTimeout(() => resolve(response), delayMs);
+});
+
+function getScenarioTransactions(fixture, scenario, hasNoMatch) {
+  if (scenario === "empty" || hasNoMatch) return [];
+
+  if (scenario === "progressive-loading" || scenario === "progressive-error" || scenario === "long-range") {
+    return Array.from({ length: 25 }, (_, index) => {
+      const source = fixture.transactionsVisualFixtureTransactions[index % fixture.transactionsVisualFixtureTransactions.length];
+      return {
+        ...source,
+        id: source.id + (index * 100),
+        comment: `${source.comment} ${index + 1}`,
+      };
+    });
+  }
+
+  return fixture.transactionsVisualFixtureTransactions;
+}
 
 function createTransactionsSummary(fixture, scenario, hasNoMatch) {
-  const transactions = scenario === "empty" || hasNoMatch ? [] : fixture.transactionsVisualFixtureTransactions;
+  const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch);
   const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
   const typeCounts = {
@@ -119,25 +147,6 @@ const states = [
     scenario: "populated",
   },
   {
-    name: "filter-empty-390",
-    screenshot: "filter-empty-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "populated",
-    interaction: "search-no-match",
-  },
-  {
-    name: "first-use-empty-390",
-    screenshot: "first-use-empty-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "empty",
-  },
-  {
-    name: "missing-rate-390",
-    screenshot: "missing-rate-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "missing-rate",
-  },
-  {
     name: "drawer-open-390",
     screenshot: "drawer-open-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -185,6 +194,70 @@ const states = [
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "transactions-error",
   },
+  {
+    name: "initial-retry-390",
+    screenshot: "initial-retry-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "transactions-error-retry",
+    interaction: "retry-initial",
+  },
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `initial-loading-${suffix}`,
+    screenshot: `initial-loading-${suffix}.png`,
+    viewport,
+    scenario: "initial-loading",
+    settleDelayMs: 1600,
+  })),
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `first-use-empty-${suffix}`,
+    screenshot: `first-use-empty-${suffix}.png`,
+    viewport,
+    scenario: "empty",
+  })),
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `filter-empty-${suffix}`,
+    screenshot: `filter-empty-${suffix}.png`,
+    viewport,
+    scenario: "populated",
+    interaction: "search-no-match",
+  })),
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `missing-rate-${suffix}`,
+    screenshot: `missing-rate-${suffix}.png`,
+    viewport,
+    scenario: "missing-rate",
+  })),
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `progressive-loading-${suffix}`,
+    screenshot: `progressive-loading-${suffix}.png`,
+    viewport,
+    scenario: "progressive-loading",
+    interaction: "load-more-pending",
+    settleDelayMs: 1600,
+  })),
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `long-range-pagination-${suffix}`,
+    screenshot: `long-range-pagination-${suffix}.png`,
+    viewport,
+    scenario: "long-range",
+    routePath: longRangeRoutePath,
+    interaction: "close-filter-drawer",
+  })),
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `refresh-error-${suffix}`,
+    screenshot: `refresh-error-${suffix}.png`,
+    viewport,
+    scenario: "progressive-error",
+    interaction: "load-more-error",
+    settleDelayMs: 1600,
+  })),
+  {
+    name: "refresh-retry-390",
+    screenshot: "refresh-retry-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "progressive-error",
+    interaction: "load-more-error-and-retry",
+  },
 ];
 
 function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef) {
@@ -214,18 +287,35 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           return problemResponse("Transactions fixture failure", "Controlled Transactions summary failure.", 500);
         }
 
-        return jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch));
+        const response = jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch));
+        return scenario === "initial-loading" ? delayedResponse(response) : response;
       }
       if (url.pathname === "/api/transactions" && method === "GET") {
-        if (scenario === "transactions-error") {
+        const page = Number(url.searchParams.get("page") ?? "1");
+        const pageSize = Number(url.searchParams.get("pageSize") ?? "20");
+        const requestKey = `transactions-page-${page}`;
+        scenarioRef.requestCounts[requestKey] = (scenarioRef.requestCounts[requestKey] ?? 0) + 1;
+        const requestAttempt = scenarioRef.requestCounts[requestKey];
+
+        if (scenario === "transactions-error" || (scenario === "transactions-error-retry" && requestAttempt === 1)) {
           return problemResponse("Transactions fixture failure", "Controlled Transactions load failure.", 500);
         }
 
-        const data = scenario === "empty" || hasNoMatch ? [] : fixture.transactionsVisualFixtureTransactions;
-        return jsonResponse({
-          data,
+        const data = getScenarioTransactions(fixture, scenario, hasNoMatch);
+        const response = jsonResponse({
+          data: data.slice((page - 1) * pageSize, page * pageSize),
           metadata: { totalItems: data.length },
         });
+
+        if (scenario === "initial-loading" || (scenario === "progressive-loading" && page > 1)) {
+          return delayedResponse(response);
+        }
+
+        if (scenario === "progressive-error" && page > 1 && requestAttempt === 1) {
+          return delayedResponse(problemResponse("Transactions fixture failure", "Controlled progressive page failure.", 500));
+        }
+
+        return response;
       }
       return null;
     },
@@ -263,6 +353,28 @@ async function applyInteraction(client, state) {
       })()`);
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction')");
       return;
+    case "load-more-pending":
+      await evaluate(client, clickButtonByTextExpression("Load more"));
+      await waitFor(client, "document.body.innerText.includes('Refreshing ledger') && document.querySelectorAll('.transactions-ledger-row').length === 20");
+      return;
+    case "load-more-error":
+      await evaluate(client, clickButtonByTextExpression("Load more"));
+      await waitFor(client, "document.body.innerText.includes('Could not refresh the ledger') && document.querySelectorAll('.transactions-ledger-row').length === 20");
+      return;
+    case "retry-initial":
+      await activateRetryButton(client);
+      await waitFor(client, "document.querySelectorAll('.transactions-ledger-row').length === 6 && !document.body.innerText.includes('Failed to load transactions')");
+      return;
+    case "load-more-error-and-retry":
+      await evaluate(client, clickButtonByTextExpression("Load more"));
+      await waitFor(client, "document.body.innerText.includes('Could not refresh the ledger') && document.querySelectorAll('.transactions-ledger-row').length === 20");
+      await activateRetryButton(client);
+      await waitFor(client, "document.querySelectorAll('.transactions-ledger-row').length === 25 && !document.body.innerText.includes('Could not refresh the ledger')");
+      return;
+    case "close-filter-drawer":
+      await evaluate(client, "(() => { const button = document.querySelector('.ant-drawer-close'); if (!button) return false; button.click(); return true; })()");
+      await waitFor(client, "!document.querySelector('.ant-drawer-open') && Boolean(document.querySelector('.ant-pagination'))");
+      return;
     case undefined:
       return;
     default:
@@ -270,10 +382,24 @@ async function applyInteraction(client, state) {
   }
 }
 
+async function activateRetryButton(client) {
+  const activated = await evaluate(client, `(() => {
+    const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.trim() === "Retry");
+    if (!button) return false;
+    button.focus();
+    if (document.activeElement !== button) return false;
+    button.click();
+    return true;
+  })()`);
+  if (!activated) throw new Error("Could not focus and activate the Retry control.");
+}
+
 async function waitForTransactionsReady(client, state) {
   await waitFor(client, "document.body.innerText.includes('Transactions')");
 
-  if (state.scenario === "transactions-error") {
+  if (state.scenario === "initial-loading") {
+    await waitFor(client, "Boolean(document.querySelector('.transactions-loading')) && Boolean(document.querySelector('.transactions-kpi__skeleton'))");
+  } else if (state.scenario === "transactions-error" || state.scenario === "transactions-error-retry") {
     await waitFor(client, "document.body.innerText.includes('Failed to load transactions')");
   } else if (state.scenario === "empty") {
     await waitFor(client, "document.body.innerText.includes('No transactions to display')");
@@ -283,6 +409,18 @@ async function waitForTransactionsReady(client, state) {
 }
 
 async function collectMetrics(client, state, apiRequestCount) {
+  const initialViewport = await evaluate(client, `(() => {
+    const retry = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.trim() === "Retry");
+    const bottomNav = document.querySelector(".r-bottom-nav");
+    const bottomNavStyle = bottomNav ? window.getComputedStyle(bottomNav) : null;
+    const bottomNavVisible = Boolean(bottomNav && bottomNavStyle && bottomNavStyle.display !== "none" && bottomNav.getBoundingClientRect().height > 0);
+    const retryRect = retry?.getBoundingClientRect();
+    const bottomNavRect = bottomNavVisible ? bottomNav.getBoundingClientRect() : null;
+    return {
+      recoveryActionVisibleAtStart: Boolean(retryRect && retryRect.bottom > 0 && retryRect.top < window.innerHeight),
+      recoveryActionOccludedAtStart: Boolean(retryRect && bottomNavRect && retryRect.bottom > bottomNavRect.top),
+    };
+  })()`);
   await evaluate(client, "window.scrollTo(0, document.documentElement.scrollHeight)");
   await wait(150);
 
@@ -319,10 +457,15 @@ async function collectMetrics(client, state, apiRequestCount) {
       advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
       loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
+      initialLoadingVisible: Boolean(document.querySelector(".transactions-loading")),
+      progressiveLoadingVisible: document.body.innerText.includes("Refreshing ledger") && rows.length === 20,
+      refreshErrorVisible: document.body.innerText.includes("Could not refresh the ledger") && rows.length === 20,
+      paginationVisible: Boolean(document.querySelector(".ant-pagination")),
       filterEmptyVisible: document.body.innerText.includes("No transactions match these filters"),
       firstUseEmptyVisible: document.body.innerText.includes("No transactions to display"),
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
+      ...${JSON.stringify(initialViewport)},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
     };
   })()`);
@@ -341,7 +484,7 @@ async function collectMetrics(client, state, apiRequestCount) {
 function runState(args) {
   return runBrowserState({
     ...args,
-    routePath: "/transactions",
+    routePath: args.state.routePath ?? "/transactions",
     initScript: fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, "en"),
     waitForReady: waitForTransactionsReady,
     applyInteraction,
@@ -381,6 +524,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       amountFilterRemoved: stateResults
         .filter((state) => state.interaction === "open-filter-drawer")
         .every((state) => !state.textSample.includes("Amount equivalent")),
+      recoveryActionsClearMobileNav: stateResults
+        .filter((state) => state.loadErrorVisible || state.refreshErrorVisible)
+        .every((state) => !state.recoveryActionOccludedAtStart),
     },
   };
 }

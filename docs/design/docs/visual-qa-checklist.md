@@ -57,7 +57,7 @@ npm run lint
 
 | Area | Generated | Screenshots | Summary |
 | --- | --- | ---: | --- |
-| Transactions | 2026-06-14T08:43:25.542Z | 11 | PASS: fixture, no failures, no backend calls |
+| Transactions | 2026-08-04T10:29:25.226Z | 41 | PASS: fixture, no failures, no backend calls |
 | Accounts | 2026-06-14T08:43:59.280Z | 13 | PASS: fixture, no failures, no backend calls |
 | Categories | 2026-06-14T08:44:26.022Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
@@ -73,6 +73,13 @@ npm run lint
 - Commands: `npm run visual-qa:all`, `npm run visual-qa:verify`, `npm run build`, and `npm run lint`.
 - Result: PASS. The verifier found 9 canonical folders, 94 fresh screenshots, and no blocking failures.
 - Manual review: the updated Accounts, Transactions, Categories, Budgets, Profile, and authentication screenshots were inspected for frame alignment, management value adjacency, overflow, and bottom-nav clearance.
+
+### 2026-08-04 Transactions Ledger State Update
+
+- Data mode: fixture; all `/api` requests were intercepted, with `realBackendCalled: false` and no unhandled API requests.
+- Captured 41 Transactions screenshots, including populated, initial loading, initial error, first-use empty, filter-empty, missing-rate, progressive loading, refresh error, and long-range pagination states.
+- The required populated, empty, missing-rate, loading, and pagination matrix covers 1440px, 1024px, 390px, and 360px; initial and refresh failure recovery are also captured. The summary reports no page-level horizontal overflow or bottom-navigation occlusion.
+- The full-repository freshness verifier remains red only because the eight unrelated visual-QA summaries are older than its 24-hour window. The Transactions summary passes the canonical manifest with the normal safety checks.
 
 ## Desktop QA Results
 

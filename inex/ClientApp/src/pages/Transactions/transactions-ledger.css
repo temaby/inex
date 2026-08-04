@@ -437,6 +437,23 @@
     margin-top: 16px;
 }
 
+@media (max-width: 768px) {
+    .transactions-load-failure,
+    .transactions-inline-error {
+        background: var(--bg-surface);
+        bottom: calc(72px + env(safe-area-inset-bottom));
+        box-shadow: var(--shadow-3);
+        left: 16px;
+        position: fixed;
+        right: 16px;
+        z-index: 24;
+    }
+
+    .transactions-inline-error {
+        margin: 0;
+    }
+}
+
 .transactions-filter-form,
 .transactions-create-form {
     display: grid;

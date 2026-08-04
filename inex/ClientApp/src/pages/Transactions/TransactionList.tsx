@@ -66,6 +66,7 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
     const [pagination, setPagination] = useState({ current: 1, size: 20 });
     const [requestedProgressivePage, setRequestedProgressivePage] = useState(1);
     const [editRecord, setEditRecord] = useState<TransactionResponse | null>(null);
+    const initialFailureRef = useRef<HTMLDivElement>(null);
     const navigationMode = getTransactionNavigationMode(filter.range);
     const requestKey = useMemo(() => JSON.stringify({ filter, pageSize: pagination.size, navigationMode }), [filter, pagination.size, navigationMode]);
     const [progressivePages, setProgressivePages] = useState(() => createProgressivePageAccumulator<TransactionResponse>(requestKey));
@@ -133,6 +134,11 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
 
     useEffect(() => onVisibleCountChange(transactions.length), [onVisibleCountChange, transactions.length]);
     useEffect(() => onInitialLoadingChange(isCurrentDataLoading && !hasRows), [hasRows, isCurrentDataLoading, onInitialLoadingChange]);
+    useEffect(() => {
+        if (query.isError && !hasRows) {
+            initialFailureRef.current?.scrollIntoView({ block: "center" });
+        }
+    }, [hasRows, query.isError]);
 
     const paginationChangedHandler = (page: number, size: number) => {
         setPagination(previous => ({ current: previous.size === size ? page : 1, size }));
@@ -146,7 +152,7 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
     }
 
     if (query.isError && !hasRows) {
-        return <div className="transactions-load-failure"><Alert action={<InExButton icon={<RotateCw size={14} />} kind="ghost" onClick={() => query.refetch()} size="sm">{t("transactions.error.retry")}</InExButton>} message={t("transactions.error.loadFailure")} showIcon type="error" /><div className="transactions-error-detail">{String(query.error ?? "")}</div></div>;
+        return <div className="transactions-load-failure" ref={initialFailureRef}><Alert action={<InExButton icon={<RotateCw size={14} />} kind="ghost" onClick={() => query.refetch()} size="sm">{t("transactions.error.retry")}</InExButton>} message={t("transactions.error.loadFailure")} showIcon type="error" /><div className="transactions-error-detail">{String(query.error ?? "")}</div></div>;
     }
 
     if (!isCurrentDataLoading && transactions.length === 0 && serverFilterActive) {
