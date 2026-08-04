@@ -326,7 +326,16 @@
       "filteredPage": "Текущая страница журнала",
       "updatesWithLedger": "Обновляется по видимому журналу",
       "visibleRows": "{{count}} транзакций за {{period}}",
-      "baseCurrencyContext": "Сводка месяца в {{currency}}, где есть курсы"
+      "baseCurrencyContext": "Сводка показана в {{currency}}",
+      "incomeCount": "Доходных транзакций за {{period}}: {{count}}",
+      "expenseCount": "Расходных транзакций за {{period}}: {{count}}",
+      "notAvailable": "Н/Д",
+      "conversionUnavailable": "Конвертация недоступна",
+      "absoluteChange": "Изменение чистого потока: {{change}}",
+      "percentChange": "Изменение чистого потока: {{change}} ({{percent}}%)",
+      "noPreviousActivity": "Изменение чистого потока: {{change}}. Нет активности за {{period}}",
+      "rateWarning": "Предупреждение о курсе",
+      "rateWarningDetail": "Нет сохранённого курса {{currency}} на {{date}} за {{period}}."
     },
     "loading": {
       "initial": "Загружаем транзакции",

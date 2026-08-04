@@ -91,6 +91,34 @@ public class ExchangeRateService : Service, IExchangeRateService
     public Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
         => Get(userId, date, date, baseCurrency, ct);
 
+    /// <summary>Returns only already-recorded rates and never contacts a provider or repairs the cache.</summary>
+    public async Task<ListResponse<ExchangeRateResponse>> GetCached(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
+    {
+        if (end < start)
+        {
+            throw new ValidationFailedException("End date must be on or after start date.");
+        }
+
+        baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
+        DateTime startDate = start.Date;
+        DateTime endDate = end.Date;
+        IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true)
+            .Where(rate => rate.Created >= startDate
+                && rate.Created <= endDate
+                && rate.FromCode == baseCurrency
+                && !rate.IsTemporary);
+
+        List<ExchangeRate> cachedRates = await rates
+            .OrderBy(rate => rate.Created)
+            .ThenBy(rate => rate.ToCode)
+            .ToListAsync(ct);
+
+        return new ListResponse<ExchangeRateResponse>
+        {
+            Data = cachedRates.Select(ExchangeRateMapper.ToResponse).ToList()
+        };
+    }
+
     #endregion Public Interface
 
     #region Private Methods

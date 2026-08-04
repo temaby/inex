@@ -118,6 +118,25 @@ function createTransactionsSummary(fixture) {
     totalCount: fixture.transactionsVisualFixtureTransactions.length,
     typeCounts,
     currencySummaries: Array.from(currencySummariesByCurrency.values()),
+    baseCurrency: fixture.transactionsVisualFixtureMeta.expectedBaseCurrency,
+    currentScope: {
+      totalCount: fixture.transactionsVisualFixtureTransactions.length,
+      typeCounts,
+      period: { startDate: "2026-04-01T00:00:00", endDate: "2026-04-30T23:59:59" },
+      cashFlowBuckets: fixture.transactionsVisualFixtureTransactions.filter((transaction) => !categoriesById.get(transaction.categoryId)?.isSystem).map((transaction) => ({
+        date: transaction.created,
+        currency: transaction.accountCurrency,
+        income: transaction.amount >= 0 ? transaction.amount : 0,
+        expense: transaction.amount < 0 ? transaction.amount : 0,
+        recordCount: 1,
+      })),
+    },
+    previousScope: {
+      totalCount: 0,
+      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0 },
+      period: { startDate: "2026-03-01T00:00:00", endDate: "2026-03-31T23:59:59" },
+      cashFlowBuckets: [],
+    },
   };
 }
 

@@ -6,6 +6,7 @@ import type { TransactionResponse } from "../../model/Transaction/TransactionRes
 import {
   getBaseCurrencyEquivalent,
   getCategoryPathLabel,
+  getCashFlowConversionResult,
   getCurrentTransactionMonthRange,
   getFriendlyTransactionDayLabel,
   getLedgerMetricsFromSummary,
@@ -139,6 +140,48 @@ describe("transaction ledger helpers", () => {
         transfer: 1,
       },
     });
+  });
+
+  it("converts every non-zero date-and-currency bucket using its recorded cached rate", () => {
+    const result = getCashFlowConversionResult({
+      totalCount: 3,
+      cashFlowBuckets: [
+        { date: "2026-06-05", currency: "USD", income: 100, expense: 0, recordCount: 1 },
+        { date: "2026-06-06", currency: "PLN", income: 0, expense: -80, recordCount: 1 },
+        { date: "2026-06-07", currency: "EUR", income: 0, expense: -20, recordCount: 1 },
+      ],
+    }, "USD", [
+      { currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-06", rate: 4 },
+      { currencyFrom: "USD", currencyTo: "EUR", date: "2026-06-07", rate: 2 },
+    ]);
+
+    expect(result).toEqual({ income: 100, expense: -30, net: 70, isComplete: true, warnings: [] });
+  });
+
+  it("marks the full KPI scope unavailable when a non-zero cached conversion is missing", () => {
+    const result = getCashFlowConversionResult({
+      totalCount: 1,
+      cashFlowBuckets: [
+        { date: "2026-06-05", currency: "PLN", income: 0, expense: -80, recordCount: 1 },
+      ],
+    }, "USD", []);
+
+    expect(result).toEqual({
+      income: 0,
+      expense: 0,
+      net: 0,
+      isComplete: false,
+      warnings: [{ currency: "PLN", date: "2026-06-05" }],
+    });
+  });
+
+  it("does not require a rate for a zero bucket", () => {
+    expect(getCashFlowConversionResult({
+      totalCount: 0,
+      cashFlowBuckets: [
+        { date: "2026-06-05", currency: "PLN", income: 0, expense: 0, recordCount: 0 },
+      ],
+    }, "USD", [])).toMatchObject({ isComplete: true, warnings: [] });
   });
 
   it("builds inclusive calendar-month ranges and shifts between months", () => {

@@ -130,6 +130,9 @@
             <param name="date">Date</param>
             <returns>List of supported exchange rates</returns>
         </member>
+        <member name="M:inex.Controllers.ExchangeRateController.GetCached(System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <summary>Get already-cached exchange rates without contacting an external provider.</summary>
+        </member>
         <member name="M:inex.Controllers.ReportBudgetController.GetComparison(System.Int32,System.Int32,System.String,System.Threading.CancellationToken)">
             <summary>Get budget comparison report</summary>
             <param name="year">Year</param>
@@ -173,13 +176,13 @@
             <param name="mode">Activity mode (all, active, inactive)</param>
             <param name="pageSize">Amount of items per page</param>
             <param name="page">Current page number</param>
-            <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
+            <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate, type, search.</param>
             <returns>List of transactions with pagination metadata</returns>
         </member>
         <member name="M:inex.Controllers.TransactionsController.Summary(System.String,inex.Services.Models.Records.Transaction.TransactionFilterQuery)">
             <summary>Get transaction summary for a user</summary>
             <param name="mode">Activity mode (all, active, inactive)</param>
-            <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate.</param>
+            <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate, type, search.</param>
             <returns>Transaction summary for the filtered scope</returns>
         </member>
         <member name="M:inex.Controllers.TransactionsController.Add(inex.Services.Models.Records.Transaction.CreateTransactionRequest,System.Threading.CancellationToken)">

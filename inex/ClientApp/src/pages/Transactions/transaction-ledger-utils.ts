@@ -42,7 +42,31 @@ export interface LedgerSummarySource {
 export interface ExchangeRateLike {
   currencyFrom: string;
   currencyTo: string;
+  date?: string;
   rate: number;
+}
+
+export interface CashFlowBucketLike {
+  date: string;
+  currency: string;
+  income: number;
+  expense: number;
+  recordCount: number;
+}
+
+export interface SummaryScopeLike {
+  totalCount: number;
+  cashFlowBuckets: CashFlowBucketLike[];
+}
+
+export interface ConversionWarning {
+  currency: string;
+  date: string;
+}
+
+export interface CashFlowConversionResult extends LedgerSummary {
+  isComplete: boolean;
+  warnings: ConversionWarning[];
 }
 
 export interface BaseCurrencyEquivalent {
@@ -124,6 +148,56 @@ export const getLedgerMetricsFromSummary = (
     visibleCount: summary.totalCount,
     totalCount: summary.totalCount,
     typeCounts: summary.typeCounts,
+  };
+};
+
+/**
+ * Converts summary buckets from already-cached rates only. A missing non-zero
+ * bucket invalidates the entire scope so no partial financial total is shown.
+ */
+export const getCashFlowConversionResult = (
+  scope: SummaryScopeLike,
+  baseCurrency: string,
+  exchangeRates: ExchangeRateLike[],
+): CashFlowConversionResult => {
+  let income = 0;
+  let expense = 0;
+  const warnings: ConversionWarning[] = [];
+
+  for (const bucket of scope.cashFlowBuckets) {
+    const hasCashFlow = bucket.income !== 0 || bucket.expense !== 0;
+    if (!hasCashFlow) continue;
+
+    if (sameCurrency(bucket.currency, baseCurrency)) {
+      income += bucket.income;
+      expense += bucket.expense;
+      continue;
+    }
+
+    const date = bucket.date.slice(0, 10);
+    const rate = exchangeRates.find((item) =>
+      sameCurrency(item.currencyFrom, baseCurrency)
+      && sameCurrency(item.currencyTo, bucket.currency)
+      && item.date?.slice(0, 10) === date
+      && Number.isFinite(item.rate)
+      && item.rate > 0,
+    );
+
+    if (!rate) {
+      warnings.push({ currency: bucket.currency, date });
+      continue;
+    }
+
+    income += bucket.income / rate.rate;
+    expense += bucket.expense / rate.rate;
+  }
+
+  return {
+    income,
+    expense,
+    net: income + expense,
+    isComplete: warnings.length === 0,
+    warnings,
   };
 };
 

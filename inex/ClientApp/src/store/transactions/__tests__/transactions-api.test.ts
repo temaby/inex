@@ -7,6 +7,7 @@ import { vi } from "vitest";
 import apiClient from "../../../utils/apiClient";
 import {
   transactionsApi,
+  normalizeTransactionFilterParams,
   type GetTransactionsArgs,
   type TransactionSummaryResult,
   type TransactionsPagedResult,
@@ -83,6 +84,16 @@ const summaryFixture: TransactionSummaryResult = {
       net: 58,
     },
   ],
+  baseCurrency: "USD",
+  currentScope: {
+    totalCount: 2,
+    typeCounts: { all: 2, income: 1, expense: 1, transfer: 0 },
+    period: { startDate: "2026-06-01T00:00:00", endDate: "2026-06-30T23:59:59" },
+    cashFlowBuckets: [
+      { date: "2026-06-05T00:00:00", currency: "USD", income: 100, expense: -42, recordCount: 2 },
+    ],
+  },
+  previousScope: null,
 };
 
 function createTestStore() {
@@ -102,6 +113,14 @@ function axiosResponse<T>(data: T): Pick<AxiosResponse<T>, "data"> {
 describe("transactionsApi", () => {
   beforeEach(() => {
     mockApiClient.mockReset();
+  });
+
+  it("normalizes an omitted filter without throwing so the ledger request can start", () => {
+    expect(normalizeTransactionFilterParams(undefined)).toEqual({
+      ...emptyFilter,
+      type: "all",
+      search: "",
+    });
   });
 
   it("getTransactions: successful fetch caches result", async () => {

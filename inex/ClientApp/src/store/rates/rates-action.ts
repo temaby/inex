@@ -13,3 +13,22 @@ export const fetchRatesForDate = (date: Date) => {
     }
   };
 };
+
+export const fetchCachedRatesForRange = (startDate: string, endDate: string) => {
+  return async (dispatch: AppDispatch) => {
+    const key = `${startDate}:${endDate}`;
+    dispatch(ratesActions.beginCachedRates({ key }));
+
+    try {
+      const { data } = await apiClient.get("/exchange/rates/cached", {
+        params: { startDate, endDate },
+      });
+      dispatch(ratesActions.setCachedRates({ key, items: data.data || [] }));
+    } catch (error) {
+      dispatch(ratesActions.setCachedRatesError({
+        key,
+        error: parseAxiosError(error, "Could not fetch cached exchange rates"),
+      }));
+    }
+  };
+};
