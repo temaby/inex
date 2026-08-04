@@ -31,8 +31,8 @@ const authUser = {
 
 const defaultViewportHeight = 900;
 
-function createTransactionsSummary(fixture, scenario) {
-  const transactions = scenario === "empty" ? [] : fixture.transactionsVisualFixtureTransactions;
+function createTransactionsSummary(fixture, scenario, hasNoMatch) {
+  const transactions = scenario === "empty" || hasNoMatch ? [] : fixture.transactionsVisualFixtureTransactions;
   const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
   const typeCounts = {
@@ -168,6 +168,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     unhandledApiRequests,
     scenarioRef,
     handleRequest: ({ url, method, scenario }) => {
+      const hasNoMatch = url.searchParams.get("search") === "zzzz-no-match";
       if (url.pathname === "/api/auth/refresh" && method === "POST") {
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
@@ -188,14 +189,14 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           return problemResponse("Transactions fixture failure", "Controlled Transactions summary failure.", 500);
         }
 
-        return jsonResponse(createTransactionsSummary(fixture, scenario));
+        return jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch));
       }
       if (url.pathname === "/api/transactions" && method === "GET") {
         if (scenario === "transactions-error") {
           return problemResponse("Transactions fixture failure", "Controlled Transactions load failure.", 500);
         }
 
-        const data = scenario === "empty" ? [] : fixture.transactionsVisualFixtureTransactions;
+        const data = scenario === "empty" || hasNoMatch ? [] : fixture.transactionsVisualFixtureTransactions;
         return jsonResponse({
           data,
           metadata: { totalItems: data.length },
@@ -272,12 +273,6 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".transactions-ledger-row"));
     const groups = Array.from(document.querySelectorAll(".transactions-day-group"));
-    const amountFilterItem = Array.from(document.querySelectorAll(".ant-form-item"))
-      .find((item) => item.innerText.includes("Amount equivalent"));
-    const amountFilterAddons = amountFilterItem
-      ? Array.from(amountFilterItem.querySelectorAll(".ant-input-group-addon")).map((addon) => addon.textContent.trim()).filter(Boolean)
-      : [];
-
     return {
       title: document.title,
       scrollWidth: documentElement.scrollWidth,
@@ -296,8 +291,6 @@ async function collectMetrics(client, state, apiRequestCount) {
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       addDrawerOpen: document.body.innerText.includes("New transaction"),
       advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
-      amountFilterAddons,
-      amountFilterDefaultUsdAddonVisible: amountFilterAddons.includes("USD"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
       loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
       filterEmptyVisible: document.body.innerText.includes("No transactions match these filters"),
@@ -359,9 +352,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     states: stateResults,
     checks: {
       ...buildCommonChecks(stateResults, failures, unhandledApiRequests),
-      advancedFilterDefaultCurrencyClear: stateResults
+      amountFilterRemoved: stateResults
         .filter((state) => state.interaction === "open-filter-drawer")
-        .every((state) => !state.amountFilterDefaultUsdAddonVisible),
+        .every((state) => !state.textSample.includes("Amount equivalent")),
     },
   };
 }

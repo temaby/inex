@@ -300,6 +300,7 @@
     "itemCount_other": "{{count}} записи",
     "toolbarCount": "{{visible}} из {{total}} транзакций за {{period}}",
     "paginationSummary": "Показано {{visible}} из {{total}} транзакций за {{period}}",
+    "loadMore": "Загрузить ещё",
     "period": {
       "currentMonth": "Текущий месяц",
       "allActiveDates": "Все активные даты"

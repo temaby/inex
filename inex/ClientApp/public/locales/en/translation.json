@@ -298,6 +298,7 @@
     "itemCount_other": "{{count}} items",
     "toolbarCount": "{{visible}} of {{total}} transactions in {{period}}",
     "paginationSummary": "Showing {{visible}} of {{total}} transactions for {{period}}",
+    "loadMore": "Load more",
     "period": {
       "currentMonth": "Current month",
       "allActiveDates": "All active dates"
