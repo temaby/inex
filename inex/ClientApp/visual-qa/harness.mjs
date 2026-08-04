@@ -96,13 +96,14 @@ export function createApiFixtureHandler({
     const loggedRoute = route.replace("/api", "");
     requestLog.push(loggedRoute);
 
-    const response = handleRequest({
+    const handledResponse = await handleRequest({
       url,
       method,
       route,
       loggedRoute,
       scenario: scenarioRef.current,
-    }) ?? (() => {
+    });
+    const response = handledResponse ?? (() => {
       unhandledApiRequests.push(route);
       return problemResponse("Unhandled visual QA API fixture", route, 502);
     })();
@@ -566,6 +567,7 @@ export async function runBrowserState({
     });
 
     scenarioRef.current = state.scenario;
+    scenarioRef.requestCounts = {};
     const requestLogStart = fixture.requestLog.length;
 
     await client.send("Page.navigate", { url: `${appUrl}${routePath}` });
@@ -584,6 +586,9 @@ export async function runBrowserState({
     });
     throwEventErrors();
     const metrics = await collectMetrics(client, state, stateRequestLog.length);
+    if (state.settleDelayMs) {
+      await wait(state.settleDelayMs);
+    }
 
     return {
       ...metrics,
@@ -615,6 +620,9 @@ function collectCommonFailures(stateResults, unhandledApiRequests) {
     }
     if (state.drawerOpen && state.drawerWithinViewport === false) {
       stateFailures.push(`${state.name}: drawer outside viewport`);
+    }
+    if ((state.loadErrorVisible || state.refreshErrorVisible) && state.recoveryActionOccludedAtStart) {
+      stateFailures.push(`${state.name}: recovery action is occluded by the mobile navigation`);
     }
     return stateFailures;
   });
