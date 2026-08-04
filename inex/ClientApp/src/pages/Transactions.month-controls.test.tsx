@@ -25,9 +25,15 @@ vi.mock("react-i18next", async () => {
     return {
         ...actual,
         useTranslation: () => ({
+            i18n: { language: "en" },
             t: (key: string, params?: Record<string, unknown>) => {
                 const translations: Record<string, string> = {
                     "transactions.addTransaction": "Add transaction",
+                    "transactions.accountBalances": "Account balances",
+                    "transactions.accountBalancesEmpty": "No active accounts to display.",
+                    "transactions.accountBalancesError": "Could not load account balances.",
+                    "transactions.accountBalancesLoading": "Loading account balances",
+                    "transactions.accountBalancesSubtitle": "Active accounts in their native currencies.",
                     "transactions.advancedFilters": "Advanced filters",
                     "transactions.all": "All",
                     "transactions.clearAll": "Clear all",
@@ -82,6 +88,13 @@ vi.mock("../store/accounts/accounts-api", () => ({
             },
         ],
     }),
+    useGetAccountsSummaryQuery: () => ({
+        data: [],
+        isError: false,
+        isFetching: false,
+        isLoading: false,
+        refetch: vi.fn(),
+    }),
 }));
 
 vi.mock("../store/categories/categories-api", () => ({
@@ -106,6 +119,10 @@ vi.mock("../store/transactions/transactions-api", () => ({
         data: undefined,
         isLoading: false,
     }),
+}));
+
+vi.mock("../store/rates/rates-action", () => ({
+    fetchCachedRatesForRange: vi.fn(),
 }));
 
 vi.mock("../layouts/BasicPage", () => ({
@@ -192,5 +209,21 @@ describe("Transactions month controls", () => {
             "/transactions?filter=start%3A2026-04-01%3Bend%3A2026-04-30%3B",
             { replace: false },
         );
+    });
+
+    it("opens account balances only from its explicit control and keeps the choice for the page session", () => {
+        renderTransactions();
+
+        const accountBalances = screen.getByRole("button", { name: "Account balances" });
+        expect(accountBalances).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByRole("region", { name: "Account balances" })).not.toBeInTheDocument();
+
+        fireEvent.click(accountBalances);
+        expect(accountBalances).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("region", { name: "Account balances" })).toBeVisible();
+
+        fireEvent.click(accountBalances);
+        expect(accountBalances).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByRole("region", { name: "Account balances" })).not.toBeInTheDocument();
     });
 });

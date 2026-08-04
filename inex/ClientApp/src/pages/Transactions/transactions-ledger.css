@@ -65,6 +65,101 @@
     overflow: hidden;
 }
 
+.transactions-workspace {
+    align-items: start;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+}
+
+.transactions-workspace:has(.transactions-account-balances) {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+}
+
+.transactions-ledger-toolbar__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.transactions-account-balances {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-3);
+    box-shadow: var(--shadow-1);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.transactions-account-balances h2 {
+    color: var(--fg-1);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    padding: 16px 18px;
+}
+
+.transactions-account-balances__list {
+    border-top: 1px solid var(--border-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.transactions-account-balances__list li {
+    align-items: baseline;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 14px 18px;
+}
+
+.transactions-account-balances__list li + li {
+    border-top: 1px solid var(--border-1);
+}
+
+.transactions-account-balances__name {
+    color: var(--fg-2);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.transactions-account-balances__state {
+    color: var(--fg-3);
+    display: grid;
+    gap: 12px;
+    min-height: 112px;
+    place-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.transactions-account-balances__state--error {
+    color: var(--expense-600);
+}
+
+.transactions-account-balances__state--error p {
+    margin: 0;
+}
+
+@media (min-width: 769px) and (max-width: 1120px) {
+    .transactions-workspace:has(.transactions-account-balances) {
+        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) 224px;
+    }
+
+    .transactions-workspace:has(.transactions-account-balances) .transactions-ledger-head,
+    .transactions-workspace:has(.transactions-account-balances) .transactions-ledger-row {
+        gap: 10px;
+        grid-template-columns: minmax(150px, 1.5fr) minmax(112px, 0.9fr) minmax(88px, 0.75fr) minmax(84px, 0.75fr);
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
+
 .transactions-ledger-toolbar,
 .transactions-ledger-controls,
 .transactions-filter-chips,
@@ -555,6 +650,19 @@
 @media (max-width: 768px) {
     .transactions-ledger {
         gap: 16px;
+    }
+
+    .transactions-workspace:has(.transactions-account-balances) {
+        display: block;
+    }
+
+    .transactions-workspace > .transactions-account-balances {
+        display: none;
+    }
+
+    .transactions-ledger-toolbar__actions,
+    .transactions-ledger-toolbar__actions > button {
+        width: 100%;
     }
 
     .transactions-kpi-strip {
