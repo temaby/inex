@@ -104,7 +104,6 @@ const Transactions = () => {
     } = useGetAccountsQuery("ALL");
     const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
     const formError = useAppSelector(state => state.transactions.error);
-    const exchangeRates = useAppSelector(state => state.rates.items);
     const cachedExchangeRates = useAppSelector(state => state.rates.cached?.items ?? []);
     const cachedRatesLoading = useAppSelector(state => state.rates.cached?.loading ?? false);
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
@@ -590,8 +589,9 @@ const Transactions = () => {
                         <TransactionList
                             accounts={allAccounts}
                             accountSummaries={accountBalances}
+                            baseCurrency={baseCurrency}
                             categories={allCategories}
-                            exchangeRates={exchangeRates}
+                            cachedExchangeRates={cachedExchangeRates}
                             filter={canonicalFilter}
                             onAddTransaction={openAddDrawer}
                             onClearFilters={clearAllFilters}

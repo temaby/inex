@@ -1,5 +1,4 @@
 import * as React from "react";
-import dayjs from "dayjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pagination } from "antd";
@@ -20,6 +19,7 @@ import {
     getBaseCurrencyEquivalent,
     getCategoryPathLabel,
     getFriendlyTransactionDayLabel,
+    getTransactionLocalDate,
     getTransactionKind,
     getTransactionNavigationMode,
     type ExchangeRateLike,
@@ -28,8 +28,9 @@ import {
 interface TransactionListProps {
     accounts: AccountResponse[];
     accountSummaries: AccountSummary[];
+    baseCurrency: string;
     categories: CategoryResponse[];
-    exchangeRates: ExchangeRateLike[];
+    cachedExchangeRates: ExchangeRateLike[];
     filter: NormalizedTransactionFilter;
     onAddTransaction: () => void;
     onClearFilters: () => void;
@@ -50,7 +51,7 @@ const emptyTransactions: TransactionResponse[] = [];
 const groupTransactions = (transactions: TransactionResponse[], dayLabels: { today: string; yesterday: string }): TransactionDateGroup[] => {
     const groups = new Map<string, TransactionDateGroup>();
     for (const transaction of transactions) {
-        const dateKey = dayjs(transaction.created).format("YYYY-MM-DD");
+        const dateKey = getTransactionLocalDate(transaction.created);
         const group = groups.get(dateKey) ?? {
             dateKey,
             label: getFriendlyTransactionDayLabel(transaction.created, dayLabels),
@@ -62,7 +63,7 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
     return Array.from(groups.values()).sort((left, right) => right.dateKey.localeCompare(left.dateKey));
 };
 
-const TransactionList = ({ accounts, accountSummaries, categories, exchangeRates, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel }: TransactionListProps) => {
+const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel }: TransactionListProps) => {
     const { t } = useTranslation();
     const formError = useAppSelector(state => state.transactions.error);
     const [pagination, setPagination] = useState({ current: 1, size: 20 });
@@ -168,7 +169,7 @@ const TransactionList = ({ accounts, accountSummaries, categories, exchangeRates
     return <>
         {query.isFetching && hasRows && <div className="transactions-refreshing" role="status"><RotateCw aria-hidden="true" size={14} />{t("transactions.loading.refreshing")}</div>}
         {query.isError && hasRows && <Alert action={<InExButton icon={<RotateCw size={14} />} kind="ghost" onClick={() => query.refetch()} size="sm">{t("transactions.error.retry")}</InExButton>} className="transactions-inline-error" message={t("transactions.error.partialFailure")} showIcon type="error" />}
-        <div className="transactions-ledger-head"><div>{t("transactions.description")}</div><div>{t("transactions.amount")}</div><div>{t("transactions.account")}</div><div>{t("transactions.date")}</div></div>
+        <div className="transactions-ledger-head"><div>{t("transactions.description")}</div><div>{t("transactions.account")}</div><div>{t("transactions.date")}</div><div>{t("transactions.amount")}</div></div>
         {groups.map(group => <section className="transactions-day-group" key={group.dateKey}>
             <header className="transactions-day-header"><div className="transactions-day-header__date">{group.label}<span>&middot; {t("transactions.itemCount", { count: group.items.length })}</span></div></header>
             {group.items.map(transaction => {
@@ -180,7 +181,7 @@ const TransactionList = ({ accounts, accountSummaries, categories, exchangeRates
                 const categoryPath = getCategoryPathLabel(category, categoriesById);
                 const title = cleanComment || (kind === "transfer" ? t("transactions.transfer") : category?.name) || t("transactions.uncategorized");
                 const currency = account?.currency ?? transaction.accountCurrency;
-                const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, exchangeRates);
+                const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, transaction.created, baseCurrency, cachedExchangeRates);
                 const openEdit = () => {
                     onEditDrawerOpenChange(true);
                     setEditRecord(transaction);
@@ -189,8 +190,8 @@ const TransactionList = ({ accounts, accountSummaries, categories, exchangeRates
                     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEdit(); }
                 }} role="button" tabIndex={0}>
                     <div className="transactions-row-main"><div className="transactions-row-title">{title}</div><div className="transactions-row-meta">{categoryPath && kind !== "transfer" && <span className="transactions-category-path">{categoryPath}</span>}{kind === "transfer" && <span>{t("transactions.transfer")}</span>}{transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}{transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}</div></div>
-                    <div className="transactions-row-amount"><Num currency={currency} kind={amountKind} size={15} value={transaction.amount} />{baseEquivalent && <span className="transactions-row-amount-equivalent">≈ <Num currency={baseEquivalent.currency} kind={amountKind} signage="color-only" size={12} value={Math.abs(baseEquivalent.value)} /></span>}</div>
-                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div><div className="transactions-row-date">{dayjs(transaction.created).format("YYYY-MM-DD")}</div>
+                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div><div className="transactions-row-date">{getTransactionLocalDate(transaction.created)}</div>
+                    <div className="transactions-row-amount"><Num currency={currency} kind={amountKind} signage="signed" size={15} value={transaction.amount} />{baseEquivalent && <span className="transactions-row-amount-equivalent">≈ <Num currency={baseEquivalent.currency} kind={amountKind} signage="signed" size={12} value={baseEquivalent.value} /></span>}</div>
                 </div>;
             })}
         </section>)}
