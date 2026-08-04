@@ -174,6 +174,42 @@ const states = [
     scenario: "populated",
     interaction: "open-filter-drawer",
   },
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `account-balances-open-${suffix}`,
+    screenshot: `account-balances-open-${suffix}.png`,
+    viewport,
+    scenario: "populated",
+    interaction: "open-account-balances",
+  })),
+  {
+    name: "account-balances-loading-390",
+    screenshot: "account-balances-loading-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "account-balances-loading",
+    interaction: "open-account-balances",
+    settleDelayMs: 2400,
+  },
+  {
+    name: "account-balances-empty-390",
+    screenshot: "account-balances-empty-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "account-balances-empty",
+    interaction: "open-account-balances",
+  },
+  {
+    name: "account-balances-error-390",
+    screenshot: "account-balances-error-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "account-balances-error",
+    interaction: "open-account-balances",
+  },
+  {
+    name: "account-balances-retry-390",
+    screenshot: "account-balances-retry-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "account-balances-error-retry",
+    interaction: "open-account-balances-and-retry",
+  },
   {
     name: "expanded-row-1440",
     screenshot: "expanded-row-1440.png",
@@ -276,6 +312,20 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/accounts" && method === "GET") {
         return jsonResponse({ data: fixture.transactionsVisualFixtureAccounts });
       }
+      if (url.pathname === "/api/accounts/details" && method === "GET") {
+        const requestKey = "account-balances";
+        scenarioRef.requestCounts[requestKey] = (scenarioRef.requestCounts[requestKey] ?? 0) + 1;
+        const requestAttempt = scenarioRef.requestCounts[requestKey];
+
+        if (scenario === "account-balances-error" || (scenario === "account-balances-error-retry" && requestAttempt === 1)) {
+          return problemResponse("Account balance fixture failure", "Controlled account balance failure.", 500);
+        }
+
+        const response = jsonResponse({
+          data: scenario === "account-balances-empty" ? [] : fixture.transactionsVisualFixtureAccountSummaries,
+        });
+        return scenario === "account-balances-loading" ? delayedResponse(response, 2200) : response;
+      }
       if (url.pathname === "/api/categories" && method === "GET") {
         return jsonResponse({ data: fixture.transactionsVisualFixtureCategories });
       }
@@ -344,6 +394,24 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Filters"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Advanced filters')");
       return;
+    case "open-account-balances":
+      await evaluate(client, clickButtonByTextExpression("Account balances"));
+      if (state.scenario === "account-balances-loading") {
+        await waitFor(client, "document.body.innerText.includes('Loading account balances')");
+      } else if (state.scenario === "account-balances-empty") {
+        await waitFor(client, "document.body.innerText.includes('No active accounts to display')");
+      } else if (state.scenario === "account-balances-error") {
+        await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
+      } else {
+        await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
+      }
+      return;
+    case "open-account-balances-and-retry":
+      await evaluate(client, clickButtonByTextExpression("Account balances"));
+      await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
+      await activateRetryButton(client);
+      await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
+      return;
     case "open-row-edit":
       await evaluate(client, `(() => {
         const row = document.querySelector(".transactions-ledger-row");
@@ -384,7 +452,12 @@ async function applyInteraction(client, state) {
 
 async function activateRetryButton(client) {
   const activated = await evaluate(client, `(() => {
-    const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.trim() === "Retry");
+    const button = Array.from(document.querySelectorAll("button")).find((item) => {
+      if (item.textContent?.trim() !== "Retry") return false;
+      const style = window.getComputedStyle(item);
+      const rect = item.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+    });
     if (!button) return false;
     button.focus();
     if (document.activeElement !== button) return false;
@@ -433,7 +506,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const bottomNavRect = bottomNavVisible ? bottomNav.getBoundingClientRect() : null;
     const content = document.querySelector(".transactions-ledger, .transactions-empty-wrap, .transactions-ledger-card");
     const contentRect = content ? content.getBoundingClientRect() : null;
-    const drawer = document.querySelector(".ant-drawer-content-wrapper");
+    const ledgerCard = document.querySelector(".transactions-ledger-card");
+    const ledgerCardRect = ledgerCard ? ledgerCard.getBoundingClientRect() : null;
+    const ledgerColumns = Array.from(document.querySelectorAll(".transactions-ledger-head > div"));
+    const drawer = document.querySelector(".ant-drawer-open .ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".transactions-ledger-row"));
     const groups = Array.from(document.querySelectorAll(".transactions-day-group"));
@@ -456,6 +532,13 @@ async function collectMetrics(client, state, apiRequestCount) {
       addDrawerOpen: document.body.innerText.includes("New transaction"),
       advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
+      accountBalancesOpen: Boolean(document.querySelector("[data-qa='account-balances-companion']")),
+      accountBalancesDrawerOpen: Boolean(drawer && document.body.innerText.includes("Account balances")),
+      accountBalancesZeroVisible: document.body.innerText.includes("0.00 PLN"),
+      ledgerColumnsFullyVisible: Boolean(ledgerCardRect && ledgerColumns.length === 4 && ledgerColumns.every((column) => {
+        const rect = column.getBoundingClientRect();
+        return rect.left >= ledgerCardRect.left && rect.right <= ledgerCardRect.right;
+      })),
       loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
       initialLoadingVisible: Boolean(document.querySelector(".transactions-loading")),
       progressiveLoadingVisible: document.body.innerText.includes("Refreshing ledger") && rows.length === 20,
@@ -527,6 +610,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       recoveryActionsClearMobileNav: stateResults
         .filter((state) => state.loadErrorVisible || state.refreshErrorVisible)
         .every((state) => !state.recoveryActionOccludedAtStart),
+      accountBalancesTabletLedgerColumnsVisible: stateResults
+        .filter((state) => state.name === "account-balances-open-1024")
+        .every((state) => state.ledgerColumnsFullyVisible),
     },
   };
 }
@@ -543,6 +629,23 @@ export const visualQaConfig = {
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures: (stateResults) => {
+    const failures = [];
+    const tabletCompanion = stateResults.find((state) => state.name === "account-balances-open-1024");
+    if (tabletCompanion && !tabletCompanion.ledgerColumnsFullyVisible) {
+      failures.push("account-balances-open-1024: ledger columns are clipped");
+    }
+
+    for (const state of stateResults.filter((item) => item.name === "account-balances-open-1440" || item.name === "account-balances-open-1024")) {
+      if (state.drawerOpen) failures.push(`${state.name}: desktop companion rendered as a drawer`);
+    }
+
+    for (const state of stateResults.filter((item) => item.name === "account-balances-open-390" || item.name === "account-balances-open-360")) {
+      if (!state.drawerOpen || !state.drawerWithinViewport) failures.push(`${state.name}: mobile balance drawer is not fully visible`);
+    }
+
+    return failures;
+  },
   label: "Transactions",
   userDataPrefix: "inex-transactions-visual-qa",
 };

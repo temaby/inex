@@ -1,4 +1,4 @@
-import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import type { ExchangeRateLike } from "../../pages/Transactions/transaction-ledger-utils";
@@ -56,6 +56,22 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
     currencyId: 1,
     currency: "USD",
   },
+  {
+    id: 305,
+    key: "long-label-zero-balance",
+    name: "Emergency reserve for long-term household commitments",
+    description: "Long-label zero-balance fixture",
+    isEnabled: true,
+    currencyId: 2,
+    currency: "PLN",
+  },
+];
+
+export const transactionsVisualFixtureAccountSummaries: AccountSummary[] = [
+  { ...transactionsVisualFixtureAccounts[0], value: 2668, thisMonthNet: 0 },
+  { ...transactionsVisualFixtureAccounts[1], value: 253.2, thisMonthNet: 0 },
+  { ...transactionsVisualFixtureAccounts[2], value: 144000, thisMonthNet: 0 },
+  { ...transactionsVisualFixtureAccounts[4], value: 0, thisMonthNet: 0 },
 ];
 
 export const transactionsVisualFixtureCategories: CategoryResponse[] = [
