@@ -77,8 +77,17 @@ Run InEx BMAD delivery for the referenced GitHub issue(s). Intake issues and rel
 - If app setup fails, run the project doctor and report setup blockers before continuing.
 
 ### 5. Review
-- Run three review passes before PR: Blind Hunter, Edge Case Hunter, and Acceptance Auditor.
-- Prefer fresh-context subagents for reviews when available; otherwise perform the passes manually.
+- Build a concise review packet before launching any reviewer. Include only the issue acceptance criteria, changed-file list, focused diff, affected contracts or invariants, tests/verification run and results, known risks, and the specific review remit. Do not send full planning history, unrelated issue context, or full project documentation unless the risk classification requires it.
+- Classify review risk before selecting reviewers:
+  - **High:** any user-data ownership or authorization path; transfers, balances, transaction integrity, or other financial calculations; database schema, migration, provider-specific query, transaction, or concurrency work; public API/auth contract change; security-sensitive configuration; a cross-cutting refactor; or incomplete focused verification.
+  - **Standard:** production-code change outside the high-risk criteria, a multi-file behavior change, or any change whose edge cases cannot be fully covered by one focused test path.
+  - **Low:** isolated, small, non-sensitive change with clear acceptance criteria, focused verification passing, no public-contract or persistence change, and no authentication, ownership, financial, or visual-parity impact.
+- Use independent fresh-context reviewers when available; otherwise perform the same named remits manually. Reviewers must inspect the packet first, then only the changed files, directly affected call sites, and relevant tests. Broaden inspection only when evidence in those materials warrants it.
+- Select review passes by risk:
+  - **High:** run all three independent passes before PR: Blind Hunter, Edge Case Hunter, and Acceptance Auditor. This is the non-negotiable default for the sensitive InEx paths listed above.
+  - **Standard:** run two independent passes: Acceptance Auditor and Edge Case Hunter. Add Blind Hunter only when either reviewer identifies an architectural, regression, security, ownership, or test-gap concern that needs an independent second look.
+  - **Low:** run one independent Focused Reviewer combining acceptance and regression checks. Escalate immediately to the Standard passes for any uncertain ownership, contract, persistence, validation, or edge-case behavior.
+- Keep review output compact and actionable: findings with severity, evidence, impact, and proposed verification. Do not produce a narrative restatement of the packet or a review of another reviewer's output.
 - Triage findings as high, medium, low, or accepted risk.
 - Route high/medium findings back to the same implementation subagent only when the packet remains isolated; otherwise the orchestrator fixes them.
 - Fix high/medium findings before PR unless explicitly deferred with rationale, then re-run impacted verification.

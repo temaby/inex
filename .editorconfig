@@ -1,4 +1,24 @@
-﻿[*.cs]
+﻿root = true
 
-# IDE0005: Using directive is unnecessary.
-dotnet_diagnostic.IDE0005.severity = none
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+dotnet_diagnostic.IDE0005.severity = warning
+
+[*.{yml,yaml,json}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
