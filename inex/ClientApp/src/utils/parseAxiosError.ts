@@ -1,5 +1,8 @@
 import axios from "axios";
 
+const isProblemDetails = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 /**
  * Extracts a human-readable message from an AxiosError response.
  * Handles RFC 7807 ProblemDetails format (the same shape as parseApiError,
@@ -13,8 +16,13 @@ export function parseAxiosError(
   defaultMessage: string,
   t?: (key: string) => string
 ): string {
-  if (axios.isAxiosError(error) && error.response?.data) {
-    const problem = error.response.data as Record<string, unknown>;
+  const problem = axios.isAxiosError(error)
+    ? error.response?.data
+    : isProblemDetails(error)
+      ? error.data
+      : undefined;
+
+  if (isProblemDetails(problem)) {
     // 422 ValidationProblemDetails — flatten and optionally translate field errors
     if (problem.errors && typeof problem.errors === "object") {
       const translate = (code: string) => {

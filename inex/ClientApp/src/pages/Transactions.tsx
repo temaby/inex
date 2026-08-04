@@ -110,6 +110,7 @@ const Transactions = () => {
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
+    const [editDrawerOpen, setEditDrawerOpen] = useState(false);
     const [accountBalancesOpen, setAccountBalancesOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
@@ -126,7 +127,7 @@ const Transactions = () => {
     );
     const activeAccountIds = useMemo(() => activeAccounts.map(account => account.id), [activeAccounts]);
     const accountBalancesQuery = useGetAccountsSummaryQuery(activeAccountIds, {
-        skip: !accountBalancesOpen || activeAccountIds.length === 0,
+        skip: !(accountBalancesOpen || addDrawerOpen || editDrawerOpen) || activeAccountIds.length === 0,
     });
     const accountBalances = accountBalancesQuery.currentData ?? accountBalancesQuery.data ?? [];
     const accountBalancesLoading = accountBalancesOpen && (
@@ -440,15 +441,23 @@ const Transactions = () => {
         },
     ];
 
+    const openAddDrawer = () => {
+        dispatch(transactionsActions.setError({ error: null }));
+        setCreateMode(TransactionType.EXPENSE);
+        setAddDrawerOpen(true);
+    };
+
+    const closeAddDrawer = () => {
+        dispatch(transactionsActions.setError({ error: null }));
+        setAddDrawerOpen(false);
+    };
+
     const headerActions = (
         <div className="transactions-header-actions">
             <InExButton
                 icon={<Plus size={16} />}
                 kind="primary"
-                onClick={() => {
-                    setCreateMode(TransactionType.EXPENSE);
-                    setAddDrawerOpen(true);
-                }}
+                onClick={openAddDrawer}
                 size="md"
             >
                 {t("transactions.addTransaction")}
@@ -580,12 +589,14 @@ const Transactions = () => {
 
                         <TransactionList
                             accounts={allAccounts}
+                            accountSummaries={accountBalances}
                             categories={allCategories}
                             exchangeRates={exchangeRates}
                             filter={canonicalFilter}
-                            onAddTransaction={() => setAddDrawerOpen(true)}
+                            onAddTransaction={openAddDrawer}
                             onClearFilters={clearAllFilters}
                             onInitialLoadingChange={setLedgerInitialLoading}
+                            onEditDrawerOpenChange={setEditDrawerOpen}
                             onVisibleCountChange={setLedgerVisibleCount}
                             periodLabel={periodLabel}
                         />
@@ -603,7 +614,7 @@ const Transactions = () => {
             </BasicPage>
 
             <InExDrawer
-                onClose={() => setAddDrawerOpen(false)}
+                onClose={closeAddDrawer}
                 open={addDrawerOpen}
                 subtitle={addDrawerSubtitle}
                 title={t("transactions.addDrawerTitle")}
@@ -612,10 +623,19 @@ const Transactions = () => {
                 {addDrawerOpen && (
                     <TransactionCreate
                         accounts={activeAccounts}
+                        accountSummaries={accountBalances}
                         categories={activeCategories}
-                        onCancel={() => setAddDrawerOpen(false)}
+                        onCancel={closeAddDrawer}
                         onModeChange={setCreateMode}
-                        onSubmit={() => setAddDrawerOpen(false)}
+                        onSubmit={closeAddDrawer}
+                    />
+                )}
+                {formError && (
+                    <Alert
+                        className="transactions-form-error"
+                        message={formError}
+                        showIcon
+                        type="error"
                     />
                 )}
             </InExDrawer>

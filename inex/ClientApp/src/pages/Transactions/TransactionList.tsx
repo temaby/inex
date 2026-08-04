@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pagination } from "antd";
 import { Inbox, Plus, RotateCw } from "lucide-react";
 
-import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { useAppSelector } from "../../store/hooks";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
@@ -27,12 +27,14 @@ import {
 
 interface TransactionListProps {
     accounts: AccountResponse[];
+    accountSummaries: AccountSummary[];
     categories: CategoryResponse[];
     exchangeRates: ExchangeRateLike[];
     filter: NormalizedTransactionFilter;
     onAddTransaction: () => void;
     onClearFilters: () => void;
     onInitialLoadingChange: (loading: boolean) => void;
+    onEditDrawerOpenChange: (open: boolean) => void;
     onVisibleCountChange: (count: number) => void;
     periodLabel: string;
 }
@@ -60,7 +62,7 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
     return Array.from(groups.values()).sort((left, right) => right.dateKey.localeCompare(left.dateKey));
 };
 
-const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onVisibleCountChange, periodLabel }: TransactionListProps) => {
+const TransactionList = ({ accounts, accountSummaries, categories, exchangeRates, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel }: TransactionListProps) => {
     const { t } = useTranslation();
     const formError = useAppSelector(state => state.transactions.error);
     const [pagination, setPagination] = useState({ current: 1, size: 20 });
@@ -179,7 +181,10 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
                 const title = cleanComment || (kind === "transfer" ? t("transactions.transfer") : category?.name) || t("transactions.uncategorized");
                 const currency = account?.currency ?? transaction.accountCurrency;
                 const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, exchangeRates);
-                const openEdit = () => setEditRecord(transaction);
+                const openEdit = () => {
+                    onEditDrawerOpenChange(true);
+                    setEditRecord(transaction);
+                };
                 return <div className={`transactions-ledger-row transactions-ledger-row--${kind}`} key={transaction.id} onClick={openEdit} onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEdit(); }
                 }} role="button" tabIndex={0}>
@@ -190,7 +195,7 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
             })}
         </section>)}
         <div className="transactions-pagination"><div>{t("transactions.paginationSummary", { visible: transactions.length, total, period: periodLabel })}</div>{navigationMode === "progressive" ? <div ref={loadMoreSentinel}><InExButton disabled={!hasNextPage || query.isFetching} kind="default" onClick={loadMore}>{query.isFetching ? t("transactions.loading.refreshing") : t("transactions.loadMore")}</InExButton></div> : <Pagination current={pagination.current} onChange={paginationChangedHandler} pageSize={pagination.size} pageSizeOptions={[20, 50, 100]} showSizeChanger total={total} />}</div>
-        <InExDrawer onClose={() => setEditRecord(null)} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accounts={accounts} categories={categories} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
+        <InExDrawer onClose={() => { onEditDrawerOpenChange(false); setEditRecord(null); }} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accountSummaries={accountSummaries} accounts={accounts} categories={categories} onSaved={() => { onEditDrawerOpenChange(false); setEditRecord(null); }} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
     </>;
 };
 

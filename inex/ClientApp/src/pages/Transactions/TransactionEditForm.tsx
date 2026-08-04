@@ -17,6 +17,8 @@ import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useDeleteTransactionMutation, useUpdateTransactionMutation } from "../../store/transactions/transactions-api";
+import { parseAxiosError } from "../../utils/parseAxiosError";
+import SelectedAccountNativeBalance from "./SelectedAccountNativeBalance";
 
 
 const defaultState: TransactionEditState = new TransactionEditState();
@@ -117,8 +119,9 @@ const TransactionEditForm = (props: any) => {
           created: state.date.format("YYYY-MM-DD"),
         }).unwrap();
         dispatch(transactionsActions.setError({ error: null }));
-      } catch {
-        dispatch(transactionsActions.setError({ error: t("transactions.formErrors.updateFailure") }));
+        props.onSaved();
+      } catch (error) {
+        dispatch(transactionsActions.setError({ error: parseAxiosError(error, t("transactions.formErrors.updateFailure"), t) }));
       }
     };
 
@@ -135,7 +138,10 @@ const TransactionEditForm = (props: any) => {
         <Form layout="vertical" hideRequiredMark>
             <Row gutter={8}>
                 <Col xs={24} sm={12}>
-                    <Form.Item label={t("transactions.account")}>
+                    <Form.Item
+                        extra={<SelectedAccountNativeBalance accountId={state.account.id} summaries={props.accountSummaries} />}
+                        label={t("transactions.account")}
+                    >
                         <Dropdown id="account" selection={[state.account]} onChange={setAccountHandler} items={props.accounts} multiple={false} />
                     </Form.Item>
                 </Col>

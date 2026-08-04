@@ -9,11 +9,12 @@ import { AccountDetails } from "../../model/Account/AccountDetails";
 import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionSetState } from "../../model/Transaction/TransactionSetState";
 import { TransactionType } from "../../model/Transaction/TransactionType";
-import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
 import { useAppDispatch } from "../../store/hooks";
+import { parseAxiosError } from "../../utils/parseAxiosError";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
@@ -22,6 +23,7 @@ type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
 interface TransactionCreateProps {
     accounts: AccountResponse[];
+    accountSummaries: AccountSummary[];
     categories: CategoryResponse[];
     onCancel: () => void;
     onModeChange?: (mode: TransactionType) => void;
@@ -115,6 +117,7 @@ const isSelectedEntity = (id: number | undefined): boolean => typeof id === "num
 
 const TransactionCreate: React.FC<TransactionCreateProps> = ({
     accounts,
+    accountSummaries,
     categories,
     onCancel,
     onModeChange,
@@ -268,11 +271,15 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     created,
                 }).unwrap();
             }
-        } catch {
+        } catch (error) {
             dispatch(transactionsActions.setError({
-                error: state.mode === TransactionType.TRANSFER
-                    ? t("transactions.formErrors.transferFailure")
-                    : t("transactions.formErrors.createFailure"),
+                error: parseAxiosError(
+                    error,
+                    state.mode === TransactionType.TRANSFER
+                        ? t("transactions.formErrors.transferFailure")
+                        : t("transactions.formErrors.createFailure"),
+                    t,
+                ),
             }));
             return;
         }
@@ -303,6 +310,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
             {state.mode === TransactionType.EXPENSE && (
                 <TransactionCreateExpenseForm
                     accounts={accounts}
+                    accountSummaries={accountSummaries}
                     category={state.category}
                     categories={categoryTree}
                     comment={state.comment}
@@ -321,6 +329,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
             {state.mode === TransactionType.INCOME && (
                 <TransactionCreateIncomeForm
                     accounts={accounts}
+                    accountSummaries={accountSummaries}
                     category={state.category}
                     categories={categoryTree}
                     comment={state.comment}

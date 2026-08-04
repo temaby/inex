@@ -8,13 +8,15 @@ import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { CategoryDetails } from "../../model/Category/CategoryDetails";
-import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import type { TransactionCreateValidationErrors } from "./TransactionCreate";
+import SelectedAccountNativeBalance from "./SelectedAccountNativeBalance";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
 interface TransactionCreateExpenseFormProps {
     accounts: AccountResponse[];
+    accountSummaries: AccountSummary[];
     categories: CategoryDetails[];
     category: CategoryDetails;
     comment: string;
@@ -40,6 +42,7 @@ const getSelectedCategory = (category: CategoryDetails): CategoryDetails[] =>
 
 const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> = ({
     accounts,
+    accountSummaries,
     categories,
     category,
     comment,
@@ -61,6 +64,7 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
             <Form.Item
                 help={validationErrors.fromAccount}
                 label={t("transactions.account")}
+                extra={<SelectedAccountNativeBalance accountId={fromAccount.id} summaries={accountSummaries} />}
                 validateStatus={validationErrors.fromAccount ? "error" : undefined}
             >
                 <Dropdown
@@ -70,6 +74,20 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                     onChange={onSetFromAccount}
                     placeholder={t("transactions.selectAccount")}
                     selection={getSelectedAccount(fromAccount)}
+                />
+            </Form.Item>
+            <Form.Item
+                help={validationErrors.category}
+                label={t("transactions.category")}
+                validateStatus={validationErrors.category ? "error" : undefined}
+            >
+                <Dropdown
+                    id="expense_category"
+                    items={categories}
+                    multiple={false}
+                    onChange={onSetCategory}
+                    placeholder={t("transactions.selectCategory")}
+                    selection={getSelectedCategory(category)}
                 />
             </Form.Item>
             <Form.Item
@@ -85,20 +103,6 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                     precision={2}
                     size="large"
                     value={fromAmount}
-                />
-            </Form.Item>
-            <Form.Item
-                help={validationErrors.category}
-                label={t("transactions.category")}
-                validateStatus={validationErrors.category ? "error" : undefined}
-            >
-                <Dropdown
-                    id="expense_category"
-                    items={categories}
-                    multiple={false}
-                    onChange={onSetCategory}
-                    placeholder={t("transactions.selectCategory")}
-                    selection={getSelectedCategory(category)}
                 />
             </Form.Item>
             <Form.Item

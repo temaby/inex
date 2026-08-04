@@ -225,6 +225,7 @@
     "accountBalancesLoading": "Загружаем балансы счетов",
     "accountBalancesEmpty": "Нет активных счетов для отображения.",
     "accountBalancesError": "Не удалось загрузить балансы счетов.",
+    "nativeBalance": "Исходный баланс",
     "filtersActive": "Фильтры применены",
     "status": "Статус",
     "amount": "Сумма",

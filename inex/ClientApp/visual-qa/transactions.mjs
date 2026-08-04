@@ -160,6 +160,14 @@ const states = [
     scenario: "populated",
     interaction: "open-add-drawer",
   },
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `selected-account-balance-create-${suffix}`,
+    screenshot: `selected-account-balance-create-${suffix}.png`,
+    viewport,
+    scenario: "populated",
+    interaction: "open-add-drawer-and-select-account",
+    screenshotMode: "viewport",
+  })),
   {
     name: "filter-drawer-open-390",
     screenshot: "filter-drawer-open-390.png",
@@ -224,6 +232,13 @@ const states = [
     scenario: "populated",
     interaction: "open-row-edit",
   },
+  ...visualQaViewports.filter(({ suffix }) => suffix === "1024" || suffix === "360").map(({ suffix, viewport }) => ({
+    name: `expanded-row-${suffix}`,
+    screenshot: `expanded-row-${suffix}.png`,
+    viewport,
+    scenario: "populated",
+    interaction: "open-row-edit",
+  })),
   {
     name: "load-error-390",
     screenshot: "load-error-390.png",
@@ -390,6 +405,24 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
       return;
+    case "open-add-drawer-and-select-account":
+      await evaluate(client, clickButtonByTextExpression("Add transaction"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
+      await evaluate(client, `(() => {
+        const trigger = Array.from(document.querySelectorAll(".ant-menu-submenu-title")).find((item) => item.textContent?.includes("Select account"));
+        if (!trigger) return false;
+        trigger.click();
+        return true;
+      })()`);
+      await waitFor(client, "Array.from(document.querySelectorAll('.ant-menu-item')).some((item) => item.textContent?.includes('Emergency reserve for long-term household commitments'))");
+      await evaluate(client, `(() => {
+        const account = Array.from(document.querySelectorAll(".ant-menu-item")).find((item) => item.textContent?.includes("Emergency reserve for long-term household commitments"));
+        if (!account) return false;
+        account.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes('Native balance') && Boolean(document.querySelector('[data-qa=selected-account-native-balance]'))");
+      return;
     case "open-filter-drawer":
       await evaluate(client, clickButtonByTextExpression("Filters"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Advanced filters')");
@@ -419,7 +452,7 @@ async function applyInteraction(client, state) {
         row.click();
         return true;
       })()`);
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction') && Boolean(document.querySelector('[data-qa=selected-account-native-balance]'))");
       return;
     case "load-more-pending":
       await evaluate(client, clickButtonByTextExpression("Load more"));
@@ -618,6 +651,14 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
 }
 
 const fixtureExports = loadFixture(fixturePath, `Transactions fixture is missing: ${fixturePath}`);
+const stateFilter = process.env.INEX_VISUAL_QA_STATE_FILTER;
+const configuredStates = stateFilter
+  ? states.filter((state) => state.name.startsWith(stateFilter))
+  : states;
+
+if (configuredStates.length === 0) {
+  throw new Error(`No Transactions visual-QA states match "${stateFilter}".`);
+}
 
 export const visualQaConfig = {
   clientRoot,
@@ -625,7 +666,7 @@ export const visualQaConfig = {
   outputDir,
   defaultPort: 5199,
   fixture: fixtureExports,
-  states,
+  states: configuredStates,
   createApiHandler,
   runState,
   buildSummary,
