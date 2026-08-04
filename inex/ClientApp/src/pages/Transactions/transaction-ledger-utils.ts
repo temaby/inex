@@ -93,19 +93,27 @@ export const emptyLedgerMetrics: LedgerMetrics = {
 const sameCurrency = (left: string, right: string): boolean =>
   left.localeCompare(right, undefined, { sensitivity: "accent" }) === 0;
 
+export const getTransactionLocalDate = (transactionDate: string): string =>
+  dayjs(transactionDate).format("YYYY-MM-DD");
+
 export const getBaseCurrencyCode = (exchangeRates: ExchangeRateLike[]): string =>
   exchangeRates[0]?.currencyFrom || "USD";
 
 export const getBaseCurrencyEquivalent = (
   amount: number,
   accountCurrency: string,
+  transactionDate: string,
+  baseCurrency: string,
   exchangeRates: ExchangeRateLike[],
 ): BaseCurrencyEquivalent | null => {
-  const baseCurrency = getBaseCurrencyCode(exchangeRates);
-
   if (!baseCurrency || sameCurrency(accountCurrency, baseCurrency)) return null;
 
-  const rate = exchangeRates.find((item) => sameCurrency(item.currencyTo, accountCurrency));
+  const date = getTransactionLocalDate(transactionDate);
+  const rate = exchangeRates.find((item) =>
+    sameCurrency(item.currencyFrom, baseCurrency)
+    && sameCurrency(item.currencyTo, accountCurrency)
+    && item.date?.slice(0, 10) === date,
+  );
   if (!rate || rate.rate <= 0) return null;
 
   return {
@@ -123,7 +131,12 @@ export const toBaseCurrencyAmount = (
 
   if (sameCurrency(accountCurrency, baseCurrency)) return amount;
 
-  return getBaseCurrencyEquivalent(amount, accountCurrency, exchangeRates)?.value ?? null;
+  const rate = exchangeRates.find((item) =>
+    sameCurrency(item.currencyFrom, baseCurrency)
+    && sameCurrency(item.currencyTo, accountCurrency)
+    && item.rate > 0,
+  );
+  return rate ? amount / rate.rate : null;
 };
 
 export const getLedgerMetricsFromSummary = (

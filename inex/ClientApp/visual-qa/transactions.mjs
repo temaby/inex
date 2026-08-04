@@ -572,6 +572,28 @@ async function collectMetrics(client, state, apiRequestCount) {
         const rect = column.getBoundingClientRect();
         return rect.left >= ledgerCardRect.left && rect.right <= ledgerCardRect.right;
       })),
+      ledgerColumnLabels: ledgerColumns.map((column) => column.textContent?.trim() ?? ""),
+      rowsKeyboardOperable: rows.every((row) => row.getAttribute("role") === "button" && row.tabIndex === 0),
+      mobileAmountFirst: rows.every((row) => {
+        const amount = row.querySelector(".transactions-row-amount");
+        const main = row.querySelector(".transactions-row-main");
+        const account = row.querySelector(".transactions-row-account");
+        const date = row.querySelector(".transactions-row-date");
+        if (!amount || !main || !account || !date) return false;
+        const amountTop = amount.getBoundingClientRect().top;
+        return amountTop <= main.getBoundingClientRect().top
+          && main.getBoundingClientRect().top <= account.getBoundingClientRect().top
+          && account.getBoundingClientRect().top <= date.getBoundingClientRect().top;
+      }),
+      baseEquivalentCount: document.querySelectorAll(".transactions-row-amount-equivalent").length,
+      hasTrailingRowChevron: Boolean(document.querySelector(".transactions-ledger-row .transactions-row-chevron")),
+      rowContentWithinBounds: rows.every((row) => {
+        const rowRect = row.getBoundingClientRect();
+        return Array.from(row.querySelectorAll(".transactions-row-title, .transactions-row-token, [role='text']")).every((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.left >= rowRect.left - 1 && rect.right <= rowRect.right + 1;
+        });
+      }),
       loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
       initialLoadingVisible: Boolean(document.querySelector(".transactions-loading")),
       progressiveLoadingVisible: document.body.innerText.includes("Refreshing ledger") && rows.length === 20,
@@ -646,6 +668,21 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       accountBalancesTabletLedgerColumnsVisible: stateResults
         .filter((state) => state.name === "account-balances-open-1024")
         .every((state) => state.ledgerColumnsFullyVisible),
+      desktopLedgerScanOrder: stateResults
+        .filter((state) => state.name === "populated-1440" || state.name === "populated-1024")
+        .every((state) => state.ledgerColumnLabels.join("|") === "Description|Account|Date|Amount"
+          && state.ledgerColumnsFullyVisible
+          && state.rowsKeyboardOperable
+          && !state.hasTrailingRowChevron
+          && state.rowContentWithinBounds),
+      mobileLedgerScanOrder: stateResults
+        .filter((state) => state.name === "populated-390" || state.name === "populated-360")
+        .every((state) => state.mobileAmountFirst && state.rowsKeyboardOperable && !state.hasTrailingRowChevron && state.rowContentWithinBounds),
+      baseEquivalentsRespectCachedDate: stateResults
+        .filter((state) => state.name === "populated-1440")
+        .every((state) => state.baseEquivalentCount > 0)
+        && stateResults.filter((state) => state.name === "missing-rate-1440")
+          .every((state) => state.baseEquivalentCount === 0),
     },
   };
 }
@@ -675,6 +712,33 @@ export const visualQaConfig = {
     const tabletCompanion = stateResults.find((state) => state.name === "account-balances-open-1024");
     if (tabletCompanion && !tabletCompanion.ledgerColumnsFullyVisible) {
       failures.push("account-balances-open-1024: ledger columns are clipped");
+    }
+
+    for (const state of stateResults.filter((item) => item.name === "populated-1440" || item.name === "populated-1024")) {
+      if (state.ledgerColumnLabels.join("|") !== "Description|Account|Date|Amount") {
+        failures.push(`${state.name}: desktop ledger order is not Description, Account, Date, Amount`);
+      }
+      if (!state.rowsKeyboardOperable || state.hasTrailingRowChevron) {
+        failures.push(`${state.name}: ledger rows are not keyboard-operable button rows without a trailing chevron`);
+      }
+      if (!state.rowContentWithinBounds) {
+        failures.push(`${state.name}: long row content exceeds the ledger bounds`);
+      }
+    }
+
+    for (const state of stateResults.filter((item) => item.name === "populated-390" || item.name === "populated-360")) {
+      if (!state.mobileAmountFirst || !state.rowsKeyboardOperable || state.hasTrailingRowChevron || !state.rowContentWithinBounds) {
+        failures.push(`${state.name}: mobile ledger row order or keyboard semantics are incorrect`);
+      }
+    }
+
+    const populated = stateResults.find((item) => item.name === "populated-1440");
+    const missingRate = stateResults.find((item) => item.name === "missing-rate-1440");
+    if (populated && populated.baseEquivalentCount === 0) {
+      failures.push("populated-1440: available cached rates did not render base equivalents");
+    }
+    if (missingRate && missingRate.baseEquivalentCount !== 0) {
+      failures.push("missing-rate-1440: unavailable cached rates rendered base equivalents");
     }
 
     for (const state of stateResults.filter((item) => item.name === "account-balances-open-1440" || item.name === "account-balances-open-1024")) {

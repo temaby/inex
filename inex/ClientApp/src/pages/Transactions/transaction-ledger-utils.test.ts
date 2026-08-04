@@ -89,11 +89,21 @@ describe("transaction ledger helpers", () => {
       { id: 2, currencyFrom: "USD", currencyTo: "EUR", date: "2026-06-05", rate: 2, isTemporary: false },
     ];
 
-    expect(getBaseCurrencyEquivalent(-80, "PLN", rates)).toEqual({ currency: "USD", value: -20 });
-    expect(getBaseCurrencyEquivalent(-80, "USD", rates)).toBeNull();
+    expect(getBaseCurrencyEquivalent(-80, "PLN", "2026-06-05", "USD", rates)).toEqual({ currency: "USD", value: -20 });
+    expect(getBaseCurrencyEquivalent(-80, "PLN", "2026-06-06", "USD", rates)).toBeNull();
+    expect(getBaseCurrencyEquivalent(-80, "USD", "2026-06-05", "USD", rates)).toBeNull();
     expect(toBaseCurrencyAmount(-80, "USD", rates)).toBe(-80);
     expect(toBaseCurrencyAmount(-80, "PLN", rates)).toBe(-20);
     expect(toBaseCurrencyAmount(-80, "EUR", rates)).toBe(-40);
+  });
+
+  it("uses the same local calendar day for cached rates and ledger grouping", () => {
+    const created = "2026-06-05T23:30:00Z";
+    const localDate = dayjs(created).format("YYYY-MM-DD");
+
+    expect(getBaseCurrencyEquivalent(-80, "PLN", created, "USD", [
+      { currencyFrom: "USD", currencyTo: "PLN", date: localDate, rate: 4 },
+    ])).toEqual({ currency: "USD", value: -20 });
   });
 
   it("counts ledger types from category semantics", () => {
