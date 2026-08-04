@@ -272,3 +272,15 @@ export const appendSequentialPage = <T extends { id: number }>(
     items: [...accumulator.items, ...items.filter((item) => !existingIds.has(item.id))],
   };
 };
+
+export const getProgressivePageDisplay = <T>(
+  accumulator: ProgressivePageAccumulator<T>,
+  requestKey: string,
+  initialPage: { total: number; items: T[] } | undefined,
+): { total: number; items: T[] } => {
+  if (accumulator.key === requestKey && accumulator.nextPage > 1) {
+    return { total: accumulator.total, items: accumulator.items };
+  }
+
+  return initialPage ?? { total: 0, items: [] };
+};

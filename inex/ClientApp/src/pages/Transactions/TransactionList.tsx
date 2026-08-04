@@ -16,6 +16,7 @@ import TransactionEditForm from "./TransactionEditForm";
 import {
     appendSequentialPage,
     createProgressivePageAccumulator,
+    getProgressivePageDisplay,
     getBaseCurrencyEquivalent,
     getCategoryPathLabel,
     getFriendlyTransactionDayLabel,
@@ -94,11 +95,15 @@ const TransactionList = ({ accounts, categories, exchangeRates, filter, onAddTra
         ));
     }, [currentPageData, navigationMode, requestKey, requestedPage]);
 
+    const progressiveDisplay = getProgressivePageDisplay(progressivePages, requestKey, currentPageData && {
+        total: currentPageData.metadata.totalItems,
+        items: currentPageData.data,
+    });
     const transactions = navigationMode === "progressive"
-        ? progressivePages.items
+        ? progressiveDisplay.items
         : currentPageData?.data ?? emptyTransactions;
     const total = navigationMode === "progressive"
-        ? progressivePages.total
+        ? progressiveDisplay.total
         : currentPageData?.metadata.totalItems ?? 0;
     const hasRows = transactions.length > 0;
     const isCurrentDataLoading = query.isLoading || (query.isFetching && currentPageData === undefined);

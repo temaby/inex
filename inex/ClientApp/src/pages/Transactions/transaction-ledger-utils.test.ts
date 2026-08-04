@@ -12,6 +12,7 @@ import {
   getLedgerTypeCounts,
   appendSequentialPage,
   createProgressivePageAccumulator,
+  getProgressivePageDisplay,
   getTransactionNavigationMode,
   isCurrentOrFutureTransactionMonth,
   isWholeTransactionMonthRange,
@@ -183,6 +184,30 @@ describe("transaction ledger helpers", () => {
       total: 3,
       items: [{ id: 1 }, { id: 2 }, { id: 3 }],
     });
+  });
+
+  it("displays the first progressive response before the accumulator state updates", () => {
+    const initial = createProgressivePageAccumulator<{ id: number }>("current");
+    const firstPage = { total: 2, items: [{ id: 1 }, { id: 2 }] };
+
+    expect(getProgressivePageDisplay(initial, "current", firstPage)).toEqual(firstPage);
+
+    const accumulated = appendSequentialPage(initial, "current", 1, firstPage.total, firstPage.items);
+    expect(getProgressivePageDisplay(accumulated, "current", firstPage)).toEqual(firstPage);
+  });
+
+  it("does not display an accumulator from a superseded filter request", () => {
+    const accumulated = appendSequentialPage(
+      createProgressivePageAccumulator<{ id: number }>("previous"),
+      "previous",
+      1,
+      1,
+      [{ id: 1 }],
+    );
+
+    expect(getProgressivePageDisplay(accumulated, "current", undefined)).toEqual({ total: 0, items: [] });
+    expect(getProgressivePageDisplay(createProgressivePageAccumulator("current"), "current", { total: 0, items: [] }))
+      .toEqual({ total: 0, items: [] });
   });
 
 });
