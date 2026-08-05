@@ -111,8 +111,8 @@ describe("TransactionList", () => {
         apiState.initiate.mockReset();
         apiState.dispatch.mockReset();
         apiState.dispatch.mockImplementation((action) => action);
-        apiState.refetch.mockReturnValue({ unwrap: () => Promise.resolve() });
-        apiState.initiate.mockReturnValue({ unwrap: () => Promise.resolve() });
+        apiState.refetch.mockReturnValue({ unwrap: () => Promise.resolve({ data: apiState.transactions, metadata: { totalItems: apiState.transactions.length } }) });
+        apiState.initiate.mockReturnValue({ unwrap: () => Promise.resolve({ data: apiState.transactions, metadata: { totalItems: apiState.transactions.length } }) });
     });
 
     it("keeps desktop metadata before the final amount and shows an available date-matched equivalent", () => {
@@ -167,7 +167,7 @@ describe("TransactionList", () => {
     it("moves focus to the ledger heading when an updated row is filtered out", async () => {
         apiState.initiate.mockImplementation(() => {
             apiState.transactions = [];
-            return { unwrap: () => Promise.resolve() };
+            return { unwrap: () => Promise.resolve({ data: [], metadata: { totalItems: 0 } }) };
         });
         renderList();
 

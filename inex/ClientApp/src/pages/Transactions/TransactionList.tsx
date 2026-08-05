@@ -8,7 +8,7 @@ import type { AccountResponse, AccountSummary } from "../../store/accounts/accou
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
-import { transactionsApi, useGetTransactionsQuery } from "../../store/transactions/transactions-api";
+import { transactionsApi, useGetTransactionsQuery, type TransactionsPagedResult } from "../../store/transactions/transactions-api";
 import type { NormalizedTransactionFilter } from "../../store/transactions/transactions-slice";
 import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, type MoneyKind } from "../../components/primitives";
 import TransactionEditForm from "./TransactionEditForm";
@@ -153,18 +153,22 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
 
     const restoreLedgerFocusAfterMutation = useCallback((updatedTransactionId: number | null) => {
         closeEditDrawer();
+        const queueFocus = (refreshedPage?: TransactionsPagedResult) => {
+            const visibleUpdatedRow = updatedTransactionId !== null && refreshedPage?.data.some((transaction) => transaction.id === updatedTransactionId);
+            setFocusTargetId(visibleUpdatedRow ? updatedTransactionId : null);
+        };
         if (navigationMode === "progressive") {
             setRequestedProgressivePage(1);
             setProgressivePages(createProgressivePageAccumulator<TransactionResponse>(requestKey));
             void dispatch(transactionsApi.endpoints.getTransactions.initiate({ pageSize: pagination.size, page: 1, filter }, { forceRefetch: true })).unwrap()
-                .catch(() => undefined)
-                .finally(() => setFocusTargetId(updatedTransactionId));
+                .then(queueFocus)
+                .catch(() => queueFocus());
             return;
         }
 
         void query.refetch().unwrap()
-            .catch(() => undefined)
-            .finally(() => setFocusTargetId(updatedTransactionId));
+            .then(queueFocus)
+            .catch(() => queueFocus());
     }, [closeEditDrawer, dispatch, filter, navigationMode, pagination.size, query, requestKey]);
 
     useEffect(() => {
@@ -177,7 +181,7 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
             (editedRow ?? document.getElementById("transactions-ledger-heading"))?.focus();
             setRestoredFocusId(editedRow ? focusTargetId : null);
             setFocusTargetId(undefined);
-        }, 0);
+        }, 350);
 
         return () => window.clearTimeout(timeoutId);
     }, [focusTargetId, transactions]);

@@ -434,7 +434,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         if (scenario === "edit-failure") {
           return problemResponse("Transaction update fixture failure", "Controlled transaction update failure.", 422);
         }
-        return jsonResponse(undefined);
+        return jsonResponse({});
       }
       return null;
     },
@@ -508,7 +508,7 @@ async function applyInteraction(client, state) {
       if (state.scenario === "edit-failure") {
         await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Controlled transaction update failure')");
       } else if (state.expectedFocus === "edited-row") {
-        await waitFor(client, "!document.querySelector('.ant-drawer-open') && document.activeElement?.getAttribute('data-transaction-id') === '1'");
+        await waitFor(client, `!document.querySelector('.ant-drawer-open') && document.activeElement?.getAttribute('data-transaction-id') === '${fixtureExports.transactionsVisualFixtureTransactions[0].id}'`);
       } else {
         await waitFor(client, "!document.querySelector('.ant-drawer-open') && document.activeElement?.id === 'transactions-ledger-heading'");
       }
@@ -567,7 +567,7 @@ async function openRowEdit(client) {
 
 async function changeCommentAndSave(client) {
   await evaluate(client, `(() => {
-    const input = Array.from(document.querySelectorAll('.ant-drawer-body input')).find((item) => item instanceof HTMLInputElement && !item.disabled && item.offsetParent !== null);
+    const input = Array.from(document.querySelectorAll('.ant-drawer-body input')).find((item) => item instanceof HTMLInputElement && item.value.includes("BIEDRONKA groceries"));
     if (!(input instanceof HTMLInputElement)) return false;
     const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
     setter.call(input, input.value + " updated");
