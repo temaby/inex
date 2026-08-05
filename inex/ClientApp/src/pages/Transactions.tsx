@@ -512,7 +512,7 @@ const Transactions = () => {
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
-                                <h2>{t("transactions.ledger")}</h2>
+                                <h2 id="transactions-ledger-heading" tabIndex={-1}>{t("transactions.ledger")}</h2>
                                 {monthControls}
                                 <span className="transactions-toolbar-count">
                                     {t("transactions.toolbarCount", {

@@ -18,10 +18,19 @@ import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useDeleteTransactionMutation, useUpdateTransactionMutation } from "../../store/transactions/transactions-api";
 import { parseAxiosError } from "../../utils/parseAxiosError";
+import type { AccountSummary } from "../../store/accounts/accounts-api";
 import SelectedAccountNativeBalance from "./SelectedAccountNativeBalance";
 
 
 const defaultState: TransactionEditState = new TransactionEditState();
+
+interface TransactionEditFormProps {
+    accountSummaries: AccountSummary[];
+    accounts: any[];
+    categories: any[];
+    onMutationSuccess: (focusTransactionId: number | null) => void;
+    record: any;
+}
 
 const reducer = (state: TransactionEditState, action: any) => {
   if (action.type === "INIT") {
@@ -40,7 +49,7 @@ const reducer = (state: TransactionEditState, action: any) => {
   return defaultState;
 };
 
-const TransactionEditForm = (props: any) => {
+const TransactionEditForm = (props: TransactionEditFormProps) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
@@ -119,7 +128,7 @@ const TransactionEditForm = (props: any) => {
           created: state.date.format("YYYY-MM-DD"),
         }).unwrap();
         dispatch(transactionsActions.setError({ error: null }));
-        props.onSaved();
+        props.onMutationSuccess(+props.record.id);
       } catch (error) {
         dispatch(transactionsActions.setError({ error: parseAxiosError(error, t("transactions.formErrors.updateFailure"), t) }));
       }
@@ -129,6 +138,7 @@ const TransactionEditForm = (props: any) => {
       try {
         await deleteTransactionMutation(+props.record.id).unwrap();
         dispatch(transactionsActions.setError({ error: null }));
+        props.onMutationSuccess(null);
       } catch {
         dispatch(transactionsActions.setError({ error: t("transactions.formErrors.saveFailure") }));
       }

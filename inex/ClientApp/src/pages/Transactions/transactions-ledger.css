@@ -396,6 +396,7 @@
 }
 
 .transactions-ledger-row:focus-visible,
+.transactions-ledger-row--restored-focus,
 .transactions-filter-chip:focus-visible,
 .transactions-clear-filters:focus-visible,
 .transactions-search:focus-within {
