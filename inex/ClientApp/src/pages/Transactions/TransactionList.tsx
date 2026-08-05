@@ -6,9 +6,9 @@ import { Inbox, Plus, RotateCw } from "lucide-react";
 
 import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
-import { useAppSelector } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
-import { useGetTransactionsQuery } from "../../store/transactions/transactions-api";
+import { transactionsApi, useGetTransactionsQuery } from "../../store/transactions/transactions-api";
 import type { NormalizedTransactionFilter } from "../../store/transactions/transactions-slice";
 import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, type MoneyKind } from "../../components/primitives";
 import TransactionEditForm from "./TransactionEditForm";
@@ -65,10 +65,13 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
 
 const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel }: TransactionListProps) => {
     const { t } = useTranslation();
+    const dispatch = useAppDispatch();
     const formError = useAppSelector(state => state.transactions.error);
     const [pagination, setPagination] = useState({ current: 1, size: 20 });
     const [requestedProgressivePage, setRequestedProgressivePage] = useState(1);
     const [editRecord, setEditRecord] = useState<TransactionResponse | null>(null);
+    const [focusTargetId, setFocusTargetId] = useState<number | null | undefined>(undefined);
+    const [restoredFocusId, setRestoredFocusId] = useState<number | null>(null);
     const initialFailureRef = useRef<HTMLDivElement>(null);
     const navigationMode = getTransactionNavigationMode(filter.range);
     const requestKey = useMemo(() => JSON.stringify({ filter, pageSize: pagination.size, navigationMode }), [filter, pagination.size, navigationMode]);
@@ -143,6 +146,42 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
         }
     }, [hasRows, query.isError]);
 
+    const closeEditDrawer = useCallback(() => {
+        onEditDrawerOpenChange(false);
+        setEditRecord(null);
+    }, [onEditDrawerOpenChange]);
+
+    const restoreLedgerFocusAfterMutation = useCallback((updatedTransactionId: number | null) => {
+        closeEditDrawer();
+        if (navigationMode === "progressive") {
+            setRequestedProgressivePage(1);
+            setProgressivePages(createProgressivePageAccumulator<TransactionResponse>(requestKey));
+            void dispatch(transactionsApi.endpoints.getTransactions.initiate({ pageSize: pagination.size, page: 1, filter }, { forceRefetch: true })).unwrap()
+                .catch(() => undefined)
+                .finally(() => setFocusTargetId(updatedTransactionId));
+            return;
+        }
+
+        void query.refetch().unwrap()
+            .catch(() => undefined)
+            .finally(() => setFocusTargetId(updatedTransactionId));
+    }, [closeEditDrawer, dispatch, filter, navigationMode, pagination.size, query, requestKey]);
+
+    useEffect(() => {
+        if (focusTargetId === undefined) return undefined;
+
+        const timeoutId = window.setTimeout(() => {
+            const editedRow = focusTargetId === null
+                ? null
+                : document.querySelector<HTMLElement>(`[data-transaction-id="${focusTargetId}"]`);
+            (editedRow ?? document.getElementById("transactions-ledger-heading"))?.focus();
+            setRestoredFocusId(editedRow ? focusTargetId : null);
+            setFocusTargetId(undefined);
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [focusTargetId, transactions]);
+
     const paginationChangedHandler = (page: number, size: number) => {
         setPagination(previous => ({ current: previous.size === size ? page : 1, size }));
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -183,10 +222,11 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
                 const currency = account?.currency ?? transaction.accountCurrency;
                 const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, transaction.created, baseCurrency, cachedExchangeRates);
                 const openEdit = () => {
+                    setRestoredFocusId(null);
                     onEditDrawerOpenChange(true);
                     setEditRecord(transaction);
                 };
-                return <div className={`transactions-ledger-row transactions-ledger-row--${kind}`} key={transaction.id} onClick={openEdit} onKeyDown={(event) => {
+                return <div className={`transactions-ledger-row transactions-ledger-row--${kind}${restoredFocusId === transaction.id ? " transactions-ledger-row--restored-focus" : ""}`} data-transaction-id={transaction.id} key={transaction.id} onBlur={() => setRestoredFocusId(null)} onClick={openEdit} onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEdit(); }
                 }} role="button" tabIndex={0}>
                     <div className="transactions-row-main"><div className="transactions-row-title">{title}</div><div className="transactions-row-meta">{categoryPath && kind !== "transfer" && <span className="transactions-category-path">{categoryPath}</span>}{kind === "transfer" && <span>{t("transactions.transfer")}</span>}{transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}{transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}</div></div>
@@ -196,7 +236,7 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
             })}
         </section>)}
         <div className="transactions-pagination"><div>{t("transactions.paginationSummary", { visible: transactions.length, total, period: periodLabel })}</div>{navigationMode === "progressive" ? <div ref={loadMoreSentinel}><InExButton disabled={!hasNextPage || query.isFetching} kind="default" onClick={loadMore}>{query.isFetching ? t("transactions.loading.refreshing") : t("transactions.loadMore")}</InExButton></div> : <Pagination current={pagination.current} onChange={paginationChangedHandler} pageSize={pagination.size} pageSizeOptions={[20, 50, 100]} showSizeChanger total={total} />}</div>
-        <InExDrawer onClose={() => { onEditDrawerOpenChange(false); setEditRecord(null); }} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accountSummaries={accountSummaries} accounts={accounts} categories={categories} onSaved={() => { onEditDrawerOpenChange(false); setEditRecord(null); }} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
+        <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accountSummaries={accountSummaries} accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
     </>;
 };
 

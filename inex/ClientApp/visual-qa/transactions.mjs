@@ -42,8 +42,8 @@ const delayedResponse = (response, delayMs = 1400) => new Promise((resolve) => {
   setTimeout(() => resolve(response), delayMs);
 });
 
-function getScenarioTransactions(fixture, scenario, hasNoMatch) {
-  if (scenario === "empty" || hasNoMatch) return [];
+function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded = false) {
+  if (scenario === "empty" || hasNoMatch || (scenario === "edit-filtered-out" && mutationSucceeded)) return [];
 
   if (scenario === "progressive-loading" || scenario === "progressive-error" || scenario === "long-range") {
     return Array.from({ length: 25 }, (_, index) => {
@@ -59,8 +59,8 @@ function getScenarioTransactions(fixture, scenario, hasNoMatch) {
   return fixture.transactionsVisualFixtureTransactions;
 }
 
-function createTransactionsSummary(fixture, scenario, hasNoMatch) {
-  const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch);
+function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded) {
+  const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded);
   const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
   const typeCounts = {
@@ -232,6 +232,52 @@ const states = [
     scenario: "populated",
     interaction: "open-row-edit",
   },
+  {
+    name: "edit-success-return-1440",
+    screenshot: "edit-success-return-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "edit-success",
+    interaction: "save-row-edit",
+    expectedFocus: "edited-row",
+  },
+  {
+    name: "edit-success-return-390",
+    screenshot: "edit-success-return-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "edit-success",
+    interaction: "save-row-edit",
+    expectedFocus: "edited-row",
+  },
+  {
+    name: "edit-failure-390",
+    screenshot: "edit-failure-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "edit-failure",
+    interaction: "save-row-edit",
+  },
+  {
+    name: "edit-filtered-out-return-390",
+    screenshot: "edit-filtered-out-return-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "edit-filtered-out",
+    interaction: "save-row-edit",
+    expectedFocus: "ledger-heading",
+  },
+  {
+    name: "edit-delete-return-390",
+    screenshot: "edit-delete-return-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "edit-delete",
+    interaction: "delete-row-edit",
+    expectedFocus: "ledger-heading",
+  },
+  {
+    name: "edit-delete-confirmation-390",
+    screenshot: "edit-delete-confirmation-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "edit-delete",
+    interaction: "open-delete-confirmation",
+  },
   ...visualQaViewports.filter(({ suffix }) => suffix === "1024" || suffix === "360").map(({ suffix, viewport }) => ({
     name: `expanded-row-${suffix}`,
     screenshot: `expanded-row-${suffix}.png`,
@@ -347,12 +393,13 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
         return jsonResponse({ data: scenario === "missing-rate" ? [] : fixture.transactionsVisualFixtureRates });
       }
+      const mutationSucceeded = (scenarioRef.requestCounts["transaction-mutation"] ?? 0) > 0;
       if (url.pathname === "/api/transactions/summary" && method === "GET") {
         if (scenario === "transactions-error") {
           return problemResponse("Transactions fixture failure", "Controlled Transactions summary failure.", 500);
         }
 
-        const response = jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch));
+        const response = jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded));
         return scenario === "initial-loading" ? delayedResponse(response) : response;
       }
       if (url.pathname === "/api/transactions" && method === "GET") {
@@ -366,7 +413,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           return problemResponse("Transactions fixture failure", "Controlled Transactions load failure.", 500);
         }
 
-        const data = getScenarioTransactions(fixture, scenario, hasNoMatch);
+        const data = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded);
         const response = jsonResponse({
           data: data.slice((page - 1) * pageSize, page * pageSize),
           metadata: { totalItems: data.length },
@@ -381,6 +428,13 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         }
 
         return response;
+      }
+      if (url.pathname.startsWith("/api/transactions/") && (method === "PUT" || method === "DELETE")) {
+        scenarioRef.requestCounts["transaction-mutation"] = (scenarioRef.requestCounts["transaction-mutation"] ?? 0) + 1;
+        if (scenario === "edit-failure") {
+          return problemResponse("Transaction update fixture failure", "Controlled transaction update failure.", 422);
+        }
+        return jsonResponse(undefined);
       }
       return null;
     },
@@ -446,13 +500,31 @@ async function applyInteraction(client, state) {
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       return;
     case "open-row-edit":
-      await evaluate(client, `(() => {
-        const row = document.querySelector(".transactions-ledger-row");
-        if (!row) return false;
-        row.click();
-        return true;
-      })()`);
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction') && Boolean(document.querySelector('[data-qa=selected-account-native-balance]'))");
+      await openRowEdit(client);
+      return;
+    case "save-row-edit":
+      await openRowEdit(client);
+      await changeCommentAndSave(client);
+      if (state.scenario === "edit-failure") {
+        await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Controlled transaction update failure')");
+      } else if (state.expectedFocus === "edited-row") {
+        await waitFor(client, "!document.querySelector('.ant-drawer-open') && document.activeElement?.getAttribute('data-transaction-id') === '1'");
+      } else {
+        await waitFor(client, "!document.querySelector('.ant-drawer-open') && document.activeElement?.id === 'transactions-ledger-heading'");
+      }
+      return;
+    case "delete-row-edit":
+      await openRowEdit(client);
+      await evaluate(client, clickButtonByTextExpression("Delete"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-popconfirm'))");
+      state.deleteConfirmationSeen = await evaluate(client, "Boolean(document.querySelector('.ant-popconfirm'))");
+      await evaluate(client, clickButtonByTextExpression("Yes"));
+      await waitFor(client, "!document.querySelector('.ant-drawer-open') && document.activeElement?.id === 'transactions-ledger-heading'");
+      return;
+    case "open-delete-confirmation":
+      await openRowEdit(client);
+      await evaluate(client, clickButtonByTextExpression("Delete"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-popconfirm'))");
       return;
     case "load-more-pending":
       await evaluate(client, clickButtonByTextExpression("Load more"));
@@ -481,6 +553,29 @@ async function applyInteraction(client, state) {
     default:
       throw new Error(`Unknown interaction: ${state.interaction}`);
   }
+}
+
+async function openRowEdit(client) {
+  await evaluate(client, `(() => {
+          const row = document.querySelector(".transactions-ledger-row");
+          if (!row) return false;
+          row.click();
+          return true;
+        })()`);
+  await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction') && Boolean(document.querySelector('[data-qa=selected-account-native-balance]'))");
+}
+
+async function changeCommentAndSave(client) {
+  await evaluate(client, `(() => {
+    const input = Array.from(document.querySelectorAll('.ant-drawer-body input')).find((item) => item instanceof HTMLInputElement && !item.disabled && item.offsetParent !== null);
+    if (!(input instanceof HTMLInputElement)) return false;
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    setter.call(input, input.value + " updated");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  })()`);
+  await evaluate(client, clickButtonByTextExpression("Save"));
 }
 
 async function activateRetryButton(client) {
