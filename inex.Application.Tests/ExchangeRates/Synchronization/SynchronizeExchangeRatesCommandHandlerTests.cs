@@ -343,6 +343,51 @@ public sealed class SynchronizeExchangeRatesCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WhenProviderReturnsNoQuote_CarriesForwardCachedPriorActualRate()
+    {
+        var friday = new DateOnly(2026, 8, 7);
+        var saturday = friday.AddDays(1);
+        var fixture = new HandlerFixture();
+        fixture.ScopeReader
+            .Setup(x => x.GetAsync(1, CancellationToken.None))
+            .ReturnsAsync(new ExchangeRateUserScope("USD", new[] { "EUR" }));
+        fixture.Repository
+            .Setup(x => x.GetExistingAsync(
+                "USD",
+                It.IsAny<IReadOnlyCollection<string>>(),
+                It.Is<IReadOnlyCollection<DateOnly>>(dates => dates.SequenceEqual(new[] { saturday })),
+                CancellationToken.None))
+            .ReturnsAsync(Array.Empty<ExchangeRate>());
+        fixture.Provider
+            .Setup(x => x.GetHistoricalRatesAsync(
+                It.Is<IReadOnlyCollection<DateOnly>>(dates => dates.SequenceEqual(new[] { saturday })),
+                "USD",
+                It.IsAny<IReadOnlyCollection<string>>(),
+                CancellationToken.None))
+            .ReturnsAsync(Array.Empty<ExchangeRateQuote>());
+        fixture.Repository
+            .Setup(x => x.GetLatestActualBeforeAsync(
+                saturday,
+                "USD",
+                It.Is<IReadOnlyCollection<string>>(currencies => currencies.SequenceEqual(new[] { "EUR" })),
+                CancellationToken.None))
+            .ReturnsAsync(new[] { ExchangeRate.Create(1, "USD", "EUR", friday, 0.92m, false) });
+        fixture.Repository
+            .Setup(x => x.UpsertRangeAsync(
+                It.Is<IReadOnlyCollection<ExchangeRate>>(rates =>
+                    rates.Count == 1
+                    && rates.Single().Date == saturday
+                    && rates.Single().Rate == 0.92m
+                    && !rates.Single().IsTemporary),
+                CancellationToken.None))
+            .Returns(Task.CompletedTask);
+
+        await fixture.CreateHandler(new DateOnly(2026, 8, 10)).HandleAsync(
+            new SynchronizeExchangeRatesCommand(1, saturday, saturday),
+            CancellationToken.None);
+    }
+
+    [Fact]
     public async Task HandleAsync_WhenRangeIncludesYesterdayAndToday_CreatesActualAndTemporaryRatesTogether()
     {
         var today = new DateOnly(2026, 8, 6);

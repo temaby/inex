@@ -10,23 +10,20 @@ namespace inex.Tests.ExchangeRates;
 public sealed class HistoricalRateProviderTests
 {
     [Fact]
-    public async Task GetHistoricalRatesAsync_WhenFrankfurterFails_UsesCurrencyApiFallback()
+    public async Task GetHistoricalRatesAsync_UsesCurrencyApiWithoutCallingFrankfurterOrNbrb()
     {
         var date = new DateOnly(2026, 8, 5);
+        var currencyApiRequestCount = 0;
         using var currencyApiHttpClient = new HttpClient(new StubHttpMessageHandler(_ =>
-            CreateJsonResponse("""{"data":{"EUR":{"code":"EUR","value":0.92}}}""")))
+        {
+            currencyApiRequestCount++;
+            return CreateJsonResponse("""{"data":{"EUR":{"code":"EUR","value":0.92}}}""");
+        }))
         {
             BaseAddress = new Uri("https://currency.test/")
         };
-        using var frankfurterHttpClient = new HttpClient(new StubHttpMessageHandler(_ =>
-            new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)))
-        {
-            BaseAddress = new Uri("https://frankfurter.test/")
-        };
         var provider = new HistoricalRateProvider(
             new CurrencyApiClient(currencyApiHttpClient),
-            new FrankfurterApiClient(frankfurterHttpClient),
-            new EmptyNbrbApiClient(),
             NullLogger<HistoricalRateProvider>.Instance);
 
         var result = await provider.GetHistoricalRatesAsync(
@@ -40,59 +37,88 @@ public sealed class HistoricalRateProviderTests
         Assert.Equal("EUR", quote.QuoteCurrencyCode);
         Assert.Equal(date, quote.Date);
         Assert.Equal(0.92m, quote.Rate);
+        Assert.Equal(1, currencyApiRequestCount);
     }
 
     [Fact]
-    public async Task GetHistoricalRatesAsync_WhenFrankfurterOmitsADate_UsesCurrencyApiForTheUncoveredDate()
+    public async Task GetHistoricalRatesAsync_WhenSynchronizingBynRub_UsesCurrencyApi()
     {
-        var missingDate = new DateOnly(2026, 8, 1);
-        var returnedDate = missingDate.AddDays(1);
+        var date = new DateOnly(2026, 8, 1);
         var currencyApiRequests = new List<string>();
         using var currencyApiHttpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
             currencyApiRequests.Add(request.RequestUri!.Query);
-            return CreateJsonResponse("""{"data":{"EUR":{"code":"EUR","value":0.91}}}""");
+            return CreateJsonResponse("""{"data":{"RUB":{"code":"RUB","value":27.8}}}""");
         }))
         {
             BaseAddress = new Uri("https://currency.test/")
         };
-        using var frankfurterHttpClient = new HttpClient(new StubHttpMessageHandler(_ =>
-            CreateJsonResponse("{\"rates\":{\"" + returnedDate.ToString("yyyy-MM-dd") + "\":{\"EUR\":0.92}}}")))
-        {
-            BaseAddress = new Uri("https://frankfurter.test/")
-        };
         var provider = new HistoricalRateProvider(
             new CurrencyApiClient(currencyApiHttpClient),
-            new FrankfurterApiClient(frankfurterHttpClient),
-            new EmptyNbrbApiClient(),
             NullLogger<HistoricalRateProvider>.Instance);
 
         var result = await provider.GetHistoricalRatesAsync(
-            new[] { missingDate, returnedDate },
+            new[] { date },
+            "BYN",
+            new[] { "RUB" },
+            CancellationToken.None);
+
+        var quote = Assert.Single(result);
+        Assert.Equal("RUB", quote.QuoteCurrencyCode);
+        Assert.Equal(27.8m, quote.Rate);
+        Assert.Contains(currencyApiRequests, query => query.Contains("date=2026-08-01", StringComparison.Ordinal));
+        Assert.Contains(currencyApiRequests, query => query.Contains("base_currency=BYN", StringComparison.Ordinal));
+        Assert.Contains(currencyApiRequests, query => query.Contains("currencies=RUB", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetHistoricalRatesAsync_WhenCurrencyApiFails_ReturnsNoQuote()
+    {
+        var date = new DateOnly(2026, 8, 1);
+        using var currencyApiHttpClient = new HttpClient(new StubHttpMessageHandler(_ =>
+            new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)))
+        {
+            BaseAddress = new Uri("https://currency.test/")
+        };
+        var provider = new HistoricalRateProvider(
+            new CurrencyApiClient(currencyApiHttpClient),
+            NullLogger<HistoricalRateProvider>.Instance);
+
+        var result = await provider.GetHistoricalRatesAsync(
+            new[] { date },
             "USD",
             new[] { "EUR" },
             CancellationToken.None);
 
-        Assert.Equal(2, result.Count);
-        Assert.Contains(currencyApiRequests, query => query.Contains("date=2026-08-01", StringComparison.Ordinal));
-        Assert.DoesNotContain(currencyApiRequests, query => query.Contains("date=2026-08-02", StringComparison.Ordinal));
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetHistoricalRatesAsync_WhenRequestIsCancelled_PropagatesCancellation()
+    {
+        var date = new DateOnly(2026, 8, 1);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+        using var currencyApiHttpClient = new HttpClient(new StubHttpMessageHandler(_ =>
+            CreateJsonResponse("""{"data":{"EUR":{"code":"EUR","value":0.92}}}""")))
+        {
+            BaseAddress = new Uri("https://currency.test/")
+        };
+        var provider = new HistoricalRateProvider(
+            new CurrencyApiClient(currencyApiHttpClient),
+            NullLogger<HistoricalRateProvider>.Instance);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => provider.GetHistoricalRatesAsync(
+            new[] { date },
+            "USD",
+            new[] { "EUR" },
+            cancellationTokenSource.Token));
     }
 
     private static HttpResponseMessage CreateJsonResponse(string content) => new(HttpStatusCode.OK)
     {
         Content = new StringContent(content, Encoding.UTF8, "application/json")
     };
-
-    private sealed class EmptyNbrbApiClient : INbrbApiClient
-    {
-        public Task<Dictionary<DateTime, ExchangeRateResponse>> GetRatesForRangeAsync(
-            DateTime start,
-            DateTime end,
-            string baseCurrency,
-            string targetCurrency,
-            CancellationToken ct = default) =>
-            Task.FromResult(new Dictionary<DateTime, ExchangeRateResponse>());
-    }
 
     private sealed class StubHttpMessageHandler : HttpMessageHandler
     {
