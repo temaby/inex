@@ -6,6 +6,7 @@ using inex.Data;
 using inex.Data.Models;
 using inex.Extensions;
 using inex.Infrastructure;
+using inex.Infrastructure.ExchangeRates.Synchronization;
 using inex.Services.Extensions;
 using inex.Services.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -70,6 +71,7 @@ try
     });
 
     builder.Services.AddInExServices(builder.Configuration);
+    builder.Services.AddExchangeRateSynchronization();
     builder.Services.AddValidatorsFromAssemblyContaining<AccountCreateValidator>();
 
     builder.Services.AddRateLimiter(options =>

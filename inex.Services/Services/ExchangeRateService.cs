@@ -8,9 +8,9 @@ using ExchangeRateResponse = inex.Services.Models.Records.ExchangeRate.ExchangeR
 using ExchangeApiResponse = inex.Services.Infrastructure.ExternalClients.ExchangeRate.ExchangeRateResponse;
 using inex.Services.Services.Base;
 using inex.Services.Infrastructure.Time;
+using inex.Application.ExchangeRates.Synchronization.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace inex.Services.Services;
 
@@ -31,13 +31,15 @@ public class ExchangeRateService : Service, IExchangeRateService
         IExchangeRateClient fallbackClient,
         INbrbApiClient nbrbClient,
         ILogger<ExchangeRateService> logger,
-        IClock clock) : base(uowInEx)
+        IClock clock,
+        IExchangeRateSynchronizationLock synchronizationLock) : base(uowInEx)
     {
         _apiClient = apiClient;
         _fallbackClient = fallbackClient;
         _nbrbClient = nbrbClient;
         _logger = logger;
         _clock = clock;
+        _synchronizationLock = synchronizationLock;
     }
 
     #endregion Constructors
@@ -164,17 +166,18 @@ public class ExchangeRateService : Service, IExchangeRateService
             return;
         }
 
-        var acquiredLocks = await AcquireSyncLocks(baseCurrency, initialMissingTargetsByDate.Keys, ct);
-        try
+        using IDisposable synchronizationLock = await _synchronizationLock.AcquireAsync(
+            baseCurrency,
+            initialMissingTargetsByDate.Keys.Select(DateOnly.FromDateTime).ToList(),
+            ct);
+        // Another request may have populated the cache while this request was waiting.
+        var missingTargetsByDate = await GetMissingTargetsByDate(candidateDates, baseCurrency, targetCurrencyCodes, ct);
+        if (missingTargetsByDate.Count == 0)
         {
-            // Another request may have populated the cache while this request was waiting.
-            var missingTargetsByDate = await GetMissingTargetsByDate(candidateDates, baseCurrency, targetCurrencyCodes, ct);
-            if (missingTargetsByDate.Count == 0)
-            {
-                return;
-            }
+            return;
+        }
 
-            bool hasProviderChanges = false;
+        bool hasProviderChanges = false;
             foreach (var range in GetContiguousRanges(missingTargetsByDate.Keys))
             {
                 var rangeMissingTargetsByDate = missingTargetsByDate
@@ -211,11 +214,6 @@ public class ExchangeRateService : Service, IExchangeRateService
 
             if (hasCarryForwardChanges)
                 await DbInEx.SaveAsync(ct);
-        }
-        finally
-        {
-            ReleaseSyncLocks(acquiredLocks);
-        }
     }
 
     private async Task<Dictionary<DateTime, HashSet<string>>> GetMissingTargetsByDate(
@@ -457,10 +455,11 @@ public class ExchangeRateService : Service, IExchangeRateService
     private async Task CreateTemporaryRatesForTodayIfNeeded(int userId, DateTime date, string baseCurrency, IList<string> targetCurrencyCodes, CancellationToken ct = default)
     {
         DateTime today = date.Date;
-        var acquiredLocks = await AcquireSyncLocks(baseCurrency, [today], ct);
-        try
-        {
-            List<ExchangeRate> existingRates = DbInEx.ExchangeRateRepository.Get(true)
+        using IDisposable synchronizationLock = await _synchronizationLock.AcquireAsync(
+            baseCurrency,
+            [DateOnly.FromDateTime(today)],
+            ct);
+        List<ExchangeRate> existingRates = DbInEx.ExchangeRateRepository.Get(true)
                 .Where(i => i.Created == today && i.FromCode == baseCurrency)
                 .ToList();
             var existingTargetCodes = existingRates
@@ -510,11 +509,6 @@ public class ExchangeRateService : Service, IExchangeRateService
             {
                 await DbInEx.SaveAsync(ct);
             }
-        }
-        finally
-        {
-            ReleaseSyncLocks(acquiredLocks);
-        }
     }
 
     /// <summary>
@@ -645,41 +639,6 @@ public class ExchangeRateService : Service, IExchangeRateService
             .ToList();
     }
 
-    private static async Task<List<SemaphoreSlim>> AcquireSyncLocks(string baseCurrency, IEnumerable<DateTime> dates, CancellationToken ct)
-    {
-        var keys = dates
-            .Select(date => $"{baseCurrency.ToUpperInvariant()}:{date.Date:yyyy-MM-dd}")
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(key => key, StringComparer.Ordinal)
-            .ToList();
-        var acquiredLocks = new List<SemaphoreSlim>();
-
-        try
-        {
-            foreach (var key in keys)
-            {
-                var syncLock = SyncLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-                await syncLock.WaitAsync(ct);
-                acquiredLocks.Add(syncLock);
-            }
-        }
-        catch
-        {
-            ReleaseSyncLocks(acquiredLocks);
-            throw;
-        }
-
-        return acquiredLocks;
-    }
-
-    private static void ReleaseSyncLocks(IEnumerable<SemaphoreSlim> syncLocks)
-    {
-        foreach (var syncLock in syncLocks.Reverse())
-        {
-            syncLock.Release();
-        }
-    }
-
     private static bool IsBynRubPath(string baseCurrency, string targetCurrency) =>
         string.Equals(baseCurrency, "BYN", StringComparison.OrdinalIgnoreCase)
         && string.Equals(targetCurrency, "RUB", StringComparison.OrdinalIgnoreCase)
@@ -695,7 +654,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     private readonly INbrbApiClient _nbrbClient;
     private readonly ILogger<ExchangeRateService> _logger;
     private readonly IClock _clock;
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> SyncLocks = new(StringComparer.Ordinal);
+    private readonly IExchangeRateSynchronizationLock _synchronizationLock;
 
     #endregion Private Fields
 }
