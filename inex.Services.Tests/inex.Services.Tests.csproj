@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\inex.Application\inex.Application.csproj" />
     <ProjectReference Include="..\inex.Data\inex.Data.csproj" />
     <ProjectReference Include="..\inex.Services\inex.Services.csproj" />
   </ItemGroup>

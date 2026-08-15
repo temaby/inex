@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using inex.Services.Infrastructure.Resilience;
 using inex.Services.Infrastructure.Time;
+using inex.Application.ExchangeRates.Synchronization.Interfaces;
 
 namespace inex.Services.Extensions;
 
@@ -113,7 +114,8 @@ public static class InExServicesExtensions
             var nbrbClient = serviceProvider.GetRequiredService<INbrbApiClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
             var clock = serviceProvider.GetRequiredService<IClock>();
-            return new ExchangeRateService(uow, primaryClient, fallbackClient, nbrbClient, logger, clock);
+            var synchronizationLock = serviceProvider.GetRequiredService<IExchangeRateSynchronizationLock>();
+            return new ExchangeRateService(uow, primaryClient, fallbackClient, nbrbClient, logger, clock, synchronizationLock);
         });
 
         return services;

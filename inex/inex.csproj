@@ -77,6 +77,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\inex.Application\inex.Application.csproj" />
+    <ProjectReference Include="..\inex.Infrastructure\inex.Infrastructure.csproj" />
     <ProjectReference Include="..\inex.Services\inex.Services.csproj" />
   </ItemGroup>
 

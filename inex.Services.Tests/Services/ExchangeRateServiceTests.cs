@@ -1,5 +1,6 @@
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
+using inex.Application.ExchangeRates.Synchronization.Interfaces;
 using inex.Services.Exceptions;
 using inex.Services.Infrastructure.ExternalClients.ExchangeRate;
 using inex.Services.Services;
@@ -41,7 +42,31 @@ public class ExchangeRateServiceTests
     // --- Helpers ---
 
     private ExchangeRateService CreateSut() =>
-        new ExchangeRateService(_uowMock.Object, _clientMock.Object, _fallbackClientMock.Object, _nbrbClientMock.Object, NullLogger<ExchangeRateService>.Instance, _clock);
+        new ExchangeRateService(_uowMock.Object, _clientMock.Object, _fallbackClientMock.Object, _nbrbClientMock.Object, NullLogger<ExchangeRateService>.Instance, _clock, SharedSynchronizationLock.Instance);
+
+    private sealed class SharedSynchronizationLock : IExchangeRateSynchronizationLock
+    {
+        internal static readonly SemaphoreSlim Semaphore = new(1, 1);
+
+        public static SharedSynchronizationLock Instance { get; } = new();
+
+        public async Task<IDisposable> AcquireAsync(
+            string baseCurrencyCode,
+            IReadOnlyCollection<DateOnly> dates,
+            CancellationToken cancellationToken)
+        {
+            await Semaphore.WaitAsync(cancellationToken);
+            return new Releaser();
+        }
+    }
+
+    private sealed class Releaser : IDisposable
+    {
+        public void Dispose()
+        {
+            SharedSynchronizationLock.Semaphore.Release();
+        }
+    }
 
     // AsAsyncQueryable() wraps a plain IEnumerable<T> so it satisfies both
     // IQueryable<T> (sync LINQ) and IAsyncEnumerable<T> (EF ToListAsync etc.).
@@ -1030,7 +1055,8 @@ public class ExchangeRateServiceTests
                 fallbackClient.Object,
                 nbrbClient.Object,
                 NullLogger<ExchangeRateService>.Instance,
-                _clock);
+                _clock,
+                SharedSynchronizationLock.Instance);
             await sut.Get(1, requestedDate, requestedDate, baseCurrency);
         }
 
@@ -1042,7 +1068,8 @@ public class ExchangeRateServiceTests
                 fallbackClient.Object,
                 nbrbClient.Object,
                 NullLogger<ExchangeRateService>.Instance,
-                _clock);
+                _clock,
+                SharedSynchronizationLock.Instance);
             await sut.Get(1, requestedDate, requestedDate, baseCurrency);
         }
 
