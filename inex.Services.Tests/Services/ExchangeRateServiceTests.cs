@@ -665,15 +665,17 @@ public class ExchangeRateServiceTests
     }
 
     [Fact]
-    public async Task Get_Range_WhenPastTemporaryRowsExistAndProviderOmitsDate_PromotesCarryForwardRates()
+    public async Task Get_Range_WhenPastTemporaryRowsExistAndProviderOmitsDate_PromotesLatestCarryForwardRatesPerTarget()
     {
-        var priorDate = new DateTime(2026, 5, 1);
+        var olderPriorDate = new DateTime(2026, 5, 1);
+        var latestEurDate = new DateTime(2026, 5, 2);
         var requestedDate = new DateTime(2026, 5, 3);
         var baseCurrency = "USD";
         var rates = new List<ExchangeRate>
         {
-            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = priorDate, IsTemporary = false },
-            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = priorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.85m, Created = olderPriorDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = latestEurDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = olderPriorDate, IsTemporary = false },
             new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.8m, Created = requestedDate, IsTemporary = true },
             new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.0m, Created = requestedDate, IsTemporary = true }
         };

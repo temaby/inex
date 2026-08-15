@@ -533,10 +533,13 @@ public class ExchangeRateService : Service, IExchangeRateService
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (missingTargetCodes.Count == 0) return false;
 
-        var priorRates = DbInEx.ExchangeRateRepository.Get(true)
+        var priorRateCandidates = await DbInEx.ExchangeRateRepository.Get(true)
             .Where(r => r.Created < date.Date && r.FromCode == baseCurrency && !r.IsTemporary)
             .OrderByDescending(r => r.Created)
             .Where(r => missingTargetCodes.Contains(r.ToCode))
+            .ToListAsync(ct);
+
+        var priorRates = priorRateCandidates
             .GroupBy(r => r.ToCode)
             .Select(g => g.First())
             .ToList();
