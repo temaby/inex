@@ -11,9 +11,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 WORKDIR /src
 
 # Restore .NET dependencies (cached until any .csproj changes)
+COPY inex.Domain/inex.Domain.csproj ./inex.Domain/
+COPY inex.Application/inex.Application.csproj ./inex.Application/
 COPY inex/inex.csproj ./inex/
 COPY inex.Services/inex.Services.csproj ./inex.Services/
 COPY inex.Data/inex.Data.csproj ./inex.Data/
+COPY inex.Infrastructure/inex.Infrastructure.csproj ./inex.Infrastructure/
 RUN dotnet restore inex/inex.csproj
 
 # Pre-install npm dependencies (cached until package.json / package-lock.json / .npmrc changes)
