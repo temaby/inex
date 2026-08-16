@@ -241,20 +241,23 @@ describe("Transactions month controls", () => {
         );
     });
 
-    it("opens account balances only from its explicit control and keeps the choice for the page session", () => {
+    it("opens and closes the account balances drawer from the page action", () => {
         renderTransactions();
 
         const accountBalances = screen.getByRole("button", { name: "Account balances" });
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByRole("region", { name: "Account balances" })).not.toBeInTheDocument();
+        expect(accountBalances).toHaveAttribute("aria-haspopup", "dialog");
+        expect(accountBalances.closest(".transactions-header-actions")).toBeInTheDocument();
+        expect(accountBalances.closest(".transactions-ledger-toolbar")).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
 
         fireEvent.click(accountBalances);
         expect(accountBalances).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByRole("region", { name: "Account balances" })).toBeVisible();
+        expect(screen.getByRole("dialog", { name: "Account balances" })).toBeVisible();
 
-        fireEvent.click(accountBalances);
+        fireEvent.click(screen.getByRole("button", { name: "Close" }));
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByRole("region", { name: "Account balances" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
     });
 
     it("keeps the filter drawer closed when the route has no serialized filter", () => {

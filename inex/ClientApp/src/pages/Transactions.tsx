@@ -66,32 +66,11 @@ const formatDateRange = (range: number[]): string => {
 const areRangesEqual = (left: number[], right: number[]): boolean =>
     left.length === right.length && left.every((value, index) => value === right[index]);
 
-const useIsMobileViewport = (): boolean => {
-    const getIsMobile = () => {
-        if (typeof window === "undefined") return false;
-
-        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-        return viewportWidth > 0 && viewportWidth <= 768;
-    };
-    const [isMobile, setIsMobile] = useState(getIsMobile);
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(getIsMobile());
-
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    return isMobile;
-};
-
 const Transactions = () => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    const isMobileViewport = useIsMobileViewport();
 
     const queryParams = new URLSearchParams(location.search);
     const filterParam = queryParams.get("filter");
@@ -143,12 +122,6 @@ const Transactions = () => {
 
         void accountBalancesQuery.refetch();
     };
-
-    useEffect(() => {
-        if (!accountBalancesOpen || isMobileViewport) return;
-
-        document.getElementById("transactions-account-balances-trigger")?.focus();
-    }, [accountBalancesOpen, isMobileViewport]);
 
     const canonicalFilter = useMemo(() => normalizeTransactionFilter(
         parseTransactionFilterParam(filterParam) ?? {
@@ -462,6 +435,16 @@ const Transactions = () => {
             >
                 {t("transactions.addTransaction")}
             </InExButton>
+            <InExButton
+                aria-expanded={accountBalancesOpen}
+                aria-haspopup="dialog"
+                id="transactions-account-balances-trigger"
+                kind="ghost"
+                onClick={() => setAccountBalancesOpen(open => !open)}
+                size="md"
+            >
+                {t("transactions.accountBalances")}
+            </InExButton>
         </div>
     );
 
@@ -509,7 +492,6 @@ const Transactions = () => {
                         type="warning"
                     />}
 
-                    <div className="transactions-workspace">
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
@@ -530,15 +512,6 @@ const Transactions = () => {
                                 )}
                             </div>
                             <div className="transactions-ledger-toolbar__actions">
-                                <InExButton
-                                    aria-expanded={accountBalancesOpen}
-                                    id="transactions-account-balances-trigger"
-                                    kind="ghost"
-                                    onClick={() => setAccountBalancesOpen(open => !open)}
-                                    size="sm"
-                                >
-                                    {t("transactions.accountBalances")}
-                                </InExButton>
                                 <InExButton
                                     aria-expanded={filterDrawerOpen}
                                     aria-haspopup="dialog"
@@ -603,15 +576,6 @@ const Transactions = () => {
                             refreshToken={ledgerRefreshToken}
                         />
                     </section>
-                    {accountBalancesOpen && (
-                        <AccountBalancesCompanion
-                            accounts={accountBalances}
-                            isError={accountBalancesError}
-                            isLoading={accountBalancesLoading}
-                            onRetry={retryAccountBalances}
-                        />
-                    )}
-                    </div>
                 </section>
             </BasicPage>
 
@@ -644,24 +608,22 @@ const Transactions = () => {
                 )}
             </InExDrawer>
 
-            {isMobileViewport && (
-                <InExDrawer
-                    bodyPadding={0}
-                    onClose={() => setAccountBalancesOpen(false)}
-                    open={accountBalancesOpen}
-                    subtitle={t("transactions.accountBalancesSubtitle")}
-                    title={t("transactions.accountBalances")}
-                    width={440}
-                >
-                    <AccountBalancesCompanion
-                        accounts={accountBalances}
-                        isError={accountBalancesError}
-                        isLoading={accountBalancesLoading}
-                        onRetry={retryAccountBalances}
-                        showHeading={false}
-                    />
-                </InExDrawer>
-            )}
+            <InExDrawer
+                bodyPadding={0}
+                onClose={() => setAccountBalancesOpen(false)}
+                open={accountBalancesOpen}
+                subtitle={t("transactions.accountBalancesSubtitle")}
+                title={t("transactions.accountBalances")}
+                width={440}
+            >
+                <AccountBalancesCompanion
+                    accounts={accountBalances}
+                    isError={accountBalancesError}
+                    isLoading={accountBalancesLoading}
+                    onRetry={retryAccountBalances}
+                    showHeading={false}
+                />
+            </InExDrawer>
 
             <InExDrawer
                 onClose={() => setFilterDrawerOpen(false)}

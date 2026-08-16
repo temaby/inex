@@ -661,8 +661,10 @@ async function collectMetrics(client, state, apiRequestCount) {
       addDrawerOpen: document.body.innerText.includes("New transaction"),
       advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
-      accountBalancesOpen: Boolean(document.querySelector("[data-qa='account-balances-companion']")),
       accountBalancesDrawerOpen: Boolean(drawer && document.body.innerText.includes("Account balances")),
+      accountBalancesTriggerInPageActions: Boolean(document.querySelector(".transactions-header-actions #transactions-account-balances-trigger")),
+      accountBalancesTriggerInLedgerToolbar: Boolean(document.querySelector(".transactions-ledger-toolbar #transactions-account-balances-trigger")),
+      inlineAccountBalancesVisible: Boolean(document.querySelector(".transactions-ledger .transactions-account-balances")),
       accountBalancesZeroVisible: document.body.innerText.includes("0.00 PLN"),
       ledgerColumnsFullyVisible: Boolean(ledgerCardRect && ledgerColumns.length === 4 && ledgerColumns.every((column) => {
         const rect = column.getBoundingClientRect();
@@ -761,9 +763,14 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       recoveryActionsClearMobileNav: stateResults
         .filter((state) => state.loadErrorVisible || state.refreshErrorVisible)
         .every((state) => !state.recoveryActionOccludedAtStart),
-      accountBalancesTabletLedgerColumnsVisible: stateResults
-        .filter((state) => state.name === "account-balances-open-1024")
-        .every((state) => state.ledgerColumnsFullyVisible),
+      accountBalancesInitiallyHidden: stateResults
+        .filter((state) => state.name === "populated-1440" || state.name === "populated-1024" || state.name === "populated-390" || state.name === "populated-360")
+        .every((state) => !state.accountBalancesDrawerOpen && !state.inlineAccountBalancesVisible),
+      accountBalancesDrawerPresentation: stateResults
+        .filter((state) => state.name.startsWith("account-balances-"))
+        .every((state) => state.accountBalancesDrawerOpen && state.drawerWithinViewport && !state.inlineAccountBalancesVisible),
+      accountBalancesPageActionPlacement: stateResults
+        .every((state) => state.accountBalancesTriggerInPageActions && !state.accountBalancesTriggerInLedgerToolbar),
       desktopLedgerScanOrder: stateResults
         .filter((state) => state.name === "populated-1440" || state.name === "populated-1024")
         .every((state) => state.ledgerColumnLabels.join("|") === "Description|Account|Date|Amount"
@@ -805,11 +812,6 @@ export const visualQaConfig = {
   buildSummary,
   collectAdditionalFailures: (stateResults) => {
     const failures = [];
-    const tabletCompanion = stateResults.find((state) => state.name === "account-balances-open-1024");
-    if (tabletCompanion && !tabletCompanion.ledgerColumnsFullyVisible) {
-      failures.push("account-balances-open-1024: ledger columns are clipped");
-    }
-
     for (const state of stateResults.filter((item) => item.name === "populated-1440" || item.name === "populated-1024")) {
       if (state.ledgerColumnLabels.join("|") !== "Description|Account|Date|Amount") {
         failures.push(`${state.name}: desktop ledger order is not Description, Account, Date, Amount`);
@@ -837,12 +839,16 @@ export const visualQaConfig = {
       failures.push("missing-rate-1440: unavailable cached rates rendered base equivalents");
     }
 
-    for (const state of stateResults.filter((item) => item.name === "account-balances-open-1440" || item.name === "account-balances-open-1024")) {
-      if (state.drawerOpen) failures.push(`${state.name}: desktop companion rendered as a drawer`);
+    for (const state of stateResults.filter((item) => item.name.startsWith("account-balances-"))) {
+      if (!state.accountBalancesDrawerOpen || !state.drawerWithinViewport || state.inlineAccountBalancesVisible) {
+        failures.push(`${state.name}: account balances are not rendered as one responsive drawer`);
+      }
     }
 
-    for (const state of stateResults.filter((item) => item.name === "account-balances-open-390" || item.name === "account-balances-open-360")) {
-      if (!state.drawerOpen || !state.drawerWithinViewport) failures.push(`${state.name}: mobile balance drawer is not fully visible`);
+    for (const state of stateResults) {
+      if (!state.accountBalancesTriggerInPageActions || state.accountBalancesTriggerInLedgerToolbar) {
+        failures.push(`${state.name}: account balances control is not in the page action area`);
+      }
     }
 
     return failures;
