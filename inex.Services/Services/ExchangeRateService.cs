@@ -93,7 +93,7 @@ public class ExchangeRateService : Service, IExchangeRateService
     public Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
         => Get(userId, date, date, baseCurrency, ct);
 
-    /// <summary>Returns only already-recorded rates and never contacts a provider or repairs the cache.</summary>
+    /// <summary>Returns recorded rates without contacting a provider or repairing the cache. Today's temporary rates are usable.</summary>
     public async Task<ListResponse<ExchangeRateResponse>> GetCached(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
     {
         if (end < start)
@@ -104,11 +104,12 @@ public class ExchangeRateService : Service, IExchangeRateService
         baseCurrency = ResolveBaseCurrency(userId, baseCurrency);
         DateTime startDate = start.Date;
         DateTime endDate = end.Date;
+        DateTime today = _clock.UtcNow.Date;
         IQueryable<ExchangeRate> rates = DbInEx.ExchangeRateRepository.Get(true)
             .Where(rate => rate.Created >= startDate
                 && rate.Created <= endDate
                 && rate.FromCode == baseCurrency
-                && !rate.IsTemporary);
+                && (!rate.IsTemporary || rate.Created == today));
 
         List<ExchangeRate> cachedRates = await rates
             .OrderBy(rate => rate.Created)
