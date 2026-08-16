@@ -98,6 +98,7 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
   return {
     totalCount: transactions.length,
     typeCounts,
+    viewTypeCounts: typeCounts,
     currencySummaries: Array.from(currencySummariesByCurrency.values()),
     baseCurrency: fixture.transactionsVisualFixtureMeta.expectedBaseCurrency,
     currentScope: {

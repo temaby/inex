@@ -202,6 +202,7 @@ const Transactions = () => {
             typeCounts: summaryData.currentScope.typeCounts,
         }
         : emptyLedgerMetrics;
+    const viewTypeCounts = summaryData?.viewTypeCounts ?? emptyLedgerMetrics.typeCounts;
     const scopedTotalCount = scopedMetrics.totalCount;
     const noMatchActive = filterActive && summaryData?.currentScope.totalCount === 0;
     const periodLabel = useMemo(
@@ -557,10 +558,10 @@ const Transactions = () => {
                                 label={t("transactions.view")}
                                 onChange={(value) => applyServerFilter({ ...canonicalFilter, type: value as TransactionFilter["type"] })}
                                 options={[
-                                    { key: "all", label: `${t("transactions.all")} ${scopedMetrics.typeCounts.all}` },
-                                    { key: "income", label: `${t("transactions.income")} ${scopedMetrics.typeCounts.income}` },
-                                    { key: "expense", label: `${t("transactions.expense")} ${scopedMetrics.typeCounts.expense}` },
-                                    { key: "transfer", label: `${t("transactions.transfer")} ${scopedMetrics.typeCounts.transfer}` },
+                                    { key: "all", label: `${t("transactions.all")} ${viewTypeCounts.all}` },
+                                    { key: "income", label: `${t("transactions.income")} ${viewTypeCounts.income}` },
+                                    { key: "expense", label: `${t("transactions.expense")} ${viewTypeCounts.expense}` },
+                                    { key: "transfer", label: `${t("transactions.transfer")} ${viewTypeCounts.transfer}` },
                                 ]}
                                 size="compact"
                                 value={canonicalFilter.type}

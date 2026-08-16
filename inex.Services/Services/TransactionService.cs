@@ -73,6 +73,10 @@ public class TransactionService : InExService, ITransactionService
             .ToList();
 
         TransactionSummaryScope currentScope = BuildSummaryScope(items, filter.StartDate, filter.EndDate);
+        string? type = filter.Type?.Trim().ToLowerInvariant();
+        TransactionTypeCounts viewTypeCounts = type is "income" or "expense" or "transfer"
+            ? BuildTypeCounts(GetTransactions(userId, mode, filter with { Type = "all" }))
+            : currentScope.TypeCounts;
         TransactionSummaryScope? previousScope = TryGetComparablePeriod(filter, out DateTime previousStartDate, out DateTime previousEndDate)
             ? BuildSummaryScope(
                 GetTransactions(userId, mode, filter with { StartDate = previousStartDate, EndDate = previousEndDate }),
@@ -84,6 +88,7 @@ public class TransactionService : InExService, ITransactionService
         {
             TotalCount = currentScope.TotalCount,
             TypeCounts = currentScope.TypeCounts,
+            ViewTypeCounts = viewTypeCounts,
             CurrencySummaries = currencySummaries,
             BaseCurrency = DbInEx.UserRepository
                 .Get(true, null, user => user.Currency)
@@ -365,19 +370,21 @@ public class TransactionService : InExService, ITransactionService
         return new TransactionSummaryScope
         {
             TotalCount = totalCount,
-            TypeCounts = new TransactionTypeCounts
-            {
-                All = totalCount,
-                Income = items.Count(item => !item.Category.IsSystem && item.Value >= 0),
-                Expense = items.Count(item => !item.Category.IsSystem && item.Value < 0),
-                Transfer = items.Count(item => item.Category.IsSystem)
-            },
+            TypeCounts = BuildTypeCounts(items),
             Period = startDate is not null && endDate is not null
                 ? new TransactionSummaryPeriod { StartDate = startDate.Value, EndDate = endDate.Value }
                 : null,
             CashFlowBuckets = cashFlowBuckets
         };
     }
+
+    private static TransactionTypeCounts BuildTypeCounts(IQueryable<Transaction> items) => new()
+    {
+        All = items.Count(),
+        Income = items.Count(item => !item.Category.IsSystem && item.Value >= 0),
+        Expense = items.Count(item => !item.Category.IsSystem && item.Value < 0),
+        Transfer = items.Count(item => item.Category.IsSystem)
+    };
 
     private static bool TryGetComparablePeriod(TransactionFilterQuery filter, out DateTime previousStartDate, out DateTime previousEndDate)
     {
