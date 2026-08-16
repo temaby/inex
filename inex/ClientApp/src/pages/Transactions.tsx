@@ -115,6 +115,7 @@ const Transactions = () => {
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerVisibleCount, setLedgerVisibleCount] = useState(0);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
+    const [ledgerRefreshToken, setLedgerRefreshToken] = useState(0);
 
     const activeAccounts = useMemo(
         () => allAccounts.filter((account: AccountResponse) => account.isEnabled),
@@ -601,6 +602,7 @@ const Transactions = () => {
                             onEditDrawerOpenChange={setEditDrawerOpen}
                             onVisibleCountChange={setLedgerVisibleCount}
                             periodLabel={periodLabel}
+                            refreshToken={ledgerRefreshToken}
                         />
                     </section>
                     {accountBalancesOpen && (
@@ -629,7 +631,10 @@ const Transactions = () => {
                         categories={activeCategories}
                         onCancel={closeAddDrawer}
                         onModeChange={setCreateMode}
-                        onSubmit={closeAddDrawer}
+                        onSubmit={() => {
+                            closeAddDrawer();
+                            setLedgerRefreshToken((token) => token + 1);
+                        }}
                     />
                 )}
                 {formError && (

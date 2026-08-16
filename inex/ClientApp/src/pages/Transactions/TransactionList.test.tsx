@@ -101,6 +101,7 @@ describe("TransactionList", () => {
                 onInitialLoadingChange={vi.fn()}
                 onVisibleCountChange={vi.fn()}
                 periodLabel="June 2026"
+                refreshToken={0}
             />
         </>,
     );
@@ -131,6 +132,7 @@ describe("TransactionList", () => {
                 onInitialLoadingChange={vi.fn()}
                 onVisibleCountChange={vi.fn()}
                 periodLabel="June 2026"
+                refreshToken={0}
             />,
         );
 
@@ -162,6 +164,46 @@ describe("TransactionList", () => {
 
         await waitFor(() => expect(document.activeElement).toBe(row));
         expect(row).toHaveClass("transactions-ledger-row--restored-focus");
+    });
+
+    it("refreshes the active progressive ledger from page one after a successful create signal", async () => {
+        const activeFilter = { accountIds: [1], categoryIds: [], range: [], refs: [], search: "groceries", tags: [], type: "expense" as const };
+        const refreshedTransaction = { ...transaction, id: 2, comment: "New groceries" };
+        const RefreshHarness = () => {
+            const [refreshToken, setRefreshToken] = React.useState(0);
+            return <>
+                <button onClick={() => {
+                    apiState.transactions = [refreshedTransaction];
+                    setRefreshToken((token) => token + 1);
+                }} type="button">Created transaction</button>
+                <TransactionList
+                    accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, currencyId: 1, currency: "PLN" }]}
+                    accountSummaries={[]}
+                    baseCurrency="USD"
+                    categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
+                    cachedExchangeRates={[]}
+                    filter={activeFilter}
+                    onAddTransaction={vi.fn()}
+                    onClearFilters={vi.fn()}
+                    onEditDrawerOpenChange={vi.fn()}
+                    onInitialLoadingChange={vi.fn()}
+                    onVisibleCountChange={vi.fn()}
+                    periodLabel="June 2026"
+                    refreshToken={refreshToken}
+                />
+            </>;
+        };
+
+        render(<RefreshHarness />);
+        expect(screen.getByText("Long grocery trip")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Created transaction" }));
+
+        await waitFor(() => expect(apiState.initiate).toHaveBeenCalledWith(
+            { pageSize: 20, page: 1, filter: activeFilter },
+            { forceRefetch: true, subscribe: false },
+        ));
+        await waitFor(() => expect(screen.getByText("New groceries")).toBeInTheDocument());
+        expect(screen.queryByText("Long grocery trip")).not.toBeInTheDocument();
     });
 
     it("moves focus to the ledger heading when an updated row is filtered out", async () => {
