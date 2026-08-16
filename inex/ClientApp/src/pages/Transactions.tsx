@@ -111,7 +111,7 @@ const Transactions = () => {
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
     const [editDrawerOpen, setEditDrawerOpen] = useState(false);
     const [accountBalancesOpen, setAccountBalancesOpen] = useState(false);
-    const [filterDrawerOpen, setFilterDrawerOpen] = useState(filterParam !== null);
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerVisibleCount, setLedgerVisibleCount] = useState(0);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
@@ -539,6 +539,8 @@ const Transactions = () => {
                                     {t("transactions.accountBalances")}
                                 </InExButton>
                                 <InExButton
+                                    aria-expanded={filterDrawerOpen}
+                                    aria-haspopup="dialog"
                                     icon={<SlidersHorizontal size={15} />}
                                     kind="ghost"
                                     onClick={() => setFilterDrawerOpen(true)}
