@@ -281,6 +281,41 @@ describe("transactionsApi", () => {
     });
   });
 
+  it("cache invalidation on transaction update refreshes the subscribed ledger query", async () => {
+    const store = createTestStore();
+    mockApiClient.mockImplementation(async (config) => {
+      const request = config as AxiosRequestConfig;
+      if (request.method === "put") {
+        return axiosResponse(undefined);
+      }
+
+      const listResponse = mockApiClient.mock.calls.length >= 3 ? updatedFixture : fixture;
+      return axiosResponse(listResponse);
+    });
+
+    store.dispatch(transactionsApi.endpoints.getTransactions.initiate(args));
+
+    await waitFor(() => {
+      expect(transactionsApi.endpoints.getTransactions.select(args)(store.getState()).data).toEqual(fixture);
+    });
+
+    await store.dispatch(
+      transactionsApi.endpoints.updateTransaction.initiate({
+        id: 1,
+        accountId: 2,
+        categoryId: 3,
+        amount: -52,
+        comment: "Updated lunch",
+        created: "2026-06-02",
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockApiClient).toHaveBeenCalledTimes(3);
+      expect(transactionsApi.endpoints.getTransactions.select(args)(store.getState()).data).toEqual(updatedFixture);
+    });
+  });
+
   it("cache invalidation on mutation refreshes subscribed summary data", async () => {
     const store = createTestStore();
     const updatedSummary: TransactionSummaryResult = {

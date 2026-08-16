@@ -38,6 +38,7 @@ interface TransactionListProps {
     onEditDrawerOpenChange: (open: boolean) => void;
     onVisibleCountChange: (count: number) => void;
     periodLabel: string;
+    refreshToken: number;
 }
 
 interface TransactionDateGroup {
@@ -63,7 +64,7 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
     return Array.from(groups.values()).sort((left, right) => right.dateKey.localeCompare(left.dateKey));
 };
 
-const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel }: TransactionListProps) => {
+const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel, refreshToken }: TransactionListProps) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const formError = useAppSelector(state => state.transactions.error);
@@ -77,6 +78,7 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
     const requestKey = useMemo(() => JSON.stringify({ filter, pageSize: pagination.size, navigationMode }), [filter, pagination.size, navigationMode]);
     const [progressivePages, setProgressivePages] = useState(() => createProgressivePageAccumulator<TransactionResponse>(requestKey));
     const loadMoreSentinel = useRef<HTMLDivElement | null>(null);
+    const handledRefreshToken = useRef(refreshToken);
 
     useEffect(() => {
         setPagination(previous => ({ ...previous, current: 1 }));
@@ -170,6 +172,23 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
             .then(queueFocus)
             .catch(() => queueFocus());
     }, [closeEditDrawer, dispatch, filter, navigationMode, pagination.size, query, requestKey]);
+
+    useEffect(() => {
+        if (handledRefreshToken.current === refreshToken) return;
+
+        handledRefreshToken.current = refreshToken;
+        if (navigationMode === "progressive") {
+            setRequestedProgressivePage(1);
+            setProgressivePages(createProgressivePageAccumulator<TransactionResponse>(requestKey));
+            void dispatch(transactionsApi.endpoints.getTransactions.initiate(
+                { pageSize: pagination.size, page: 1, filter },
+                { forceRefetch: true, subscribe: false },
+            ));
+            return;
+        }
+
+        void query.refetch();
+    }, [dispatch, filter, navigationMode, pagination.size, query, refreshToken, requestKey]);
 
     useEffect(() => {
         if (focusTargetId === undefined) return undefined;
