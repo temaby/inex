@@ -6,6 +6,7 @@
 
 .transactions-header-actions {
     display: flex;
+    gap: 8px;
     min-width: 0;
 }
 
@@ -63,18 +64,6 @@
     box-shadow: var(--shadow-1);
     min-width: 0;
     overflow: hidden;
-}
-
-.transactions-workspace {
-    align-items: start;
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1fr);
-    min-width: 0;
-}
-
-.transactions-workspace:has(.transactions-account-balances) {
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
 }
 
 .transactions-ledger-toolbar__actions {
@@ -143,21 +132,6 @@
 
 .transactions-account-balances__state--error p {
     margin: 0;
-}
-
-@media (min-width: 769px) and (max-width: 1120px) {
-    .transactions-workspace:has(.transactions-account-balances) {
-        gap: 16px;
-        grid-template-columns: minmax(0, 1fr) 224px;
-    }
-
-    .transactions-workspace:has(.transactions-account-balances) .transactions-ledger-head,
-    .transactions-workspace:has(.transactions-account-balances) .transactions-ledger-row {
-        gap: 10px;
-        grid-template-columns: minmax(150px, 1.5fr) minmax(112px, 0.9fr) minmax(88px, 0.75fr) minmax(180px, 1.1fr);
-        padding-left: 14px;
-        padding-right: 14px;
-    }
 }
 
 .transactions-ledger-toolbar,
@@ -680,14 +654,6 @@
 @media (max-width: 768px) {
     .transactions-ledger {
         gap: 16px;
-    }
-
-    .transactions-workspace:has(.transactions-account-balances) {
-        display: block;
-    }
-
-    .transactions-workspace > .transactions-account-balances {
-        display: none;
     }
 
     .transactions-ledger-toolbar__actions,
