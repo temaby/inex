@@ -45,6 +45,7 @@ public record TransactionSummaryResponse
 {
     public int TotalCount { get; init; }
     public TransactionTypeCounts TypeCounts { get; init; } = new();
+    public TransactionTypeCounts ViewTypeCounts { get; init; } = new();
     public IEnumerable<TransactionCurrencySummary> CurrencySummaries { get; init; } = new List<TransactionCurrencySummary>();
     public string BaseCurrency { get; init; } = string.Empty;
     public TransactionSummaryScope CurrentScope { get; init; } = new();

@@ -6,10 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ratesSlice from "../store/rates/rates-slice";
 import transactionsSlice from "../store/transactions/transactions-slice";
+import type { TransactionSummaryResult } from "../store/transactions/transactions-api";
 import Transactions from "./Transactions";
 
 const navigateMock = vi.hoisted(() => vi.fn());
 const routerState = vi.hoisted(() => ({ search: "" }));
+const summaryQueryState = vi.hoisted(() => ({ data: undefined as TransactionSummaryResult | undefined }));
 
 vi.mock("react-router-dom", async () => {
     const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -116,7 +118,8 @@ vi.mock("../store/categories/categories-api", () => ({
 
 vi.mock("../store/transactions/transactions-api", () => ({
     useGetTransactionsSummaryQuery: () => ({
-        data: undefined,
+        currentData: summaryQueryState.data,
+        data: summaryQueryState.data,
         isLoading: false,
     }),
 }));
@@ -179,6 +182,7 @@ describe("Transactions month controls", () => {
         vi.setSystemTime(new Date("2026-07-28T12:00:00"));
         navigateMock.mockReset();
         routerState.search = "";
+        summaryQueryState.data = undefined;
         Object.defineProperty(window, "matchMedia", {
             writable: true,
             value: vi.fn().mockImplementation((query: string) => ({
@@ -271,5 +275,37 @@ describe("Transactions month controls", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "Close" }));
         expect(filters).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("uses untyped server VIEW counts and removes only type when All is selected", () => {
+        summaryQueryState.data = {
+            totalCount: 1,
+            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0 },
+            viewTypeCounts: { all: 4, income: 1, expense: 1, transfer: 2 },
+            currencySummaries: [],
+            baseCurrency: "USD",
+            currentScope: {
+                totalCount: 1,
+                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0 },
+                period: null,
+                cashFlowBuckets: [],
+            },
+            previousScope: null,
+        };
+        routerState.search = "?filter=type%3Aincome%3Bsearch%3Aview-scope%3B";
+
+        renderTransactions();
+        expect(screen.getByRole("button", { name: "All 4" })).toBeVisible();
+        expect(screen.getByRole("button", { name: "Income 1" })).toBeVisible();
+        expect(screen.getByRole("button", { name: "Expense 1" })).toBeVisible();
+        expect(screen.getByRole("button", { name: "Transfer 2" })).toBeVisible();
+
+        navigateMock.mockClear();
+        fireEvent.click(screen.getByRole("button", { name: "All 4" }));
+
+        expect(navigateMock).toHaveBeenCalledWith(
+            "/transactions?filter=search%3Aview-scope%3B",
+            { replace: true },
+        );
     });
 });

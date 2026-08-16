@@ -59,6 +59,7 @@ export interface TransactionSummaryScope {
 export interface TransactionSummaryResult {
   totalCount: number;
   typeCounts: TransactionTypeCounts;
+  viewTypeCounts: TransactionTypeCounts;
   currencySummaries: TransactionCurrencySummary[];
   baseCurrency: string;
   currentScope: TransactionSummaryScope;

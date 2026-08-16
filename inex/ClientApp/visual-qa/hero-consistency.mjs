@@ -117,6 +117,7 @@ function createTransactionsSummary(fixture) {
   return {
     totalCount: fixture.transactionsVisualFixtureTransactions.length,
     typeCounts,
+    viewTypeCounts: typeCounts,
     currencySummaries: Array.from(currencySummariesByCurrency.values()),
     baseCurrency: fixture.transactionsVisualFixtureMeta.expectedBaseCurrency,
     currentScope: {

@@ -578,6 +578,52 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         Assert.Equal(income, counts.GetProperty("income").GetInt32());
         Assert.Equal(expense, counts.GetProperty("expense").GetInt32());
         Assert.Equal(transfer, counts.GetProperty("transfer").GetInt32());
+
+        if (type == "all")
+        {
+            var viewTypeCounts = summary.GetProperty("viewTypeCounts");
+            Assert.Equal(total, viewTypeCounts.GetProperty("all").GetInt32());
+            Assert.Equal(income, viewTypeCounts.GetProperty("income").GetInt32());
+            Assert.Equal(expense, viewTypeCounts.GetProperty("expense").GetInt32());
+            Assert.Equal(transfer, viewTypeCounts.GetProperty("transfer").GetInt32());
+        }
+    }
+
+    [Fact]
+    public async Task Summary_WithSelectedType_ReturnsViewCountsWithoutTheTypeCriterion()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int sourceAccountId = await CreateAccountAsync(client, "view-count-source");
+        int destinationAccountId = await CreateAccountAsync(client, "view-count-destination");
+        int categoryId = await CreateCategoryAsync(client, "view-count-category");
+        await CreateTransactionWithAmountAndCommentAsync(client, sourceAccountId, categoryId, 10m, "income #view-scope");
+        await CreateTransactionWithAmountAndCommentAsync(client, sourceAccountId, categoryId, -5m, "expense #view-scope");
+
+        var transferResponse = await client.PostAsJsonAsync("/api/transactions/transfer", new
+        {
+            accountFromId = sourceAccountId,
+            accountToId = destinationAccountId,
+            created = DateTime.UtcNow,
+            amountFrom = 7m,
+            amountTo = 7m,
+            comment = "transfer #view-scope",
+        });
+        transferResponse.EnsureSuccessStatusCode();
+
+        var response = await client.GetAsync("/api/transactions/summary?tag=view-scope&type=income");
+        response.EnsureSuccessStatusCode();
+        var summary = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(1, summary.GetProperty("currentScope").GetProperty("totalCount").GetInt32());
+        var currentTypeCounts = summary.GetProperty("currentScope").GetProperty("typeCounts");
+        Assert.Equal(1, currentTypeCounts.GetProperty("all").GetInt32());
+        Assert.Equal(1, currentTypeCounts.GetProperty("income").GetInt32());
+
+        var viewTypeCounts = summary.GetProperty("viewTypeCounts");
+        Assert.Equal(4, viewTypeCounts.GetProperty("all").GetInt32());
+        Assert.Equal(1, viewTypeCounts.GetProperty("income").GetInt32());
+        Assert.Equal(1, viewTypeCounts.GetProperty("expense").GetInt32());
+        Assert.Equal(2, viewTypeCounts.GetProperty("transfer").GetInt32());
     }
 
     [Fact]
