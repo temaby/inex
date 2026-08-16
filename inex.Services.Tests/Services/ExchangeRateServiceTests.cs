@@ -78,6 +78,36 @@ public class ExchangeRateServiceTests
     private static IQueryable<ExchangeRate> EmptyRates() =>
         Enumerable.Empty<ExchangeRate>().AsAsyncQueryable();
 
+    [Fact]
+    public async Task GetCached_WhenTodayTemporaryRateExists_ReturnsItButExcludesHistoricalTemporaryRates()
+    {
+        var today = _clock.UtcNow.Date;
+        var yesterday = today.AddDays(-1);
+        var rates = new[]
+        {
+            new ExchangeRate { FromCode = "USD", ToCode = "EUR", Rate = 0.9m, Created = yesterday, IsTemporary = false },
+            new ExchangeRate { FromCode = "USD", ToCode = "PLN", Rate = 4.1m, Created = yesterday, IsTemporary = true },
+            new ExchangeRate { FromCode = "USD", ToCode = "PLN", Rate = 4.2m, Created = today, IsTemporary = true }
+        }.AsAsyncQueryable();
+        _exchangeRateRepoMock.Setup(repository => repository.Get(true, null)).Returns(rates);
+
+        var result = await CreateSut().GetCached(1, yesterday, today, "USD");
+
+        Assert.Collection(result.Data,
+            rate =>
+            {
+                Assert.Equal("EUR", rate.CurrencyTo);
+                Assert.False(rate.IsTemporary);
+                Assert.Equal(yesterday, rate.Date);
+            },
+            rate =>
+            {
+                Assert.Equal("PLN", rate.CurrencyTo);
+                Assert.True(rate.IsTemporary);
+                Assert.Equal(today, rate.Date);
+            });
+    }
+
     // Ensures this regression test fails if grouping occurs before ToListAsync materializes the query.
     private static IQueryable<T> AsAsyncQueryableRejectingProviderSideGrouping<T>(IEnumerable<T> source) =>
         new ProviderSideGroupingRejectedAsyncQueryable<T>(source.AsQueryable());
