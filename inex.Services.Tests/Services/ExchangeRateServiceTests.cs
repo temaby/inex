@@ -78,6 +78,76 @@ public class ExchangeRateServiceTests
     private static IQueryable<ExchangeRate> EmptyRates() =>
         Enumerable.Empty<ExchangeRate>().AsAsyncQueryable();
 
+    // Ensures this regression test fails if grouping occurs before ToListAsync materializes the query.
+    private static IQueryable<T> AsAsyncQueryableRejectingProviderSideGrouping<T>(IEnumerable<T> source) =>
+        new ProviderSideGroupingRejectedAsyncQueryable<T>(source.AsQueryable());
+
+    private sealed class ProviderSideGroupingRejectedAsyncQueryable<T>(IQueryable<T> inner) : IQueryable<T>, IAsyncEnumerable<T>, IOrderedQueryable<T>
+    {
+        public Type ElementType => inner.ElementType;
+        public Expression Expression => inner.Expression;
+        public IQueryProvider Provider => new ProviderSideGroupingRejectedQueryProvider(inner.Provider);
+
+        public IEnumerator<T> GetEnumerator() => inner.GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+            new TestAsyncEnumerator<T>(inner.GetEnumerator());
+    }
+
+    private sealed class ProviderSideGroupingRejectedQueryProvider(IQueryProvider inner) : IQueryProvider
+    {
+        public IQueryable CreateQuery(Expression expression)
+        {
+            RejectProviderSideGrouping(expression);
+            return inner.CreateQuery(expression);
+        }
+
+        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        {
+            RejectProviderSideGrouping(expression);
+            return new ProviderSideGroupingRejectedAsyncQueryable<TElement>(inner.CreateQuery<TElement>(expression));
+        }
+
+        public object? Execute(Expression expression)
+        {
+            RejectProviderSideGrouping(expression);
+            return inner.Execute(expression);
+        }
+
+        public TResult Execute<TResult>(Expression expression)
+        {
+            RejectProviderSideGrouping(expression);
+            return inner.Execute<TResult>(expression);
+        }
+
+        private static void RejectProviderSideGrouping(Expression expression)
+        {
+            if (new QueryableGroupByDetector().ContainsQueryableGroupBy(expression))
+            {
+                throw new InvalidOperationException("The test query provider rejects GroupBy before materialization.");
+            }
+        }
+    }
+
+    private sealed class QueryableGroupByDetector : ExpressionVisitor
+    {
+        private bool _containsQueryableGroupBy;
+
+        public bool ContainsQueryableGroupBy(Expression expression)
+        {
+            Visit(expression);
+            return _containsQueryableGroupBy;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            _containsQueryableGroupBy |= node.Method.DeclaringType == typeof(Queryable)
+                && node.Method.Name == nameof(Queryable.GroupBy);
+            return base.VisitMethodCall(node);
+        }
+    }
+
     // Accounts with populated Currency navigation — used to set up ResolveTargetCurrencyCodes.
     private static IQueryable<Account> AccountsFor(int userId, params string[] currencyCodes) =>
         currencyCodes.Select(c => new Account { UserId = userId, IsEnabled = true, Currency = new Currency { Key = c } })
@@ -268,6 +338,43 @@ public class ExchangeRateServiceTests
             r => r.CreateAsync(It.Is<ExchangeRate>(e => e.Created == today && e.IsTemporary && e.ToCode == targetCode), It.IsAny<CancellationToken>()),
             Times.Once);
         _uowMock.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_Range_WhenTodayRatesAreMissing_CreatesTemporaryRatesFromLatestPriorRatePerTarget()
+    {
+        var today = _clock.UtcNow.Date;
+        var latestEurDate = today.AddDays(-1);
+        var latestBynDate = today.AddDays(-2);
+        var olderEurDate = today.AddDays(-5);
+        var baseCurrency = "USD";
+        var rates = new List<ExchangeRate>
+        {
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.85m, Created = olderEurDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "EUR", Rate = 0.9m, Created = latestEurDate, IsTemporary = false },
+            new() { FromCode = baseCurrency, ToCode = "BYN", Rate = 3.1m, Created = latestBynDate, IsTemporary = false }
+        };
+
+        _userRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<AppUser, object>>>()))
+            .Returns(AppUsersFor(1, baseCurrency));
+        _accountRepoMock.Setup(r => r.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "EUR", "BYN"));
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
+            .Returns(() => AsAsyncQueryableRejectingProviderSideGrouping(rates));
+        _exchangeRateRepoMock.Setup(r => r.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback<ExchangeRate, CancellationToken>((rate, _) => rates.Add(rate))
+            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ExchangeRate>)null!);
+
+        var sut = CreateSut();
+
+        await sut.Get(1, today, today, baseCurrency);
+
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e =>
+            e.Created == today && e.ToCode == "EUR" && e.Rate == 0.9m && e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
+        _exchangeRateRepoMock.Verify(r => r.CreateAsync(It.Is<ExchangeRate>(e =>
+            e.Created == today && e.ToCode == "BYN" && e.Rate == 3.1m && e.IsTemporary), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.Verify(c => c.GetRatesForRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        _clientMock.Verify(c => c.GetRatesAsync(It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

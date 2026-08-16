@@ -475,12 +475,15 @@ public class ExchangeRateService : Service, IExchangeRateService
                 return;
             }
 
-            List<ExchangeRate> latestRates = DbInEx.ExchangeRateRepository.Get(true)
+            var priorRateCandidates = await DbInEx.ExchangeRateRepository.Get(true)
                 .Where(i => i.Created < today
                          && i.FromCode == baseCurrency
                          && !i.IsTemporary
                          && missingTargetCodes.Contains(i.ToCode))
                 .OrderByDescending(i => i.Created)
+                .ToListAsync(ct);
+
+            List<ExchangeRate> latestRates = priorRateCandidates
                 .GroupBy(i => i.ToCode)
                 .Select(g => g.First())
                 .ToList();
