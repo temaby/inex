@@ -8,15 +8,13 @@ import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { CategoryDetails } from "../../model/Category/CategoryDetails";
-import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
+import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { TransactionCreateValidationErrors } from "./TransactionCreate";
-import SelectedAccountNativeBalance from "./SelectedAccountNativeBalance";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
 interface TransactionCreateIncomeFormProps {
     accounts: AccountResponse[];
-    accountSummaries: AccountSummary[];
     categories: CategoryDetails[];
     category: CategoryDetails;
     comment: string;
@@ -42,7 +40,6 @@ const getSelectedCategory = (category: CategoryDetails): CategoryDetails[] =>
 
 const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = ({
     accounts,
-    accountSummaries,
     categories,
     category,
     comment,
@@ -64,7 +61,6 @@ const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = 
             <Form.Item
                 help={validationErrors.toAccount}
                 label={t("transactions.account")}
-                extra={<SelectedAccountNativeBalance accountId={toAccount.id} summaries={accountSummaries} />}
                 validateStatus={validationErrors.toAccount ? "error" : undefined}
             >
                 <Dropdown

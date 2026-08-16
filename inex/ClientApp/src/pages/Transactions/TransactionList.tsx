@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pagination } from "antd";
 import { Inbox, Plus, RotateCw } from "lucide-react";
 
-import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
+import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
@@ -27,7 +27,6 @@ import {
 
 interface TransactionListProps {
     accounts: AccountResponse[];
-    accountSummaries: AccountSummary[];
     baseCurrency: string;
     categories: CategoryResponse[];
     cachedExchangeRates: ExchangeRateLike[];
@@ -35,7 +34,6 @@ interface TransactionListProps {
     onAddTransaction: () => void;
     onClearFilters: () => void;
     onInitialLoadingChange: (loading: boolean) => void;
-    onEditDrawerOpenChange: (open: boolean) => void;
     onVisibleCountChange: (count: number) => void;
     periodLabel: string;
     refreshToken: number;
@@ -64,7 +62,7 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
     return Array.from(groups.values()).sort((left, right) => right.dateKey.localeCompare(left.dateKey));
 };
 
-const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onEditDrawerOpenChange, onVisibleCountChange, periodLabel, refreshToken }: TransactionListProps) => {
+const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onVisibleCountChange, periodLabel, refreshToken }: TransactionListProps) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const formError = useAppSelector(state => state.transactions.error);
@@ -149,9 +147,8 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
     }, [hasRows, query.isError]);
 
     const closeEditDrawer = useCallback(() => {
-        onEditDrawerOpenChange(false);
         setEditRecord(null);
-    }, [onEditDrawerOpenChange]);
+    }, []);
 
     const restoreLedgerFocusAfterMutation = useCallback((updatedTransactionId: number | null) => {
         closeEditDrawer();
@@ -246,7 +243,6 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
                 const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, transaction.created, baseCurrency, cachedExchangeRates);
                 const openEdit = () => {
                     setRestoredFocusId(null);
-                    onEditDrawerOpenChange(true);
                     setEditRecord(transaction);
                 };
                 return <div className={`transactions-ledger-row transactions-ledger-row--${kind}${restoredFocusId === transaction.id ? " transactions-ledger-row--restored-focus" : ""}`} data-transaction-id={transaction.id} key={transaction.id} onBlur={() => setRestoredFocusId(null)} onClick={openEdit} onKeyDown={(event) => {
@@ -259,7 +255,7 @@ const TransactionList = ({ accounts, accountSummaries, baseCurrency, cachedExcha
             })}
         </section>)}
         <div className="transactions-pagination"><div>{t("transactions.paginationSummary", { visible: transactions.length, total, period: periodLabel })}</div>{navigationMode === "progressive" ? <div ref={loadMoreSentinel}><InExButton disabled={!hasNextPage || query.isFetching} kind="default" onClick={loadMore}>{query.isFetching ? t("transactions.loading.refreshing") : t("transactions.loadMore")}</InExButton></div> : <Pagination current={pagination.current} onChange={paginationChangedHandler} pageSize={pagination.size} pageSizeOptions={[20, 50, 100]} showSizeChanger total={total} />}</div>
-        <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accountSummaries={accountSummaries} accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
+        <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
     </>;
 };
 

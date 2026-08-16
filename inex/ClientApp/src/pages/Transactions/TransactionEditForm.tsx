@@ -12,20 +12,18 @@ import { Form, Col, Row } from 'antd';
 import { DatePicker } from "antd";
 
 import { CategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
+import { AccountDetails } from "../../model/Account/AccountDetails";
 import { TransactionEditState } from "../../model/Transaction/TransactionEditState";
 import Dropdown from "../../components/Dropdown";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useDeleteTransactionMutation, useUpdateTransactionMutation } from "../../store/transactions/transactions-api";
 import { parseAxiosError } from "../../utils/parseAxiosError";
-import type { AccountSummary } from "../../store/accounts/accounts-api";
-import SelectedAccountNativeBalance from "./SelectedAccountNativeBalance";
 
 
 const defaultState: TransactionEditState = new TransactionEditState();
 
 interface TransactionEditFormProps {
-    accountSummaries: AccountSummary[];
     accounts: any[];
     categories: any[];
     onMutationSuccess: (focusTransactionId: number | null) => void;
@@ -64,9 +62,11 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
       const currentRecord: TransactionEditState = new TransactionEditState();
 
       const account = accounts.find((i: any) => i.id === record.accountId);
-      if (account) {
-        currentRecord.account = account;
-      }
+      currentRecord.account = account ?? Object.assign(new AccountDetails(), {
+        id: record.accountId,
+        currency: record.accountCurrency,
+        name: t("transactions.unknownAccount"),
+      });
 
       const category = categories.find((i: any) => i.id === record.categoryId);
       if (category) {
@@ -78,7 +78,7 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
       currentRecord.comment = record.comment;
 
       dispatchTransactionAction({ type: "INIT", value: currentRecord });
-    }, [record, categories, accounts]);
+    }, [record, categories, accounts, t]);
 
     const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
 
@@ -149,7 +149,6 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
             <Row gutter={8}>
                 <Col xs={24} sm={12}>
                     <Form.Item
-                        extra={<SelectedAccountNativeBalance accountId={state.account.id} summaries={props.accountSummaries} />}
                         label={t("transactions.account")}
                     >
                         <Dropdown id="account" selection={[state.account]} onChange={setAccountHandler} items={props.accounts} multiple={false} />

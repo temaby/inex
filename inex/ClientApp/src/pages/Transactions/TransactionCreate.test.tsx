@@ -112,7 +112,6 @@ const renderCreateForm = () =>
     render(
         <TransactionCreate
             accounts={accounts}
-            accountSummaries={[]}
             categories={categories}
             onCancel={() => undefined}
             onSubmit={() => undefined}

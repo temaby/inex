@@ -109,7 +109,6 @@ const Transactions = () => {
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
-    const [editDrawerOpen, setEditDrawerOpen] = useState(false);
     const [accountBalancesOpen, setAccountBalancesOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
@@ -127,7 +126,7 @@ const Transactions = () => {
     );
     const activeAccountIds = useMemo(() => activeAccounts.map(account => account.id), [activeAccounts]);
     const accountBalancesQuery = useGetAccountsSummaryQuery(activeAccountIds, {
-        skip: !(accountBalancesOpen || addDrawerOpen || editDrawerOpen) || activeAccountIds.length === 0,
+        skip: !accountBalancesOpen || activeAccountIds.length === 0,
     });
     const accountBalances = accountBalancesQuery.currentData ?? accountBalancesQuery.data ?? [];
     const accountBalancesLoading = accountBalancesOpen && (
@@ -591,8 +590,7 @@ const Transactions = () => {
                         )}
 
                         <TransactionList
-                            accounts={allAccounts}
-                            accountSummaries={accountBalances}
+                            accounts={activeAccounts}
                             baseCurrency={baseCurrency}
                             categories={allCategories}
                             cachedExchangeRates={cachedExchangeRates}
@@ -600,7 +598,6 @@ const Transactions = () => {
                             onAddTransaction={openAddDrawer}
                             onClearFilters={clearAllFilters}
                             onInitialLoadingChange={setLedgerInitialLoading}
-                            onEditDrawerOpenChange={setEditDrawerOpen}
                             onVisibleCountChange={setLedgerVisibleCount}
                             periodLabel={periodLabel}
                             refreshToken={ledgerRefreshToken}
@@ -628,7 +625,6 @@ const Transactions = () => {
                 {addDrawerOpen && (
                     <TransactionCreate
                         accounts={activeAccounts}
-                        accountSummaries={accountBalances}
                         categories={activeCategories}
                         onCancel={closeAddDrawer}
                         onModeChange={setCreateMode}
