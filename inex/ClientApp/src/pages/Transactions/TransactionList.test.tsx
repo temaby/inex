@@ -90,14 +90,12 @@ describe("TransactionList", () => {
             <h2 id="transactions-ledger-heading" tabIndex={-1}>Ledger</h2>
             <TransactionList
                 accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, currencyId: 1, currency: "PLN" }]}
-                accountSummaries={[]}
                 baseCurrency="USD"
                 categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                 cachedExchangeRates={[{ currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 }]}
                 filter={{ accountIds: [], categoryIds: [], range: [], refs: [], search: "", tags: [], type: "all" }}
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
-                onEditDrawerOpenChange={vi.fn()}
                 onInitialLoadingChange={vi.fn()}
                 onVisibleCountChange={vi.fn()}
                 periodLabel="June 2026"
@@ -117,18 +115,15 @@ describe("TransactionList", () => {
     });
 
     it("keeps desktop metadata before the final amount and shows an available date-matched equivalent", () => {
-        const onEditDrawerOpenChange = vi.fn();
         const { container } = render(
             <TransactionList
                 accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, currencyId: 1, currency: "PLN" }]}
-                accountSummaries={[]}
                 baseCurrency="USD"
                 categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                 cachedExchangeRates={[{ currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 }]}
                 filter={{ accountIds: [], categoryIds: [], range: [], refs: [], search: "", tags: [], type: "all" }}
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
-                onEditDrawerOpenChange={onEditDrawerOpenChange}
                 onInitialLoadingChange={vi.fn()}
                 onVisibleCountChange={vi.fn()}
                 periodLabel="June 2026"
@@ -151,7 +146,6 @@ describe("TransactionList", () => {
 
         fireEvent.keyDown(row as Element, { key: "Enter" });
         fireEvent.keyDown(row as Element, { key: " " });
-        expect(onEditDrawerOpenChange).toHaveBeenCalledTimes(2);
     });
 
     it("returns focus to the updated row after the refreshed ledger renders", async () => {
@@ -178,14 +172,12 @@ describe("TransactionList", () => {
                 }} type="button">Created transaction</button>
                 <TransactionList
                     accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, currencyId: 1, currency: "PLN" }]}
-                    accountSummaries={[]}
                     baseCurrency="USD"
                     categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                     cachedExchangeRates={[]}
                     filter={activeFilter}
                     onAddTransaction={vi.fn()}
                     onClearFilters={vi.fn()}
-                    onEditDrawerOpenChange={vi.fn()}
                     onInitialLoadingChange={vi.fn()}
                     onVisibleCountChange={vi.fn()}
                     periodLabel="June 2026"

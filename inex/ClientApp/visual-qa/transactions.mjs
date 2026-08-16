@@ -162,8 +162,8 @@ const states = [
     interaction: "open-add-drawer",
   },
   ...visualQaViewports.map(({ suffix, viewport }) => ({
-    name: `selected-account-balance-create-${suffix}`,
-    screenshot: `selected-account-balance-create-${suffix}.png`,
+    name: `selected-active-account-create-${suffix}`,
+    screenshot: `selected-active-account-create-${suffix}.png`,
     viewport,
     scenario: "populated",
     interaction: "open-add-drawer-and-select-account",
@@ -469,14 +469,14 @@ async function applyInteraction(client, state) {
         trigger.click();
         return true;
       })()`);
-      await waitFor(client, "Array.from(document.querySelectorAll('.ant-menu-item')).some((item) => item.textContent?.includes('Emergency reserve for long-term household commitments'))");
+      await waitFor(client, "Array.from(document.querySelectorAll('.ant-menu-item')).some((item) => item.textContent?.includes('Emergency reserve for long-term household commitments')) && !Array.from(document.querySelectorAll('.ant-menu-item')).some((item) => item.textContent?.includes('USD archive'))");
       await evaluate(client, `(() => {
         const account = Array.from(document.querySelectorAll(".ant-menu-item")).find((item) => item.textContent?.includes("Emergency reserve for long-term household commitments"));
         if (!account) return false;
         account.click();
         return true;
       })()`);
-      await waitFor(client, "document.body.innerText.includes('Native balance') && Boolean(document.querySelector('[data-qa=selected-account-native-balance]'))");
+      await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments') && !document.body.innerText.includes('Native balance') && !document.querySelector('[data-qa=selected-account-native-balance]')");
       return;
     case "open-filter-drawer":
       await evaluate(client, clickButtonByTextExpression("Filters"));
@@ -563,7 +563,7 @@ async function openRowEdit(client) {
           row.click();
           return true;
         })()`);
-  await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction') && Boolean(document.querySelector('[data-qa=selected-account-native-balance]'))");
+  await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Edit transaction') && !document.body.innerText.includes('Native balance') && !document.querySelector('[data-qa=selected-account-native-balance]')");
 }
 
 async function changeCommentAndSave(client) {

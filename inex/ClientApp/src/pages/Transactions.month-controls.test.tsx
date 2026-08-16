@@ -88,6 +88,15 @@ vi.mock("../store/accounts/accounts-api", () => ({
                 currencyId: 1,
                 currency: "USD",
             },
+            {
+                id: 2,
+                key: "archived-wallet",
+                name: "Archived wallet",
+                description: null,
+                isEnabled: false,
+                currencyId: 1,
+                currency: "USD",
+            },
         ],
     }),
     useGetAccountsSummaryQuery: () => ({
@@ -129,11 +138,11 @@ vi.mock("../store/rates/rates-action", () => ({
 }));
 
 vi.mock("../layouts/BasicPage", () => ({
-    default: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
+    default: ({ children, extra }: { children: React.ReactNode; extra?: React.ReactNode }) => <main>{extra}{children}</main>,
 }));
 
 vi.mock("./Transactions/TransactionCreate", () => ({
-    default: () => <div data-testid="transaction-create" />,
+    default: ({ accounts }: { accounts: { name: string }[] }) => <div data-testid="transaction-create">{accounts.map(account => account.name).join(", ")}</div>,
 }));
 
 vi.mock("./Transactions/TransactionFilterForm", () => ({
@@ -141,7 +150,7 @@ vi.mock("./Transactions/TransactionFilterForm", () => ({
 }));
 
 vi.mock("./Transactions/TransactionList", () => ({
-    default: () => <div data-testid="transaction-list" />,
+    default: ({ accounts }: { accounts: { name: string }[] }) => <div data-testid="transaction-list">{accounts.map(account => account.name).join(", ")}</div>,
 }));
 
 vi.mock("../components/primitives/InExDrawer", () => ({
@@ -307,5 +316,16 @@ describe("Transactions month controls", () => {
             "/transactions?filter=search%3Aview-scope%3B",
             { replace: true },
         );
+    });
+
+    it("passes only active accounts to the edit and create transaction flows", () => {
+        renderTransactions();
+
+        expect(screen.getByTestId("transaction-list")).toHaveTextContent("Wallet");
+        expect(screen.getByTestId("transaction-list")).not.toHaveTextContent("Archived wallet");
+
+        fireEvent.click(screen.getByRole("button", { name: "Add transaction" }));
+        expect(screen.getByTestId("transaction-create")).toHaveTextContent("Wallet");
+        expect(screen.getByTestId("transaction-create")).not.toHaveTextContent("Archived wallet");
     });
 });
