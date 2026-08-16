@@ -141,6 +141,20 @@ vi.mock("./Transactions/TransactionList", () => ({
     default: () => <div data-testid="transaction-list" />,
 }));
 
+vi.mock("../components/primitives/InExDrawer", () => ({
+    InExDrawer: ({ children, onClose, open, title }: {
+        children: React.ReactNode;
+        onClose: () => void;
+        open: boolean;
+        title: string;
+    }) => open ? (
+        <section aria-label={title} role="dialog">
+            <button aria-label="Close" onClick={onClose} type="button">Close</button>
+            {children}
+        </section>
+    ) : null,
+}));
+
 const renderTransactions = () => {
     const store = configureStore({
         reducer: {
@@ -149,11 +163,14 @@ const renderTransactions = () => {
         },
     });
 
-    return render(
-        <Provider store={store}>
-            <Transactions />
-        </Provider>,
-    );
+    return {
+        store,
+        ...render(
+            <Provider store={store}>
+                <Transactions />
+            </Provider>,
+        ),
+    };
 };
 
 describe("Transactions month controls", () => {
@@ -225,5 +242,34 @@ describe("Transactions month controls", () => {
         fireEvent.click(accountBalances);
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByRole("region", { name: "Account balances" })).not.toBeInTheDocument();
+    });
+
+    it("keeps the filter drawer closed when the route has no serialized filter", () => {
+        renderTransactions();
+
+        expect(screen.getByTestId("transaction-list")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByTestId("transaction-filter-form")).not.toBeInTheDocument();
+    });
+
+    it("restores a serialized filter without opening the drawer, which the Filters control can open and close", () => {
+        routerState.search = "?filter=accountIds%3A1%3Btype%3Aexpense%3B";
+        const { store } = renderTransactions();
+
+        expect(store.getState().transactions.filter).toMatchObject({
+            accountIds: [1],
+            type: "expense",
+        });
+
+        const filters = screen.getByRole("button", { name: "Filters" });
+        expect(filters).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByTestId("transaction-filter-form")).not.toBeInTheDocument();
+
+        fireEvent.click(filters);
+        expect(filters).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByTestId("transaction-filter-form")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Close" }));
+        expect(filters).toHaveAttribute("aria-expanded", "false");
     });
 });
