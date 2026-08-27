@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useMemo, useState } from "react";
-import { DatePicker } from "antd";
+import { DatePicker, message } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 import { Download, Printer, Settings2, Share2, ArrowLeft } from "lucide-react";
@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
 import { InExButton } from "../components/primitives";
+import apiClient from "../utils/apiClient";
 import "./Reports/reports.css";
 
 export interface ReportsHubContext {
@@ -22,6 +23,7 @@ const Reports = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [hubPeriod, setHubPeriod] = useState(dayjs());
+    const [isMonthlyPdfExporting, setIsMonthlyPdfExporting] = useState(false);
     const normalizedPath = location.pathname.replace(/\/+$/, "") || "/";
 
     const reportTitles: Record<string, string> = {
@@ -65,6 +67,26 @@ const Reports = () => {
         URL.revokeObjectURL(url);
     };
 
+    const handleMonthlyPdfExport = async () => {
+        setIsMonthlyPdfExporting(true);
+        try {
+            const response = await apiClient.get("/reports/monthly-pdf", {
+                params: { year: hubPeriod.year(), month: hubPeriod.month() + 1 },
+                responseType: "blob",
+            });
+            const url = URL.createObjectURL(response.data);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `inex-monthly-financial-report-${hubPeriod.format("YYYY-MM")}.pdf`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            message.error(t("reports.monthlyPdfExportError"));
+        } finally {
+            setIsMonthlyPdfExporting(false);
+        }
+    };
+
     const extra = isHub ? (
         <div className="reports-hub-controls">
             <DatePicker
@@ -73,6 +95,7 @@ const Reports = () => {
                 format={dateFormat}
                 allowClear={false}
                 inputReadOnly
+                disabledDate={(date) => date.endOf("month").isAfter(dayjs(), "month")}
                 onChange={(date) => {
                     if (date) setHubPeriod(date);
                 }}
@@ -80,6 +103,14 @@ const Reports = () => {
             />
             <InExButton kind="default" icon={<Settings2 size={16} aria-hidden="true" />} disabled>
                 {t("reports.configure")}
+            </InExButton>
+            <InExButton
+                kind="primary"
+                icon={<Download size={16} aria-hidden="true" />}
+                disabled={isMonthlyPdfExporting}
+                onClick={handleMonthlyPdfExport}
+            >
+                {t("reports.monthlyPdfExport")}
             </InExButton>
         </div>
     ) : (

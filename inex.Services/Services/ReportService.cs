@@ -9,7 +9,10 @@ using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Models.Records.Transaction;
 using inex.Services.Models.Records.Report;
 using inex.Services.Infrastructure.Time;
+using inex.Services.Exceptions;
+using inex.Services.Reports;
 using inex.Services.Services.Base;
+using QuestPDF.Fluent;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -347,6 +350,130 @@ public class ReportService : Service, IReportService
         return new ListResponse<NetWorthHistoryPointResponse> { Data = points };
     }
 
+    public async Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default)
+    {
+        DateTime currentDate = _clock.UtcNow.Date;
+        int reportYear = year ?? currentDate.Year;
+        int reportMonth = month ?? currentDate.Month;
+        DateTime monthStart = new(reportYear, reportMonth, 1);
+        if (monthStart > new DateTime(currentDate.Year, currentDate.Month, 1))
+        {
+            throw new ValidationFailedException("A monthly financial report cannot be generated for a future month.");
+        }
+        DateTime monthEnd = monthStart.AddMonths(1).AddTicks(-1);
+        string currency = GetUserBaseCurrency(userId);
+
+        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(account => account.Id);
+        var categories = _categoryService.Get(userId, ActivityMode.ALL).Data.ToDictionary(category => category.Id);
+        var filters = new Dictionary<string, string>
+        {
+            ["end"] = monthEnd.ToString("yyyy-MM-dd HH:mm:ss.fffffff")
+        };
+        var transactions = _transactionService
+            .Get(userId, ActivityMode.ALL, filters)
+            .Data
+            .Where(transaction => accounts.ContainsKey(transaction.AccountId))
+            .ToList();
+        var rates = (await _exchangeRateService.Get(userId, monthStart.AddDays(-1), monthEnd, currency, ct)).Data;
+        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>(StringTupleDateComparer.Instance);
+        foreach (ExchangeRateResponse rate in rates)
+        {
+            rateMap.TryAdd((rate.CurrencyTo, rate.Date.Date), rate);
+        }
+
+        decimal ConvertAmount(decimal amount, int accountId, DateTime date)
+        {
+            if (amount == 0)
+            {
+                return 0;
+            }
+
+            string accountCurrency = accounts[accountId].Currency;
+            if (string.Equals(accountCurrency, currency, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return amount;
+            }
+
+            if (!rateMap.TryGetValue((accountCurrency, date.Date), out ExchangeRateResponse? rate) || rate.Rate == 0)
+            {
+                throw new ValidationFailedException($"A {accountCurrency} exchange rate is unavailable for {date:yyyy-MM-dd}.");
+            }
+
+            return amount / rate.Rate;
+        }
+
+        var reportTransactions = transactions
+            .Where(transaction => transaction.Created >= monthStart && transaction.Created <= monthEnd)
+            .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && !category.IsSystem)
+            .Select(transaction => new MonthlyReportTransaction(
+                transaction.CategoryId,
+                transaction.Created,
+                categories[transaction.CategoryId].Name,
+                transaction.Comment,
+                ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created)))
+            .ToList();
+
+        decimal totalIncome = reportTransactions.Where(transaction => transaction.Amount > 0).Sum(transaction => transaction.Amount);
+        decimal totalExpenses = Math.Abs(reportTransactions.Where(transaction => transaction.Amount < 0).Sum(transaction => transaction.Amount));
+
+        var expensesByCategory = reportTransactions
+            .Where(transaction => transaction.Amount < 0)
+            .GroupBy(transaction => transaction.CategoryId)
+            .Select(group => new MonthlyReportCategory(group.First().Category, Math.Abs(group.Sum(transaction => transaction.Amount))))
+            .OrderByDescending(category => category.Amount)
+            .ToList();
+        var chartCategories = BuildChartCategories(expensesByCategory);
+
+        var openingBalances = accounts.Keys.ToDictionary(accountId => accountId, _ => 0m);
+        var closingBalances = accounts.Keys.ToDictionary(accountId => accountId, _ => 0m);
+        foreach (var transaction in transactions)
+        {
+            if (transaction.Created < monthStart)
+            {
+                openingBalances[transaction.AccountId] += transaction.Amount;
+            }
+
+            closingBalances[transaction.AccountId] += transaction.Amount;
+        }
+
+        decimal openingBalance = openingBalances.Sum(balance => ConvertAmount(balance.Value, balance.Key, monthStart.AddDays(-1)));
+        DateTime closingBalanceDate = monthEnd.Date > currentDate ? currentDate : monthEnd.Date;
+        decimal closingBalance = closingBalances.Sum(balance => ConvertAmount(balance.Value, balance.Key, closingBalanceDate));
+
+        return new MonthlyFinancialReport
+        {
+            Year = reportYear,
+            Month = reportMonth,
+            Currency = currency,
+            TotalIncome = totalIncome,
+            TotalExpenses = totalExpenses,
+            OpeningBalance = openingBalance,
+            ClosingBalance = closingBalance,
+            IncomeTransactions = reportTransactions
+                .Where(transaction => transaction.Amount > 0)
+                .OrderBy(transaction => transaction.Date)
+                .ToList(),
+            IncomeSources = reportTransactions
+                .Where(transaction => transaction.Amount > 0)
+                .GroupBy(transaction => transaction.CategoryId)
+                .Select(group => new MonthlyReportCategory(group.First().Category, group.Sum(transaction => transaction.Amount)))
+                .OrderByDescending(category => category.Amount)
+                .ToList(),
+            SpendingCategories = chartCategories,
+            LargestExpenses = reportTransactions
+                .Where(transaction => transaction.Amount < 0)
+                .OrderBy(transaction => transaction.Amount)
+                .Take(10)
+                .ToList()
+        };
+    }
+
+    public async Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default)
+    {
+        MonthlyFinancialReport report = await GetMonthlyFinancialReport(userId, year, month, ct);
+        return new MonthlyFinancialReportDocument(report).GeneratePdf();
+    }
+
     #endregion Public Interface
 
     #region Private Methods
@@ -363,6 +490,19 @@ public class ReportService : Service, IReportService
     private static DateTime GetMonthEnd(DateTime month)
     {
         return new DateTime(month.Year, month.Month, 1).AddMonths(1).AddDays(-1);
+    }
+
+    private static IReadOnlyList<MonthlyReportCategory> BuildChartCategories(IReadOnlyList<MonthlyReportCategory> categories)
+    {
+        const int chartCategoryLimit = 6;
+        if (categories.Count <= chartCategoryLimit)
+        {
+            return categories;
+        }
+
+        var visibleCategories = categories.Take(chartCategoryLimit - 1).ToList();
+        visibleCategories.Add(new MonthlyReportCategory("Other", categories.Skip(chartCategoryLimit - 1).Sum(category => category.Amount)));
+        return visibleCategories;
     }
 
     private static bool TryConvertToBaseCurrency(
@@ -399,6 +539,17 @@ public class ReportService : Service, IReportService
     private ITransactionService _transactionService;
     private IExchangeRateService _exchangeRateService;
     private IClock _clock;
+
+    private sealed class StringTupleDateComparer : IEqualityComparer<(string, DateTime)>
+    {
+        public static readonly StringTupleDateComparer Instance = new();
+
+        public bool Equals((string, DateTime) x, (string, DateTime) y) =>
+            string.Equals(x.Item1, y.Item1, StringComparison.InvariantCultureIgnoreCase) && x.Item2 == y.Item2;
+
+        public int GetHashCode((string, DateTime) item) =>
+            HashCode.Combine(StringComparer.InvariantCultureIgnoreCase.GetHashCode(item.Item1), item.Item2);
+    }
 
     #endregion Private Fields
 }

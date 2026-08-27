@@ -27,6 +27,7 @@ public class ReportsController : ApiControllerBase
     public const string GetMonthlyHistoryRoute = "history/{year}";
     public const string GetSpendingHeatmapRoute = "spending-heatmap";
     public const string GetNetWorthRoute = "net-worth";
+    public const string GetMonthlyFinancialPdfRoute = "monthly-pdf";
 
     #endregion Routes
 
@@ -91,6 +92,18 @@ public class ReportsController : ApiControllerBase
     public async Task<ActionResult> GetNetWorth([Range(1, 60)] int months = 12, string currency = "", CancellationToken ct = default)
     {
         return Ok(await _reportService.GetNetWorthHistory(CurrentUserId, months, currency, ct));
+    }
+
+    /// <summary>Download a monthly financial report as a PDF document.</summary>
+    [HttpGet]
+    [Route(GetMonthlyFinancialPdfRoute)]
+    [Produces("application/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMonthlyFinancialPdf([Range(2, 9998)] int? year = null, [Range(1, 12)] int? month = null, CancellationToken ct = default)
+    {
+        byte[] pdf = await _reportService.GetMonthlyFinancialReportPdf(CurrentUserId, year, month, ct);
+        string period = $"{year ?? DateTime.UtcNow.Year:D4}-{month ?? DateTime.UtcNow.Month:D2}";
+        return File(pdf, "application/pdf", $"inex-monthly-financial-report-{period}.pdf");
     }
 
     #region Private Fields

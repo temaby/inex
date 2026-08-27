@@ -92,6 +92,49 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
         Assert.Matches(@"^\d{4}-\d{2}$", rows[0].GetProperty("month").GetString());
     }
 
+    [Fact]
+    public async Task MonthlyPdf_AnonymousRequest_Returns401()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/reports/monthly-pdf?year=2026&month=5");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task MonthlyPdf_AuthenticatedRequest_ReturnsDownloadablePdf()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "monthly-pdf-account");
+        int categoryId = await CreateCategoryAsync(client, "monthly-pdf-category");
+        DateTime currentMonth = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+        await CreateTransactionAsync(client, accountId, categoryId, currentMonth.AddDays(1), 300m);
+        await CreateTransactionAsync(client, accountId, categoryId, currentMonth.AddDays(2), -85m);
+
+        var response = await client.GetAsync($"/api/reports/monthly-pdf?year={currentMonth.Year}&month={currentMonth.Month}");
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("attachment", response.Content.Headers.ContentDisposition?.DispositionType ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        byte[] content = await response.Content.ReadAsByteArrayAsync();
+        Assert.True(content.Length > 4);
+        Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(content, 0, 4));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(9999)]
+    public async Task MonthlyPdf_InvalidYear_ReturnsValidationProblem(int year)
+    {
+        var client = await CreateAuthenticatedClientAsync();
+
+        var response = await client.GetAsync($"/api/reports/monthly-pdf?year={year}&month=5");
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
     private Task<HttpClient> CreateAuthenticatedClientAsync() =>
         _factory.CreateAuthenticatedClientAsync(
             email: $"{Guid.NewGuid()}@example.com",

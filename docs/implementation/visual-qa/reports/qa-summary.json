@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T21:47:58.579Z",
+  "generatedAt": "2026-08-27T19:50:48.747Z",
   "page": "reports",
   "dataMode": "fixture",
   "harness": {
@@ -64,16 +64,16 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
-    "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
-    "POST /auth/refresh",
-    "GET /auth/me",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
+    "GET /exchange/rates/2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /reports/history/2026?currency=USD",
-    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /exchange/rates/2026-04-30",
@@ -124,7 +124,7 @@
       "emptyReportVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 3,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ANALYZE Reports Configure Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ANALYZE Reports Configure Download monthly PDF Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months",
       "pngDimensions": {
         "width": 1440,
         "height": 1000,
@@ -182,7 +182,7 @@
       "emptyReportVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 3,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ANALYZE Reports Configure Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ANALYZE Reports Configure Download monthly PDF Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months",
       "pngDimensions": {
         "width": 1009,
         "height": 977,
@@ -220,7 +220,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.953125,
+      "lastContentBottom": 771.75,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -240,10 +240,10 @@
       "emptyReportVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 3,
-      "textSample": "InEx QA ANALYZE Reports Configure Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA ANALYZE Reports Configure Download monthly PDF Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1388,
+        "height": 1433,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -278,7 +278,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.953125,
+      "lastContentBottom": 771.75,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -298,10 +298,10 @@
       "emptyReportVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 3,
-      "textSample": "InEx QA ANALYZE Reports Configure Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA ANALYZE Reports Configure Download monthly PDF Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 345,
-        "height": 1388,
+        "height": 1433,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -485,8 +485,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
-        "GET /reports/budget/comparison?year=2026&month=4&currency=USD"
+        "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
+        "GET /exchange/rates/2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -603,8 +603,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /reports/history/2026?currency=USD",
-        "GET /exchange/rates/2026-04-30"
+        "GET /exchange/rates/2026-04-30",
+        "GET /reports/history/2026?currency=USD"
       ],
       "consoleMessages": [
         "[vite] connecting...",
