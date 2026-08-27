@@ -5,8 +5,10 @@ using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
+using inex.Services.Models.Records.Report;
 using inex.Services.Models.Records.Transaction;
 using inex.Services.Infrastructure.Time;
+using inex.Services.Exceptions;
 using inex.Services.Tests.Helpers;
 using inex.Services.Services;
 using inex.Services.Services.Base;
@@ -135,6 +137,159 @@ public class ReportServiceTests
         var rows = result.Data.ToList();
 
         Assert.Equal(50m, rows.Single(row => row.Date == Start.AddDays(1)).TotalSpend);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_CalculatesTotalsBalancesAndExcludesTransfers()
+    {
+        var incomeCategory = Category(id: 10, name: "Salary");
+        var expenseCategory = Category(id: 11, name: "Groceries");
+        var transferCategory = Category(id: 12, name: "Transfer", isSystem: true);
+        var service = CreateService(
+            categories: [incomeCategory, expenseCategory, transferCategory],
+            accounts: [Account(id: 20, currency: "USD"), Account(id: 21, currency: "USD")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: incomeCategory.Id, amount: 50m, created: Start.AddDays(-1)),
+                Transaction(id: 2, accountId: 20, categoryId: incomeCategory.Id, amount: 300m, created: Start.AddDays(1)),
+                Transaction(id: 3, accountId: 20, categoryId: expenseCategory.Id, amount: -70m, created: Start.AddDays(2)),
+                Transaction(id: 4, accountId: 20, categoryId: transferCategory.Id, amount: -100m, created: Start.AddDays(3)),
+                Transaction(id: 5, accountId: 21, categoryId: transferCategory.Id, amount: 100m, created: Start.AddDays(3)),
+                Transaction(id: 6, accountId: 20, categoryId: expenseCategory.Id, amount: -999m, created: End.AddDays(1))
+            ],
+            rates: []);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5);
+
+        Assert.Equal("USD", report.Currency);
+        Assert.Equal(300m, report.TotalIncome);
+        Assert.Equal(70m, report.TotalExpenses);
+        Assert.Equal(230m, report.SurplusOrDeficit);
+        Assert.Equal(50m, report.OpeningBalance);
+        Assert.Equal(280m, report.ClosingBalance);
+        Assert.Equal(70m / 300m * 100m, report.SpentIncomePercentage);
+        Assert.Single(report.IncomeTransactions);
+        Assert.Single(report.SpendingCategories);
+        Assert.Equal("Groceries", report.SpendingCategories[0].Name);
+        Assert.Single(report.LargestExpenses);
+        Assert.DoesNotContain(report.LargestExpenses, expense => expense.Amount == -100m);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_UsesUnavailableSpentIncomeWhenIncomeIsZero()
+    {
+        var expenseCategory = Category(id: 10, name: "Utilities");
+        var service = CreateService(
+            categories: [expenseCategory],
+            accounts: [Account(id: 20, currency: "USD")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: expenseCategory.Id, amount: -45m)],
+            rates: []);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5);
+
+        Assert.Equal(0m, report.TotalIncome);
+        Assert.Equal(45m, report.TotalExpenses);
+        Assert.Null(report.SpentIncomePercentage);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_UsesTodayRateForCurrentMonthClosingBalance()
+    {
+        var service = CreateService(
+            categories: [Category(id: 10, name: "Salary")],
+            accounts: [Account(id: 20, currency: "EUR")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 120m, created: ClockNow.Date.AddDays(-2))],
+            rates:
+            [
+                Rate(currencyTo: "EUR", rate: 2m, date: ClockNow.Date.AddDays(-2)),
+                Rate(currencyTo: "EUR", rate: 2m, date: ClockNow.Date)
+            ],
+            clock: new FakeClock(ClockNow));
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, ClockNow.Year, ClockNow.Month);
+
+        Assert.Equal(60m, report.TotalIncome);
+        Assert.Equal(60m, report.ClosingBalance);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_ThrowsWhenAForeignCurrencyRateIsUnavailable()
+    {
+        var service = CreateService(
+            categories: [Category(id: 10, name: "Salary")],
+            accounts: [Account(id: 20, currency: "EUR", isEnabled: false)],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 120m)],
+            rates: []);
+
+        await Assert.ThrowsAsync<ValidationFailedException>(() => service.GetMonthlyFinancialReport(UserId, 2026, 5));
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_RejectsFutureMonthsBeforeCalculatingTheMonthEnd()
+    {
+        var service = CreateService(categories: [], accounts: [], transactions: [], rates: [], clock: new FakeClock(ClockNow));
+
+        await Assert.ThrowsAsync<ValidationFailedException>(() => service.GetMonthlyFinancialReport(UserId, 9998, 12));
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_UsesTheRequestedUserIdForEveryDataSource()
+    {
+        const int requestedUserId = 77;
+        var uow = new Mock<IInExUnitOfWork>();
+        var accountService = new Mock<IAccountService>();
+        var categoryService = new Mock<ICategoryService>();
+        var transactionService = new Mock<ITransactionService>();
+        var exchangeRateService = new Mock<IExchangeRateService>();
+        var userRepository = new Mock<IRepository<AppUser>>();
+
+        userRepository.Setup(repository => repository.Get(
+                true,
+                It.IsAny<Expression<Func<AppUser, bool>>?>(),
+                It.IsAny<Expression<Func<AppUser, object>>[]>()))
+            .Returns(new[]
+            {
+                new AppUser { Id = requestedUserId, Currency = new Currency { Key = "USD", Name = "US Dollar" } }
+            }.AsQueryable());
+        uow.Setup(unitOfWork => unitOfWork.UserRepository).Returns(userRepository.Object);
+        accountService.Setup(service => service.Get(requestedUserId, ActivityMode.ALL))
+            .Returns(new ListResponse<AccountResponse> { Data = [] });
+        categoryService.Setup(service => service.Get(requestedUserId, ActivityMode.ALL))
+            .Returns(new ListResponse<CategoryResponse> { Data = [] });
+        transactionService.Setup(service => service.Get(requestedUserId, ActivityMode.ALL, It.IsAny<IDictionary<string, string>>()))
+            .Returns(new ListResponse<TransactionResponse> { Data = [] });
+        exchangeRateService.Setup(service => service.Get(requestedUserId, It.IsAny<DateTime>(), It.IsAny<DateTime>(), "USD", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListResponse<ExchangeRateResponse> { Data = [] });
+
+        var service = new ReportService(
+            uow.Object,
+            accountService.Object,
+            categoryService.Object,
+            transactionService.Object,
+            exchangeRateService.Object,
+            new FakeClock(ClockNow));
+
+        await service.GetMonthlyFinancialReport(requestedUserId, 2026, 5);
+
+        accountService.Verify(service => service.Get(requestedUserId, ActivityMode.ALL), Times.Once);
+        categoryService.Verify(service => service.Get(requestedUserId, ActivityMode.ALL), Times.Once);
+        transactionService.Verify(service => service.Get(requestedUserId, ActivityMode.ALL, It.IsAny<IDictionary<string, string>>()), Times.Once);
+        exchangeRateService.Verify(service => service.Get(requestedUserId, It.IsAny<DateTime>(), It.IsAny<DateTime>(), "USD", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReportPdf_GeneratesAPdfDocument()
+    {
+        var service = CreateService(
+            categories: [Category(id: 10, name: "Salary")],
+            accounts: [Account(id: 20, currency: "USD")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 500m)],
+            rates: []);
+
+        byte[] pdf = await service.GetMonthlyFinancialReportPdf(UserId, 2026, 5);
+
+        Assert.True(pdf.Length > 4);
+        Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
     }
 
     [Fact]
