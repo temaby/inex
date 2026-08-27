@@ -213,11 +213,11 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task GetMonthlyFinancialReport_ThrowsWhenAForeignCurrencyRateIsUnavailable()
+    public async Task GetMonthlyFinancialReport_ThrowsWhenAnActiveForeignCurrencyRateIsUnavailable()
     {
         var service = CreateService(
             categories: [Category(id: 10, name: "Salary")],
-            accounts: [Account(id: 20, currency: "EUR", isEnabled: false)],
+            accounts: [Account(id: 20, currency: "EUR")],
             transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 120m)],
             rates: []);
 
@@ -252,7 +252,7 @@ public class ReportServiceTests
                 new AppUser { Id = requestedUserId, Currency = new Currency { Key = "USD", Name = "US Dollar" } }
             }.AsQueryable());
         uow.Setup(unitOfWork => unitOfWork.UserRepository).Returns(userRepository.Object);
-        accountService.Setup(service => service.Get(requestedUserId, ActivityMode.ALL))
+        accountService.Setup(service => service.Get(requestedUserId, ActivityMode.ACTIVE))
             .Returns(new ListResponse<AccountResponse> { Data = [] });
         categoryService.Setup(service => service.Get(requestedUserId, ActivityMode.ALL))
             .Returns(new ListResponse<CategoryResponse> { Data = [] });
@@ -271,23 +271,38 @@ public class ReportServiceTests
 
         await service.GetMonthlyFinancialReport(requestedUserId, 2026, 5);
 
-        accountService.Verify(service => service.Get(requestedUserId, ActivityMode.ALL), Times.Once);
+        accountService.Verify(service => service.Get(requestedUserId, ActivityMode.ACTIVE), Times.Once);
         categoryService.Verify(service => service.Get(requestedUserId, ActivityMode.ALL), Times.Once);
         transactionService.Verify(service => service.Get(requestedUserId, ActivityMode.ALL, It.IsAny<IDictionary<string, string>>()), Times.Once);
         exchangeRateService.Verify(service => service.Get(requestedUserId, It.IsAny<DateTime>(), It.IsAny<DateTime>(), "USD", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task GetMonthlyFinancialReportPdf_GeneratesAPdfDocument()
+    public async Task GetMonthlyFinancialReportPdf_ExcludesInactiveByrHistoricalBalanceAndRetainsInactiveCategory()
     {
+        var inactiveCategory = Category(id: 10, name: "Salary", isEnabled: false);
         var service = CreateService(
-            categories: [Category(id: 10, name: "Salary")],
-            accounts: [Account(id: 20, currency: "USD")],
-            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 500m)],
+            categories: [inactiveCategory],
+            accounts:
+            [
+                Account(id: 20, currency: "USD"),
+                Account(id: 21, currency: "BYR", isEnabled: false)
+            ],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 21, categoryId: 10, amount: 500m, created: new DateTime(2026, 4, 15)),
+                Transaction(id: 2, accountId: 20, categoryId: 10, amount: 500m)
+            ],
             rates: []);
 
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5);
         byte[] pdf = await service.GetMonthlyFinancialReportPdf(UserId, 2026, 5);
 
+        Assert.Equal(500m, report.TotalIncome);
+        Assert.Equal(0m, report.OpeningBalance);
+        Assert.Equal(500m, report.ClosingBalance);
+        Assert.Single(report.IncomeTransactions);
+        Assert.Equal(inactiveCategory.Name, report.IncomeTransactions[0].Category);
         Assert.True(pdf.Length > 4);
         Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
     }
@@ -587,6 +602,10 @@ public class ReportServiceTests
         accountService
             .Setup(service => service.Get(UserId, ActivityMode.ALL))
             .Returns(new ListResponse<AccountResponse> { Data = accounts });
+
+        accountService
+            .Setup(service => service.Get(UserId, ActivityMode.ACTIVE))
+            .Returns(new ListResponse<AccountResponse> { Data = accounts.Where(account => account.IsEnabled) });
 
         categoryService
             .Setup(service => service.Get(UserId, ActivityMode.ALL))
