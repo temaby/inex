@@ -350,7 +350,7 @@ public class ReportService : Service, IReportService
         return new ListResponse<NetWorthHistoryPointResponse> { Data = points };
     }
 
-    public async Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default)
+    public async Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null)
     {
         DateTime currentDate = _clock.UtcNow.Date;
         int reportYear = year ?? currentDate.Year;
@@ -363,7 +363,18 @@ public class ReportService : Service, IReportService
         DateTime monthEnd = monthStart.AddMonths(1).AddTicks(-1);
         string currency = GetUserBaseCurrency(userId);
 
-        var accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data.ToDictionary(account => account.Id);
+        var activeAccounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data.ToDictionary(account => account.Id);
+        var accounts = activeAccounts;
+        if (accountIds is not null)
+        {
+            int[] requestedAccountIds = accountIds.Distinct().ToArray();
+            if (requestedAccountIds.Length == 0 || requestedAccountIds.Any(accountId => !activeAccounts.ContainsKey(accountId)))
+            {
+                throw new ValidationFailedException("One or more selected accounts are unavailable.");
+            }
+
+            accounts = requestedAccountIds.ToDictionary(accountId => accountId, accountId => activeAccounts[accountId]);
+        }
         var categories = _categoryService.Get(userId, ActivityMode.ALL).Data.ToDictionary(category => category.Id);
         var filters = new Dictionary<string, string>
         {
@@ -462,9 +473,9 @@ public class ReportService : Service, IReportService
         };
     }
 
-    public async Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default)
+    public async Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null)
     {
-        MonthlyFinancialReport report = await GetMonthlyFinancialReport(userId, year, month, ct);
+        MonthlyFinancialReport report = await GetMonthlyFinancialReport(userId, year, month, ct, accountIds);
         return new MonthlyFinancialReportDocument(report).GeneratePdf();
     }
 

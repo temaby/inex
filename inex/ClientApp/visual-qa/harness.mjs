@@ -306,7 +306,23 @@ async function launchBrowser(clientRoot, userDataPrefix = "inex-visual-qa") {
           });
         }
       }
-      await rm(userDataDir, { recursive: true, force: true });
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        try {
+          await rm(userDataDir, { recursive: true, force: true });
+          return;
+        } catch (error) {
+          if (error?.code !== "EBUSY" || attempt === 4) {
+            if (error?.code === "EBUSY") {
+              process.stderr.write(`Visual QA temporary Chrome profile could not be removed: ${userDataDir}\n`);
+              return;
+            }
+
+            throw error;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+      }
     },
   };
 }
@@ -721,6 +737,7 @@ export async function runVisualQa({
   await mkdir(outputDir, { recursive: true });
 
   let ownedEnvironment;
+  let executionError;
   try {
     ownedEnvironment = environment ?? await createVisualQaEnvironment({
       clientRoot,
@@ -765,9 +782,20 @@ export async function runVisualQa({
     }
 
     process.stdout.write(`${label} visual QA complete: ${path.relative(repoRoot, outputDir)}\n`);
+  } catch (error) {
+    executionError = error;
+    throw error;
   } finally {
     if (!environment) {
-      await ownedEnvironment?.close();
+      try {
+        await ownedEnvironment?.close();
+      } catch (cleanupError) {
+        if (executionError) {
+          process.stderr.write(`Visual QA cleanup failed: ${cleanupError.message}\n`);
+        } else {
+          throw cleanupError;
+        }
+      }
     }
   }
 }

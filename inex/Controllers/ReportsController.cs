@@ -95,13 +95,17 @@ public class ReportsController : ApiControllerBase
     }
 
     /// <summary>Download a monthly financial report as a PDF document.</summary>
+    /// <param name="year">Optional report year.</param>
+    /// <param name="month">Optional report month.</param>
+    /// <param name="accountIds">Optional active account IDs to include. Defaults to all active accounts.</param>
+    /// <param name="ct">Cancellation token.</param>
     [HttpGet]
     [Route(GetMonthlyFinancialPdfRoute)]
     [Produces("application/pdf")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMonthlyFinancialPdf([Range(2, 9998)] int? year = null, [Range(1, 12)] int? month = null, CancellationToken ct = default)
+    public async Task<IActionResult> GetMonthlyFinancialPdf([Range(2, 9998)] int? year = null, [Range(1, 12)] int? month = null, [FromQuery] int[]? accountIds = null, CancellationToken ct = default)
     {
-        byte[] pdf = await _reportService.GetMonthlyFinancialReportPdf(CurrentUserId, year, month, ct);
+        byte[] pdf = await _reportService.GetMonthlyFinancialReportPdf(CurrentUserId, year, month, ct, accountIds);
         string period = $"{year ?? DateTime.UtcNow.Year:D4}-{month ?? DateTime.UtcNow.Month:D2}";
         return File(pdf, "application/pdf", $"inex-monthly-financial-report-{period}.pdf");
     }
