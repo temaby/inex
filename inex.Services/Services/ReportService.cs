@@ -363,7 +363,7 @@ public class ReportService : Service, IReportService
         DateTime monthEnd = monthStart.AddMonths(1).AddTicks(-1);
         string currency = GetUserBaseCurrency(userId);
 
-        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(account => account.Id);
+        var accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data.ToDictionary(account => account.Id);
         var categories = _categoryService.Get(userId, ActivityMode.ALL).Data.ToDictionary(category => category.Id);
         var filters = new Dictionary<string, string>
         {
