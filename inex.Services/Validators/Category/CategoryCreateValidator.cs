@@ -14,5 +14,11 @@ public class CategoryCreateValidator : AbstractValidator<CreateCategoryRequest>
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("name.required")
             .MaximumLength(256).WithMessage("name.max_length");
+
+        RuleFor(x => x.IsSystem)
+            .Equal(false).WithMessage("is_system.system_managed");
+
+        RuleFor(x => x.SystemCode)
+            .Null().WithMessage("system_code.system_managed");
     }
 }

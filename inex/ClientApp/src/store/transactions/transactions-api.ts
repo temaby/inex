@@ -27,6 +27,7 @@ export interface TransactionTypeCounts {
   income: number;
   expense: number;
   transfer: number;
+  internalTransfer: number;
 }
 
 export interface TransactionCurrencySummary {
@@ -88,6 +89,14 @@ export interface CreateTransferArgs {
   amountTo: number;
   comment: string;
   created: string;
+}
+
+export interface CreateInternalTransferArgs {
+  accountId: number;
+  amount: number;
+  comment: string;
+  created: string;
+  direction: "outgoing" | "incoming";
 }
 
 export interface UpdateTransactionArgs {
@@ -202,6 +211,17 @@ export const transactionsApi = createApi({
         await invalidateTransactionDependents(queryFulfilled, dispatch);
       },
     }),
+    createInternalTransfer: builder.mutation<void, CreateInternalTransferArgs>({
+      query: (body) => ({
+        url: "/transactions/internal-transfer",
+        method: "post",
+        data: body,
+      }),
+      invalidatesTags: [{ type: "Transaction", id: "LIST" }],
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        await invalidateTransactionDependents(queryFulfilled, dispatch);
+      },
+    }),
     updateTransaction: builder.mutation<void, UpdateTransactionArgs>({
       query: ({ id, ...body }) => ({
         url: `/transactions/${id}`,
@@ -228,6 +248,7 @@ export const {
   useGetTransactionsSummaryQuery,
   useCreateTransactionMutation,
   useCreateTransferMutation,
+  useCreateInternalTransferMutation,
   useUpdateTransactionMutation,
   useDeleteTransactionMutation,
 } = transactionsApi;

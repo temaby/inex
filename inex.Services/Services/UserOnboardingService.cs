@@ -82,6 +82,7 @@ public class UserOnboardingService : IUserOnboardingService
         // System — required for built-in features; cannot be deleted
         new("transfer",     IsSystem: true, SystemCode: "transfer"),
         new("correction",   IsSystem: true, SystemCode: "correction"),
+        new("internal-transfer", IsSystem: true, SystemCode: "internal-transfer"),
 
         // Income
         new("salary"),
@@ -103,6 +104,7 @@ public class UserOnboardingService : IUserOnboardingService
     {
         ["transfer"]      = "Transfer",
         ["correction"]    = "Correction",
+        ["internal-transfer"] = "Internal transfer",
         ["salary"]        = "Salary",
         ["freelance"]     = "Freelance",
         ["other-income"]  = "Other Income",
@@ -120,6 +122,7 @@ public class UserOnboardingService : IUserOnboardingService
     {
         ["transfer"]      = "Перевод",
         ["correction"]    = "Корректировка",
+        ["internal-transfer"] = "Внутренний перевод",
         ["salary"]        = "Зарплата",
         ["freelance"]     = "Фриланс",
         ["other-income"]  = "Прочий доход",

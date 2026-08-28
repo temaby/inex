@@ -116,6 +116,7 @@ describe("transaction ledger helpers", () => {
       income: 1,
       expense: 1,
       transfer: 1,
+      internalTransfer: 0,
     });
   });
 
@@ -131,6 +132,7 @@ describe("transaction ledger helpers", () => {
         income: 1,
         expense: 2,
         transfer: 1,
+        internalTransfer: 0,
       },
       currencySummaries: [
         { currency: "USD", income: 100, expense: -40, net: 60 },
@@ -148,6 +150,7 @@ describe("transaction ledger helpers", () => {
         income: 1,
         expense: 2,
         transfer: 1,
+        internalTransfer: 0,
       },
     });
   });

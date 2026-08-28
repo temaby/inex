@@ -75,12 +75,14 @@ const summaryFixture: TransactionSummaryResult = {
     income: 1,
     expense: 1,
     transfer: 0,
+    internalTransfer: 0,
   },
   viewTypeCounts: {
     all: 2,
     income: 1,
     expense: 1,
     transfer: 0,
+    internalTransfer: 0,
   },
   currencySummaries: [
     {
@@ -93,7 +95,7 @@ const summaryFixture: TransactionSummaryResult = {
   baseCurrency: "USD",
   currentScope: {
     totalCount: 2,
-    typeCounts: { all: 2, income: 1, expense: 1, transfer: 0 },
+    typeCounts: { all: 2, income: 1, expense: 1, transfer: 0, internalTransfer: 0 },
     period: { startDate: "2026-06-01T00:00:00", endDate: "2026-06-30T23:59:59" },
     cashFlowBuckets: [
       { date: "2026-06-05T00:00:00", currency: "USD", income: 100, expense: -42, recordCount: 2 },
@@ -126,6 +128,35 @@ describe("transactionsApi", () => {
       ...emptyFilter,
       type: "all",
       search: "",
+    });
+  });
+
+  it("posts an internal transfer with its explicit direction", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(undefined));
+
+    await store.dispatch(
+      transactionsApi.endpoints.createInternalTransfer.initiate({
+        accountId: 2,
+        amount: 25,
+        comment: "Sent to household",
+        created: "2026-06-02",
+        direction: "outgoing",
+      }),
+    );
+
+    expect(mockApiClient).toHaveBeenCalledWith({
+      url: "/transactions/internal-transfer",
+      method: "post",
+      data: {
+        accountId: 2,
+        amount: 25,
+        comment: "Sent to household",
+        created: "2026-06-02",
+        direction: "outgoing",
+      },
+      params: undefined,
+      signal: expect.any(AbortSignal),
     });
   });
 

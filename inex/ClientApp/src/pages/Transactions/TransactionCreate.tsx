@@ -8,16 +8,18 @@ import { InExButton, SegmentedControl } from "../../components/primitives";
 import { AccountDetails } from "../../model/Account/AccountDetails";
 import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionSetState } from "../../model/Transaction/TransactionSetState";
+import type { InternalTransferDirection } from "../../model/Transaction/InternalTransferDirection";
 import { TransactionType } from "../../model/Transaction/TransactionType";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
-import { useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
+import { useCreateInternalTransferMutation, useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
 import { useAppDispatch } from "../../store/hooks";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
+import TransactionCreateInternalTransferForm from "./TransactionCreateInternalTransferForm";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
@@ -51,6 +53,7 @@ type TransactionCreateAction =
     | { type: "SET_CATEGORY"; value: CategoryDetails }
     | { type: "SET_DATE"; value: Dayjs | null }
     | { type: "SET_COMMENT"; value: string }
+    | { type: "SET_INTERNAL_TRANSFER_DIRECTION"; value: InternalTransferDirection }
     | { type: "RESET" };
 
 const createDefaultState = (): TransactionCreateState => ({
@@ -75,6 +78,8 @@ const reducer = (state: TransactionCreateState, action: TransactionCreateAction)
             return { ...state, date: action.value };
         case "SET_COMMENT":
             return { ...state, comment: action.value };
+        case "SET_INTERNAL_TRANSFER_DIRECTION":
+            return { ...state, internalTransferDirection: action.value };
         case "RESET":
             return createDefaultState();
     }
@@ -127,6 +132,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
+    const [createInternalTransferMutation, { isLoading: isCreatingInternalTransfer }] = useCreateInternalTransferMutation();
 
     React.useEffect(() => {
         onModeChange?.(state.mode);
@@ -193,6 +199,10 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         dispatchTransactionAction({ type: "SET_COMMENT", value: event.target.value });
     };
 
+    const setInternalTransferDirectionHandler = (value: InternalTransferDirection) => {
+        dispatchTransactionAction({ type: "SET_INTERNAL_TRANSFER_DIRECTION", value });
+    };
+
     const resetAndClose = (close: () => void) => {
         dispatchTransactionAction({ type: "RESET" });
         setValidationErrors({});
@@ -225,6 +235,9 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
             ) {
                 errors.toAccount = t("errors.account_to_id.same_as_source");
             }
+        } else if (state.mode === TransactionType.INTERNAL_TRANSFER) {
+            if (!isSelectedEntity(state.fromAccount.id)) errors.fromAccount = t("errors.account_id.invalid");
+            if (state.fromAmount <= 0) errors.fromAmount = t("errors.amount.must_be_positive");
         }
 
         return errors;
@@ -268,6 +281,14 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     comment,
                     created,
                 }).unwrap();
+            } else if (state.mode === TransactionType.INTERNAL_TRANSFER) {
+                await createInternalTransferMutation({
+                    accountId: state.fromAccount.id,
+                    amount: state.fromAmount,
+                    comment,
+                    created,
+                    direction: state.internalTransferDirection,
+                }).unwrap();
             }
         } catch (error) {
             dispatch(transactionsActions.setError({
@@ -275,6 +296,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     error,
                     state.mode === TransactionType.TRANSFER
                         ? t("transactions.formErrors.transferFailure")
+                        : state.mode === TransactionType.INTERNAL_TRANSFER
+                            ? t("transactions.formErrors.internalTransferFailure")
                         : t("transactions.formErrors.createFailure"),
                     t,
                 ),
@@ -289,8 +312,9 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         [TransactionType.EXPENSE]: t("transactions.saveExpense"),
         [TransactionType.INCOME]: t("transactions.saveIncome"),
         [TransactionType.TRANSFER]: t("transactions.saveTransfer"),
+        [TransactionType.INTERNAL_TRANSFER]: t("transactions.saveInternalTransfer"),
     }[state.mode];
-    const isSaving = isCreating || isCreatingTransfer;
+    const isSaving = isCreating || isCreatingTransfer || isCreatingInternalTransfer;
 
     return (
         <div className="transactions-create-form">
@@ -300,6 +324,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     { key: TransactionType.EXPENSE, label: t("transactions.expense") },
                     { key: TransactionType.INCOME, label: t("transactions.income") },
                     { key: TransactionType.TRANSFER, label: t("transactions.transfer") },
+                    { key: TransactionType.INTERNAL_TRANSFER, label: t("transactions.internalTransfer") },
                 ]}
                 size="compact"
                 value={state.mode}
@@ -356,6 +381,23 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetToAmount={setToAmountHandler}
                     toAccount={state.toAccount}
                     toAmount={state.toAmount}
+                    validationErrors={validationErrors}
+                />
+            )}
+
+            {state.mode === TransactionType.INTERNAL_TRANSFER && (
+                <TransactionCreateInternalTransferForm
+                    account={state.fromAccount}
+                    accounts={accounts}
+                    amount={state.fromAmount}
+                    comment={state.comment}
+                    date={state.date}
+                    direction={state.internalTransferDirection}
+                    onSetAccount={setFromAccountHandler}
+                    onSetAmount={setFromAmountHandler}
+                    onSetComment={setCommentHandler}
+                    onSetDate={setDateHandler}
+                    onSetDirection={setInternalTransferDirectionHandler}
                     validationErrors={validationErrors}
                 />
             )}

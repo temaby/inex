@@ -65,6 +65,27 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
     }
 
     [Fact]
+    public async Task Create_SystemManagedCategory_Returns422()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+
+        var response = await client.PostAsJsonAsync("/api/categories", new
+        {
+            key = "attempted-system-category",
+            name = "Attempted system category",
+            isEnabled = true,
+            isSystem = true,
+            systemCode = "internal-transfer",
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var errors = body.GetProperty("errors");
+        Assert.Contains("is_system.system_managed", errors.GetProperty("IsSystem").EnumerateArray().Select(error => error.GetString()));
+        Assert.Contains("system_code.system_managed", errors.GetProperty("SystemCode").EnumerateArray().Select(error => error.GetString()));
+    }
+
+    [Fact]
     public async Task Create_Unauthenticated_Returns401()
     {
         var client = _factory.CreateClient();

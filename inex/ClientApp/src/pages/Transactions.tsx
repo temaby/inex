@@ -452,6 +452,7 @@ const Transactions = () => {
         [TransactionType.EXPENSE]: t("transactions.newExpenseSubtitle"),
         [TransactionType.INCOME]: t("transactions.newIncomeSubtitle"),
         [TransactionType.TRANSFER]: t("transactions.newTransferSubtitle"),
+        [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferSubtitle"),
     }[createMode];
 
     return (
@@ -534,6 +535,7 @@ const Transactions = () => {
                                     { key: "income", label: `${t("transactions.income")} ${viewTypeCounts.income}` },
                                     { key: "expense", label: `${t("transactions.expense")} ${viewTypeCounts.expense}` },
                                     { key: "transfer", label: `${t("transactions.transfer")} ${viewTypeCounts.transfer}` },
+                                    { key: "internalTransfer", label: `${t("transactions.internalTransfer")} ${viewTypeCounts.internalTransfer}` },
                                 ]}
                                 size="compact"
                                 value={canonicalFilter.type}

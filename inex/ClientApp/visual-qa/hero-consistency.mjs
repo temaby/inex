@@ -87,14 +87,17 @@ function createTransactionsSummary(fixture) {
     income: 0,
     expense: 0,
     transfer: 0,
+    internalTransfer: 0,
   };
 
   for (const transaction of fixture.transactionsVisualFixtureTransactions) {
     const category = categoriesById.get(transaction.categoryId);
-    const kind = category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
+    const kind = category?.systemCode === "internal-transfer"
+      ? "internalTransfer"
+      : category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
     typeCounts[kind] += 1;
 
-    if (kind === "transfer") {
+    if (kind === "transfer" || kind === "internalTransfer") {
       continue;
     }
 
@@ -134,7 +137,7 @@ function createTransactionsSummary(fixture) {
     },
     previousScope: {
       totalCount: 0,
-      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0 },
+      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
       period: { startDate: "2026-03-01T00:00:00", endDate: "2026-03-31T23:59:59" },
       cashFlowBuckets: [],
     },
@@ -201,7 +204,7 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
         }
         return jsonResponse({
           totalCount: 0,
-          typeCounts: { all: 0, income: 0, expense: 0, transfer: 0 },
+          typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
           currencySummaries: [],
         });
       }

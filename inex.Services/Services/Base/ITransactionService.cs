@@ -16,5 +16,6 @@ public interface ITransactionService : IInExService
     TransactionSummaryResponse GetSummary(int userId, ActivityMode mode, TransactionFilterQuery filter);
     Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default);
     Task<TransferResponse> CreateAsync(CreateTransferRequest itemDTO, int userId, CancellationToken ct = default);
+    Task<CreatedResponse> CreateAsync(CreateInternalTransferRequest itemDTO, int userId, CancellationToken ct = default);
     Task<TransactionResponse> UpdateAsync(int id, UpdateTransactionRequest itemDTO, int userId, CancellationToken ct = default);
 }

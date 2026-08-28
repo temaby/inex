@@ -68,14 +68,17 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
     income: 0,
     expense: 0,
     transfer: 0,
+    internalTransfer: 0,
   };
 
   for (const transaction of transactions) {
     const category = categoriesById.get(transaction.categoryId);
-    const kind = category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
+    const kind = category?.systemCode === "internal-transfer"
+      ? "internalTransfer"
+      : category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
     typeCounts[kind] += 1;
 
-    if (kind === "transfer") {
+    if (kind === "transfer" || kind === "internalTransfer") {
       continue;
     }
 
@@ -115,7 +118,7 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
     },
     previousScope: {
       totalCount: 0,
-      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0 },
+      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
       period: { startDate: "2026-03-01T00:00:00", endDate: "2026-03-31T23:59:59" },
       cashFlowBuckets: [],
     },
@@ -160,6 +163,13 @@ const states = [
     viewport: { width: 360, height: defaultViewportHeight },
     scenario: "populated",
     interaction: "open-add-drawer",
+  },
+  {
+    name: "internal-transfer-create-390",
+    screenshot: "internal-transfer-create-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "open-internal-transfer-drawer",
   },
   ...visualQaViewports.map(({ suffix, viewport }) => ({
     name: `selected-active-account-create-${suffix}`,
@@ -477,6 +487,17 @@ async function applyInteraction(client, state) {
         return true;
       })()`);
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments') && !document.body.innerText.includes('Native balance') && !document.querySelector('[data-qa=selected-account-native-balance]')");
+      return;
+    case "open-internal-transfer-drawer":
+      await evaluate(client, clickButtonByTextExpression("Add transaction"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
+      await evaluate(client, `(() => {
+        const tab = Array.from(document.querySelectorAll(".transactions-create-form button")).find((item) => item.textContent?.trim() === "Internal transfer");
+        if (!tab) return false;
+        tab.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes('Direction') && document.body.innerText.includes('Sent') && document.body.innerText.includes('Received')");
       return;
     case "open-filter-drawer":
       await evaluate(client, clickButtonByTextExpression("Filters"));

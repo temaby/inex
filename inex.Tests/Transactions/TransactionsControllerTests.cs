@@ -191,6 +191,101 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task CreateInternalTransfer_RecordsSignedUserOwnedTransactionAndExcludesCashFlowTotals()
+    {
+        var sender = await CreateAuthenticatedClientAsync();
+        var recipient = await CreateAuthenticatedClientAsync();
+        int senderAccountId = await CreateAccountAsync(sender, "internal-transfer-sender-account");
+        int recipientAccountId = await CreateAccountAsync(recipient, "internal-transfer-recipient-account");
+
+        var senderResponse = await sender.PostAsJsonAsync("/api/transactions/internal-transfer", new
+        {
+            accountId = senderAccountId,
+            created = DateTime.UtcNow,
+            amount = 25m,
+            direction = "outgoing",
+            comment = "sent to household",
+        });
+        var recipientResponse = await recipient.PostAsJsonAsync("/api/transactions/internal-transfer", new
+        {
+            accountId = recipientAccountId,
+            created = DateTime.UtcNow,
+            amount = 25m,
+            direction = "incoming",
+            comment = "received from household",
+        });
+
+        senderResponse.EnsureSuccessStatusCode();
+        recipientResponse.EnsureSuccessStatusCode();
+
+        var senderListResponse = await sender.GetAsync("/api/transactions?type=internalTransfer&pageSize=20&page=1");
+        senderListResponse.EnsureSuccessStatusCode();
+        var senderList = await senderListResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var senderTransaction = Assert.Single(senderList.GetProperty("data").EnumerateArray());
+        Assert.Equal(senderAccountId, senderTransaction.GetProperty("accountId").GetInt32());
+        Assert.Equal(-25m, senderTransaction.GetProperty("amount").GetDecimal());
+
+        var senderSummaryResponse = await sender.GetAsync("/api/transactions/summary?type=internalTransfer");
+        senderSummaryResponse.EnsureSuccessStatusCode();
+        var senderSummary = await senderSummaryResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, senderSummary.GetProperty("totalCount").GetInt32());
+        Assert.Equal(1, senderSummary.GetProperty("typeCounts").GetProperty("internalTransfer").GetInt32());
+        Assert.Equal(0, senderSummary.GetProperty("typeCounts").GetProperty("income").GetInt32());
+        Assert.Equal(0, senderSummary.GetProperty("typeCounts").GetProperty("expense").GetInt32());
+        Assert.Empty(senderSummary.GetProperty("currentScope").GetProperty("cashFlowBuckets").EnumerateArray());
+        var senderCurrencySummary = Assert.Single(senderSummary.GetProperty("currencySummaries").EnumerateArray());
+        Assert.Equal(0m, senderCurrencySummary.GetProperty("income").GetDecimal());
+        Assert.Equal(0m, senderCurrencySummary.GetProperty("expense").GetDecimal());
+        Assert.Equal(0m, senderCurrencySummary.GetProperty("net").GetDecimal());
+
+        var recipientListResponse = await recipient.GetAsync("/api/transactions?type=internalTransfer&pageSize=20&page=1");
+        recipientListResponse.EnsureSuccessStatusCode();
+        var recipientList = await recipientListResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var recipientTransaction = Assert.Single(recipientList.GetProperty("data").EnumerateArray());
+        Assert.Equal(recipientAccountId, recipientTransaction.GetProperty("accountId").GetInt32());
+        Assert.Equal(25m, recipientTransaction.GetProperty("amount").GetDecimal());
+    }
+
+    [Fact]
+    public async Task CreateInternalTransfer_WithOtherUsersAccount_Returns404Problem()
+    {
+        var userA = await CreateAuthenticatedClientAsync();
+        var userB = await CreateAuthenticatedClientAsync();
+        int otherAccountId = await CreateAccountAsync(userB, "other-internal-transfer-account");
+
+        var response = await userA.PostAsJsonAsync("/api/transactions/internal-transfer", new
+        {
+            accountId = otherAccountId,
+            created = DateTime.UtcNow,
+            amount = 25m,
+            direction = "outgoing",
+        });
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(response);
+    }
+
+    [Fact]
+    public async Task Create_WithInternalTransferCategory_Returns422()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "protected-system-category-account");
+        int internalTransferCategoryId = await GetInternalTransferCategoryIdAsync(client);
+
+        var response = await client.PostAsJsonAsync("/api/transactions", new
+        {
+            accountId,
+            categoryId = internalTransferCategoryId,
+            created = DateTime.UtcNow,
+            amount = -25m,
+            comment = "attempted hidden transaction",
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("system-category-transaction-create", body.GetProperty("rule").GetString());
+    }
+
+    [Fact]
     public async Task Update_WithOtherUsersAccount_Returns404Problem()
     {
         var userA = await CreateAuthenticatedClientAsync();
@@ -732,6 +827,18 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         return body.GetProperty("id").GetInt32();
+    }
+
+    private static async Task<int> GetInternalTransferCategoryIdAsync(HttpClient client)
+    {
+        var response = await client.GetAsync("/api/categories?mode=ALL");
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        JsonElement category = body.GetProperty("data").EnumerateArray()
+            .Single(item => item.TryGetProperty("systemCode", out JsonElement systemCode)
+                            && systemCode.GetString() == "internal-transfer");
+        return category.GetProperty("id").GetInt32();
     }
 
     private static async Task<int> CreateTransactionAsync(HttpClient client, int accountId, int categoryId)

@@ -74,7 +74,7 @@ public class TransactionService : InExService, ITransactionService
 
         TransactionSummaryScope currentScope = BuildSummaryScope(items, filter.StartDate, filter.EndDate);
         string? type = filter.Type?.Trim().ToLowerInvariant();
-        TransactionTypeCounts viewTypeCounts = type is "income" or "expense" or "transfer"
+        TransactionTypeCounts viewTypeCounts = type is "income" or "expense" or "transfer" or "internaltransfer"
             ? BuildTypeCounts(GetTransactions(userId, mode, filter with { Type = "all" }))
             : currentScope.TypeCounts;
         TransactionSummaryScope? previousScope = TryGetComparablePeriod(filter, out DateTime previousStartDate, out DateTime previousEndDate)
@@ -102,7 +102,11 @@ public class TransactionService : InExService, ITransactionService
 
     public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
-        await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
+        Category category = await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
+        if (category.IsSystem)
+        {
+            throw new DomainRuleException("system-category-transaction-create", "System categories can only be assigned by their dedicated transaction workflows.");
+        }
 
         Transaction transaction = itemDTO.ToEntity();
         transaction.UserId = userId;
@@ -152,6 +156,33 @@ public class TransactionService : InExService, ITransactionService
         return resultDTO;
     }
 
+    public async Task<CreatedResponse> CreateAsync(CreateInternalTransferRequest itemDTO, int userId, CancellationToken ct = default)
+    {
+        await GetTransferAccountForUserAsync(itemDTO.AccountId, userId, ct);
+
+        Category internalTransferCategory = await DbInEx.CategoryRepository
+            .Get(true, category => category.UserId == userId && category.IsSystem && category.SystemCode == "internal-transfer")
+            .SingleOrDefaultAsync(ct)
+            ?? throw new DomainRuleException("internal-transfer-category-missing", "The internal transfer category is unavailable for this user.");
+
+        Transaction transaction = new()
+        {
+            AccountId = itemDTO.AccountId,
+            CategoryId = internalTransferCategory.Id,
+            UserId = userId,
+            CreatedBy = userId,
+            Created = itemDTO.Created,
+            Value = InternalTransferDirection.IsOutgoing(itemDTO.Direction) ? -itemDTO.Amount : itemDTO.Amount,
+            Comment = itemDTO.Comment
+        };
+
+        transaction = ProcessTagsRefs(transaction, userId);
+        EntityEntry<Transaction> result = await DbInEx.TransactionRepository.CreateAsync(transaction, ct);
+        await DbInEx.SaveAsync(ct);
+
+        return new CreatedResponse(result.Entity.Id);
+    }
+
     public async Task<TransactionResponse> UpdateAsync(int id, UpdateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
         if (itemDTO.Id != id)
@@ -161,11 +192,15 @@ public class TransactionService : InExService, ITransactionService
 
         // get item to update
         var source = await DbInEx.TransactionRepository
-            .GetWithIncludePaths(false, i => i.Id == id && i.UserId == userId, "TransactionTagDetails.Tag")
+            .GetWithIncludePaths(false, i => i.Id == id && i.UserId == userId, "TransactionTagDetails.Tag", "Category")
             .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
 
-        await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
+        Category category = await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
+        if (source.Category.IsSystem != category.IsSystem || (source.Category.IsSystem && source.CategoryId != category.Id))
+        {
+            throw new DomainRuleException("system-category-transaction-update", "System transactions must retain their system category.");
+        }
 
         // update item with new details
         source = itemDTO.ApplyTo(source);
@@ -291,7 +326,10 @@ public class TransactionService : InExService, ITransactionService
                 items = items.Where(i => !i.Category.IsSystem && i.Value < 0);
                 break;
             case "transfer":
-                items = items.Where(i => i.Category.IsSystem);
+                items = items.Where(i => i.Category.IsSystem && i.Category.SystemCode != "internal-transfer");
+                break;
+            case "internaltransfer":
+                items = items.Where(i => i.Category.IsSystem && i.Category.SystemCode == "internal-transfer");
                 break;
         }
 
@@ -383,7 +421,8 @@ public class TransactionService : InExService, ITransactionService
         All = items.Count(),
         Income = items.Count(item => !item.Category.IsSystem && item.Value >= 0),
         Expense = items.Count(item => !item.Category.IsSystem && item.Value < 0),
-        Transfer = items.Count(item => item.Category.IsSystem)
+        Transfer = items.Count(item => item.Category.IsSystem && item.Category.SystemCode != "internal-transfer"),
+        InternalTransfer = items.Count(item => item.Category.IsSystem && item.Category.SystemCode == "internal-transfer")
     };
 
     private static bool TryGetComparablePeriod(TransactionFilterQuery filter, out DateTime previousStartDate, out DateTime previousEndDate)
@@ -480,7 +519,7 @@ public class TransactionService : InExService, ITransactionService
         }
     }
 
-    private async Task EnsureTransactionRelationsBelongToUserAsync(int accountId, int categoryId, int userId, CancellationToken ct)
+    private async Task<Category> EnsureTransactionRelationsBelongToUserAsync(int accountId, int categoryId, int userId, CancellationToken ct)
     {
         bool accountExists = await DbInEx.AccountRepository
             .Get(true, i => i.Id == accountId && i.UserId == userId)
@@ -491,14 +530,16 @@ public class TransactionService : InExService, ITransactionService
             throw new ResourceNotFoundException($"Account {accountId} was not found.", "Account", accountId);
         }
 
-        bool categoryExists = await DbInEx.CategoryRepository
+        Category? category = await DbInEx.CategoryRepository
             .Get(true, i => i.Id == categoryId && i.UserId == userId)
-            .AnyAsync(ct);
+            .SingleOrDefaultAsync(ct);
 
-        if (!categoryExists)
+        if (category is null)
         {
             throw new ResourceNotFoundException($"Category {categoryId} was not found.", "Category", categoryId);
         }
+
+        return category;
     }
 
     private async Task<Account> GetTransferAccountForUserAsync(int accountId, int userId, CancellationToken ct)
