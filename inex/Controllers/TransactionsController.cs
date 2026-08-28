@@ -30,6 +30,7 @@ public class TransactionsController : ApiControllerBase
 
     public const string PostAddRoute = "";
     public const string PostAddTransferRoute = "transfer";
+    public const string PostAddInternalTransferRoute = "internal-transfer";
 
     public const string PutUpdateRoute = "{id}";
 
@@ -110,6 +111,18 @@ public class TransactionsController : ApiControllerBase
     public async Task<ActionResult> Add(CreateTransferRequest itemDTO, CancellationToken ct)
     {
         TransferResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
+        return Ok(resultDTO);
+    }
+
+    /// <summary>Add one side of an internal transfer between separately managed users</summary>
+    /// <param name="itemDTO">Internal transfer details</param>
+    /// <returns>Id of a new transaction</returns>
+    [HttpPost]
+    [Route(PostAddInternalTransferRoute)]
+    [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult> Add(CreateInternalTransferRequest itemDTO, CancellationToken ct)
+    {
+        CreatedResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
     }
 

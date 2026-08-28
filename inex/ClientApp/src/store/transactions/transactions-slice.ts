@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type TransactionFilterType = "all" | "income" | "expense" | "transfer";
+export type TransactionFilterType = "all" | "income" | "expense" | "transfer" | "internalTransfer";
 
 export interface TransactionFilter {
     accountIds: number[];
@@ -41,7 +41,7 @@ const normalizedText = (values: string[] | undefined): string[] => Array.from(
 ).sort((left, right) => left.localeCompare(right));
 
 export const normalizeTransactionFilter = (filter: Partial<TransactionFilter>): NormalizedTransactionFilter => {
-    const type = filter.type === "income" || filter.type === "expense" || filter.type === "transfer"
+    const type = filter.type === "income" || filter.type === "expense" || filter.type === "transfer" || filter.type === "internalTransfer"
         ? filter.type
         : "all";
     const range = filter.range?.length === 2 && filter.range[0] > 0 && filter.range[1] >= filter.range[0]

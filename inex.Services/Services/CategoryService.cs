@@ -75,6 +75,10 @@ public class CategoryService : InExService, ICategoryService
             .Get(false, i => i.Id == id && i.UserId == userId)
             .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Category {id} was not found.", "Category", id);
+        if (source.IsSystem)
+        {
+            throw new DomainRuleException("system-category-update", $"System category {id} cannot be updated.");
+        }
         // update item with new details
         source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;

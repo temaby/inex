@@ -29,7 +29,7 @@ public class Category : NamedEntity
     public bool IsSystem { get; set; }
 
     [Column("system_code")]
-    [MaxLength(15)]
+    [MaxLength(32)]
     public string? SystemCode { get; set; }
 
     public AppUser User { get; set; } = null!;

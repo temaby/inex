@@ -45,4 +45,18 @@ public class TransactionDateValidationTests
 
         Assert.Contains(result.Errors, error => error.ErrorMessage == "created.required");
     }
+
+    [Fact]
+    public void InternalTransfer_InvalidDirection_IsInvalidWithStableErrorCode()
+    {
+        var result = new InternalTransferCreateValidator().Validate(new CreateInternalTransferRequest
+        {
+            AccountId = 1,
+            Amount = 1m,
+            Created = DateTime.UtcNow,
+            Direction = "sideways"
+        });
+
+        Assert.Contains(result.Errors, error => error.ErrorMessage == "direction.invalid");
+    }
 }

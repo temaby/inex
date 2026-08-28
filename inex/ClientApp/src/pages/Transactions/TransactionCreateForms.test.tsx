@@ -8,6 +8,7 @@ import type { AccountResponse } from "../../store/accounts/accounts-api";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
+import TransactionCreateInternalTransferForm from "./TransactionCreateInternalTransferForm";
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
@@ -23,6 +24,9 @@ vi.mock("react-i18next", () => ({
             "transactions.selectCategory": "Select category",
             "transactions.transferFrom": "Transfer from",
             "transactions.transferTo": "Transfer to",
+            "transactions.internalTransferDirection": "Direction",
+            "transactions.internalTransferOutgoing": "Sent",
+            "transactions.internalTransferIncoming": "Received",
         }[key] ?? key),
     }),
 }));
@@ -190,6 +194,32 @@ describe("Transaction create mode forms", () => {
         expect(text.indexOf("Transfer from")).toBeLessThan(text.indexOf("Amount"));
         expect(text.indexOf("Transfer to")).toBeLessThan(text.lastIndexOf("Amount"));
         expect(screen.getAllByText("Select account")).toHaveLength(2);
+        expect(screen.queryByText("USD")).not.toBeInTheDocument();
+    });
+
+    it("renders the internal-transfer direction, account, and amount without a default currency suffix", () => {
+        const { container } = render(
+            <TransactionCreateInternalTransferForm
+                account={unselectedAccount}
+                accounts={accounts}
+                amount={0}
+                comment=""
+                date={null}
+                direction="outgoing"
+                onSetAccount={noop}
+                onSetAmount={noop}
+                onSetComment={noop}
+                onSetDate={noop}
+                onSetDirection={noop}
+                validationErrors={{}}
+            />,
+        );
+
+        const text = container.textContent ?? "";
+        expect(text.indexOf("Direction")).toBeLessThan(text.indexOf("Account"));
+        expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Amount"));
+        expect(screen.getByText("Sent")).toBeInTheDocument();
+        expect(screen.getByText("Received")).toBeInTheDocument();
         expect(screen.queryByText("USD")).not.toBeInTheDocument();
     });
 });

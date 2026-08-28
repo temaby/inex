@@ -10,8 +10,10 @@ import TransactionCreate from "./TransactionCreate";
 const mutationState = vi.hoisted(() => ({
     createLoading: false,
     transferLoading: false,
+    internalTransferLoading: false,
     createTransaction: vi.fn(),
     createTransfer: vi.fn(),
+    createInternalTransfer: vi.fn(),
     dispatch: vi.fn(),
 }));
 
@@ -25,8 +27,10 @@ vi.mock("react-i18next", () => ({
             "transactions.saveExpense": "Save expense",
             "transactions.saveIncome": "Save income",
             "transactions.saveTransfer": "Save transfer",
+            "transactions.saveInternalTransfer": "Save internal transfer",
             "transactions.saving": "Saving...",
             "transactions.transfer": "Transfer",
+            "transactions.internalTransfer": "Internal transfer",
             "errors.account_from_id.invalid": "Please select a valid source account",
             "errors.account_id.invalid": "Please select a valid account",
             "errors.account_to_id.invalid": "Please select a valid destination account",
@@ -50,6 +54,10 @@ vi.mock("../../store/transactions/transactions-api", () => ({
     useCreateTransferMutation: () => [
         mutationState.createTransfer,
         { isLoading: mutationState.transferLoading },
+    ],
+    useCreateInternalTransferMutation: () => [
+        mutationState.createInternalTransfer,
+        { isLoading: mutationState.internalTransferLoading },
     ],
 }));
 
@@ -77,6 +85,36 @@ vi.mock("./TransactionCreateTransferForm", () => ({
     default: function TransactionCreateTransferFormMock({ validationErrors }: { validationErrors: Record<string, string | undefined> }) {
         return (
             <div data-testid="transfer-form">
+                {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
+            </div>
+        );
+    },
+}));
+
+vi.mock("./TransactionCreateInternalTransferForm", () => ({
+    default: function TransactionCreateInternalTransferFormMock({
+        validationErrors,
+        onSetAccount,
+        onSetAmount,
+        onSetDirection,
+    }: {
+        validationErrors: Record<string, string | undefined>;
+        onSetAccount: (item: { key: string }) => void;
+        onSetAmount: (amount: number) => void;
+        onSetDirection: (direction: "incoming" | "outgoing") => void;
+    }) {
+        return (
+            <div data-testid="internal-transfer-form">
+                <button
+                    type="button"
+                    onClick={() => {
+                        onSetAccount({ key: "1" });
+                        onSetAmount(25);
+                        onSetDirection("incoming");
+                    }}
+                >
+                    Set valid internal transfer
+                </button>
                 {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
             </div>
         );
@@ -122,8 +160,11 @@ describe("TransactionCreate", () => {
     beforeEach(() => {
         mutationState.createLoading = false;
         mutationState.transferLoading = false;
+        mutationState.internalTransferLoading = false;
         mutationState.createTransaction.mockReset();
         mutationState.createTransfer.mockReset();
+        mutationState.createInternalTransfer.mockReset();
+        mutationState.createInternalTransfer.mockReturnValue({ unwrap: () => Promise.resolve() });
         mutationState.dispatch.mockReset();
     });
 
@@ -176,5 +217,34 @@ describe("TransactionCreate", () => {
         expect(screen.getByText("Please select a valid destination account")).toBeInTheDocument();
         expect(screen.getByText("Source amount must be greater than zero")).toBeInTheDocument();
         expect(screen.getByText("Destination amount must be greater than zero")).toBeInTheDocument();
+    });
+
+    it("shows the internal-transfer form and blocks an empty submission", async () => {
+        const user = userEvent.setup();
+
+        renderCreateForm();
+        await user.click(screen.getByRole("button", { name: "Internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
+
+        expect(screen.getByTestId("internal-transfer-form")).toBeInTheDocument();
+        expect(mutationState.createInternalTransfer).not.toHaveBeenCalled();
+        expect(screen.getByText("Please select a valid account")).toBeInTheDocument();
+        expect(screen.getByText("errors.amount.must_be_positive")).toBeInTheDocument();
+    });
+
+    it("submits an internal transfer with the selected direction", async () => {
+        const user = userEvent.setup();
+
+        renderCreateForm();
+        await user.click(screen.getByRole("button", { name: "Internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
+
+        expect(mutationState.createInternalTransfer).toHaveBeenCalledWith(expect.objectContaining({
+            accountId: 1,
+            amount: 25,
+            direction: "incoming",
+            comment: "",
+        }));
     });
 });

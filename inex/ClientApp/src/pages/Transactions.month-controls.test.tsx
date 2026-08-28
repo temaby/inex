@@ -292,13 +292,13 @@ describe("Transactions month controls", () => {
     it("uses untyped server VIEW counts and removes only type when All is selected", () => {
         summaryQueryState.data = {
             totalCount: 1,
-            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0 },
-            viewTypeCounts: { all: 4, income: 1, expense: 1, transfer: 2 },
+            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+            viewTypeCounts: { all: 4, income: 1, expense: 1, transfer: 2, internalTransfer: 0 },
             currencySummaries: [],
             baseCurrency: "USD",
             currentScope: {
                 totalCount: 1,
-                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0 },
+                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
                 period: null,
                 cashFlowBuckets: [],
             },

@@ -235,10 +235,10 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
                 const account = accountsById.get(transaction.accountId);
                 const category = categoriesById.get(transaction.categoryId);
                 const kind = getTransactionKind(transaction, category);
-                const amountKind: MoneyKind = kind === "transfer" ? "transfer" : kind;
+                const amountKind: MoneyKind = kind === "transfer" || kind === "internalTransfer" ? "transfer" : kind;
                 const cleanComment = transaction.comment?.replace(/#\S+/g, "").replace(/@\S+/g, "").trim();
                 const categoryPath = getCategoryPathLabel(category, categoriesById);
-                const title = cleanComment || (kind === "transfer" ? t("transactions.transfer") : category?.name) || t("transactions.uncategorized");
+                const title = cleanComment || (kind === "transfer" ? t("transactions.transfer") : kind === "internalTransfer" ? t("transactions.internalTransfer") : category?.name) || t("transactions.uncategorized");
                 const currency = account?.currency ?? transaction.accountCurrency;
                 const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, transaction.created, baseCurrency, cachedExchangeRates);
                 const openEdit = () => {
@@ -248,7 +248,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
                 return <div className={`transactions-ledger-row transactions-ledger-row--${kind}${restoredFocusId === transaction.id ? " transactions-ledger-row--restored-focus" : ""}`} data-transaction-id={transaction.id} key={transaction.id} onBlur={() => setRestoredFocusId(null)} onClick={openEdit} onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEdit(); }
                 }} role="button" tabIndex={0}>
-                    <div className="transactions-row-main"><div className="transactions-row-title">{title}</div><div className="transactions-row-meta">{categoryPath && kind !== "transfer" && <span className="transactions-category-path">{categoryPath}</span>}{kind === "transfer" && <span>{t("transactions.transfer")}</span>}{transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}{transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}</div></div>
+                    <div className="transactions-row-main"><div className="transactions-row-title">{title}</div><div className="transactions-row-meta">{categoryPath && kind !== "transfer" && kind !== "internalTransfer" && <span className="transactions-category-path">{categoryPath}</span>}{kind === "transfer" && <span>{t("transactions.transfer")}</span>}{kind === "internalTransfer" && <span>{t("transactions.internalTransfer")}</span>}{transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}{transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}</div></div>
                     <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div><div className="transactions-row-date">{getTransactionLocalDate(transaction.created)}</div>
                     <div className="transactions-row-amount"><Num currency={currency} kind={amountKind} signage="signed" size={15} value={transaction.amount} />{baseEquivalent && <span className="transactions-row-amount-equivalent">≈ <Num currency={baseEquivalent.currency} kind={amountKind} signage="signed" size={12} value={baseEquivalent.value} /></span>}</div>
                 </div>;

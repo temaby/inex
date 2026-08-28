@@ -8,6 +8,7 @@ public record TransactionTypeCounts
     public int Income { get; init; }
     public int Expense { get; init; }
     public int Transfer { get; init; }
+    public int InternalTransfer { get; init; }
 }
 
 public record TransactionCurrencySummary
