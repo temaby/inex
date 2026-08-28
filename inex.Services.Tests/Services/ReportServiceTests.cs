@@ -172,7 +172,48 @@ public class ReportServiceTests
         Assert.Equal("Salary", report.IncomeCategories[0].Name);
         Assert.Single(report.ExpenseCategories);
         Assert.Equal("Groceries", report.ExpenseCategories[0].Name);
-        Assert.DoesNotContain(typeof(MonthlyFinancialReport).GetProperties(), property => property.Name.Contains("Transaction", StringComparison.Ordinal));
+        Assert.DoesNotContain(typeof(MonthlyFinancialReport).GetProperties(), property => property.Name is "IncomeTransactions" or "ExpenseTransactions");
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_ReturnsTenLargestConvertedExpensesAndExcludesTransfers()
+    {
+        var housing = Category(id: 10, name: "Housing");
+        var rent = Category(id: 11, name: "Rent", parentId: housing.Id);
+        var transfer = Category(id: 12, name: "Transfer", isSystem: true);
+        var service = CreateService(
+            categories: [housing, rent, transfer],
+            accounts: [Account(id: 20, currency: "USD"), Account(id: 21, currency: "EUR")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: rent.Id, amount: -1m),
+                Transaction(id: 2, accountId: 20, categoryId: rent.Id, amount: -2m),
+                Transaction(id: 3, accountId: 20, categoryId: rent.Id, amount: -3m, comment: "First tied expense"),
+                Transaction(id: 4, accountId: 20, categoryId: rent.Id, amount: -4m),
+                Transaction(id: 5, accountId: 20, categoryId: rent.Id, amount: -5m),
+                Transaction(id: 6, accountId: 20, categoryId: rent.Id, amount: -6m),
+                Transaction(id: 7, accountId: 20, categoryId: rent.Id, amount: -7m),
+                Transaction(id: 8, accountId: 20, categoryId: rent.Id, amount: -8m),
+                Transaction(id: 9, accountId: 20, categoryId: rent.Id, amount: -9m),
+                Transaction(id: 10, accountId: 20, categoryId: rent.Id, amount: -10m),
+                Transaction(id: 11, accountId: 20, categoryId: rent.Id, amount: -11m),
+                Transaction(id: 12, accountId: 21, categoryId: rent.Id, amount: -30m),
+                Transaction(id: 13, accountId: 20, categoryId: transfer.Id, amount: -999m),
+                Transaction(id: 14, accountId: 20, categoryId: rent.Id, amount: -3m, created: Start.AddDays(3), comment: "Second tied expense")
+            ],
+            rates:
+            [
+                Rate(currencyTo: "EUR", rate: 2m, date: Start.AddDays(12)),
+                Rate(currencyTo: "EUR", rate: 2m, date: ClockNow.Date)
+            ]);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5);
+
+        Assert.Equal([15m, 11m, 10m, 9m, 8m, 7m, 6m, 5m, 4m, 3m], report.LargestExpenses.Select(expense => Math.Abs(expense.Amount)));
+        Assert.All(report.LargestExpenses, expense => Assert.Equal("Housing / Rent", expense.Category));
+        Assert.DoesNotContain(report.LargestExpenses, expense => Math.Abs(expense.Amount) == 999m);
+        Assert.Contains(report.LargestExpenses, expense => expense.Description == "First tied expense");
+        Assert.DoesNotContain(report.LargestExpenses, expense => expense.Description == "Second tied expense");
     }
 
     [Fact]
@@ -737,13 +778,14 @@ public class ReportServiceTests
         IsEnabled = isEnabled
     };
 
-    private static TransactionResponse Transaction(int id, int accountId, int categoryId, decimal amount, DateTime? created = null) => new()
+    private static TransactionResponse Transaction(int id, int accountId, int categoryId, decimal amount, DateTime? created = null, string? comment = null) => new()
     {
         Id = id,
         AccountId = accountId,
         CategoryId = categoryId,
         Amount = amount,
         Created = created ?? Start.AddDays(id),
+        Comment = comment,
         AccountCurrency = "USD"
     };
 

@@ -13,6 +13,9 @@ public record MonthlyFinancialReport
     public decimal? SpentIncomePercentage => TotalIncome == 0 ? null : TotalExpenses / TotalIncome * 100;
     public IReadOnlyList<MonthlyReportCategory> IncomeCategories { get; init; } = [];
     public IReadOnlyList<MonthlyReportCategory> ExpenseCategories { get; init; } = [];
+    public IReadOnlyList<MonthlyReportExpense> LargestExpenses { get; init; } = [];
 }
 
 public record MonthlyReportCategory(string Name, decimal Amount);
+
+public record MonthlyReportExpense(DateTime Date, string Category, string? Description, decimal Amount);
