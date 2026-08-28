@@ -361,8 +361,8 @@ public class ReportServiceTests
         Assert.Equal(500m, report.TotalIncome);
         Assert.Equal(0m, report.OpeningBalance);
         Assert.Equal(500m, report.ClosingBalance);
-        Assert.Single(report.IncomeTransactions);
-        Assert.Equal(inactiveCategory.Name, report.IncomeTransactions[0].Category);
+        Assert.Single(report.IncomeCategories);
+        Assert.Equal(inactiveCategory.Name, report.IncomeCategories[0].Name);
         Assert.True(pdf.Length > 4);
         Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
     }
