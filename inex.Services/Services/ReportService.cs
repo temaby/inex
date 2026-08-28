@@ -407,22 +407,14 @@ public class ReportService : Service, IReportService
             .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && !category.IsSystem)
             .Select(transaction => new MonthlyReportTransaction(
                 transaction.CategoryId,
-                transaction.Created,
-                categories[transaction.CategoryId].Name,
-                transaction.Comment,
                 ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created)))
             .ToList();
 
         decimal totalIncome = reportTransactions.Where(transaction => transaction.Amount > 0).Sum(transaction => transaction.Amount);
         decimal totalExpenses = Math.Abs(reportTransactions.Where(transaction => transaction.Amount < 0).Sum(transaction => transaction.Amount));
 
-        var expensesByCategory = reportTransactions
-            .Where(transaction => transaction.Amount < 0)
-            .GroupBy(transaction => transaction.CategoryId)
-            .Select(group => new MonthlyReportCategory(group.First().Category, Math.Abs(group.Sum(transaction => transaction.Amount))))
-            .OrderByDescending(category => category.Amount)
-            .ToList();
-        var chartCategories = BuildChartCategories(expensesByCategory);
+        var incomeCategories = BuildCategorySummaries(reportTransactions, categories, transaction => transaction.Amount > 0);
+        var expenseCategories = BuildCategorySummaries(reportTransactions, categories, transaction => transaction.Amount < 0);
 
         var openingBalances = accounts.Keys.ToDictionary(accountId => accountId, _ => 0m);
         var closingBalances = accounts.Keys.ToDictionary(accountId => accountId, _ => 0m);
@@ -449,22 +441,8 @@ public class ReportService : Service, IReportService
             TotalExpenses = totalExpenses,
             OpeningBalance = openingBalance,
             ClosingBalance = closingBalance,
-            IncomeTransactions = reportTransactions
-                .Where(transaction => transaction.Amount > 0)
-                .OrderBy(transaction => transaction.Date)
-                .ToList(),
-            IncomeSources = reportTransactions
-                .Where(transaction => transaction.Amount > 0)
-                .GroupBy(transaction => transaction.CategoryId)
-                .Select(group => new MonthlyReportCategory(group.First().Category, group.Sum(transaction => transaction.Amount)))
-                .OrderByDescending(category => category.Amount)
-                .ToList(),
-            SpendingCategories = chartCategories,
-            LargestExpenses = reportTransactions
-                .Where(transaction => transaction.Amount < 0)
-                .OrderBy(transaction => transaction.Amount)
-                .Take(10)
-                .ToList()
+            IncomeCategories = incomeCategories,
+            ExpenseCategories = expenseCategories
         };
     }
 
@@ -492,17 +470,60 @@ public class ReportService : Service, IReportService
         return new DateTime(month.Year, month.Month, 1).AddMonths(1).AddDays(-1);
     }
 
-    private static IReadOnlyList<MonthlyReportCategory> BuildChartCategories(IReadOnlyList<MonthlyReportCategory> categories)
+    private static IReadOnlyList<MonthlyReportCategory> BuildCategorySummaries(
+        IEnumerable<MonthlyReportTransaction> transactions,
+        IReadOnlyDictionary<int, CategoryResponse> categories,
+        Func<MonthlyReportTransaction, bool> includeTransaction)
     {
-        const int chartCategoryLimit = 6;
-        if (categories.Count <= chartCategoryLimit)
+        const decimal otherCategoryThreshold = 10m;
+        var categoryTotals = transactions
+            .Where(includeTransaction)
+            .GroupBy(transaction => transaction.CategoryId)
+            .Select(group => new MonthlyReportCategory(
+                BuildCategoryPath(categories[group.Key], categories),
+                Math.Abs(group.Sum(transaction => transaction.Amount))))
+            .OrderByDescending(category => category.Amount)
+            .ThenBy(category => category.Name, StringComparer.InvariantCulture)
+            .ToList();
+
+        var individuallyVisibleCategories = categoryTotals
+            .Where(category => category.Amount >= otherCategoryThreshold)
+            .ToList();
+        decimal otherTotal = categoryTotals
+            .Where(category => category.Amount < otherCategoryThreshold)
+            .Sum(category => category.Amount);
+        var summaries = individuallyVisibleCategories
+            .OrderByDescending(category => category.Amount)
+            .ThenBy(category => category.Name, StringComparer.InvariantCulture)
+            .ToList();
+        if (otherTotal > 0)
         {
-            return categories;
+            string otherCategoryName = summaries.Any(category => category.Name == "Other")
+                ? "Other (small categories)"
+                : "Other";
+            summaries.Add(new MonthlyReportCategory(otherCategoryName, otherTotal));
         }
 
-        var visibleCategories = categories.Take(chartCategoryLimit - 1).ToList();
-        visibleCategories.Add(new MonthlyReportCategory("Other", categories.Skip(chartCategoryLimit - 1).Sum(category => category.Amount)));
-        return visibleCategories;
+        return summaries;
+    }
+
+    private static string BuildCategoryPath(
+        CategoryResponse category,
+        IReadOnlyDictionary<int, CategoryResponse> categories)
+    {
+        var categoryNames = new Stack<string>();
+        var visitedCategoryIds = new HashSet<int>();
+        CategoryResponse? currentCategory = category;
+
+        while (currentCategory is not null && visitedCategoryIds.Add(currentCategory.Id))
+        {
+            categoryNames.Push(currentCategory.Name);
+            currentCategory = currentCategory.ParentId is int parentId && categories.TryGetValue(parentId, out CategoryResponse? parentCategory)
+                ? parentCategory
+                : null;
+        }
+
+        return string.Join(" / ", categoryNames);
     }
 
     private static bool TryConvertToBaseCurrency(
@@ -539,6 +560,8 @@ public class ReportService : Service, IReportService
     private ITransactionService _transactionService;
     private IExchangeRateService _exchangeRateService;
     private IClock _clock;
+
+    private record MonthlyReportTransaction(int CategoryId, decimal Amount);
 
     private sealed class StringTupleDateComparer : IEqualityComparer<(string, DateTime)>
     {

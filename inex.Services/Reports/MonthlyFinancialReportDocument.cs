@@ -42,8 +42,7 @@ public sealed class MonthlyFinancialReportDocument : IDocument
                 column.Spacing(18);
                 column.Item().Element(ComposeFinancialSummary);
                 column.Item().Element(ComposeIncome);
-                column.Item().Element(ComposeSpendingByCategory);
-                column.Item().Element(ComposeLargestExpenses);
+                column.Item().Element(ComposeExpenses);
             });
             page.Footer().AlignCenter().Text(text =>
             {
@@ -100,78 +99,39 @@ public sealed class MonthlyFinancialReportDocument : IDocument
 
     private void ComposeIncome(IContainer container)
     {
-        Section(container, "Income", content =>
-        {
-            content.Column(column =>
-            {
-                column.Item().Text($"Total income: {FormatAmount(_report.TotalIncome)}").SemiBold();
-                if (_report.IncomeSources.Count > 0)
-                {
-                    column.Item().PaddingTop(8).Text("By source").SemiBold();
-                    column.Item().Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.RelativeColumn();
-                            columns.ConstantColumn(120);
-                        });
-                        TableHeader(table, "Source", "Amount");
-                        foreach (var source in _report.IncomeSources)
-                        {
-                            TableCell(table.Cell(), source.Name);
-                            TableCell(table.Cell().AlignRight(), FormatAmount(source.Amount));
-                        }
-                    });
-                }
-
-                column.Item().PaddingTop(8).Text("Income transactions").SemiBold();
-                if (_report.IncomeTransactions.Count == 0)
-                {
-                    column.Item().PaddingTop(4).Text("No income transactions for this month.").FontColor(MutedColor);
-                    return;
-                }
-
-                column.Item().PaddingTop(4).Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.ConstantColumn(70);
-                        columns.RelativeColumn();
-                        columns.RelativeColumn(2);
-                        columns.ConstantColumn(120);
-                    });
-                    TableHeader(table, "Date", "Source", "Description", "Amount");
-                    foreach (var transaction in _report.IncomeTransactions)
-                    {
-                        TableCell(table.Cell(), transaction.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-                        TableCell(table.Cell(), transaction.Category);
-                        TableCell(table.Cell(), transaction.Description ?? "(no description)");
-                        TableCell(table.Cell().AlignRight(), FormatAmount(transaction.Amount));
-                    }
-                });
-            });
-        });
+        ComposeCategorySummary(container, "Income", _report.TotalIncome, _report.IncomeCategories, "income");
     }
 
-    private void ComposeSpendingByCategory(IContainer container)
+    private void ComposeExpenses(IContainer container)
     {
-        Section(container, "Spending by category", content =>
+        ComposeCategorySummary(container, "Expenses", _report.TotalExpenses, _report.ExpenseCategories, "expense");
+    }
+
+    private void ComposeCategorySummary(
+        IContainer container,
+        string sectionTitle,
+        decimal total,
+        IReadOnlyList<MonthlyReportCategory> categories,
+        string direction)
+    {
+        Section(container, sectionTitle, content =>
         {
             content.Column(column =>
             {
-                if (_report.SpendingCategories.Count == 0)
+                column.Item().Text($"Total {direction}: {FormatAmount(total)}").SemiBold();
+                if (categories.Count == 0)
                 {
-                    column.Item().Text("No expenses for this month.").FontColor(MutedColor);
+                    column.Item().PaddingTop(4).Text($"No {direction} categories for this month.").FontColor(MutedColor);
                     return;
                 }
 
-                column.Item().Text("Expense distribution").SemiBold();
-                foreach (var category in _report.SpendingCategories)
+                column.Item().PaddingTop(8).Text($"{sectionTitle} distribution").SemiBold();
+                foreach (var category in categories)
                 {
-                    decimal share = _report.TotalExpenses == 0 ? 0 : category.Amount / _report.TotalExpenses;
+                    decimal share = total == 0 ? 0 : category.Amount / total;
                     column.Item().PaddingTop(6).Row(row =>
                     {
-                        row.ConstantItem(130).Text(category.Name);
+                        row.RelativeItem(2).PaddingRight(8).Text(category.Name);
                         row.RelativeItem().PaddingTop(3).Height(10).Background("DBEAFE").Row(bar =>
                         {
                             bar.RelativeItem((float)Math.Max((double)share, 0.01)).Background(AccentColor);
@@ -193,48 +153,17 @@ public sealed class MonthlyFinancialReportDocument : IDocument
                         columns.ConstantColumn(70);
                     });
                     TableHeader(table, "Category", "Amount", "Share");
-                    foreach (var category in _report.SpendingCategories)
+                    foreach (var category in categories)
                     {
-                        decimal share = _report.TotalExpenses == 0 ? 0 : category.Amount / _report.TotalExpenses;
+                        decimal share = total == 0 ? 0 : category.Amount / total;
                         TableCell(table.Cell(), category.Name);
                         TableCell(table.Cell().AlignRight(), FormatAmount(category.Amount));
                         TableCell(table.Cell().AlignRight(), share.ToString("P1", CultureInfo.InvariantCulture));
                     }
-                    TableCell(table.Cell().Background("F3F4F6"), "Total expenses", true);
-                    TableCell(table.Cell().Background("F3F4F6").AlignRight(), FormatAmount(_report.TotalExpenses), true);
+                    TableCell(table.Cell().Background("F3F4F6"), $"Total {direction}", true);
+                    TableCell(table.Cell().Background("F3F4F6").AlignRight(), FormatAmount(total), true);
                     TableCell(table.Cell().Background("F3F4F6").AlignRight(), "100.0%", true);
                 });
-            });
-        });
-    }
-
-    private void ComposeLargestExpenses(IContainer container)
-    {
-        Section(container, "Largest expenses", content =>
-        {
-            if (_report.LargestExpenses.Count == 0)
-            {
-                content.Text("No expenses for this month.").FontColor(MutedColor);
-                return;
-            }
-
-            content.Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(70);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn();
-                    columns.ConstantColumn(120);
-                });
-                TableHeader(table, "Date", "Description", "Category", "Amount");
-                foreach (var transaction in _report.LargestExpenses)
-                {
-                    TableCell(table.Cell(), transaction.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-                    TableCell(table.Cell(), transaction.Description ?? "(no description)");
-                    TableCell(table.Cell(), transaction.Category);
-                    TableCell(table.Cell().AlignRight(), FormatAmount(Math.Abs(transaction.Amount)));
-                }
             });
         });
     }
