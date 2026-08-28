@@ -11,12 +11,8 @@ public record MonthlyFinancialReport
     public decimal ClosingBalance { get; init; }
     public decimal SurplusOrDeficit => TotalIncome - TotalExpenses;
     public decimal? SpentIncomePercentage => TotalIncome == 0 ? null : TotalExpenses / TotalIncome * 100;
-    public IReadOnlyList<MonthlyReportTransaction> IncomeTransactions { get; init; } = [];
-    public IReadOnlyList<MonthlyReportCategory> IncomeSources { get; init; } = [];
-    public IReadOnlyList<MonthlyReportCategory> SpendingCategories { get; init; } = [];
-    public IReadOnlyList<MonthlyReportTransaction> LargestExpenses { get; init; } = [];
+    public IReadOnlyList<MonthlyReportCategory> IncomeCategories { get; init; } = [];
+    public IReadOnlyList<MonthlyReportCategory> ExpenseCategories { get; init; } = [];
 }
-
-public record MonthlyReportTransaction(int CategoryId, DateTime Date, string Category, string? Description, decimal Amount);
 
 public record MonthlyReportCategory(string Name, decimal Amount);

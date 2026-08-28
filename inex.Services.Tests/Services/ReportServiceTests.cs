@@ -168,11 +168,71 @@ public class ReportServiceTests
         Assert.Equal(50m, report.OpeningBalance);
         Assert.Equal(280m, report.ClosingBalance);
         Assert.Equal(70m / 300m * 100m, report.SpentIncomePercentage);
-        Assert.Single(report.IncomeTransactions);
-        Assert.Single(report.SpendingCategories);
-        Assert.Equal("Groceries", report.SpendingCategories[0].Name);
-        Assert.Single(report.LargestExpenses);
-        Assert.DoesNotContain(report.LargestExpenses, expense => expense.Amount == -100m);
+        Assert.Single(report.IncomeCategories);
+        Assert.Equal("Salary", report.IncomeCategories[0].Name);
+        Assert.Single(report.ExpenseCategories);
+        Assert.Equal("Groceries", report.ExpenseCategories[0].Name);
+        Assert.DoesNotContain(typeof(MonthlyFinancialReport).GetProperties(), property => property.Name.Contains("Transaction", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_UsesFullCategoryPathsAndGroupsOnlySubThresholdTotals()
+    {
+        var incomeParent = Category(id: 10, name: "Income");
+        var salary = Category(id: 11, name: "Salary", parentId: incomeParent.Id);
+        var dividends = Category(id: 12, name: "Dividends", parentId: incomeParent.Id);
+        var transport = Category(id: 20, name: "Transport");
+        var maintenance = Category(id: 21, name: "Maintenance", parentId: transport.Id);
+        var tolls = Category(id: 22, name: "Tolls", parentId: transport.Id);
+        var groceries = Category(id: 23, name: "Groceries");
+        var service = CreateService(
+            categories: [incomeParent, salary, dividends, transport, maintenance, tolls, groceries],
+            accounts: [Account(id: 30, currency: "USD")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 30, categoryId: salary.Id, amount: 100m),
+                Transaction(id: 2, accountId: 30, categoryId: dividends.Id, amount: 9.99m),
+                Transaction(id: 3, accountId: 30, categoryId: maintenance.Id, amount: -10m),
+                Transaction(id: 4, accountId: 30, categoryId: tolls.Id, amount: -9.99m),
+                Transaction(id: 5, accountId: 30, categoryId: groceries.Id, amount: -4m)
+            ],
+            rates: []);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5);
+
+        Assert.Collection(
+            report.IncomeCategories,
+            category => Assert.Equal(new MonthlyReportCategory("Income / Salary", 100m), category),
+            category => Assert.Equal(new MonthlyReportCategory("Other", 9.99m), category));
+        Assert.Collection(
+            report.ExpenseCategories,
+            category => Assert.Equal(new MonthlyReportCategory("Transport / Maintenance", 10m), category),
+            category => Assert.Equal(new MonthlyReportCategory("Other", 13.99m), category));
+        Assert.DoesNotContain(report.IncomeCategories, category => category.Name == "Income / Dividends");
+        Assert.DoesNotContain(report.ExpenseCategories, category => category.Name is "Transport / Tolls" or "Groceries");
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_KeepsAScopedOtherBucketDistinctFromAnExistingCategory()
+    {
+        var other = Category(id: 10, name: "Other");
+        var groceries = Category(id: 11, name: "Groceries");
+        var service = CreateService(
+            categories: [other, groceries],
+            accounts: [Account(id: 20, currency: "USD")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: other.Id, amount: -10m),
+                Transaction(id: 2, accountId: 20, categoryId: groceries.Id, amount: -1m)
+            ],
+            rates: []);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5);
+
+        Assert.Collection(
+            report.ExpenseCategories,
+            category => Assert.Equal(new MonthlyReportCategory("Other", 10m), category),
+            category => Assert.Equal(new MonthlyReportCategory("Other (small categories)", 1m), category));
     }
 
     [Fact]
@@ -639,9 +699,10 @@ public class ReportServiceTests
         ["end"] = End.ToString("yyyy-MM-dd")
     };
 
-    private static CategoryResponse Category(int id, string name, bool isEnabled = true, bool isSystem = false) => new()
+    private static CategoryResponse Category(int id, string name, bool isEnabled = true, bool isSystem = false, int? parentId = null) => new()
     {
         Id = id,
+        ParentId = parentId,
         Key = name.ToLowerInvariant().Replace(" ", "-"),
         Name = name,
         IsEnabled = isEnabled,
