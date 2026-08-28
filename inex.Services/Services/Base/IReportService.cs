@@ -13,6 +13,6 @@ public interface IReportService : IDisposable
     Task<ListResponse<MonthlyHistoryResponse>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default);
     Task<PagedResponse<SpendingHeatmapDayResponse, ReportMetadata>> GetSpendingHeatmap(int userId, DateTime start, DateTime end, CancellationToken ct = default);
     Task<ListResponse<NetWorthHistoryPointResponse>> GetNetWorthHistory(int userId, int months, string currency = "", CancellationToken ct = default);
-    Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default);
-    Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default);
+    Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null);
+    Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null);
 }

@@ -11,6 +11,8 @@ public sealed class MonthlyFinancialReportDocument : IDocument
     private const string HeaderColor = "1D4ED8";
     private const string PositiveColor = "047857";
     private const string NegativeColor = "B91C1C";
+    private const string WarningColor = "D97706";
+    private const string DarkNegativeColor = "7F1D1D";
     private const string MutedColor = "6B7280";
     private const string BorderColor = "E5E7EB";
 
@@ -80,18 +82,18 @@ public sealed class MonthlyFinancialReportDocument : IDocument
             {
                 column.Item().Row(row =>
                 {
-                    SummaryMetric(row.RelativeItem(), "Total income", _report.TotalIncome, PositiveColor);
-                    SummaryMetric(row.RelativeItem(), "Total expenses", _report.TotalExpenses, NegativeColor);
-                    SummaryMetric(row.RelativeItem(), "Surplus / deficit", _report.SurplusOrDeficit, _report.SurplusOrDeficit >= 0 ? PositiveColor : NegativeColor);
+                    SummaryMetric(row.RelativeItem(), "Total income", FormatAmount(_report.TotalIncome), PositiveColor);
+                    SummaryMetric(row.RelativeItem(), "Total expenses", FormatAmount(_report.TotalExpenses), NegativeColor);
+                    SummaryMetric(row.RelativeItem(), "Surplus / deficit", FormatAmount(_report.SurplusOrDeficit), _report.SurplusOrDeficit >= 0 ? PositiveColor : NegativeColor);
                 });
                 column.Item().PaddingTop(10).Row(row =>
                 {
-                    SummaryMetric(row.RelativeItem(), "Opening balance", _report.OpeningBalance, "1F2937");
-                    SummaryMetric(row.RelativeItem(), "Closing balance", _report.ClosingBalance, "1F2937");
+                    SummaryMetric(row.RelativeItem(), "Opening balance", FormatAmount(_report.OpeningBalance), "1F2937");
+                    SummaryMetric(row.RelativeItem(), "Closing balance", FormatAmount(_report.ClosingBalance), "1F2937");
                     string spentIncome = _report.SpentIncomePercentage is decimal percentage
                         ? $"{percentage:N1}%"
                         : "Unavailable";
-                    SummaryMetric(row.RelativeItem(), "Income spent", spentIncome, "1F2937");
+                    SummaryMetric(row.RelativeItem(), "Income spent", spentIncome, GetSpentIncomeColor());
                 });
             });
         });
@@ -190,9 +192,6 @@ public sealed class MonthlyFinancialReportDocument : IDocument
         });
     }
 
-    private static void SummaryMetric(IContainer container, string label, decimal value, string color) =>
-        SummaryMetric(container, label, FormatNumber(value), color);
-
     private static void SummaryMetric(IContainer container, string label, string value, string color) =>
         container.Border(1).BorderColor(BorderColor).Padding(8).Column(column =>
         {
@@ -221,6 +220,15 @@ public sealed class MonthlyFinancialReportDocument : IDocument
     }
 
     private string FormatAmount(decimal amount) => $"{FormatNumber(amount)} {_report.Currency}";
+
+    private string GetSpentIncomeColor() => _report.SpentIncomePercentage switch
+    {
+        null => "1F2937",
+        < 75m => PositiveColor,
+        < 100m => WarningColor,
+        < 125m => NegativeColor,
+        _ => DarkNegativeColor
+    };
 
     private static string FormatNumber(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture);
 

@@ -60,6 +60,22 @@ const states = [
     routePath: "/reports",
   },
   {
+    name: "hub-configure-1440",
+    screenshot: "hub-configure-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "populated",
+    routePath: "/reports",
+    interaction: "open-monthly-pdf-configuration",
+  },
+  {
+    name: "hub-configure-390",
+    screenshot: "hub-configure-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    routePath: "/reports",
+    interaction: "open-monthly-pdf-configuration",
+  },
+  {
     name: "category-report-1440",
     screenshot: "category-report-1440.png",
     viewport: { width: 1440, height: 1000 },
@@ -125,6 +141,9 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/currencies" && method === "GET") {
         return jsonResponse(fixture.reportsVisualFixtureCurrencies);
       }
+      if (url.pathname === "/api/accounts" && method === "GET") {
+        return jsonResponse({ data: fixture.reportsVisualFixtureAccounts });
+      }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
         return jsonResponse({ data: fixture.reportsVisualFixtureRates });
       }
@@ -157,8 +176,17 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
   });
 }
 
-async function applyInteraction() {
-  return;
+async function applyInteraction(client, state) {
+  if (state.interaction !== "open-monthly-pdf-configuration") {
+    return;
+  }
+
+  await evaluate(client, `(() => {
+    const button = Array.from(document.querySelectorAll("button")).find((candidate) => candidate.textContent?.includes("Configure"));
+    if (!button) throw new Error("Configure button was not found");
+    button.click();
+  })()`);
+  await waitFor(client, "document.body.innerText.includes('Configure monthly PDF') && document.body.innerText.includes('Daily USD') && document.body.innerText.includes('Savings PLN')");
 }
 
 async function waitForReportsReady(client, state) {
@@ -212,6 +240,8 @@ async function collectMetrics(client, state, apiRequestCount) {
     const contentRect = content ? content.getBoundingClientRect() : null;
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
+    const modal = document.querySelector(".ant-modal");
+    const modalRect = modal ? modal.getBoundingClientRect() : null;
     const reportCards = Array.from(document.querySelectorAll(".reports-hub-card"));
     const reportPanels = Array.from(document.querySelectorAll(".report-panel"));
     const statCards = Array.from(document.querySelectorAll(".report-stat"));
@@ -233,6 +263,9 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerOpen: Boolean(drawer),
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
+      modalOpen: Boolean(modal),
+      modalWithinViewport: modalRect ? modalRect.left >= 0 && modalRect.right <= window.innerWidth : null,
+      modalBounds: modalRect ? { left: modalRect.left, right: modalRect.right, width: modalRect.width } : null,
       reportCardCount: reportCards.length,
       reportPanelCount: reportPanels.length,
       statCardCount: statCards.length,

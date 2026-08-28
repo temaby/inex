@@ -176,6 +176,46 @@ public class ReportServiceTests
     }
 
     [Fact]
+    public async Task GetMonthlyFinancialReport_UsesOnlyTheSelectedActiveAccounts()
+    {
+        var incomeCategory = Category(id: 10, name: "Salary");
+        var expenseCategory = Category(id: 11, name: "Groceries");
+        var service = CreateService(
+            categories: [incomeCategory, expenseCategory],
+            accounts: [Account(id: 20, currency: "USD"), Account(id: 21, currency: "USD")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: incomeCategory.Id, amount: 50m, created: Start.AddDays(-1)),
+                Transaction(id: 2, accountId: 20, categoryId: incomeCategory.Id, amount: 300m, created: Start.AddDays(1)),
+                Transaction(id: 3, accountId: 20, categoryId: expenseCategory.Id, amount: -70m, created: Start.AddDays(2)),
+                Transaction(id: 4, accountId: 21, categoryId: incomeCategory.Id, amount: 1_000m, created: Start.AddDays(1)),
+                Transaction(id: 5, accountId: 21, categoryId: expenseCategory.Id, amount: -500m, created: Start.AddDays(2))
+            ],
+            rates: []);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5, accountIds: [20]);
+
+        Assert.Equal(300m, report.TotalIncome);
+        Assert.Equal(70m, report.TotalExpenses);
+        Assert.Equal(50m, report.OpeningBalance);
+        Assert.Equal(280m, report.ClosingBalance);
+        Assert.Equal([new MonthlyReportCategory("Salary", 300m)], report.IncomeCategories);
+        Assert.Equal([new MonthlyReportCategory("Groceries", 70m)], report.ExpenseCategories);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_RejectsAccountsOutsideTheCurrentUsersActiveScope()
+    {
+        var service = CreateService(
+            categories: [Category(id: 10, name: "Salary")],
+            accounts: [Account(id: 20, currency: "USD")],
+            transactions: [],
+            rates: []);
+
+        await Assert.ThrowsAsync<ValidationFailedException>(() => service.GetMonthlyFinancialReport(UserId, 2026, 5, accountIds: [999]));
+    }
+
+    [Fact]
     public async Task GetMonthlyFinancialReport_ReturnsTenLargestConvertedExpensesAndExcludesTransfers()
     {
         var housing = Category(id: 10, name: "Housing");

@@ -2,6 +2,7 @@ import type { BudgetReportResponse } from "../../model/Report/BudgetReport";
 import type { SpendingHeatmapResponse } from "../../model/Report/SpendingHeatmap";
 import type { CategoryExchangeRate } from "../../pages/Categories/categories.utils";
 import type { CategoryResponse } from "../../store/categories/categories-api";
+import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryReportResponse, HistoryReportResponse } from "../../store/report/report-api";
 
 interface ReportsVisualFixtureRate extends CategoryExchangeRate {
@@ -29,6 +30,27 @@ export const reportsVisualFixtureCurrencies = [
   { id: 2, key: "PLN", name: "PLN" },
   { id: 3, key: "UZS", name: "UZS" },
 ] as const;
+
+export const reportsVisualFixtureAccounts: AccountResponse[] = [
+  {
+    id: 101,
+    key: "daily-usd",
+    name: "Daily USD",
+    description: "Primary spending account",
+    isEnabled: true,
+    currencyId: 1,
+    currency: "USD",
+  },
+  {
+    id: 102,
+    key: "savings-pln",
+    name: "Savings PLN",
+    description: "Savings account",
+    isEnabled: true,
+    currencyId: 2,
+    currency: "PLN",
+  },
+];
 
 export const reportsVisualFixtureRates: ReportsVisualFixtureRate[] = [
   { id: 1, currencyFrom: "USD", currencyTo: "PLN", date: "2026-04-30", rate: 4, isTemporary: false },
