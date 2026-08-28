@@ -145,6 +145,7 @@ const canonicalSummaries = [
       "hub-populated-360.png",
       "hub-configure-1440.png",
       "hub-configure-390.png",
+      "hub-configure-single-account-export-1440.png",
       "category-report-1440.png",
       "category-empty-390.png",
       "budget-report-390.png",

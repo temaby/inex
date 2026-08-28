@@ -76,6 +76,14 @@ const states = [
     interaction: "open-monthly-pdf-configuration",
   },
   {
+    name: "hub-configure-single-account-export-1440",
+    screenshot: "hub-configure-single-account-export-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "populated",
+    routePath: "/reports",
+    interaction: "export-single-configured-account",
+  },
+  {
     name: "category-report-1440",
     screenshot: "category-report-1440.png",
     viewport: { width: 1440, height: 1000 },
@@ -171,13 +179,16 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         }
         return jsonResponse(fixture.reportsVisualFixtureHeatmapReport);
       }
+      if (url.pathname === "/api/reports/monthly-pdf" && method === "GET") {
+        return jsonResponse({ generated: true });
+      }
       return null;
     },
   });
 }
 
 async function applyInteraction(client, state) {
-  if (state.interaction !== "open-monthly-pdf-configuration") {
+  if (state.interaction !== "open-monthly-pdf-configuration" && state.interaction !== "export-single-configured-account") {
     return;
   }
 
@@ -187,6 +198,24 @@ async function applyInteraction(client, state) {
     button.click();
   })()`);
   await waitFor(client, "document.body.innerText.includes('Configure monthly PDF') && document.body.innerText.includes('Daily USD') && document.body.innerText.includes('Savings PLN')");
+
+  if (state.interaction !== "export-single-configured-account") {
+    return;
+  }
+
+  await evaluate(client, `(() => {
+    const savingsSelection = Array.from(document.querySelectorAll(".ant-select-selection-item")).find((item) => item.textContent?.includes("Savings PLN"));
+    const removeButton = savingsSelection?.querySelector(".ant-select-selection-item-remove");
+    if (!removeButton) throw new Error("Savings PLN selection remove control was not found");
+    removeButton.click();
+  })()`);
+  await waitFor(client, "document.querySelectorAll('.ant-select-selection-item').length === 1");
+  await evaluate(client, `(() => {
+    const button = Array.from(document.querySelectorAll("button")).find((candidate) => candidate.textContent?.trim() === "Download PDF");
+    if (!button) throw new Error("Configured PDF download button was not found");
+    button.click();
+  })()`);
+  await wait(250);
 }
 
 async function waitForReportsReady(client, state) {
@@ -309,6 +338,18 @@ function runState(args) {
   });
 }
 
+function collectAdditionalFailures(stateResults) {
+  const configuredExport = stateResults.find((state) => state.name === "hub-configure-single-account-export-1440");
+  if (!configuredExport) {
+    return ["Configured account export visual QA state is missing"];
+  }
+
+  const expectedRequest = "GET /reports/monthly-pdf?year=2026&month=4&accountIds=101";
+  return configuredExport.requestLog.includes(expectedRequest)
+    ? []
+    : [`Configured account export did not request exactly ${expectedRequest}`];
+}
+
 function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {
   const fixture = fixtureExports;
 
@@ -356,6 +397,7 @@ export const visualQaConfig = {
   createApiHandler,
   runState,
   buildSummary,
+  collectAdditionalFailures,
   label: "Reports",
   userDataPrefix: "inex-reports-visual-qa",
 };

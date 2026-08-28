@@ -368,7 +368,7 @@ public class ReportService : Service, IReportService
         if (accountIds is not null)
         {
             int[] requestedAccountIds = accountIds.Distinct().ToArray();
-            if (requestedAccountIds.Any(accountId => !activeAccounts.ContainsKey(accountId)))
+            if (requestedAccountIds.Length == 0 || requestedAccountIds.Any(accountId => !activeAccounts.ContainsKey(accountId)))
             {
                 throw new ValidationFailedException("One or more selected accounts are unavailable.");
             }

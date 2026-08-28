@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-28T10:44:23.317Z",
+  "generatedAt": "2026-08-28T11:04:28.410Z",
   "page": "reports",
   "dataMode": "fixture",
   "harness": {
@@ -33,6 +33,7 @@
     "hub-populated-360.png",
     "hub-configure-1440.png",
     "hub-configure-390.png",
+    "hub-configure-single-account-export-1440.png",
     "category-report-1440.png",
     "category-empty-390.png",
     "budget-report-390.png",
@@ -56,8 +57,8 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /accounts?mode=active",
     "GET /exchange/rates/2026-04-30",
+    "GET /accounts?mode=active",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=active",
@@ -66,6 +67,11 @@
     "GET /auth/me",
     "GET /accounts?mode=active",
     "GET /exchange/rates/2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=active",
+    "GET /exchange/rates/2026-04-30",
+    "GET /reports/monthly-pdf?year=2026&month=4&accountIds=101",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /categories?mode=ALL",
@@ -343,8 +349,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /accounts?mode=active",
-        "GET /exchange/rates/2026-04-30"
+        "GET /exchange/rates/2026-04-30",
+        "GET /accounts?mode=active"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -477,6 +483,73 @@
         "GET /auth/me",
         "GET /accounts?mode=active",
         "GET /exchange/rates/2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "hub-configure-single-account-export-1440",
+      "dataMode": "fixture",
+      "screenshot": "hub-configure-single-account-export-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "scenario": "populated",
+      "routePath": "/reports",
+      "interaction": "export-single-configured-account",
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": null,
+      "lastContentBottom": 924.46875,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "modalOpen": true,
+      "modalWithinViewport": true,
+      "modalBounds": {
+        "left": 0,
+        "right": 0,
+        "width": 0
+      },
+      "reportCardCount": 4,
+      "reportPanelCount": 0,
+      "statCardCount": 0,
+      "tableRowCount": 0,
+      "chartSurfaceCount": 0,
+      "accessibleSummaryCount": 0,
+      "heatmapCellCount": 0,
+      "hubVisible": true,
+      "categoryReportVisible": false,
+      "budgetReportVisible": false,
+      "historyReportVisible": false,
+      "heatmapReportVisible": false,
+      "reportErrorVisible": false,
+      "emptyReportVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 5,
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA ANALYZE Reports Configure Download monthly PDF Launch an analytical report. The hub period is April 2026 and drill-down pages keep share, export, and print actions in their own header. SPENDING Category Report See spending and income by category, then jump into matching transactions. Period April 2026 Spending Heatmap Scan daily spending intensity for the current reporting window. Range Current month PLANNING Budget Control Compare planned budgets with actual spend and remaining capacity. Focus Budget vs actual TRENDS Cash Flow Review income, expenses, and savings across the selected year. Range 12 months",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=active",
+        "GET /exchange/rates/2026-04-30",
+        "GET /reports/monthly-pdf?year=2026&month=4&accountIds=101"
       ],
       "consoleMessages": [
         "[vite] connecting...",

@@ -95,7 +95,10 @@ public class ReportsController : ApiControllerBase
     }
 
     /// <summary>Download a monthly financial report as a PDF document.</summary>
+    /// <param name="year">Optional report year.</param>
+    /// <param name="month">Optional report month.</param>
     /// <param name="accountIds">Optional active account IDs to include. Defaults to all active accounts.</param>
+    /// <param name="ct">Cancellation token.</param>
     [HttpGet]
     [Route(GetMonthlyFinancialPdfRoute)]
     [Produces("application/pdf")]
