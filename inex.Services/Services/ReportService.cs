@@ -406,7 +406,11 @@ public class ReportService : Service, IReportService
             .Where(transaction => transaction.Created >= monthStart && transaction.Created <= monthEnd)
             .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && !category.IsSystem)
             .Select(transaction => new MonthlyReportTransaction(
+                transaction.Id,
                 transaction.CategoryId,
+                transaction.Created,
+                BuildCategoryPath(categories[transaction.CategoryId], categories),
+                transaction.Comment,
                 ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created)))
             .ToList();
 
@@ -442,7 +446,19 @@ public class ReportService : Service, IReportService
             OpeningBalance = openingBalance,
             ClosingBalance = closingBalance,
             IncomeCategories = incomeCategories,
-            ExpenseCategories = expenseCategories
+            ExpenseCategories = expenseCategories,
+            LargestExpenses = reportTransactions
+                .Where(transaction => transaction.Amount < 0)
+                .OrderBy(transaction => transaction.Amount)
+                .ThenBy(transaction => transaction.Date)
+                .ThenBy(transaction => transaction.Id)
+                .Take(10)
+                .Select(transaction => new inex.Services.Models.Records.Report.MonthlyReportExpense(
+                    transaction.Date,
+                    transaction.Category,
+                    transaction.Description,
+                    transaction.Amount))
+                .ToList()
         };
     }
 
@@ -561,7 +577,7 @@ public class ReportService : Service, IReportService
     private IExchangeRateService _exchangeRateService;
     private IClock _clock;
 
-    private record MonthlyReportTransaction(int CategoryId, decimal Amount);
+    private record MonthlyReportTransaction(int Id, int CategoryId, DateTime Date, string Category, string? Description, decimal Amount);
 
     private sealed class StringTupleDateComparer : IEqualityComparer<(string, DateTime)>
     {
