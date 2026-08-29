@@ -7,11 +7,11 @@ import { useAppDispatch } from "../../store/hooks";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 
-import { InputNumber, Input, Button, Space, Divider, Popconfirm } from 'antd';
+import { Input, Button, Space, Divider, Popconfirm } from 'antd';
 import { Form, Col, Row } from 'antd';
 import { DatePicker } from "antd";
 
-import { CategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
+import { CategoryDetails, getActiveCategoriesTree } from "../../model/Category/CategoryDetails";
 import { AccountDetails } from "../../model/Account/AccountDetails";
 import { TransactionEditState } from "../../model/Transaction/TransactionEditState";
 import Dropdown from "../../components/Dropdown";
@@ -29,6 +29,22 @@ interface TransactionEditFormProps {
     onMutationSuccess: (focusTransactionId: number | null) => void;
     record: any;
 }
+
+const getSelectedAccount = (account: AccountDetails): AccountDetails[] =>
+  account.id > 0 ? [account] : [];
+
+const getSelectedCategory = (category: CategoryDetails): CategoryDetails[] =>
+  category.id > 0 ? [category] : [];
+
+const findCategoryById = (categories: CategoryDetails[], id: number): CategoryDetails | undefined => {
+  for (const category of categories) {
+    if (category.id === id) return category;
+    const nested = category.children ? findCategoryById(category.children, id) : undefined;
+    if (nested) return nested;
+  }
+
+  return undefined;
+};
 
 const reducer = (state: TransactionEditState, action: any) => {
   if (action.type === "INIT") {
@@ -80,7 +96,10 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
       dispatchTransactionAction({ type: "INIT", value: currentRecord });
     }, [record, categories, accounts, t]);
 
-    const categoryTree = useMemo(() => getCategoriesTree(categories, false, t("categories.systemGroup")) as CategoryDetails[], [categories, t]);
+    const categoryTree = useMemo(
+      () => getActiveCategoriesTree(categories, t("categories.systemGroup")),
+      [categories, t],
+    );
 
     const setAmountHandler = (value: number | null) => {
       dispatchTransactionAction({ type: "SET_AMOUNT", value: value ?? 0 });
@@ -94,18 +113,9 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
     };
 
     const setCategoryHandler = (item: any) => {
-      const category = categoryTree.find(
-        (i: any) => i.id === +item.keyPath[item.keyPath.length - 2]
-      );
-      if (category && category.children) {
-        const subcategories = category.children;
-        const subcategory = subcategories.find((j: any) => j.id === +item.key);
-        if (subcategory) {
-          dispatchTransactionAction({
-            type: "SET_CATEGORY",
-            value: subcategory,
-          });
-        }
+      const category = findCategoryById(categoryTree, Number(item.key));
+      if (category) {
+        dispatchTransactionAction({ type: "SET_CATEGORY", value: category });
       }
     };
 
@@ -145,23 +155,27 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
     };
 
     return (
-        <Form layout="vertical" hideRequiredMark>
-            <Row gutter={8}>
-                <Col xs={24} sm={12}>
-                    <Form.Item
-                        label={t("transactions.account")}
-                    >
-                        <Dropdown id="account" selection={[state.account]} onChange={setAccountHandler} items={props.accounts} multiple={false} />
-                    </Form.Item>
-                </Col>
-            </Row>
-            <Row gutter={8}>
-                <Col xs={24} sm={12}>
-                    <Form.Item label={t("transactions.category")}>
-                        <Dropdown id="category" selection={[state.category]} onChange={setCategoryHandler} items={categoryTree} multiple={false} />
-                    </Form.Item>
-                </Col>
-            </Row>
+        <Form className="transactions-edit-form" layout="vertical" hideRequiredMark>
+            <Form.Item label={t("transactions.account")}>
+                <Dropdown
+                    id="account"
+                    items={accounts}
+                    multiple={false}
+                    onChange={setAccountHandler}
+                    placeholder={t("transactions.selectAccount")}
+                    selection={getSelectedAccount(state.account)}
+                />
+            </Form.Item>
+            <Form.Item label={t("transactions.category")}>
+                <Dropdown
+                    id="category"
+                    items={categoryTree}
+                    multiple={false}
+                    onChange={setCategoryHandler}
+                    placeholder={t("transactions.selectCategory")}
+                    selection={getSelectedCategory(state.category)}
+                />
+            </Form.Item>
             <Row gutter={8}>
                 <Col xs={24} sm={12}>
                     <Form.Item label={t("transactions.amount")}>
