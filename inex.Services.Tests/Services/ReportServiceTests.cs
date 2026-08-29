@@ -79,6 +79,37 @@ public class ReportServiceTests
     }
 
     [Fact]
+    public async Task GetCategoriesReportData_SummarizesOnlyInternalTransferSystemCodeOutsideCategoryTotals()
+    {
+        var incomeCategory = Category(id: 10, name: "Salary");
+        var expenseCategory = Category(id: 11, name: "Groceries");
+        var ownTransferCategory = Category(id: 12, name: "Transfer", isSystem: true) with { SystemCode = "transfer" };
+        var internalTransferCategory = Category(id: 13, name: "Internal transfer", isSystem: true) with { SystemCode = "internal-transfer" };
+        var service = CreateService(
+            categories: [incomeCategory, expenseCategory, ownTransferCategory, internalTransferCategory],
+            accounts: [Account(id: 20, currency: "USD")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: incomeCategory.Id, amount: 100m),
+                Transaction(id: 2, accountId: 20, categoryId: expenseCategory.Id, amount: -25m),
+                Transaction(id: 3, accountId: 20, categoryId: internalTransferCategory.Id, amount: 70m),
+                Transaction(id: 4, accountId: 20, categoryId: internalTransferCategory.Id, amount: -30m),
+                Transaction(id: 5, accountId: 20, categoryId: ownTransferCategory.Id, amount: -90m)
+            ],
+            rates: []);
+
+        var result = await service.GetCategoriesReportData(UserId, "USD", Filters());
+
+        Assert.Equal(100m, result.Metadata.TotalIncome);
+        Assert.Equal(25m, result.Metadata.TotalOutcome);
+        Assert.Equal(70m, result.Metadata.InternalTransfers.AmountReceived);
+        Assert.Equal(30m, result.Metadata.InternalTransfers.AmountSent);
+        Assert.Equal(40m, result.Metadata.InternalTransfers.NetChange);
+        Assert.Equal(2, result.Metadata.InternalTransfers.TransactionCount);
+        Assert.DoesNotContain(result.Data, row => row.Id is 12 or 13);
+    }
+
+    [Fact]
     public async Task GetCategoriesReportData_UsesTranslationKeyForMetadataName()
     {
         var service = CreateService(
@@ -201,6 +232,43 @@ public class ReportServiceTests
         Assert.Equal(280m, report.ClosingBalance);
         Assert.Equal([new MonthlyReportCategory("Salary", 300m)], report.IncomeCategories);
         Assert.Equal([new MonthlyReportCategory("Groceries", 70m)], report.ExpenseCategories);
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_SummarizesSelectedAccountsInternalTransfersWithoutChangingCashFlowTotals()
+    {
+        var incomeCategory = Category(id: 10, name: "Salary");
+        var expenseCategory = Category(id: 11, name: "Groceries");
+        var ownTransferCategory = Category(id: 12, name: "Transfer", isSystem: true) with { SystemCode = "transfer" };
+        var internalTransferCategory = Category(id: 13, name: "Internal transfer", isSystem: true) with { SystemCode = "internal-transfer" };
+        var service = CreateService(
+            categories: [incomeCategory, expenseCategory, ownTransferCategory, internalTransferCategory],
+            accounts: [Account(id: 20, currency: "USD"), Account(id: 21, currency: "USD")],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: internalTransferCategory.Id, amount: 10m, created: Start.AddDays(-1)),
+                Transaction(id: 2, accountId: 20, categoryId: incomeCategory.Id, amount: 100m),
+                Transaction(id: 3, accountId: 20, categoryId: expenseCategory.Id, amount: -20m),
+                Transaction(id: 4, accountId: 20, categoryId: internalTransferCategory.Id, amount: 75m),
+                Transaction(id: 5, accountId: 20, categoryId: internalTransferCategory.Id, amount: -30m),
+                Transaction(id: 6, accountId: 20, categoryId: ownTransferCategory.Id, amount: -9m),
+                Transaction(id: 7, accountId: 21, categoryId: internalTransferCategory.Id, amount: 90m)
+            ],
+            rates: []);
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5, accountIds: [20]);
+
+        Assert.Equal(100m, report.TotalIncome);
+        Assert.Equal(20m, report.TotalExpenses);
+        Assert.Equal([new MonthlyReportCategory("Salary", 100m)], report.IncomeCategories);
+        Assert.Equal([new MonthlyReportCategory("Groceries", 20m)], report.ExpenseCategories);
+        Assert.DoesNotContain(report.LargestExpenses, expense => expense.Amount is -30m or -9m);
+        Assert.Equal(75m, report.InternalTransfers.AmountReceived);
+        Assert.Equal(30m, report.InternalTransfers.AmountSent);
+        Assert.Equal(45m, report.InternalTransfers.NetChange);
+        Assert.Equal(2, report.InternalTransfers.TransactionCount);
+        Assert.Equal(10m, report.OpeningBalance);
+        Assert.Equal(126m, report.ClosingBalance);
     }
 
     [Fact]

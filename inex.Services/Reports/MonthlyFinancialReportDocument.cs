@@ -42,6 +42,7 @@ public sealed class MonthlyFinancialReportDocument : IDocument
             {
                 column.Spacing(18);
                 column.Item().Element(ComposeFinancialSummary);
+                column.Item().Element(ComposeInternalTransfers);
                 column.Item().Element(ComposeIncome);
                 column.Item().Element(ComposeExpenses);
                 column.Item().Element(ComposeLargestExpenses);
@@ -102,6 +103,28 @@ public sealed class MonthlyFinancialReportDocument : IDocument
     private void ComposeIncome(IContainer container)
     {
         ComposeCategorySummary(container, "Income", _report.TotalIncome, _report.IncomeCategories, "income", PositiveColor, "D1FAE5");
+    }
+
+    private void ComposeInternalTransfers(IContainer container)
+    {
+        Section(container, "Internal transfers", content =>
+        {
+            content.Row(row =>
+            {
+                SummaryMetric(row.RelativeItem(), "Received", FormatAmount(_report.InternalTransfers.AmountReceived), PositiveColor);
+                SummaryMetric(row.RelativeItem(), "Sent", FormatAmount(_report.InternalTransfers.AmountSent), NegativeColor);
+                SummaryMetric(
+                    row.RelativeItem(),
+                    "Net change",
+                    FormatAmount(_report.InternalTransfers.NetChange),
+                    _report.InternalTransfers.NetChange >= 0 ? PositiveColor : NegativeColor);
+                SummaryMetric(
+                    row.RelativeItem(),
+                    "Transactions",
+                    _report.InternalTransfers.TransactionCount.ToString(CultureInfo.InvariantCulture),
+                    MutedColor);
+            });
+        });
     }
 
     private void ComposeExpenses(IContainer container)

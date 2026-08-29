@@ -14,6 +14,7 @@ public record MonthlyFinancialReport
     public IReadOnlyList<MonthlyReportCategory> IncomeCategories { get; init; } = [];
     public IReadOnlyList<MonthlyReportCategory> ExpenseCategories { get; init; } = [];
     public IReadOnlyList<MonthlyReportExpense> LargestExpenses { get; init; } = [];
+    public InternalTransferSummary InternalTransfers { get; init; } = new();
 }
 
 public record MonthlyReportCategory(string Name, decimal Amount);

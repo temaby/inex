@@ -46,6 +46,31 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
     }
 
     [Fact]
+    public async Task CategoryReport_AuthenticatedRequestReturnsInternalTransferSummaryOutsideOrdinaryTotals()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "internal-transfer-report-account");
+        int categoryId = await CreateCategoryAsync(client, "internal-transfer-report-category");
+        DateTime today = DateTime.UtcNow.Date;
+        await CreateTransactionAsync(client, accountId, categoryId, today, 100m);
+        await CreateTransactionAsync(client, accountId, categoryId, today, -25m);
+        await CreateInternalTransferAsync(client, accountId, today, 70m, "incoming");
+        await CreateInternalTransferAsync(client, accountId, today, 30m, "outgoing");
+
+        var response = await client.GetAsync($"/api/reports/category?filter=Start:{today:yyyy-MM-dd};End:{today:yyyy-MM-dd};");
+
+        response.EnsureSuccessStatusCode();
+        JsonElement metadata = (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("metadata");
+        JsonElement internalTransfers = metadata.GetProperty("internalTransfers");
+        Assert.Equal(100m, metadata.GetProperty("totalIncome").GetDecimal());
+        Assert.Equal(25m, metadata.GetProperty("totalOutcome").GetDecimal());
+        Assert.Equal(70m, internalTransfers.GetProperty("amountReceived").GetDecimal());
+        Assert.Equal(30m, internalTransfers.GetProperty("amountSent").GetDecimal());
+        Assert.Equal(40m, internalTransfers.GetProperty("netChange").GetDecimal());
+        Assert.Equal(2, internalTransfers.GetProperty("transactionCount").GetInt32());
+    }
+
+    [Fact]
     public async Task NetWorth_AnonymousRequest_Returns401()
     {
         var client = _factory.CreateClient();
@@ -179,6 +204,19 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
             created,
             amount,
             comment = "heatmap expense",
+        });
+        response.EnsureSuccessStatusCode();
+    }
+
+    private static async Task CreateInternalTransferAsync(HttpClient client, int accountId, DateTime created, decimal amount, string direction)
+    {
+        var response = await client.PostAsJsonAsync("/api/transactions/internal-transfer", new
+        {
+            accountId,
+            created,
+            amount,
+            direction,
+            comment = "household transfer",
         });
         response.EnsureSuccessStatusCode();
     }

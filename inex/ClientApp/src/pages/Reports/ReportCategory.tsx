@@ -4,7 +4,7 @@ import { DatePicker, Spin, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import { ArrowDown, ArrowUp, Banknote } from "lucide-react";
+import { ArrowDown, ArrowLeftRight, ArrowUp, Banknote } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Num } from "../../components/primitives";
@@ -39,6 +39,7 @@ const ReportCategory = () => {
     );
     const reportData = reportResponse?.data ?? [];
     const currency = reportResponse?.metadata.currency ?? "";
+    const internalTransfers = reportResponse?.metadata.internalTransfers;
     const activeCategories = useMemo(
         () => allCategories.filter((category) => category.isEnabled),
         [allCategories],
@@ -176,6 +177,33 @@ const ReportCategory = () => {
                     <strong><Banknote size={16} aria-hidden="true" /> <Num value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} /></strong>
                 </div>
             </section>
+
+            {internalTransfers && (
+                <section className="report-panel" aria-labelledby="internal-transfer-summary-title">
+                    <div className="report-panel__heading">
+                        <ArrowLeftRight size={18} aria-hidden="true" />
+                        <h3 id="internal-transfer-summary-title">{t("reports.internalTransfers")}</h3>
+                    </div>
+                    <div className="report-stat-grid">
+                        <div className="report-stat">
+                            <span>{t("reports.internalTransfersReceived")}</span>
+                            <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={internalTransfers.amountReceived} currency={currency} kind="transfer" /></strong>
+                        </div>
+                        <div className="report-stat">
+                            <span>{t("reports.internalTransfersSent")}</span>
+                            <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={-internalTransfers.amountSent} currency={currency} kind="transfer" /></strong>
+                        </div>
+                        <div className="report-stat">
+                            <span>{t("reports.internalTransfersNetChange")}</span>
+                            <strong><Banknote size={16} aria-hidden="true" /> <Num value={internalTransfers.netChange} currency={currency} kind="transfer" /></strong>
+                        </div>
+                        <div className="report-stat">
+                            <span>{t("reports.internalTransfersCount")}</span>
+                            <strong>{internalTransfers.transactionCount}</strong>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             <section className="report-panel">
                 <Spin spinning={isLoading}>
