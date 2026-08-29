@@ -103,3 +103,14 @@ export const getCategoriesTree = (categoriesData: any[], flat: boolean, systemLa
         return flattenCategories(rootCategories);
     }
 };
+
+export const getActiveCategoriesTree = (categories: CategoryDetails[], systemLabel = "System"): CategoryDetails[] => {
+    const activeCategoryIds = new Set(categories.filter((category) => category.isEnabled).map((category) => category.id));
+    const activeCategories = categories
+        .filter((category) => category.isEnabled)
+        .map((category) => category.parentId !== undefined && category.parentId !== null && !activeCategoryIds.has(category.parentId)
+            ? { ...category, parentId: undefined }
+            : category);
+
+    return getCategoriesTree(activeCategories, false, systemLabel) as CategoryDetails[];
+};

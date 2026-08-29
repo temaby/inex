@@ -523,13 +523,15 @@
 }
 
 .transactions-filter-form,
-.transactions-create-form {
+.transactions-create-form,
+.transactions-edit-form {
     display: grid;
     gap: 14px;
 }
 
 .transactions-filter-form .ant-form-item,
-.transactions-create-form .ant-form-item {
+.transactions-create-form .ant-form-item,
+.transactions-edit-form .ant-form-item {
     margin-bottom: 0;
 }
 
@@ -606,12 +608,14 @@
     flex: 0 0 auto;
 }
 
-.transactions-create-form .ant-menu-submenu-title {
+.transactions-create-form .ant-menu-submenu-title,
+.transactions-edit-form .ant-menu-submenu-title {
     min-width: 0;
     white-space: normal;
 }
 
-.transactions-create-form .ant-menu-title-content {
+.transactions-create-form .ant-menu-title-content,
+.transactions-edit-form .ant-menu-title-content {
     min-width: 0;
     overflow-wrap: anywhere;
     white-space: normal;
