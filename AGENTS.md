@@ -21,6 +21,7 @@ Use `CLAUDE.md` and `README.md` for broader project context. This file defines a
 - For frontend visual changes, produce or update visual QA evidence before code review. Missing visual QA tooling is a blocker for visual-parity claims.
 - When given more than 10 UI findings, classify and group them into implementation-owned issues before coding.
 - After sessions with repeated environment or tool friction, propose one durable doc, script, or skill update.
+- After CI/CD is successfully triggered, report its URL and current status, then end the delivery task without polling for completion unless the user explicitly asks to monitor it.
 
 ## Communication
 
