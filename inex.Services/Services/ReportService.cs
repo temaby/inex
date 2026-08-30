@@ -22,6 +22,8 @@ namespace inex.Services.Services;
 
 public class ReportService : Service, IReportService
 {
+    private const int MaxNetWorthRateCarryForwardDays = 7;
+
     #region Constructors
 
     public ReportService(IInExUnitOfWork uowInEx, IAccountService accountService, ICategoryService categoryService, ITransactionService transactionService, IExchangeRateService exchangeRateService, IClock clock) : base(uowInEx)
@@ -305,22 +307,20 @@ public class ReportService : Service, IReportService
         DateTime today = _clock.UtcNow.Date;
         DateTime currentMonth = new(today.Year, today.Month, 1);
         DateTime startMonth = currentMonth.AddMonths(-(monthCount - 1));
-        DateTime startDate = startMonth.Date;
-        DateTime endDate = GetMonthEnd(currentMonth);
+        DateTime startDate = startMonth.AddDays(-MaxNetWorthRateCarryForwardDays);
+        DateTime endDate = today;
 
-        var monthEnds = Enumerable
+        var pointDates = Enumerable
             .Range(0, monthCount)
-            .Select(offset => GetMonthEnd(startMonth.AddMonths(offset)))
+            .Select(offset =>
+            {
+                DateTime month = startMonth.AddMonths(offset);
+                return month == currentMonth ? today : GetMonthEnd(month);
+            })
             .ToList();
 
         var rates = (await _exchangeRateService.Get(userId, startDate, endDate, baseCurrency, ct)).Data;
-        var rateMap = new Dictionary<(string Currency, DateTime Date), ExchangeRateResponse>();
-        foreach (var rate in rates)
-        {
-            rateMap.TryAdd((rate.CurrencyTo, rate.Date.Date), rate);
-        }
-
-        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(account => account.Id);
+        var accounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data.ToDictionary(account => account.Id);
         var filters = new Dictionary<string, string>
         {
             { "end", endDate.AddDays(1).AddTicks(-1).ToString("yyyy-MM-dd HH:mm:ss.fffffff") }
@@ -335,10 +335,10 @@ public class ReportService : Service, IReportService
         int transactionIndex = 0;
         var points = new List<NetWorthHistoryPointResponse>();
 
-        foreach (DateTime monthEnd in monthEnds)
+        foreach (DateTime pointDate in pointDates)
         {
-            DateTime inclusiveMonthEnd = monthEnd.AddDays(1).AddTicks(-1);
-            while (transactionIndex < orderedTransactions.Count && orderedTransactions[transactionIndex].Created <= inclusiveMonthEnd)
+            DateTime inclusivePointDate = pointDate.AddDays(1).AddTicks(-1);
+            while (transactionIndex < orderedTransactions.Count && orderedTransactions[transactionIndex].Created <= inclusivePointDate)
             {
                 TransactionResponse transaction = orderedTransactions[transactionIndex];
                 balancesByAccount[transaction.AccountId] += transaction.Amount;
@@ -348,27 +348,33 @@ public class ReportService : Service, IReportService
             decimal netWorth = 0;
             foreach ((int accountId, decimal balance) in balancesByAccount)
             {
+                var account = accounts[accountId];
+                if (string.IsNullOrWhiteSpace(account.Currency))
+                {
+                    throw new DomainRuleException(
+                        "incomplete-net-worth-data",
+                        $"Account {account.Id} has no currency for the net-worth calculation.");
+                }
+
                 if (balance == 0)
                 {
                     continue;
                 }
 
-                var account = accounts[accountId];
-                string accountCurrency = string.IsNullOrWhiteSpace(account.Currency)
-                    ? baseCurrency
-                    : account.Currency;
-
-                DateTime conversionDate = monthEnd > today ? today : monthEnd;
-                if (TryConvertToBaseCurrency(balance, accountCurrency, baseCurrency, conversionDate, rateMap, out decimal convertedBalance))
+                if (!TryConvertToBaseCurrency(balance, account.Currency, baseCurrency, pointDate, today, rates, out decimal convertedBalance))
                 {
-                    netWorth += convertedBalance;
+                    throw new DomainRuleException(
+                        "incomplete-net-worth-data",
+                        $"A valid {account.Currency} exchange rate is unavailable for {pointDate:yyyy-MM-dd}.");
                 }
+
+                netWorth += convertedBalance;
             }
 
             points.Add(new NetWorthHistoryPointResponse
             {
-                Month = monthEnd.ToString("yyyy-MM"),
-                MonthEnd = monthEnd,
+                Month = pointDate.ToString("yyyy-MM"),
+                MonthEnd = pointDate,
                 NetWorth = netWorth,
                 Currency = baseCurrency
             });
@@ -603,7 +609,8 @@ public class ReportService : Service, IReportService
         string accountCurrency,
         string baseCurrency,
         DateTime date,
-        IReadOnlyDictionary<(string Currency, DateTime Date), ExchangeRateResponse> rateMap,
+        DateTime today,
+        IEnumerable<ExchangeRateResponse> rates,
         out decimal convertedAmount)
     {
         convertedAmount = amount;
@@ -613,7 +620,28 @@ public class ReportService : Service, IReportService
             return true;
         }
 
-        if (!rateMap.TryGetValue((accountCurrency, date.Date), out ExchangeRateResponse? rate) || rate.Rate == 0)
+        ExchangeRateResponse? rate = rates
+            .Where(candidate =>
+                string.Equals(candidate.CurrencyTo, accountCurrency, StringComparison.InvariantCultureIgnoreCase)
+                && string.Equals(candidate.CurrencyFrom, baseCurrency, StringComparison.InvariantCultureIgnoreCase)
+                && candidate.Rate > 0
+                && candidate.Date.Date <= date.Date
+                && candidate.Date.Date >= date.Date.AddDays(-MaxNetWorthRateCarryForwardDays)
+                && (!candidate.IsTemporary || (
+                    candidate.Date.Date == today
+                    && rates.Any(source =>
+                        !source.IsTemporary
+                        && string.Equals(source.CurrencyTo, candidate.CurrencyTo, StringComparison.InvariantCultureIgnoreCase)
+                        && string.Equals(source.CurrencyFrom, candidate.CurrencyFrom, StringComparison.InvariantCultureIgnoreCase)
+                        && source.Rate == candidate.Rate
+                        && source.Date.Date < candidate.Date.Date
+                        && source.Date.Date >= candidate.Date.Date.AddDays(-MaxNetWorthRateCarryForwardDays)))))
+            .OrderByDescending(candidate => candidate.Date.Date)
+            .ThenBy(candidate => candidate.IsTemporary)
+            .ThenByDescending(candidate => candidate.Id)
+            .FirstOrDefault();
+
+        if (rate is null)
         {
             convertedAmount = 0;
             return false;

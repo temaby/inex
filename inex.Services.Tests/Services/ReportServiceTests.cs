@@ -617,11 +617,11 @@ public class ReportServiceTests
 
         Assert.Equal(["2026-04", "2026-05"], rows.Select(row => row.Month));
         Assert.Equal(new DateTime(2026, 4, 30), rows[0].MonthEnd);
-        Assert.Equal(new DateTime(2026, 5, 31), rows[1].MonthEnd);
+        Assert.Equal(ClockNow.Date, rows[1].MonthEnd);
     }
 
     [Fact]
-    public async Task GetNetWorthHistory_IncludesInactiveAccountsWithHistoricalBalances()
+    public async Task GetNetWorthHistory_ExcludesInactiveAccounts()
     {
         var service = CreateService(
             categories: [],
@@ -633,7 +633,7 @@ public class ReportServiceTests
         var result = await service.GetNetWorthHistory(UserId, 3);
         var rows = result.Data.ToList();
 
-        Assert.All(rows, row => Assert.Equal(125m, row.NetWorth));
+        Assert.All(rows, row => Assert.Equal(0m, row.NetWorth));
     }
 
     [Fact]
@@ -683,7 +683,7 @@ public class ReportServiceTests
         var row = Assert.Single(result.Data);
 
         Assert.Equal("2026-05", row.Month);
-        Assert.Equal(new DateTime(2026, 5, 31), row.MonthEnd);
+        Assert.Equal(ClockNow.Date, row.MonthEnd);
         Assert.Equal(40m, row.NetWorth);
     }
 
@@ -705,8 +705,8 @@ public class ReportServiceTests
             ],
             rates:
             [
-                Rate(currencyTo: "BYN", rate: 2m, date: new DateTime(2026, 5, 31)),
-                Rate(currencyTo: "RUB", rate: 100m, date: new DateTime(2026, 5, 31))
+                Rate(currencyTo: "BYN", rate: 2m, date: ClockNow.Date),
+                Rate(currencyTo: "RUB", rate: 100m, date: ClockNow.Date)
             ],
             clock: new FakeClock(ClockNow),
             exchangeRateServiceOverride: exchangeRateService);
@@ -716,8 +716,8 @@ public class ReportServiceTests
         exchangeRateService.Verify(
             serviceMock => serviceMock.Get(
                 UserId,
-                new DateTime(2026, 5, 1),
-                new DateTime(2026, 5, 31),
+                new DateTime(2026, 4, 24),
+                ClockNow.Date,
                 "USD",
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -745,7 +745,7 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task GetNetWorthHistory_UsesBaseCurrencyWhenAccountCurrencyIsMissing()
+    public async Task GetNetWorthHistory_RejectsActiveAccountWhenCurrencyIsMissing()
     {
         var service = CreateService(
             categories: [],
@@ -754,15 +754,28 @@ public class ReportServiceTests
             rates: [],
             clock: new FakeClock(ClockNow));
 
-        var result = await service.GetNetWorthHistory(UserId, 1);
-        var row = Assert.Single(result.Data);
+        var exception = await Assert.ThrowsAsync<DomainRuleException>(() => service.GetNetWorthHistory(UserId, 1));
 
-        Assert.Equal(75m, row.NetWorth);
-        Assert.Equal("USD", row.Currency);
+        Assert.Equal("incomplete-net-worth-data", exception.Rule);
     }
 
     [Fact]
-    public async Task GetNetWorthHistory_SkipsBalancesWhenConversionRateIsMissing()
+    public async Task GetNetWorthHistory_RejectsZeroBalanceWhenAccountCurrencyIsMissing()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts: [Account(id: 20, currency: "")],
+            transactions: [],
+            rates: [],
+            clock: new FakeClock(ClockNow));
+
+        var exception = await Assert.ThrowsAsync<DomainRuleException>(() => service.GetNetWorthHistory(UserId, 1));
+
+        Assert.Equal("incomplete-net-worth-data", exception.Rule);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_RejectsNonZeroBalanceWhenConversionRateIsMissing()
     {
         var service = CreateService(
             categories: [],
@@ -779,14 +792,13 @@ public class ReportServiceTests
             rates: [],
             clock: new FakeClock(ClockNow));
 
-        var result = await service.GetNetWorthHistory(UserId, 1);
-        var row = Assert.Single(result.Data);
+        var exception = await Assert.ThrowsAsync<DomainRuleException>(() => service.GetNetWorthHistory(UserId, 1));
 
-        Assert.Equal(100m, row.NetWorth);
+        Assert.Equal("incomplete-net-worth-data", exception.Rule);
     }
 
     [Fact]
-    public async Task GetNetWorthHistory_SkipsBalancesWhenConversionRateIsZero()
+    public async Task GetNetWorthHistory_RejectsNonZeroBalanceWhenConversionRateIsZero()
     {
         var service = CreateService(
             categories: [],
@@ -806,10 +818,71 @@ public class ReportServiceTests
             ],
             clock: new FakeClock(ClockNow));
 
-        var result = await service.GetNetWorthHistory(UserId, 1);
-        var row = Assert.Single(result.Data);
+        var exception = await Assert.ThrowsAsync<DomainRuleException>(() => service.GetNetWorthHistory(UserId, 1));
 
-        Assert.Equal(100m, row.NetWorth);
+        Assert.Equal("incomplete-net-worth-data", exception.Rule);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_CurrentPointForOneMonthEqualsActiveBaseCurrencyAccountTotal()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts:
+            [
+                Account(id: 20, currency: "USD"),
+                Account(id: 21, currency: "USD"),
+                Account(id: 22, currency: "USD", isEnabled: false)
+            ],
+            transactions:
+            [
+                Transaction(id: 1, accountId: 20, categoryId: 10, amount: 125m, created: new DateTime(2026, 5, 10)),
+                Transaction(id: 2, accountId: 21, categoryId: 10, amount: 75m, created: new DateTime(2026, 5, 12)),
+                Transaction(id: 3, accountId: 22, categoryId: 10, amount: 500m, created: new DateTime(2026, 5, 12))
+            ],
+            rates: [],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 1);
+        var point = Assert.Single(result.Data);
+
+        Assert.Equal(200m, point.NetWorth);
+        Assert.Equal(ClockNow.Date, point.MonthEnd);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_UsesLatestValidRateWithinCarryForwardWindow()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts: [Account(id: 20, currency: "EUR")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 120m, created: new DateTime(2026, 5, 10))],
+            rates:
+            [
+                Rate(currencyTo: "EUR", rate: 3m, date: ClockNow.Date.AddDays(-2)) with { Id = 1 },
+                Rate(currencyTo: "EUR", rate: 2m, date: ClockNow.Date) with { Id = 2 },
+                Rate(currencyTo: "EUR", rate: 3m, date: ClockNow.Date) with { Id = 3, IsTemporary = true }
+            ],
+            clock: new FakeClock(ClockNow));
+
+        var result = await service.GetNetWorthHistory(UserId, 1);
+
+        Assert.Equal(60m, Assert.Single(result.Data).NetWorth);
+    }
+
+    [Fact]
+    public async Task GetNetWorthHistory_RejectsRateOutsideCarryForwardWindow()
+    {
+        var service = CreateService(
+            categories: [],
+            accounts: [Account(id: 20, currency: "EUR")],
+            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: 120m, created: new DateTime(2026, 5, 10))],
+            rates: [Rate(currencyTo: "EUR", rate: 2m, date: ClockNow.Date.AddDays(-8))],
+            clock: new FakeClock(ClockNow));
+
+        var exception = await Assert.ThrowsAsync<DomainRuleException>(() => service.GetNetWorthHistory(UserId, 1));
+
+        Assert.Equal("incomplete-net-worth-data", exception.Rule);
     }
 
     private static ReportService CreateService(
