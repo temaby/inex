@@ -138,6 +138,16 @@ export const reportsVisualFixtureCategories: CategoryResponse[] = [
     isSystem: false,
     systemCode: null,
   },
+  {
+    id: 409,
+    key: "internal-transfer",
+    name: "Internal transfer",
+    description: "Transfer from another household member",
+    parentId: null,
+    isEnabled: true,
+    isSystem: true,
+    systemCode: "internal-transfer",
+  },
 ];
 
 export const reportsVisualFixtureCategoryReport: CategoryReportResponse = {
@@ -206,6 +216,12 @@ export const reportsVisualFixtureCategoryReport: CategoryReportResponse = {
   metadata: {
     name: "April 2026 category report",
     currency: "USD",
+    internalTransfers: {
+      amountReceived: 740,
+      amountSent: 280,
+      netChange: 460,
+      transactionCount: 3,
+    },
   },
 };
 

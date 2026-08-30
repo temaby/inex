@@ -8,11 +8,19 @@ export interface CategoryReportParams {
   endDate: string;
 }
 
+export interface InternalTransferSummary {
+  amountReceived: number;
+  amountSent: number;
+  netChange: number;
+  transactionCount: number;
+}
+
 export interface CategoryReportResponse {
   data: ReportCategoryDetails[];
   metadata: {
     name: string;
     currency: string;
+    internalTransfers: InternalTransferSummary;
   };
 }
 

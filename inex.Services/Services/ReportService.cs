@@ -103,7 +103,7 @@ public class ReportService : Service, IReportService
         return new ListResponse<MonthlyHistoryResponse> { Data = result };
     }
 
-    public async Task<PagedResponse<CategorySummary, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
+    public async Task<PagedResponse<CategorySummary, CategoryReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default)
     {
         DateTime start = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.Start), new DateTime(2014, 01, 01));
         DateTime end = FilterHelper.GetDateTimeFromFilter(filters, nameof(ReportMetadata.End), new DateTime(2014, 01, 01));
@@ -114,6 +114,7 @@ public class ReportService : Service, IReportService
 
         var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(a => a.Id);
         var allCategories = _categoryService.Get(userId, ActivityMode.ALL).Data.ToList();
+        var categoriesById = allCategories.ToDictionary(category => category.Id);
         var categories = allCategories.Where(i => !i.IsSystem).ToList();
         var categoryIds = categories.Select(c => c.Id).ToHashSet();
         IEnumerable<TransactionResponse> transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
@@ -121,6 +122,10 @@ public class ReportService : Service, IReportService
         var categoryValues = new Dictionary<int, decimal>();
         decimal totalIncome = 0;
         decimal totalOutcome = 0;
+        decimal internalTransferReceived = 0;
+        decimal internalTransferSent = 0;
+        decimal internalTransferNetChange = 0;
+        int internalTransferCount = 0;
 
         foreach (TransactionResponse transaction in transactions)
         {
@@ -133,6 +138,21 @@ public class ReportService : Service, IReportService
                 && rate.Rate != 0)
             {
                 amount = transaction.Amount / rate.Rate;
+            }
+
+            if (categoriesById.TryGetValue(transaction.CategoryId, out CategoryResponse? category)
+                && IsInternalTransfer(category))
+            {
+                internalTransferCount++;
+                internalTransferNetChange += amount;
+                if (amount > 0)
+                {
+                    internalTransferReceived += amount;
+                }
+                else
+                {
+                    internalTransferSent += Math.Abs(amount);
+                }
             }
 
             if (categoryIds.Contains(transaction.CategoryId))
@@ -153,16 +173,23 @@ public class ReportService : Service, IReportService
             }
         }
 
-        return new PagedResponse<CategorySummary, ReportMetadata>
+        return new PagedResponse<CategorySummary, CategoryReportMetadata>
         {
-            Metadata = new ReportMetadata
+            Metadata = new CategoryReportMetadata
             {
                 Name = "reports.categoryReport",
                 Currency = currency,
                 Start = start,
                 End = end,
                 TotalIncome = totalIncome,
-                TotalOutcome = totalOutcome
+                TotalOutcome = totalOutcome,
+                InternalTransfers = new InternalTransferSummary
+                {
+                    AmountReceived = internalTransferReceived,
+                    AmountSent = internalTransferSent,
+                    NetChange = internalTransferNetChange,
+                    TransactionCount = internalTransferCount
+                }
             },
             Data = categories
                 .Select(CategoryMapper.ToSummary)
@@ -413,8 +440,11 @@ public class ReportService : Service, IReportService
             return amount / rate.Rate;
         }
 
-        var reportTransactions = transactions
+        var monthlyTransactions = transactions
             .Where(transaction => transaction.Created >= monthStart && transaction.Created <= monthEnd)
+            .ToList();
+
+        var reportTransactions = monthlyTransactions
             .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && !category.IsSystem)
             .Select(transaction => new MonthlyReportTransaction(
                 transaction.Id,
@@ -423,6 +453,11 @@ public class ReportService : Service, IReportService
                 BuildCategoryPath(categories[transaction.CategoryId], categories),
                 transaction.Comment,
                 ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created)))
+            .ToList();
+
+        var internalTransfers = monthlyTransactions
+            .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && IsInternalTransfer(category))
+            .Select(transaction => ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created))
             .ToList();
 
         decimal totalIncome = reportTransactions.Where(transaction => transaction.Amount > 0).Sum(transaction => transaction.Amount);
@@ -458,6 +493,13 @@ public class ReportService : Service, IReportService
             ClosingBalance = closingBalance,
             IncomeCategories = incomeCategories,
             ExpenseCategories = expenseCategories,
+            InternalTransfers = new InternalTransferSummary
+            {
+                AmountReceived = internalTransfers.Where(amount => amount > 0).Sum(),
+                AmountSent = Math.Abs(internalTransfers.Where(amount => amount < 0).Sum()),
+                NetChange = internalTransfers.Sum(),
+                TransactionCount = internalTransfers.Count
+            },
             LargestExpenses = reportTransactions
                 .Where(transaction => transaction.Amount < 0)
                 .OrderBy(transaction => transaction.Amount)
@@ -533,6 +575,9 @@ public class ReportService : Service, IReportService
 
         return summaries;
     }
+
+    private static bool IsInternalTransfer(CategoryResponse category) =>
+        string.Equals(category.SystemCode, "internal-transfer", StringComparison.Ordinal);
 
     private static string BuildCategoryPath(
         CategoryResponse category,

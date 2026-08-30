@@ -136,6 +136,19 @@
   min-width: 0;
 }
 
+.report-panel__heading {
+  align-items: center;
+  color: var(--fg-1);
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.report-panel__heading h3 {
+  font-size: var(--fs-16);
+  margin: 0;
+}
+
 .report-toolbar {
   align-items: center;
   display: flex;

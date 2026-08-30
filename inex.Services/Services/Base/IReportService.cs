@@ -9,7 +9,7 @@ namespace inex.Services.Services.Base;
 
 public interface IReportService : IDisposable
 {
-    Task<PagedResponse<CategorySummary, ReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default);
+    Task<PagedResponse<CategorySummary, CategoryReportMetadata>> GetCategoriesReportData(int userId, string currency, IDictionary<string, string> filters, CancellationToken ct = default);
     Task<ListResponse<MonthlyHistoryResponse>> GetMonthlyHistory(int userId, int year, string currency, CancellationToken ct = default);
     Task<PagedResponse<SpendingHeatmapDayResponse, ReportMetadata>> GetSpendingHeatmap(int userId, DateTime start, DateTime end, CancellationToken ct = default);
     Task<ListResponse<NetWorthHistoryPointResponse>> GetNetWorthHistory(int userId, int months, string currency = "", CancellationToken ct = default);

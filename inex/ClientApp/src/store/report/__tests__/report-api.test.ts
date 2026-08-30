@@ -30,6 +30,12 @@ const categoryReport = {
   metadata: {
     name: "Category",
     currency: "USD",
+    internalTransfers: {
+      amountReceived: 70,
+      amountSent: 30,
+      netChange: 40,
+      transactionCount: 2,
+    },
   },
 };
 

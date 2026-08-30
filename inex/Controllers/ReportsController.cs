@@ -46,11 +46,11 @@ public class ReportsController : ApiControllerBase
     /// <returns>Category report details</returns>
     [HttpGet]
     [Route(GetCategoryReportRoute)]
-    [ProducesResponseType(typeof(PagedResponse<CategorySummary, ReportMetadata>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<CategorySummary, CategoryReportMetadata>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetCategoryReport(string currency = "USD", string filter = "", CancellationToken ct = default)
     {
         IDictionary<string, string> filters = FilterHelper.ParseFilter(filter, ReportMetadata.FieldsList);
-        PagedResponse<CategorySummary, ReportMetadata> resultsDTO = await _reportService.GetCategoriesReportData(CurrentUserId, currency, filters, ct);
+        PagedResponse<CategorySummary, CategoryReportMetadata> resultsDTO = await _reportService.GetCategoriesReportData(CurrentUserId, currency, filters, ct);
         return Ok(resultsDTO);
     }
 
