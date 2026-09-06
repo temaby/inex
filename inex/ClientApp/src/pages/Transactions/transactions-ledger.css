@@ -66,6 +66,20 @@
     overflow: hidden;
 }
 
+.transactions-workspace--pinned {
+    align-items: start;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    min-width: 0;
+}
+
+.transactions-account-balances-rail {
+    min-width: 0;
+    position: sticky;
+    top: 76px;
+}
+
 .transactions-ledger-toolbar__actions {
     align-items: center;
     display: flex;
@@ -87,7 +101,54 @@
     font-size: 16px;
     font-weight: 700;
     margin: 0;
-    padding: 16px 18px;
+}
+
+.transactions-account-balances__header {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 14px 18px;
+}
+
+.transactions-account-balances__heading {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.transactions-account-balances__heading span {
+    color: var(--fg-3);
+    font-size: 12px;
+}
+
+.transactions-account-balances__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+.transactions-account-balances__total {
+    align-items: baseline;
+    border-top: 1px solid var(--border-1);
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    text-transform: uppercase;
+}
+
+.transactions-account-balances__conversion-warning {
+    color: var(--fg-3);
+    font-size: 12px;
+    margin: 0;
+    padding: 0 18px 12px;
 }
 
 .transactions-account-balances__list {
@@ -132,6 +193,20 @@
 
 .transactions-account-balances__state--error p {
     margin: 0;
+}
+
+.transactions-account-balances__accounts-link {
+    border-top: 1px solid var(--border-1);
+    color: var(--income-600);
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 14px 18px;
+}
+
+.transactions-account-balances__accounts-link:focus-visible {
+    box-shadow: var(--focus-ring);
+    outline: none;
 }
 
 .transactions-ledger-toolbar,
@@ -658,6 +733,24 @@
 @media (max-width: 768px) {
     .transactions-ledger {
         gap: 16px;
+    }
+
+    .transactions-account-balances__header {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 14px;
+    }
+
+    .transactions-account-balances__actions,
+    .transactions-account-balances__actions > button {
+        width: 100%;
+    }
+
+    .transactions-account-balances__total,
+    .transactions-account-balances__conversion-warning,
+    .transactions-account-balances__accounts-link {
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
     .transactions-ledger-toolbar__actions,

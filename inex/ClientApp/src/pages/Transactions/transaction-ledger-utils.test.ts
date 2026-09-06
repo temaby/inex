@@ -5,6 +5,7 @@ import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import {
   getBaseCurrencyEquivalent,
+  getAccountBalanceConversionResult,
   getCategoryPathLabel,
   getCashFlowConversionResult,
   getCurrentTransactionMonthRange,
@@ -95,6 +96,21 @@ describe("transaction ledger helpers", () => {
     expect(toBaseCurrencyAmount(-80, "USD", rates)).toBe(-80);
     expect(toBaseCurrencyAmount(-80, "PLN", rates)).toBe(-20);
     expect(toBaseCurrencyAmount(-80, "EUR", rates)).toBe(-40);
+  });
+
+  it("totals all overview accounts only when every non-zero balance has a cached conversion", () => {
+    expect(getAccountBalanceConversionResult([
+      { currency: "USD", value: 10 },
+      { currency: "PLN", value: 40 },
+      { currency: "EUR", value: 0 },
+    ], "USD", [
+      { currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 },
+    ])).toEqual({ value: 20, isComplete: true, unavailableCurrencies: [] });
+
+    expect(getAccountBalanceConversionResult([
+      { currency: "USD", value: 10 },
+      { currency: "EUR", value: 20 },
+    ], "USD", [])).toEqual({ value: 10, isComplete: false, unavailableCurrencies: ["EUR"] });
   });
 
   it("uses the same local calendar day for cached rates and ledger grouping", () => {

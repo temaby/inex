@@ -13,7 +13,8 @@ public static class AccountMapper
             Key = source.Key,
             Name = source.Name,
             Description = source.Description,
-            IsEnabled = source.IsEnabled
+            IsEnabled = source.IsEnabled,
+            IsVisibleInTransactions = source.IsVisibleInTransactions ?? true
         };
     }
 
@@ -24,6 +25,10 @@ public static class AccountMapper
         destination.Name = source.Name;
         destination.Description = source.Description;
         destination.IsEnabled = source.IsEnabled;
+        if (source.IsVisibleInTransactions.HasValue)
+        {
+            destination.IsVisibleInTransactions = source.IsVisibleInTransactions.Value;
+        }
 
         return destination;
     }
@@ -38,7 +43,8 @@ public static class AccountMapper
             Key = source.Key,
             Name = source.Name,
             Description = source.Description,
-            IsEnabled = source.IsEnabled
+            IsEnabled = source.IsEnabled,
+            IsVisibleInTransactions = source.IsVisibleInTransactions
         };
     }
 
@@ -52,7 +58,8 @@ public static class AccountMapper
             Key = source.Key,
             Name = source.Name,
             Description = source.Description,
-            IsEnabled = source.IsEnabled
+            IsEnabled = source.IsEnabled,
+            IsVisibleInTransactions = source.IsVisibleInTransactions
         };
     }
 }

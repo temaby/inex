@@ -32,6 +32,7 @@ import {
     emptyLedgerMetrics,
     formatTransactionMonthLabel,
     formatTransactionPeriodLabel,
+    getAccountBalanceConversionResult,
     getCashFlowConversionResult,
     getCurrentTransactionMonthRange,
     isCurrentOrFutureTransactionMonth,
@@ -66,6 +67,32 @@ const formatDateRange = (range: number[]): string => {
 const areRangesEqual = (left: number[], right: number[]): boolean =>
     left.length === right.length && left.every((value, index) => value === right[index]);
 
+const ACCOUNT_BALANCES_PINNED_STORAGE_KEY = "inex.transactions.account-balances-pinned";
+const ACCOUNT_BALANCES_RAIL_BREAKPOINT = "(min-width: 1180px)";
+
+const readAccountBalancesPinnedPreference = (): boolean => {
+    try {
+        return typeof window !== "undefined" && window.localStorage.getItem(ACCOUNT_BALANCES_PINNED_STORAGE_KEY) === "true";
+    } catch {
+        return false;
+    }
+};
+
+const useAccountBalancesRailViewport = (): boolean => {
+    const getMatches = () => typeof window !== "undefined" && window.matchMedia(ACCOUNT_BALANCES_RAIL_BREAKPOINT).matches;
+    const [matches, setMatches] = useState(getMatches);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia(ACCOUNT_BALANCES_RAIL_BREAKPOINT);
+        const updateMatches = () => setMatches(mediaQuery.matches);
+        updateMatches();
+        mediaQuery.addEventListener("change", updateMatches);
+        return () => mediaQuery.removeEventListener("change", updateMatches);
+    }, []);
+
+    return matches;
+};
+
 const Transactions = () => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
@@ -88,27 +115,34 @@ const Transactions = () => {
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
-    const [accountBalancesOpen, setAccountBalancesOpen] = useState(false);
+    const [accountBalancesPinned, setAccountBalancesPinned] = useState(readAccountBalancesPinnedPreference);
+    const [accountBalancesOpen, setAccountBalancesOpen] = useState(readAccountBalancesPinnedPreference);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerVisibleCount, setLedgerVisibleCount] = useState(0);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
     const [ledgerRefreshToken, setLedgerRefreshToken] = useState(0);
+    const accountBalancesRailViewport = useAccountBalancesRailViewport();
+    const accountBalancesRailVisible = accountBalancesPinned && accountBalancesRailViewport;
 
     const activeAccounts = useMemo(
         () => allAccounts.filter((account: AccountResponse) => account.isEnabled),
         [allAccounts],
     );
+    const visibleOverviewAccounts = useMemo(
+        () => activeAccounts.filter(account => account.isVisibleInTransactions !== false),
+        [activeAccounts],
+    );
     const activeCategories = useMemo(
         () => allCategories.filter((category: CategoryResponse) => category.isEnabled),
         [allCategories],
     );
-    const activeAccountIds = useMemo(() => activeAccounts.map(account => account.id), [activeAccounts]);
-    const accountBalancesQuery = useGetAccountsSummaryQuery(activeAccountIds, {
-        skip: !accountBalancesOpen || activeAccountIds.length === 0,
+    const visibleOverviewAccountIds = useMemo(() => visibleOverviewAccounts.map(account => account.id), [visibleOverviewAccounts]);
+    const accountBalancesQuery = useGetAccountsSummaryQuery(visibleOverviewAccountIds, {
+        skip: !(accountBalancesOpen || accountBalancesRailVisible) || visibleOverviewAccountIds.length === 0,
     });
-    const accountBalances = accountBalancesQuery.currentData ?? accountBalancesQuery.data ?? [];
-    const accountBalancesLoading = accountBalancesOpen && (
+    const accountBalances = accountBalancesQuery.currentData ?? [];
+    const accountBalancesLoading = (accountBalancesOpen || accountBalancesRailVisible) && (
         accountsLoading ||
         accountBalancesQuery.isLoading ||
         (accountBalancesQuery.isFetching && accountBalancesQuery.currentData === undefined)
@@ -122,6 +156,14 @@ const Transactions = () => {
 
         void accountBalancesQuery.refetch();
     };
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(ACCOUNT_BALANCES_PINNED_STORAGE_KEY, String(accountBalancesPinned));
+        } catch {
+            // Keep the presentation setting in memory when browser storage is unavailable.
+        }
+    }, [accountBalancesPinned]);
 
     const canonicalFilter = useMemo(() => normalizeTransactionFilter(
         parseTransactionFilterParam(filterParam) ?? {
@@ -139,19 +181,30 @@ const Transactions = () => {
     const summaryData = summaryQuery.currentData;
     const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
     const baseCurrency = summaryData?.baseCurrency ?? "USD";
+    const accountBalanceConversion = useMemo(
+        () => summaryData
+            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, cachedExchangeRates)
+            : { value: 0, isComplete: false, unavailableCurrencies: [] },
+        [accountBalances, baseCurrency, cachedExchangeRates, summaryData],
+    );
     const cachedRateRange = useMemo(() => {
         const currentPeriod = summaryData?.currentScope.period;
         if (!currentPeriod) return null;
 
-        const needsCachedRate = [summaryData.currentScope, summaryData.previousScope]
+        const needsCachedRateForCashFlow = [summaryData.currentScope, summaryData.previousScope]
             .flatMap(scope => scope?.cashFlowBuckets ?? [])
             .some(bucket => (bucket.income !== 0 || bucket.expense !== 0) && bucket.currency !== baseCurrency);
-        if (!needsCachedRate) return null;
+        const needsCachedRateForAccountOverview = (accountBalancesOpen || accountBalancesRailVisible)
+            && accountBalances.some(account => account.currency !== baseCurrency);
+        if (!needsCachedRateForCashFlow && !needsCachedRateForAccountOverview) return null;
 
         const startDate = summaryData.previousScope?.period?.startDate.slice(0, 10) ?? currentPeriod.startDate.slice(0, 10);
         const endDate = currentPeriod.endDate.slice(0, 10);
         return { startDate, endDate, key: `${startDate}:${endDate}` };
-    }, [baseCurrency, summaryData]);
+    }, [accountBalances, accountBalancesOpen, accountBalancesRailVisible, baseCurrency, summaryData]);
+    const cachedRateRangeKey = cachedRateRange?.key;
+    const cachedRateStartDate = cachedRateRange?.startDate;
+    const cachedRateEndDate = cachedRateRange?.endDate;
     const currentConversion = useMemo(
         () => summaryData
             ? getCashFlowConversionResult(summaryData.currentScope, baseCurrency, cachedExchangeRates)
@@ -195,9 +248,9 @@ const Transactions = () => {
     );
 
     useEffect(() => {
-        if (!cachedRateRange) return;
-        dispatch(fetchCachedRatesForRange(cachedRateRange.startDate, cachedRateRange.endDate));
-    }, [cachedRateRange, dispatch]);
+        if (!cachedRateRangeKey || !cachedRateStartDate || !cachedRateEndDate) return;
+        dispatch(fetchCachedRatesForRange(cachedRateStartDate, cachedRateEndDate));
+    }, [cachedRateEndDate, cachedRateRangeKey, cachedRateStartDate, dispatch]);
 
     const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {
         const normalizedFilter = normalizeTransactionFilter(nextFilter);
@@ -361,8 +414,8 @@ const Transactions = () => {
         return next;
     }, [allAccounts, allCategories, applyServerFilter, canonicalFilter, clearServerFilter, t]);
 
-    const conversionLoading = cachedRateRange !== null
-        && (cachedRatesLoading || cachedRatesCompletedKey !== cachedRateRange.key);
+    const conversionLoading = cachedRateRangeKey !== undefined
+        && (cachedRatesLoading || cachedRatesCompletedKey !== cachedRateRangeKey);
     const currentConversionUnavailable = !conversionLoading && summaryData !== undefined && currentConversion?.isComplete === false;
     const comparisonUnavailable = !conversionLoading && (currentConversionUnavailable || previousConversion?.isComplete === false);
     const previousPeriodLabel = summaryData?.previousScope?.period
@@ -425,6 +478,11 @@ const Transactions = () => {
         setAddDrawerOpen(false);
     };
 
+    const toggleAccountBalancesPinned = useCallback(() => {
+        setAccountBalancesPinned(pinned => !pinned);
+        setAccountBalancesOpen(true);
+    }, []);
+
     const headerActions = (
         <div className="transactions-header-actions">
             <InExButton
@@ -435,16 +493,6 @@ const Transactions = () => {
             >
                 {t("transactions.addTransaction")}
             </InExButton>
-            <InExButton
-                aria-expanded={accountBalancesOpen}
-                aria-haspopup="dialog"
-                id="transactions-account-balances-trigger"
-                kind="ghost"
-                onClick={() => setAccountBalancesOpen(open => !open)}
-                size="md"
-            >
-                {t("transactions.accountBalances")}
-            </InExButton>
         </div>
     );
 
@@ -454,6 +502,23 @@ const Transactions = () => {
         [TransactionType.TRANSFER]: t("transactions.newTransferSubtitle"),
         [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferSubtitle"),
     }[createMode];
+
+    const accountBalancesOverview = (
+        <AccountBalancesCompanion
+            accounts={accountBalances}
+            baseCurrency={baseCurrency}
+            conversion={accountBalanceConversion}
+            isError={accountBalancesError}
+            isExpanded={accountBalancesRailVisible || accountBalancesOpen}
+            isLoading={accountBalancesLoading}
+            isPinned={accountBalancesPinned}
+            onExpandedChange={() => setAccountBalancesOpen(open => !open)}
+            onPinChange={toggleAccountBalancesPinned}
+            onRetry={retryAccountBalances}
+            variant={accountBalancesRailVisible ? "rail" : "inline"}
+            visibleAccountCount={visibleOverviewAccounts.length}
+        />
+    );
 
     return (
         <>
@@ -493,6 +558,8 @@ const Transactions = () => {
                         type="warning"
                     />}
 
+                    {!accountBalancesRailVisible && accountBalancesOverview}
+                    <div className={accountBalancesRailVisible ? "transactions-workspace transactions-workspace--pinned" : undefined}>
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
@@ -578,6 +645,8 @@ const Transactions = () => {
                             refreshToken={ledgerRefreshToken}
                         />
                     </section>
+                    {accountBalancesRailVisible && <aside className="transactions-account-balances-rail">{accountBalancesOverview}</aside>}
+                    </div>
                 </section>
             </BasicPage>
 
@@ -608,23 +677,6 @@ const Transactions = () => {
                         type="error"
                     />
                 )}
-            </InExDrawer>
-
-            <InExDrawer
-                bodyPadding={0}
-                onClose={() => setAccountBalancesOpen(false)}
-                open={accountBalancesOpen}
-                subtitle={t("transactions.accountBalancesSubtitle")}
-                title={t("transactions.accountBalances")}
-                width={440}
-            >
-                <AccountBalancesCompanion
-                    accounts={accountBalances}
-                    isError={accountBalancesError}
-                    isLoading={accountBalancesLoading}
-                    onRetry={retryAccountBalances}
-                    showHeading={false}
-                />
             </InExDrawer>
 
             <InExDrawer
