@@ -25,7 +25,7 @@ public class CustomMapperTests
 
         Assert.Equal(12, response.Id);
         Assert.Equal(string.Empty, response.Currency);
-        Assert.True(response.IsVisibleInTransactions);
+        Assert.True(response.IsFavourite);
     }
 
     [Fact]
@@ -38,11 +38,11 @@ public class CustomMapperTests
             Name = "Cash",
             IsEnabled = true,
         };
-        var account = new Account { IsVisibleInTransactions = false };
+        var account = new Account { IsFavourite = false };
 
         request.ApplyTo(account);
 
-        Assert.False(account.IsVisibleInTransactions);
+        Assert.False(account.IsFavourite);
     }
 
     [Fact]

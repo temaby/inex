@@ -19,7 +19,7 @@ public class ResponseContractTests
             Name = "Cash",
             Description = "Daily wallet",
             IsEnabled = true,
-            IsVisibleInTransactions = false,
+            IsFavourite = false,
             Currency = "USD"
         };
 
@@ -32,7 +32,7 @@ public class ResponseContractTests
             "name",
             "description",
             "isEnabled",
-            "isVisibleInTransactions",
+            "isFavourite",
             "currency");
         Assert.Equal(12, json.GetProperty("id").GetInt32());
         Assert.Equal(1, json.GetProperty("currencyId").GetInt32());
@@ -40,7 +40,7 @@ public class ResponseContractTests
         Assert.Equal("Cash", json.GetProperty("name").GetString());
         Assert.Equal("Daily wallet", json.GetProperty("description").GetString());
         Assert.True(json.GetProperty("isEnabled").GetBoolean());
-        Assert.False(json.GetProperty("isVisibleInTransactions").GetBoolean());
+        Assert.False(json.GetProperty("isFavourite").GetBoolean());
         Assert.Equal("USD", json.GetProperty("currency").GetString());
     }
 

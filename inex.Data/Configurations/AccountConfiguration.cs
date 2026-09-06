@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using inex.Data.Configurations.Base;
 using inex.Data.Models;
@@ -11,7 +11,7 @@ public class AccountConfiguration : EntityConfiguration<Account>
     {
         base.Configure(builder);
 
-        builder.Property(a => a.IsVisibleInTransactions)
+        builder.Property(a => a.IsFavourite)
             .HasDefaultValue(true);
 
         builder.HasOne(a => a.Currency)

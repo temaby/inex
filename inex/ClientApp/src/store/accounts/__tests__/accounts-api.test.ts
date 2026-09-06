@@ -19,7 +19,7 @@ const accountsFixture: AccountResponse[] = [
     name: "Cash",
     description: null,
     isEnabled: true,
-    isVisibleInTransactions: true,
+    isFavourite: true,
     currencyId: 1,
     currency: "USD",
   },
@@ -33,7 +33,7 @@ const accountsUpdatedFixture: AccountResponse[] = [
     name: "Bank",
     description: "Main",
     isEnabled: true,
-    isVisibleInTransactions: true,
+    isFavourite: true,
     currencyId: 1,
     currency: "USD",
   },
@@ -125,7 +125,7 @@ describe("accountsApi", () => {
       description: "Main",
       currencyId: 1,
       isEnabled: true,
-      isVisibleInTransactions: true,
+      isFavourite: true,
     }));
 
     await waitFor(() => {
@@ -158,7 +158,7 @@ describe("accountsApi", () => {
       description: "",
       currencyId: 1,
       isEnabled: false,
-      isVisibleInTransactions: false,
+      isFavourite: false,
     }));
 
     await waitFor(() => {

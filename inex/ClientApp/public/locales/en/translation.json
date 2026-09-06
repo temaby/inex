@@ -376,9 +376,9 @@
   },
   "accounts": {
     "subtitle": "Manage",
-    "transactionsOverviewVisibility": "Transactions overview",
-    "transactionsOverviewVisible": "Visible",
-    "transactionsOverviewHidden": "Hidden",
+    "favouriteSetting": "Favourite",
+    "favourite": "Favourite",
+    "notFavourite": "Not favourite",
     "drawerSubtitle": "Create an account and assign its currency",
     "addAccount": "Add account",
     "noDescription": "No description",

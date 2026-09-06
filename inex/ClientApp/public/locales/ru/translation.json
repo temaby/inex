@@ -380,9 +380,9 @@
   },
   "accounts": {
     "subtitle": "Управление",
-    "transactionsOverviewVisibility": "Обзор транзакций",
-    "transactionsOverviewVisible": "Показывать",
-    "transactionsOverviewHidden": "Скрыть",
+    "favouriteSetting": "Избранное",
+    "favourite": "В избранном",
+    "notFavourite": "Не в избранном",
     "drawerSubtitle": "Создайте счёт и назначьте его валюту",
     "addAccount": "Добавить счёт",
     "noDescription": "Без описания",

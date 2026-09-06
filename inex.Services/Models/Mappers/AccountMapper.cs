@@ -14,7 +14,7 @@ public static class AccountMapper
             Name = source.Name,
             Description = source.Description,
             IsEnabled = source.IsEnabled,
-            IsVisibleInTransactions = source.IsVisibleInTransactions ?? true
+            IsFavourite = source.IsFavourite ?? true
         };
     }
 
@@ -25,9 +25,9 @@ public static class AccountMapper
         destination.Name = source.Name;
         destination.Description = source.Description;
         destination.IsEnabled = source.IsEnabled;
-        if (source.IsVisibleInTransactions.HasValue)
+        if (source.IsFavourite.HasValue)
         {
-            destination.IsVisibleInTransactions = source.IsVisibleInTransactions.Value;
+            destination.IsFavourite = source.IsFavourite.Value;
         }
 
         return destination;
@@ -44,7 +44,7 @@ public static class AccountMapper
             Name = source.Name,
             Description = source.Description,
             IsEnabled = source.IsEnabled,
-            IsVisibleInTransactions = source.IsVisibleInTransactions
+            IsFavourite = source.IsFavourite
         };
     }
 
@@ -59,7 +59,7 @@ public static class AccountMapper
             Name = source.Name,
             Description = source.Description,
             IsEnabled = source.IsEnabled,
-            IsVisibleInTransactions = source.IsVisibleInTransactions
+            IsFavourite = source.IsFavourite
         };
     }
 }

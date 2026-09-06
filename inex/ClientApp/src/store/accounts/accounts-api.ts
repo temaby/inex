@@ -12,7 +12,7 @@ export interface AccountResponse {
   name: string;
   description: string | null;
   isEnabled: boolean;
-  isVisibleInTransactions: boolean;
+  isFavourite: boolean;
   currencyId: number;
   currency: string;
 }
@@ -28,7 +28,7 @@ interface CreateAccountArgs {
   description: string;
   currencyId: number;
   isEnabled: boolean;
-  isVisibleInTransactions: boolean;
+  isFavourite: boolean;
 }
 
 interface UpdateAccountArgs extends CreateAccountArgs {
