@@ -34,14 +34,10 @@ vi.mock("react-i18next", async () => {
                     "transactions.addTransaction": "Add transaction",
                     "transactions.accountBalances": "Account balances",
                     "transactions.accountBalancesCollapse": "Collapse",
-                    "transactions.accountBalancesConversionDetail": "A cached conversion is unavailable for: {{currencies}}.",
-                    "transactions.accountBalancesConversionUnavailable": "The total is unavailable because a cached conversion is missing.",
-                    "transactions.accountBalancesDisplayAccounts": "Accounts to display",
                     "transactions.accountBalancesEmpty": "No active accounts to display.",
                     "transactions.accountBalancesError": "Could not load account balances.",
                     "transactions.accountBalancesExpand": "Expand",
                     "transactions.accountBalancesLoading": "Loading account balances",
-                    "transactions.accountBalancesNoneSelected": "Choose at least one account to show balances.",
                     "transactions.accountBalancesOpenAccounts": "Open Accounts",
                     "transactions.accountBalancesPin": "Pin overview",
                     "transactions.accountBalancesSummary": `${params?.count ?? 0} active accounts`,
@@ -204,7 +200,7 @@ describe("Transactions month controls", () => {
         routerState.search = "";
         summaryQueryState.data = undefined;
         accountBalancesQueryState.data = [];
-        window.localStorage.removeItem("inex.transactions.account-balances-display-account-ids");
+        window.localStorage.removeItem("inex.transactions.account-balances-pinned");
         Object.defineProperty(window, "matchMedia", {
             writable: true,
             value: vi.fn().mockImplementation((query: string) => ({
@@ -254,8 +250,8 @@ describe("Transactions month controls", () => {
         );
     });
 
-    it("keeps display-account controls out of the balances overview", () => {
-        renderTransactions();
+    it("expands the in-page account overview and persists its pinned preference", () => {
+        const { unmount } = renderTransactions();
 
         expect(screen.getByRole("region", { name: "Account balances" })).toBeInTheDocument();
         const expand = screen.getByRole("button", { name: "Expand" });
@@ -264,12 +260,17 @@ describe("Transactions month controls", () => {
 
         fireEvent.click(expand);
         expect(screen.getByRole("button", { name: "Collapse" })).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("Choose at least one account to show balances.")).toBeVisible();
+        expect(screen.getByText("No active accounts to display.")).toBeVisible();
 
-        expect(screen.queryByRole("checkbox", { name: "Wallet" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Pin overview" }));
+        expect(window.localStorage.getItem("inex.transactions.account-balances-pinned")).toBe("true");
+
+        unmount();
+        renderTransactions();
+        expect(screen.getByRole("button", { name: "Collapse" })).toHaveAttribute("aria-expanded", "true");
     });
 
-    it("does not change the transaction account filter from the balances overview", () => {
+    it("filters the ledger to the selected account from the expanded overview", () => {
         accountBalancesQueryState.data = [{
             id: 1,
             key: "wallet",
@@ -282,9 +283,14 @@ describe("Transactions month controls", () => {
             thisMonthNet: 20,
         }];
         renderTransactions();
+        navigateMock.mockClear();
+
         fireEvent.click(screen.getByRole("button", { name: "Expand" }));
-        expect(screen.queryByRole("button", { name: /Wallet/ })).not.toBeInTheDocument();
-        expect(screen.queryByRole("checkbox", { name: "Wallet" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /Wallet/ }));
+
+        const [target, options] = navigateMock.mock.calls[navigateMock.mock.calls.length - 1] as [string, { replace: boolean }];
+        expect(target).toContain("accountIds%3A1%3B");
+        expect(options).toEqual({ replace: true });
     });
 
     it("keeps the filter drawer closed when the route has no serialized filter", () => {

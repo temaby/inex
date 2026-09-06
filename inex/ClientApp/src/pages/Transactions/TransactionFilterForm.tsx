@@ -16,9 +16,7 @@ type FlatCategory = Omit<CategoryDetails, "children"> & { depth: number };
 interface TransactionFilterFormProps {
     accounts: AccountResponse[];
     categories: CategoryResponse[];
-    displayAccountIds: number[];
     filter: NormalizedTransactionFilter;
-    onDisplayAccountIdsChange: (ids: number[]) => void;
     onApply: (filter: NormalizedTransactionFilter) => void;
 }
 
@@ -43,7 +41,7 @@ const toCategoryDetails = (category: CategoryResponse): CategoryDetails =>
         children: [],
     });
 
-const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({ accounts, categories, displayAccountIds, filter, onApply, onDisplayAccountIdsChange }) => {
+const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({ accounts, categories, filter, onApply }) => {
     const { t } = useTranslation();
     const [localFilter, setLocalFilter] = useState(filter);
     const [tagsAndRefsInput, setTagsAndRefsInput] = useState("");
@@ -111,9 +109,6 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({ accounts,
             </div>
             <Form.Item label={t("transactions.account")}>
                 <Select aria-label={t("transactions.account")} className="transactions-multi-select" id="filter_account" mode="multiple" onChange={(ids) => setSelectedIds(ids, "accountIds")} optionFilterProp="title" options={accountOptions} placeholder={t("transactions.allAccounts")} value={localFilter.accountIds} />
-            </Form.Item>
-            <Form.Item label={t("transactions.accountBalancesDisplayAccounts")}>
-                <Select aria-label={t("transactions.accountBalancesDisplayAccounts")} className="transactions-multi-select" id="display_accounts" mode="multiple" onChange={onDisplayAccountIdsChange} optionFilterProp="title" options={accountOptions} placeholder={t("transactions.accountBalancesDisplayAccounts")} value={displayAccountIds} />
             </Form.Item>
             <Form.Item label={t("transactions.category")}>
                 <Select aria-label={t("transactions.category")} className="transactions-multi-select" id="filter_category" mode="multiple" onChange={(ids) => setSelectedIds(ids, "categoryIds")} optionFilterProp="title" options={categoryOptions} placeholder={t("transactions.allCategories")} value={localFilter.categoryIds} />

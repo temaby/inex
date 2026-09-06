@@ -208,6 +208,20 @@ const states = [
     interaction: "expand-account-overview",
   },
   {
+    name: "account-overview-pinned-desktop-1440",
+    screenshot: "account-overview-pinned-desktop-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "populated",
+    interaction: "pin-account-overview",
+  },
+  {
+    name: "account-overview-pinned-mobile-390",
+    screenshot: "account-overview-pinned-mobile-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "pin-account-overview",
+  },
+  {
     name: "account-overview-loading-390",
     screenshot: "account-overview-loading-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -519,14 +533,18 @@ async function applyInteraction(client, state) {
       } else if (state.scenario === "account-balances-error") {
         await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
       } else {
-        await waitFor(client, "document.body.innerText.includes('Total')");
+        await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       }
       return;
     case "expand-account-overview-and-retry":
       await evaluate(client, clickButtonByTextExpression("Expand"));
       await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
       await activateRetryButton(client);
-      await waitFor(client, "document.body.innerText.includes('Total')");
+      await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
+      return;
+    case "pin-account-overview":
+      await evaluate(client, clickButtonByTextExpression("Pin overview"));
+      await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       return;
     case "open-row-edit":
       await openRowEdit(client);
@@ -689,8 +707,14 @@ async function collectMetrics(client, state, apiRequestCount) {
       addDrawerOpen: document.body.innerText.includes("New transaction"),
       advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
-      accountBalancesVisible: Boolean(document.querySelector(".transactions-account-balances")),
-      accountBalancesExpanded: Boolean(document.querySelector(".transactions-account-balances__total, .transactions-account-balances__state")),
+      accountBalancesInlineVisible: Boolean(document.querySelector(".transactions-account-balances--inline")),
+      accountBalancesRailVisible: Boolean(document.querySelector(".transactions-account-balances--rail")),
+      accountBalancesExpanded: Boolean(document.querySelector(".transactions-account-balances__list, .transactions-account-balances__state")),
+      accountBalancesPinned: Boolean(document.querySelector(".transactions-account-balances [aria-pressed='true']")),
+      accountBalancesRailSticky: (() => {
+        const rail = document.querySelector(".transactions-account-balances-rail");
+        return rail ? window.getComputedStyle(rail).position === "sticky" : false;
+      })(),
       accountBalancesZeroVisible: document.body.innerText.includes("0.00 PLN"),
       ledgerColumnsFullyVisible: Boolean(ledgerCardRect && ledgerColumns.length === 4 && ledgerColumns.every((column) => {
         const rect = column.getBoundingClientRect();
@@ -748,8 +772,7 @@ function runState(args) {
     ...args,
     routePath: args.state.routePath ?? "/transactions",
     initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, "en")}
-      localStorage.removeItem("inex.transactions.account-balances-pinned");
-      localStorage.removeItem("inex.transactions.account-balances-display-account-ids");`,
+      localStorage.removeItem("inex.transactions.account-balances-pinned");`,
     waitForReady: waitForTransactionsReady,
     applyInteraction,
     collectMetrics,
@@ -793,10 +816,16 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
         .every((state) => !state.recoveryActionOccludedAtStart),
       accountBalancesInitiallyCollapsed: stateResults
         .filter((state) => state.name === "populated-1440" || state.name === "populated-1024" || state.name === "populated-390" || state.name === "populated-360")
-        .every((state) => state.accountBalancesVisible && !state.accountBalancesExpanded),
+        .every((state) => state.accountBalancesInlineVisible && !state.accountBalancesExpanded && !state.accountBalancesRailVisible),
       accountBalancesInlinePresentation: stateResults
         .filter((state) => state.name.startsWith("account-overview-expanded-") || state.name.startsWith("account-overview-loading-") || state.name.startsWith("account-overview-empty-") || state.name.startsWith("account-overview-error-") || state.name.startsWith("account-overview-retry-"))
-        .every((state) => state.accountBalancesVisible && state.accountBalancesExpanded),
+        .every((state) => state.accountBalancesInlineVisible && state.accountBalancesExpanded && !state.accountBalancesRailVisible),
+      accountBalancesPinnedDesktopRail: stateResults
+        .filter((state) => state.name === "account-overview-pinned-desktop-1440")
+        .every((state) => state.accountBalancesRailVisible && state.accountBalancesExpanded && state.accountBalancesRailSticky && !state.accountBalancesInlineVisible),
+      accountBalancesPinnedMobileInline: stateResults
+        .filter((state) => state.name === "account-overview-pinned-mobile-390")
+        .every((state) => state.accountBalancesInlineVisible && state.accountBalancesExpanded && !state.accountBalancesRailVisible),
       desktopLedgerScanOrder: stateResults
         .filter((state) => state.name === "populated-1440" || state.name === "populated-1024")
         .every((state) => state.ledgerColumnLabels.join("|") === "Description|Account|Date|Amount"
@@ -869,6 +898,16 @@ export const visualQaConfig = {
       if (state.hasHorizontalOverflow) {
         failures.push(`${state.name}: account overview introduces horizontal overflow`);
       }
+    }
+
+    const pinnedDesktop = stateResults.find((item) => item.name === "account-overview-pinned-desktop-1440");
+    if (pinnedDesktop && (!pinnedDesktop.accountBalancesRailVisible || !pinnedDesktop.accountBalancesRailSticky || pinnedDesktop.accountBalancesInlineVisible)) {
+      failures.push("account-overview-pinned-desktop-1440: pinned overview is not a single sticky right rail");
+    }
+
+    const pinnedMobile = stateResults.find((item) => item.name === "account-overview-pinned-mobile-390");
+    if (pinnedMobile && (!pinnedMobile.accountBalancesInlineVisible || pinnedMobile.accountBalancesRailVisible)) {
+      failures.push("account-overview-pinned-mobile-390: pinned overview is not rendered inline");
     }
 
     return failures;
