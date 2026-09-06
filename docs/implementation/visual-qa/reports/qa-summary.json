@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-28T11:04:28.410Z",
+  "generatedAt": "2026-09-06T21:20:14.784Z",
   "page": "reports",
   "dataMode": "fixture",
   "harness": {
@@ -57,8 +57,8 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /accounts?mode=active",
+    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=active",
@@ -86,9 +86,9 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "GET /accounts?mode=active",
-    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
@@ -101,9 +101,9 @@
     "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30",
     "GET /accounts?mode=active",
-    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30",
@@ -349,8 +349,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
-        "GET /accounts?mode=active"
+        "GET /accounts?mode=active",
+        "GET /exchange/rates/2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -578,7 +578,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 916.59375,
+      "lastContentBottom": 968.1875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -586,8 +586,8 @@
       "modalWithinViewport": null,
       "modalBounds": null,
       "reportCardCount": 0,
-      "reportPanelCount": 2,
-      "statCardCount": 3,
+      "reportPanelCount": 3,
+      "statCardCount": 7,
       "tableRowCount": 3,
       "chartSurfaceCount": 0,
       "accessibleSummaryCount": 1,
@@ -601,10 +601,10 @@
       "emptyReportVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA REPORT DETAIL Category Report All reports Share Export Print INTERVAL Category Report Month TOTAL INCOME 3,200.00 USD TOTAL EXPENSE 2,105.00 USD BALANCE 1,095.00 USD CATEGORY AMOUNT Category Amount Living 575.00 USD Home 1,530.00 USD Income 3,200.00 USD Category report data summary Category totals shown in the report table. CATEGORY AMOUNT Living Expense 575.00 USD Home Expense 1,530.00 USD Income Income 3,200.00 USD",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA REPORT DETAIL Category Report All reports Share Export Print INTERVAL Category Report Month TOTAL INCOME 3,200.00 USD TOTAL EXPENSE 2,105.00 USD BALANCE 1,095.00 USD Internal transfers RECEIVED 740.00 USD SENT -280.00 USD NET CHANGE 460.00 USD TRANSACTIONS 3 CATEGORY AMOUNT Category Amount Living 575.00 USD Home 1,530.00 USD Income 3,200.00 USD Category report data summary Category totals shown in the report table. CATEGORY AMOUNT Living Expense 575.00 USD Home Expense 1,530.00 USD Income Income 3,200.00 USD",
       "pngDimensions": {
-        "width": 1440,
-        "height": 1000,
+        "width": 1425,
+        "height": 1143,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -642,7 +642,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.71875,
+      "lastContentBottom": 772.3125,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -650,8 +650,8 @@
       "modalWithinViewport": null,
       "modalBounds": null,
       "reportCardCount": 0,
-      "reportPanelCount": 2,
-      "statCardCount": 3,
+      "reportPanelCount": 3,
+      "statCardCount": 7,
       "tableRowCount": 0,
       "chartSurfaceCount": 0,
       "accessibleSummaryCount": 0,
@@ -665,10 +665,10 @@
       "emptyReportVisible": true,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx QA REPORT DETAIL Category Report All reports Share Export Print INTERVAL Category Report Month TOTAL INCOME 0.00 USD TOTAL EXPENSE 0.00 USD BALANCE 0.00 USD CATEGORY AMOUNT Category Amount No data Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA REPORT DETAIL Category Report All reports Share Export Print INTERVAL Category Report Month TOTAL INCOME 0.00 USD TOTAL EXPENSE 0.00 USD BALANCE 0.00 USD Internal transfers RECEIVED 740.00 USD SENT -280.00 USD NET CHANGE 460.00 USD TRANSACTIONS 3 CATEGORY AMOUNT Category Amount No data Dashboard Transactions Accounts Categories Budgets Reports",
       "pngDimensions": {
         "width": 375,
-        "height": 1021,
+        "height": 1346,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -738,9 +738,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
-        "GET /accounts?mode=active",
-        "GET /exchange/rates/2026-04-30"
+        "GET /accounts?mode=active"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -927,9 +927,9 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /reports/spending-heatmap?start=2026-04-01&end=2026-04-30",
-        "GET /accounts?mode=active",
-        "GET /exchange/rates/2026-04-30"
+        "GET /accounts?mode=active"
       ],
       "consoleMessages": [
         "[vite] connecting...",

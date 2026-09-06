@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T21:47:42.776Z",
+  "generatedAt": "2026-09-06T21:19:41.928Z",
   "page": "profile",
   "dataMode": "fixture",
   "harness": {
@@ -40,8 +40,8 @@
   "apiRequests": [
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /currencies",
     "GET /exchange/rates/2026-04-30",
+    "GET /currencies",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
@@ -122,8 +122,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /currencies",
-        "GET /exchange/rates/2026-04-30"
+        "GET /exchange/rates/2026-04-30",
+        "GET /currencies"
       ],
       "consoleMessages": [
         "[vite] connecting...",

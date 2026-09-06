@@ -17,9 +17,10 @@ export interface AccountBalancesCompanionProps {
     isLoading: boolean;
     isPinned: boolean;
     onExpandedChange: () => void;
+    onFocusChange?: (hasFocus: boolean) => void;
     onPinChange: () => void;
     onRetry: () => void;
-    variant?: "inline" | "rail";
+    variant?: "drawer" | "inline" | "rail";
 }
 
 const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
@@ -32,6 +33,7 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
     isLoading,
     isPinned,
     onExpandedChange,
+    onFocusChange,
     onPinChange,
     onRetry,
     variant = "inline",
@@ -40,28 +42,39 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
     const headingId = `transactions-account-balances-heading-${variant}`;
     const contentId = `transactions-account-balances-content-${variant}`;
     const canCollapse = variant === "inline";
+    const showHeading = variant !== "drawer";
+    const pinButton = (
+        <InExButton aria-pressed={isPinned} id="transactions-account-balances-pin-control" icon={isPinned ? <PinOff size={15} /> : <Pin size={15} />} kind="ghost" onClick={onPinChange} size="sm">
+            {isPinned ? t("transactions.accountBalancesUnpin") : t("transactions.accountBalancesPin")}
+        </InExButton>
+    );
 
     return (
         <section
-            aria-labelledby={headingId}
+            aria-label={showHeading ? undefined : t("transactions.accountBalances")}
+            aria-labelledby={showHeading ? headingId : undefined}
             className={`transactions-account-balances transactions-account-balances--${variant}`}
-            data-qa={`account-balances-${variant}`}>
-            <div className="transactions-account-balances__header">
-                <div className="transactions-account-balances__heading">
-                    <h2 id={headingId}>{t("transactions.accountBalances")}</h2>
-                    <span>{t("transactions.accountBalancesSummary", { count: visibleAccountCount })}</span>
+            data-qa={`account-balances-${variant}`}
+            onBlurCapture={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) onFocusChange?.(false);
+            }}
+            onFocusCapture={() => onFocusChange?.(true)}>
+            {showHeading ? (
+                <div className="transactions-account-balances__header">
+                    <div className="transactions-account-balances__heading">
+                        <h2 id={headingId}>{t("transactions.accountBalances")}</h2>
+                        <span>{t("transactions.accountBalancesSummary", { count: visibleAccountCount })}</span>
+                    </div>
+                    <div className="transactions-account-balances__actions">
+                        {canCollapse && (
+                            <InExButton aria-controls={contentId} aria-expanded={isExpanded} icon={isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />} kind="ghost" onClick={onExpandedChange} size="sm">
+                                {isExpanded ? t("transactions.accountBalancesCollapse") : t("transactions.accountBalancesExpand")}
+                            </InExButton>
+                        )}
+                        {pinButton}
+                    </div>
                 </div>
-                <div className="transactions-account-balances__actions">
-                    {canCollapse && (
-                        <InExButton aria-controls={contentId} aria-expanded={isExpanded} icon={isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />} kind="ghost" onClick={onExpandedChange} size="sm">
-                            {isExpanded ? t("transactions.accountBalancesCollapse") : t("transactions.accountBalancesExpand")}
-                        </InExButton>
-                    )}
-                    <InExButton aria-pressed={isPinned} icon={isPinned ? <PinOff size={15} /> : <Pin size={15} />} kind="ghost" onClick={onPinChange} size="sm">
-                        {isPinned ? t("transactions.accountBalancesUnpin") : t("transactions.accountBalancesPin")}
-                    </InExButton>
-                </div>
-            </div>
+            ) : <div className="transactions-account-balances__drawer-actions">{pinButton}</div>}
             {isExpanded && (
                 <div id={contentId}>
                     {isLoading ? (

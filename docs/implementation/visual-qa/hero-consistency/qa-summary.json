@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T21:47:30.578Z",
+  "generatedAt": "2026-09-06T21:19:16.225Z",
   "page": "hero-consistency",
   "dataMode": "fixture",
   "harness": {
@@ -51,11 +51,11 @@
   "apiRequests": [
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /exchange/rates/2026-04-30",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
     "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /exchange/rates/cached?startDate=2026-03-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
@@ -64,11 +64,11 @@
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
     "GET /categories?mode=ALL",
     "GET /budgets?year=2026&month=4",
     "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
     "GET /currencies",
-    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
@@ -78,8 +78,8 @@
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /currencies",
     "GET /exchange/rates/2026-04-30",
+    "GET /currencies",
     "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
     "GET /reports/budget/comparison?year=2026&month=3&currency=USD",
     "GET /reports/net-worth?months=12",
@@ -87,9 +87,9 @@
     "GET /auth/me",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
-    "GET /exchange/rates/2026-04-30",
     "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /exchange/rates/cached?startDate=2026-03-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
@@ -142,7 +142,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 968.296875,
+      "lastContentBottom": 968.09375,
       "pageTitle": {
         "text": "Transactions",
         "top": 112,
@@ -186,10 +186,10 @@
         "alignItems": "normal"
       },
       "pagePrimaryAction": {
-        "text": "Add transaction",
+        "text": "Add transactionAccount balances",
         "top": 106,
-        "left": 1226,
-        "width": 159,
+        "left": 1073,
+        "width": 312,
         "height": 37,
         "bottom": 143,
         "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -207,7 +207,7 @@
         "alignItems": "center"
       },
       "heroCard": {
-        "text": "Income3,200.00USD6 transactions in April 2026Expenses96.70USD6 transactions in April 2026Net Flow+3,103.30USDMonth summary shown in USD where rates exist",
+        "text": "Income3,200.00USD1 income transactions in April 2026Expenses96.70USD4 expense transactions in April 2026Net Flow+3,103.30USDNet change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026",
         "top": 163,
         "left": 40,
         "width": 1345,
@@ -297,7 +297,7 @@
         }
       ],
       "heroSecondaryText": {
-        "text": "Month summary shown in USD where rates exist",
+        "text": "Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026",
         "top": 253,
         "left": 965,
         "width": 391,
@@ -317,7 +317,7 @@
         "display": "block",
         "alignItems": "normal"
       },
-      "heroSecondaryTextHasDecimal": false,
+      "heroSecondaryTextHasDecimal": true,
       "accountsDeltaPeriodOnOwnLine": false,
       "heroDistributionEyebrow": null,
       "heroDistributionBar": null,
@@ -339,8 +339,8 @@
       "dashboardCardCurrencies": [],
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
-      "heroText": "Income3,200.00USD6 transactions in April 2026Expenses96.70USD6 transactions in April 2026Net Flow+3,103.30USDMonth summary shown in USD where rates exist",
-      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 DESCRIPTION AMOUNT ACCOUNT DATE Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 20 / page",
+      "heroText": "Income3,200.00USD1 income transactions in April 2026Expenses96.70USD4 expense transactions in April 2026Net Flow+3,103.30USDNet change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026",
+      "bodyText": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1425,
@@ -350,11 +350,11 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /exchange/rates/2026-04-30",
         "GET /accounts?mode=ALL",
         "GET /categories?mode=ALL",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
-        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /exchange/rates/cached?startDate=2026-03-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1283,11 +1283,11 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
         "GET /categories?mode=ALL",
         "GET /budgets?year=2026&month=4",
         "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
-        "GET /currencies",
-        "GET /exchange/rates/2026-04-30"
+        "GET /currencies"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -2216,8 +2216,8 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /currencies",
         "GET /exchange/rates/2026-04-30",
+        "GET /currencies",
         "GET /reports/budget/comparison?year=2026&month=4&currency=USD",
         "GET /reports/budget/comparison?year=2026&month=3&currency=USD",
         "GET /reports/net-worth?months=12"
@@ -2252,7 +2252,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.078125,
+      "lastContentBottom": 771.875,
       "pageTitle": {
         "text": "Transactions",
         "top": 100,
@@ -2296,7 +2296,7 @@
         "alignItems": "normal"
       },
       "pagePrimaryAction": {
-        "text": "Add transaction",
+        "text": "Add transactionAccount balances",
         "top": 136,
         "left": 16,
         "width": 343,
@@ -2317,10 +2317,10 @@
         "alignItems": "center"
       },
       "heroCard": {
-        "text": "Income3,200.00USD6 transactions in April 2026Expenses96.70USD6 transactions in April 2026Net Flow+3,103.30USDMonth summary shown in USD where rates exist",
+        "text": "Income3,200.00USD1 income transactions in April 2026Expenses96.70USD4 expense transactions in April 2026Net Flow+3,103.30USDNet change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026",
         "top": 185,
         "left": 16,
-        "width": 343,
+        "width": 400,
         "height": 367,
         "bottom": 552,
         "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2343,7 +2343,7 @@
         "text": "Net Flow",
         "top": 448,
         "left": 33,
-        "width": 309,
+        "width": 366,
         "height": 17,
         "bottom": 464,
         "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2407,10 +2407,10 @@
         }
       ],
       "heroSecondaryText": {
-        "text": "Month summary shown in USD where rates exist",
+        "text": "Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026",
         "top": 513,
         "left": 33,
-        "width": 309,
+        "width": 366,
         "height": 20,
         "bottom": 533,
         "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -2427,7 +2427,7 @@
         "display": "block",
         "alignItems": "normal"
       },
-      "heroSecondaryTextHasDecimal": false,
+      "heroSecondaryTextHasDecimal": true,
       "accountsDeltaPeriodOnOwnLine": false,
       "heroDistributionEyebrow": null,
       "heroDistributionBar": null,
@@ -2449,8 +2449,8 @@
       "dashboardCardCurrencies": [],
       "dashboardCardDeltas": [],
       "dashboardTopText": "",
-      "heroText": "Income3,200.00USD6 transactions in April 2026Expenses96.70USD6 transactions in April 2026Net Flow+3,103.30USDMonth summary shown in USD where rates exist",
-      "bodyText": "InEx QA OVERVIEW Transactions Add transaction INCOME 3,200.00 USD 6 transactions in April 2026 EXPENSES 96.70 USD 6 transactions in April 2026 NET FLOW +3,103.30 USD Month summary shown in USD where rates exist Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 84.50 PLN ≈ 21.13 USD PLN card 2026-04-30 April salary Income > Salary #payroll 3,200.00 USD USD operating 2026-04-30 Yesterday · 2 items Transfer to PLN card Transfer @fx-bridge -500.00 USD USD operating 2026-04-29 Taxi across town Living > Transport #transport 96,000.00 UZS ≈ 8.00 USD UZS cash 2026-04-29 Monday, 27 Apr · 1 item Weekend market Living > Groceries #food 142.30 PLN ≈ 35.58 USD PLN card 2026-04-27 Sunday, 26 Apr · 1 item Airport train Living > Transport #transport 32.00 USD USD operating 2026-04-26 Showing 6 of 6 transactions for April 2026 1 Dashboard Transactions Accounts Categories Budgets Reports",
+      "heroText": "Income3,200.00USD1 income transactions in April 2026Expenses96.70USD4 expense transactions in April 2026Net Flow+3,103.30USDNet change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026",
+      "bodyText": "InEx QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 375,
@@ -2462,9 +2462,9 @@
         "GET /auth/me",
         "GET /accounts?mode=ALL",
         "GET /categories?mode=ALL",
-        "GET /exchange/rates/2026-04-30",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
-        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /exchange/rates/cached?startDate=2026-03-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
