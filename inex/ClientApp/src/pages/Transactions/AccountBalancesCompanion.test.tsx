@@ -35,7 +35,7 @@ const accounts: AccountSummary[] = [{
     name: "Emergency reserve for long-term household commitments",
     description: null,
     isEnabled: true,
-    isVisibleInTransactions: true,
+    isFavourite: true,
     currencyId: 1,
     currency: "PLN",
     value: 0,

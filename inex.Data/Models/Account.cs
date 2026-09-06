@@ -25,8 +25,8 @@ public class Account : NamedEntity
     public bool IsEnabled { get; set; }
 
     [Required]
-    [Column("is_visible_in_transactions")]
-    public bool IsVisibleInTransactions { get; set; } = true;
+    [Column("is_favourite")]
+    public bool IsFavourite { get; set; } = true;
 
     public AppUser User { get; set; } = null!;
     public Currency Currency { get; set; } = null!;

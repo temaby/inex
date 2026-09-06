@@ -36,7 +36,7 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
         description?: string;
         currencyId: number;
         isEnabled: boolean;
-        isVisibleInTransactions: boolean;
+        isFavourite: boolean;
     }) => {
         setFormError(null);
         try {
@@ -46,7 +46,7 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
                 description: values.description ?? "",
                 currencyId: values.currencyId,
                 isEnabled: values.isEnabled,
-                isVisibleInTransactions: values.isVisibleInTransactions,
+                isFavourite: values.isFavourite,
             }).unwrap();
             form.resetFields();
             onCreated();
@@ -60,7 +60,7 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
             form={form}
             layout="vertical"
             onFinish={onFinish}
-            initialValues={{ isEnabled: true, isVisibleInTransactions: true }}>
+            initialValues={{ isEnabled: true, isFavourite: true }}>
             {formError && (
                 <Alert
                     className="accounts-form-error"
@@ -99,10 +99,10 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
                     <Radio.Button value={false}>{t("accounts.disabled")}</Radio.Button>
                 </Radio.Group>
             </Form.Item>
-            <Form.Item name="isVisibleInTransactions" label={t("accounts.transactionsOverviewVisibility")}>
+            <Form.Item name="isFavourite" label={t("accounts.favouriteSetting")}>
                 <Radio.Group buttonStyle="solid">
-                    <Radio.Button value={true}>{t("accounts.transactionsOverviewVisible")}</Radio.Button>
-                    <Radio.Button value={false}>{t("accounts.transactionsOverviewHidden")}</Radio.Button>
+                    <Radio.Button value={true}>{t("accounts.favourite")}</Radio.Button>
+                    <Radio.Button value={false}>{t("accounts.notFavourite")}</Radio.Button>
                 </Radio.Group>
             </Form.Item>
             <Form.Item>

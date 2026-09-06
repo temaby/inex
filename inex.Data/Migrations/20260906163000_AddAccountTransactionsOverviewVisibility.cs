@@ -10,7 +10,7 @@ public partial class AddAccountTransactionsOverviewVisibility : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<bool>(
-            name: "is_visible_in_transactions",
+            name: "is_favourite",
             table: "account",
             type: "tinyint(1)",
             nullable: false,
@@ -20,7 +20,7 @@ public partial class AddAccountTransactionsOverviewVisibility : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropColumn(
-            name: "is_visible_in_transactions",
+            name: "is_favourite",
             table: "account");
     }
 }

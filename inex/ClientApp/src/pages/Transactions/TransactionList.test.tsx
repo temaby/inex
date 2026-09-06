@@ -89,7 +89,7 @@ describe("TransactionList", () => {
         <>
             <h2 id="transactions-ledger-heading" tabIndex={-1}>Ledger</h2>
             <TransactionList
-                accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isVisibleInTransactions: true, currencyId: 1, currency: "PLN" }]}
+                accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "PLN" }]}
                 baseCurrency="USD"
                 categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                 cachedExchangeRates={[{ currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 }]}
@@ -117,7 +117,7 @@ describe("TransactionList", () => {
     it("keeps desktop metadata before the final amount and shows an available date-matched equivalent", () => {
         const { container } = render(
             <TransactionList
-                accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isVisibleInTransactions: true, currencyId: 1, currency: "PLN" }]}
+                accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "PLN" }]}
                 baseCurrency="USD"
                 categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                 cachedExchangeRates={[{ currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 }]}
@@ -171,7 +171,7 @@ describe("TransactionList", () => {
                     setRefreshToken((token) => token + 1);
                 }} type="button">Created transaction</button>
                 <TransactionList
-                    accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isVisibleInTransactions: true, currencyId: 1, currency: "PLN" }]}
+                    accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "PLN" }]}
                     baseCurrency="USD"
                     categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                     cachedExchangeRates={[]}

@@ -19,19 +19,19 @@ interface AccountEditState {
     description: string;
     currencyId: number;
     isEnabled: boolean;
-    isVisibleInTransactions: boolean;
+    isFavourite: boolean;
     initialName: string;
     initialDescription: string;
     initialCurrencyId: number;
     initialIsEnabled: boolean;
-    initialIsVisibleInTransactions: boolean;
+    initialIsFavourite: boolean;
     hasActiveChanges: boolean;
 }
 
 type AccountEditValues = Omit<AccountEditState, "hasActiveChanges">;
 
 type AccountEditAction =
-    | { type: "INIT"; value: Omit<AccountEditValues, "initialName" | "initialDescription" | "initialCurrencyId" | "initialIsEnabled" | "initialIsVisibleInTransactions"> }
+    | { type: "INIT"; value: Omit<AccountEditValues, "initialName" | "initialDescription" | "initialCurrencyId" | "initialIsEnabled" | "initialIsFavourite"> }
     | { type: "SET_NAME"; value: string }
     | { type: "SET_DESCRIPTION"; value: string }
     | { type: "SET_CURRENCY"; value: number }
@@ -43,7 +43,7 @@ const hasChanges = (state: AccountEditValues) => (
     || state.description !== state.initialDescription
     || state.currencyId !== state.initialCurrencyId
     || state.isEnabled !== state.initialIsEnabled
-    || state.isVisibleInTransactions !== state.initialIsVisibleInTransactions
+    || state.isFavourite !== state.initialIsFavourite
 );
 
 const reducer = (state: AccountEditState, action: AccountEditAction): AccountEditState => {
@@ -55,7 +55,7 @@ const reducer = (state: AccountEditState, action: AccountEditAction): AccountEdi
                 initialDescription: action.value.description,
                 initialCurrencyId: action.value.currencyId,
                 initialIsEnabled: action.value.isEnabled,
-                initialIsVisibleInTransactions: action.value.isVisibleInTransactions,
+                initialIsFavourite: action.value.isFavourite,
                 hasActiveChanges: false,
             };
         case "SET_NAME": {
@@ -75,7 +75,7 @@ const reducer = (state: AccountEditState, action: AccountEditAction): AccountEdi
             return { ...next, hasActiveChanges: hasChanges(next) };
         }
         case "SET_VISIBLE_IN_TRANSACTIONS": {
-            const next = { ...state, isVisibleInTransactions: action.value };
+            const next = { ...state, isFavourite: action.value };
             return { ...next, hasActiveChanges: hasChanges(next) };
         }
         default:
@@ -102,12 +102,12 @@ const AccountEditForm = (props: AccountEditFormProps) => {
         description: "",
         currencyId: 0,
         isEnabled: true,
-        isVisibleInTransactions: true,
+        isFavourite: true,
         initialName: "",
         initialDescription: "",
         initialCurrencyId: 0,
         initialIsEnabled: true,
-        initialIsVisibleInTransactions: true,
+        initialIsFavourite: true,
         hasActiveChanges: false,
     });
 
@@ -122,7 +122,7 @@ const AccountEditForm = (props: AccountEditFormProps) => {
             description: record.description ?? "",
             currencyId: record.currencyId ?? 0,
             isEnabled: record.isEnabled,
-            isVisibleInTransactions: record.isVisibleInTransactions ?? true,
+            isFavourite: record.isFavourite ?? true,
         }});
     }, [props.record]);
 
@@ -136,7 +136,7 @@ const AccountEditForm = (props: AccountEditFormProps) => {
                 description: state.description,
                 currencyId: state.currencyId,
                 isEnabled: state.isEnabled,
-                isVisibleInTransactions: state.isVisibleInTransactions,
+                isFavourite: state.isFavourite,
             }).unwrap();
         } catch (error) {
             setFormError(parseAxiosError(error, t("accounts.formErrors.updateFailure"), t));
@@ -199,13 +199,13 @@ const AccountEditForm = (props: AccountEditFormProps) => {
                         <Radio.Button value={true}>{t("accounts.active")}</Radio.Button>
                         <Radio.Button value={false}>{t("accounts.disabled")}</Radio.Button>
                     </Radio.Group>
-                    <Form.Item label={t("accounts.transactionsOverviewVisibility")} style={{ marginBottom: 0 }}>
+                    <Form.Item label={t("accounts.favouriteSetting")} style={{ marginBottom: 0 }}>
                         <Radio.Group
                             buttonStyle="solid"
-                            value={state.isVisibleInTransactions}
+                            value={state.isFavourite}
                             onChange={(e) => dispatchAction({ type: "SET_VISIBLE_IN_TRANSACTIONS", value: e.target.value })}>
-                            <Radio.Button value={true}>{t("accounts.transactionsOverviewVisible")}</Radio.Button>
-                            <Radio.Button value={false}>{t("accounts.transactionsOverviewHidden")}</Radio.Button>
+                            <Radio.Button value={true}>{t("accounts.favourite")}</Radio.Button>
+                            <Radio.Button value={false}>{t("accounts.notFavourite")}</Radio.Button>
                         </Radio.Group>
                     </Form.Item>
                     <Space>

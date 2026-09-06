@@ -130,7 +130,7 @@ const Transactions = () => {
         [allAccounts],
     );
     const visibleOverviewAccounts = useMemo(
-        () => activeAccounts.filter(account => account.isVisibleInTransactions !== false),
+        () => activeAccounts.filter(account => account.isFavourite !== false),
         [activeAccounts],
     );
     const activeCategories = useMemo(

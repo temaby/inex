@@ -36,9 +36,9 @@ vi.mock("react-i18next", () => ({
             "accounts.formErrors.nameRequired": "Name is required",
             "accounts.name": "Name",
             "accounts.namePlaceholder": "Account name",
-            "accounts.transactionsOverviewHidden": "Hidden",
-            "accounts.transactionsOverviewVisibility": "Transactions overview visibility",
-            "accounts.transactionsOverviewVisible": "Visible",
+            "accounts.notFavourite": "Not favourite",
+            "accounts.favouriteSetting": "Favourite",
+            "accounts.favourite": "Favourite",
             "accounts.update": "Update",
         }[key] ?? key),
     }),
@@ -50,7 +50,7 @@ const selectCurrency = async () => {
     fireEvent.click(screen.getByText("USD - US Dollar"));
 };
 
-describe("account Transactions overview visibility", () => {
+describe("account favourite setting", () => {
     beforeEach(() => {
         Object.defineProperty(window, "matchMedia", {
             configurable: true,
@@ -67,42 +67,40 @@ describe("account Transactions overview visibility", () => {
         mutationState.updateAccount.mockReturnValue({ unwrap: () => Promise.resolve() });
     });
 
-    it("defaults new accounts to visible and submits a chosen hidden setting", async () => {
+    it("defaults new accounts to favourite and submits a chosen non-favourite setting", async () => {
         render(<AccountCreateForm onCancel={vi.fn()} onCreated={vi.fn()} />);
 
-        expect(screen.getByText("Transactions overview visibility")).toBeInTheDocument();
-        expect(screen.getByRole("radio", { name: "Visible" })).toBeChecked();
-        fireEvent.click(screen.getByRole("radio", { name: "Hidden" }));
+        expect(screen.getByRole("radio", { name: "Favourite" })).toBeChecked();
+        fireEvent.click(screen.getByRole("radio", { name: "Not favourite" }));
         fireEvent.change(screen.getByRole("textbox", { name: "Name" }), { target: { value: "Travel cash" } });
         await selectCurrency();
         fireEvent.click(screen.getByRole("button", { name: "Create account" }));
 
         await waitFor(() => expect(mutationState.createAccount).toHaveBeenCalledWith(expect.objectContaining({
-            isVisibleInTransactions: false,
+            isFavourite: false,
             name: "Travel cash",
         })));
     });
 
-    it("hydrates, labels, and saves the edited visibility setting", async () => {
+    it("hydrates, labels, and saves the edited favourite setting", async () => {
         render(<AccountEditForm record={{
             id: 7,
             key: "cash",
             name: "Cash",
             description: null,
             isEnabled: true,
-            isVisibleInTransactions: false,
+            isFavourite: false,
             currencyId: 1,
             currency: "USD",
         }} />);
 
-        expect(screen.getByText("Transactions overview visibility")).toBeInTheDocument();
-        expect(screen.getByRole("radio", { name: "Hidden" })).toBeChecked();
-        fireEvent.click(screen.getByRole("radio", { name: "Visible" }));
+        expect(screen.getByRole("radio", { name: "Not favourite" })).toBeChecked();
+        fireEvent.click(screen.getByRole("radio", { name: "Favourite" }));
         fireEvent.click(screen.getByRole("button", { name: "Update" }));
 
         await waitFor(() => expect(mutationState.updateAccount).toHaveBeenCalledWith(expect.objectContaining({
             id: 7,
-            isVisibleInTransactions: true,
+            isFavourite: true,
         })));
     });
 });
