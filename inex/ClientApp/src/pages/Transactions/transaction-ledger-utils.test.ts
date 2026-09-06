@@ -5,6 +5,7 @@ import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import {
   getBaseCurrencyEquivalent,
+  getAccountBalanceConversionResult,
   getCategoryPathLabel,
   getCashFlowConversionResult,
   getCurrentTransactionMonthRange,
@@ -185,6 +186,33 @@ describe("transaction ledger helpers", () => {
       net: 0,
       isComplete: false,
       warnings: [{ currency: "PLN", date: "2026-06-05" }],
+    });
+  });
+
+  it("does not present a partial account-balance total when a selected currency lacks a cached rate", () => {
+    expect(getAccountBalanceConversionResult([
+      { currency: "USD", value: 50 },
+      { currency: "PLN", value: 80 },
+      { currency: "EUR", value: 20 },
+    ], "USD", [
+      { currencyFrom: "USD", currencyTo: "PLN", rate: 4 },
+    ])).toEqual({
+      value: 70,
+      isComplete: false,
+      unavailableCurrencies: ["EUR"],
+    });
+  });
+
+  it("converts every selected account balance from an already cached rate", () => {
+    expect(getAccountBalanceConversionResult([
+      { currency: "USD", value: 50 },
+      { currency: "PLN", value: 80 },
+    ], "USD", [
+      { currencyFrom: "USD", currencyTo: "PLN", rate: 4 },
+    ])).toEqual({
+      value: 70,
+      isComplete: true,
+      unavailableCurrencies: [],
     });
   });
 

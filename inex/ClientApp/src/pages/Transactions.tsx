@@ -32,6 +32,7 @@ import {
     emptyLedgerMetrics,
     formatTransactionMonthLabel,
     formatTransactionPeriodLabel,
+    getAccountBalanceConversionResult,
     getCashFlowConversionResult,
     getCurrentTransactionMonthRange,
     isCurrentOrFutureTransactionMonth,
@@ -66,31 +67,22 @@ const formatDateRange = (range: number[]): string => {
 const areRangesEqual = (left: number[], right: number[]): boolean =>
     left.length === right.length && left.every((value, index) => value === right[index]);
 
-const ACCOUNT_BALANCES_PINNED_STORAGE_KEY = "inex.transactions.account-balances-pinned";
-const ACCOUNT_BALANCES_RAIL_BREAKPOINT = "(min-width: 1180px)";
+const ACCOUNT_BALANCES_DISPLAY_STORAGE_KEY = "inex.transactions.account-balances-display-account-ids";
 
-const readAccountBalancesPinnedPreference = (): boolean => {
+const readAccountBalancesDisplayPreference = (): number[] | null => {
     try {
-        return window.localStorage.getItem(ACCOUNT_BALANCES_PINNED_STORAGE_KEY) === "true";
+        const storedValue = window.localStorage.getItem(ACCOUNT_BALANCES_DISPLAY_STORAGE_KEY);
+        if (storedValue === null) return null;
+
+        const parsedValue: unknown = JSON.parse(storedValue);
+        if (!Array.isArray(parsedValue)) return null;
+
+        return Array.from(new Set(parsedValue.filter((id): id is number =>
+            typeof id === "number" && Number.isInteger(id) && id > 0,
+        ))).sort((left, right) => left - right);
     } catch {
-        return false;
+        return null;
     }
-};
-
-const useAccountBalancesRailViewport = (): boolean => {
-    const getMatches = () => typeof window !== "undefined" && window.matchMedia(ACCOUNT_BALANCES_RAIL_BREAKPOINT).matches;
-    const [matches, setMatches] = useState(getMatches);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia(ACCOUNT_BALANCES_RAIL_BREAKPOINT);
-        const updateMatches = () => setMatches(mediaQuery.matches);
-
-        updateMatches();
-        mediaQuery.addEventListener("change", updateMatches);
-        return () => mediaQuery.removeEventListener("change", updateMatches);
-    }, []);
-
-    return matches;
 };
 
 const Transactions = () => {
@@ -115,15 +107,13 @@ const Transactions = () => {
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
-    const [accountBalancesPinned, setAccountBalancesPinned] = useState(readAccountBalancesPinnedPreference);
-    const [accountBalancesOpen, setAccountBalancesOpen] = useState(readAccountBalancesPinnedPreference);
+    const [accountBalancesOpen, setAccountBalancesOpen] = useState(false);
+    const [accountBalancesDisplayPreference, setAccountBalancesDisplayPreference] = useState<number[] | null>(readAccountBalancesDisplayPreference);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerVisibleCount, setLedgerVisibleCount] = useState(0);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
     const [ledgerRefreshToken, setLedgerRefreshToken] = useState(0);
-    const accountBalancesRailViewport = useAccountBalancesRailViewport();
-    const accountBalancesRailVisible = accountBalancesPinned && accountBalancesRailViewport;
 
     const activeAccounts = useMemo(
         () => allAccounts.filter((account: AccountResponse) => account.isEnabled),
@@ -134,11 +124,23 @@ const Transactions = () => {
         [allCategories],
     );
     const activeAccountIds = useMemo(() => activeAccounts.map(account => account.id), [activeAccounts]);
+    const displayedAccountIds = useMemo(() => {
+        if (accountBalancesDisplayPreference === null) return activeAccountIds;
+
+        const validIds = accountBalancesDisplayPreference.filter(id => activeAccountIds.includes(id));
+        return validIds.length > 0 || accountBalancesDisplayPreference.length === 0
+            ? validIds
+            : activeAccountIds;
+    }, [accountBalancesDisplayPreference, activeAccountIds]);
     const accountBalancesQuery = useGetAccountsSummaryQuery(activeAccountIds, {
-        skip: !(accountBalancesOpen || accountBalancesRailVisible) || activeAccountIds.length === 0,
+        skip: !accountBalancesOpen || activeAccountIds.length === 0,
     });
     const accountBalances = accountBalancesQuery.currentData ?? accountBalancesQuery.data ?? [];
-    const accountBalancesLoading = (accountBalancesOpen || accountBalancesRailVisible) && (
+    const displayedAccountBalances = useMemo(
+        () => accountBalances.filter(account => displayedAccountIds.includes(account.id)),
+        [accountBalances, displayedAccountIds],
+    );
+    const accountBalancesLoading = accountBalancesOpen && (
         accountsLoading ||
         accountBalancesQuery.isLoading ||
         (accountBalancesQuery.isFetching && accountBalancesQuery.currentData === undefined)
@@ -154,12 +156,25 @@ const Transactions = () => {
     };
 
     useEffect(() => {
+        if (activeAccountIds.length === 0) return;
+
+        const validIds = accountBalancesDisplayPreference?.filter(id => activeAccountIds.includes(id)) ?? activeAccountIds;
+        const nextPreference = validIds.length > 0 || accountBalancesDisplayPreference?.length === 0
+            ? validIds
+            : activeAccountIds;
+
+        if (accountBalancesDisplayPreference === null || nextPreference.length !== accountBalancesDisplayPreference.length
+            || nextPreference.some((id, index) => id !== accountBalancesDisplayPreference[index])) {
+            setAccountBalancesDisplayPreference(nextPreference);
+            return;
+        }
+
         try {
-            window.localStorage.setItem(ACCOUNT_BALANCES_PINNED_STORAGE_KEY, String(accountBalancesPinned));
+            window.localStorage.setItem(ACCOUNT_BALANCES_DISPLAY_STORAGE_KEY, JSON.stringify(nextPreference));
         } catch {
             // The presentation preference remains available for this session when browser storage is unavailable.
         }
-    }, [accountBalancesPinned]);
+    }, [accountBalancesDisplayPreference, activeAccountIds]);
 
     const canonicalFilter = useMemo(() => normalizeTransactionFilter(
         parseTransactionFilterParam(filterParam) ?? {
@@ -177,6 +192,10 @@ const Transactions = () => {
     const summaryData = summaryQuery.currentData;
     const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
     const baseCurrency = summaryData?.baseCurrency ?? "USD";
+    const accountBalanceConversion = useMemo(
+        () => getAccountBalanceConversionResult(displayedAccountBalances, baseCurrency, cachedExchangeRates),
+        [baseCurrency, cachedExchangeRates, displayedAccountBalances],
+    );
     const cachedRateRange = useMemo(() => {
         const currentPeriod = summaryData?.currentScope.period;
         if (!currentPeriod) return null;
@@ -303,15 +322,6 @@ const Transactions = () => {
     const clearServerFilter = useCallback((nextFilter: TransactionFilter) => {
         applyServerFilter(nextFilter, true);
     }, [applyServerFilter]);
-
-    const toggleAccountBalancesPinned = useCallback(() => {
-        setAccountBalancesPinned((pinned) => !pinned);
-        setAccountBalancesOpen(true);
-    }, []);
-
-    const selectAccountBalance = useCallback((accountId: number) => {
-        applyServerFilter({ ...canonicalFilter, accountIds: [accountId] });
-    }, [applyServerFilter, canonicalFilter]);
 
     const monthControls = (
         <div className="transactions-month-controls" aria-label={t("transactions.month.chooser")}>
@@ -495,17 +505,15 @@ const Transactions = () => {
     const accountBalancesOverview = (
         <AccountBalancesCompanion
             activeAccountCount={activeAccounts.length}
-            accounts={accountBalances}
+            accounts={displayedAccountBalances}
+            baseCurrency={baseCurrency}
+            conversion={accountBalanceConversion}
+            hasDisplaySelection={displayedAccountIds.length > 0}
             isError={accountBalancesError}
-            isExpanded={accountBalancesRailVisible || accountBalancesOpen}
+            isExpanded={accountBalancesOpen}
             isLoading={accountBalancesLoading}
-            isPinned={accountBalancesPinned}
             onExpandedChange={() => setAccountBalancesOpen(open => !open)}
-            onPinChange={toggleAccountBalancesPinned}
             onRetry={retryAccountBalances}
-            onSelectAccount={selectAccountBalance}
-            selectedAccountIds={canonicalFilter.accountIds}
-            variant={accountBalancesRailVisible ? "rail" : "inline"}
         />
     );
 
@@ -547,8 +555,8 @@ const Transactions = () => {
                         type="warning"
                     />}
 
-                    {!accountBalancesRailVisible && accountBalancesOverview}
-                    <div className={accountBalancesRailVisible ? "transactions-workspace transactions-workspace--pinned" : undefined}>
+                    {accountBalancesOverview}
+                    <div>
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
@@ -634,11 +642,6 @@ const Transactions = () => {
                             refreshToken={ledgerRefreshToken}
                         />
                     </section>
-                    {accountBalancesRailVisible && (
-                        <aside className="transactions-account-balances-rail">
-                            {accountBalancesOverview}
-                        </aside>
-                    )}
                     </div>
                 </section>
             </BasicPage>
@@ -682,7 +685,9 @@ const Transactions = () => {
                 <TransactionFilterForm
                     accounts={activeAccounts}
                     categories={activeCategories}
+                    displayAccountIds={displayedAccountIds}
                     filter={canonicalFilter}
+                    onDisplayAccountIdsChange={setAccountBalancesDisplayPreference}
                     onApply={(nextFilter) => {
                         applyServerFilter(nextFilter);
                         setFilterDrawerOpen(false);

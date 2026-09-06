@@ -66,20 +66,6 @@
     overflow: hidden;
 }
 
-.transactions-workspace--pinned {
-    align-items: start;
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
-    min-width: 0;
-}
-
-.transactions-account-balances-rail {
-    min-width: 0;
-    position: sticky;
-    top: 76px;
-}
-
 .transactions-ledger-toolbar__actions {
     align-items: center;
     display: flex;
@@ -132,52 +118,22 @@
     min-width: 0;
 }
 
-.transactions-account-balances__list {
-    border-top: 1px solid var(--border-1);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.transactions-account-balances__list li {
-    min-width: 0;
-}
-
-.transactions-account-balances__list li + li {
-    border-top: 1px solid var(--border-1);
-}
-
-.transactions-account-balances__name {
-    color: var(--fg-2);
-    min-width: 0;
-    overflow-wrap: anywhere;
-}
-
-.transactions-account-balances__account {
+.transactions-account-balances__total {
     align-items: baseline;
-    background: var(--bg-surface);
-    border: 0;
-    color: inherit;
-    cursor: pointer;
+    border-top: 1px solid var(--border-1);
+    color: var(--fg-1);
     display: flex;
-    font-family: var(--font-sans);
-    gap: 12px;
+    font-size: 13px;
+    font-weight: 700;
     justify-content: space-between;
-    min-width: 0;
     padding: 14px 18px;
-    text-align: left;
-    width: 100%;
 }
 
-.transactions-account-balances__account:hover,
-.transactions-account-balances__account[aria-pressed="true"] {
-    background: var(--income-50);
-}
-
-.transactions-account-balances__account:focus-visible {
-    box-shadow: var(--focus-ring);
-    outline: none;
-    position: relative;
+.transactions-account-balances__conversion-warning {
+    color: var(--expense-600);
+    font-size: 12px;
+    margin: 0;
+    padding: 0 18px 14px;
 }
 
 .transactions-account-balances__state {
