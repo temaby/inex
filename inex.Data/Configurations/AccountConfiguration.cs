@@ -11,6 +11,9 @@ public class AccountConfiguration : EntityConfiguration<Account>
     {
         base.Configure(builder);
 
+        builder.Property(a => a.IsVisibleInTransactions)
+            .HasDefaultValue(true);
+
         builder.HasOne(a => a.Currency)
               .WithMany(c => c.Accounts)
               .HasForeignKey(a => a.CurrencyId)

@@ -158,6 +158,12 @@ namespace inex.Data.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("is_enabled");
 
+                    b.Property<bool>("IsVisibleInTransactions")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_visible_in_transactions");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(45)

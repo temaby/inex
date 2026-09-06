@@ -19,28 +19,65 @@ interface AccountEditState {
     description: string;
     currencyId: number;
     isEnabled: boolean;
+    isVisibleInTransactions: boolean;
+    initialName: string;
+    initialDescription: string;
+    initialCurrencyId: number;
+    initialIsEnabled: boolean;
+    initialIsVisibleInTransactions: boolean;
     hasActiveChanges: boolean;
 }
 
+type AccountEditValues = Omit<AccountEditState, "hasActiveChanges">;
+
 type AccountEditAction =
-    | { type: "INIT"; value: Omit<AccountEditState, "hasActiveChanges"> }
+    | { type: "INIT"; value: Omit<AccountEditValues, "initialName" | "initialDescription" | "initialCurrencyId" | "initialIsEnabled" | "initialIsVisibleInTransactions"> }
     | { type: "SET_NAME"; value: string }
     | { type: "SET_DESCRIPTION"; value: string }
     | { type: "SET_CURRENCY"; value: number }
-    | { type: "SET_ENABLED"; value: boolean };
+    | { type: "SET_ENABLED"; value: boolean }
+    | { type: "SET_VISIBLE_IN_TRANSACTIONS"; value: boolean };
+
+const hasChanges = (state: AccountEditValues) => (
+    state.name !== state.initialName
+    || state.description !== state.initialDescription
+    || state.currencyId !== state.initialCurrencyId
+    || state.isEnabled !== state.initialIsEnabled
+    || state.isVisibleInTransactions !== state.initialIsVisibleInTransactions
+);
 
 const reducer = (state: AccountEditState, action: AccountEditAction): AccountEditState => {
     switch (action.type) {
         case "INIT":
-            return { ...action.value, hasActiveChanges: false };
-        case "SET_NAME":
-            return { ...state, name: action.value, hasActiveChanges: true };
-        case "SET_DESCRIPTION":
-            return { ...state, description: action.value, hasActiveChanges: true };
-        case "SET_CURRENCY":
-            return { ...state, currencyId: action.value, hasActiveChanges: true };
-        case "SET_ENABLED":
-            return { ...state, isEnabled: action.value, hasActiveChanges: state.isEnabled !== action.value };
+            return {
+                ...action.value,
+                initialName: action.value.name,
+                initialDescription: action.value.description,
+                initialCurrencyId: action.value.currencyId,
+                initialIsEnabled: action.value.isEnabled,
+                initialIsVisibleInTransactions: action.value.isVisibleInTransactions,
+                hasActiveChanges: false,
+            };
+        case "SET_NAME": {
+            const next = { ...state, name: action.value };
+            return { ...next, hasActiveChanges: hasChanges(next) };
+        }
+        case "SET_DESCRIPTION": {
+            const next = { ...state, description: action.value };
+            return { ...next, hasActiveChanges: hasChanges(next) };
+        }
+        case "SET_CURRENCY": {
+            const next = { ...state, currencyId: action.value };
+            return { ...next, hasActiveChanges: hasChanges(next) };
+        }
+        case "SET_ENABLED": {
+            const next = { ...state, isEnabled: action.value };
+            return { ...next, hasActiveChanges: hasChanges(next) };
+        }
+        case "SET_VISIBLE_IN_TRANSACTIONS": {
+            const next = { ...state, isVisibleInTransactions: action.value };
+            return { ...next, hasActiveChanges: hasChanges(next) };
+        }
         default:
             return state;
     }
@@ -65,6 +102,12 @@ const AccountEditForm = (props: AccountEditFormProps) => {
         description: "",
         currencyId: 0,
         isEnabled: true,
+        isVisibleInTransactions: true,
+        initialName: "",
+        initialDescription: "",
+        initialCurrencyId: 0,
+        initialIsEnabled: true,
+        initialIsVisibleInTransactions: true,
         hasActiveChanges: false,
     });
 
@@ -79,6 +122,7 @@ const AccountEditForm = (props: AccountEditFormProps) => {
             description: record.description ?? "",
             currencyId: record.currencyId ?? 0,
             isEnabled: record.isEnabled,
+            isVisibleInTransactions: record.isVisibleInTransactions ?? true,
         }});
     }, [props.record]);
 
@@ -92,6 +136,7 @@ const AccountEditForm = (props: AccountEditFormProps) => {
                 description: state.description,
                 currencyId: state.currencyId,
                 isEnabled: state.isEnabled,
+                isVisibleInTransactions: state.isVisibleInTransactions,
             }).unwrap();
         } catch (error) {
             setFormError(parseAxiosError(error, t("accounts.formErrors.updateFailure"), t));
@@ -154,6 +199,15 @@ const AccountEditForm = (props: AccountEditFormProps) => {
                         <Radio.Button value={true}>{t("accounts.active")}</Radio.Button>
                         <Radio.Button value={false}>{t("accounts.disabled")}</Radio.Button>
                     </Radio.Group>
+                    <Form.Item label={t("accounts.transactionsOverviewVisibility")} style={{ marginBottom: 0 }}>
+                        <Radio.Group
+                            buttonStyle="solid"
+                            value={state.isVisibleInTransactions}
+                            onChange={(e) => dispatchAction({ type: "SET_VISIBLE_IN_TRANSACTIONS", value: e.target.value })}>
+                            <Radio.Button value={true}>{t("accounts.transactionsOverviewVisible")}</Radio.Button>
+                            <Radio.Button value={false}>{t("accounts.transactionsOverviewHidden")}</Radio.Button>
+                        </Radio.Group>
+                    </Form.Item>
                     <Space>
                         <Popconfirm
                             title={t("accounts.deleteConfirm")}

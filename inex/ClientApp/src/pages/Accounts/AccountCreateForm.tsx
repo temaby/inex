@@ -36,6 +36,7 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
         description?: string;
         currencyId: number;
         isEnabled: boolean;
+        isVisibleInTransactions: boolean;
     }) => {
         setFormError(null);
         try {
@@ -45,6 +46,7 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
                 description: values.description ?? "",
                 currencyId: values.currencyId,
                 isEnabled: values.isEnabled,
+                isVisibleInTransactions: values.isVisibleInTransactions,
             }).unwrap();
             form.resetFields();
             onCreated();
@@ -58,7 +60,7 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
             form={form}
             layout="vertical"
             onFinish={onFinish}
-            initialValues={{ isEnabled: true }}>
+            initialValues={{ isEnabled: true, isVisibleInTransactions: true }}>
             {formError && (
                 <Alert
                     className="accounts-form-error"
@@ -95,6 +97,12 @@ const AccountCreateForm = ({ onCancel, onCreated }: AccountCreateFormProps) => {
                 <Radio.Group buttonStyle="solid">
                     <Radio.Button value={true}>{t("accounts.active")}</Radio.Button>
                     <Radio.Button value={false}>{t("accounts.disabled")}</Radio.Button>
+                </Radio.Group>
+            </Form.Item>
+            <Form.Item name="isVisibleInTransactions" label={t("accounts.transactionsOverviewVisibility")}>
+                <Radio.Group buttonStyle="solid">
+                    <Radio.Button value={true}>{t("accounts.transactionsOverviewVisible")}</Radio.Button>
+                    <Radio.Button value={false}>{t("accounts.transactionsOverviewHidden")}</Radio.Button>
                 </Radio.Group>
             </Form.Item>
             <Form.Item>

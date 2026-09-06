@@ -25,6 +25,24 @@ public class CustomMapperTests
 
         Assert.Equal(12, response.Id);
         Assert.Equal(string.Empty, response.Currency);
+        Assert.True(response.IsVisibleInTransactions);
+    }
+
+    [Fact]
+    public void UpdateAccountRequest_ApplyTo_Preserves_ExistingTransactionsVisibility_When_Omitted()
+    {
+        var request = new UpdateAccountRequest
+        {
+            CurrencyId = 1,
+            Key = "cash",
+            Name = "Cash",
+            IsEnabled = true,
+        };
+        var account = new Account { IsVisibleInTransactions = false };
+
+        request.ApplyTo(account);
+
+        Assert.False(account.IsVisibleInTransactions);
     }
 
     [Fact]

@@ -128,6 +128,7 @@ const accounts: AccountResponse[] = [
         name: "Wallet",
         description: null,
         isEnabled: true,
+        isVisibleInTransactions: true,
         currencyId: 1,
         currency: "PLN",
     },

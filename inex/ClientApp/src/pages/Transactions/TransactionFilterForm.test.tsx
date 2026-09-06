@@ -15,7 +15,7 @@ vi.mock("react-i18next", () => ({
     }[key] ?? key) }),
 }));
 
-const accounts: AccountResponse[] = [{ id: 1, key: "wallet", name: "Wallet", description: null, isEnabled: true, currencyId: 1, currency: "PLN" }];
+const accounts: AccountResponse[] = [{ id: 1, key: "wallet", name: "Wallet", description: null, isEnabled: true, isVisibleInTransactions: true, currencyId: 1, currency: "PLN" }];
 
 describe("TransactionFilterForm", () => {
     beforeEach(() => {

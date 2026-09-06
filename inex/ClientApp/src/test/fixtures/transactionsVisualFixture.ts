@@ -26,6 +26,7 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
     name: "USD operating",
     description: "Primary account",
     isEnabled: true,
+    isVisibleInTransactions: true,
     currencyId: 1,
     currency: "USD",
   },
@@ -35,6 +36,7 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
     name: "PLN card",
     description: "Daily card",
     isEnabled: true,
+    isVisibleInTransactions: true,
     currencyId: 2,
     currency: "PLN",
   },
@@ -44,6 +46,7 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
     name: "UZS cash",
     description: "Travel cash",
     isEnabled: true,
+    isVisibleInTransactions: false,
     currencyId: 3,
     currency: "UZS",
   },
@@ -53,6 +56,7 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
     name: "USD archive",
     description: "Disabled account",
     isEnabled: false,
+    isVisibleInTransactions: true,
     currencyId: 1,
     currency: "USD",
   },
@@ -62,6 +66,7 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
     name: "Emergency reserve for long-term household commitments",
     description: "Long-label zero-balance fixture",
     isEnabled: true,
+    isVisibleInTransactions: true,
     currencyId: 2,
     currency: "PLN",
   },
@@ -70,7 +75,6 @@ export const transactionsVisualFixtureAccounts: AccountResponse[] = [
 export const transactionsVisualFixtureAccountSummaries: AccountSummary[] = [
   { ...transactionsVisualFixtureAccounts[0], value: 2668, thisMonthNet: 0 },
   { ...transactionsVisualFixtureAccounts[1], value: 253.2, thisMonthNet: 0 },
-  { ...transactionsVisualFixtureAccounts[2], value: 144000, thisMonthNet: 0 },
   { ...transactionsVisualFixtureAccounts[4], value: 0, thisMonthNet: 0 },
 ];
 

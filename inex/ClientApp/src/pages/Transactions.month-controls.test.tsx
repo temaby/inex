@@ -241,23 +241,20 @@ describe("Transactions month controls", () => {
         );
     });
 
-    it("opens and closes the account balances drawer from the page action", () => {
+    it("renders the account balances overview inline and lets the user expand it", () => {
         renderTransactions();
 
-        const accountBalances = screen.getByRole("button", { name: "Account balances" });
+        const accountBalances = screen.getByRole("button", { name: "transactions.accountBalancesExpand" });
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
-        expect(accountBalances).toHaveAttribute("aria-haspopup", "dialog");
-        expect(accountBalances.closest(".transactions-header-actions")).toBeInTheDocument();
-        expect(accountBalances.closest(".transactions-ledger-toolbar")).not.toBeInTheDocument();
+        expect(screen.getByRole("region", { name: "Account balances" })).toHaveClass("transactions-account-balances--inline");
         expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
 
         fireEvent.click(accountBalances);
         expect(accountBalances).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByRole("dialog", { name: "Account balances" })).toBeVisible();
+        expect(screen.getByRole("button", { name: "transactions.accountBalancesCollapse" })).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", { name: "Close" }));
+        fireEvent.click(screen.getByRole("button", { name: "transactions.accountBalancesCollapse" }));
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
     });
 
     it("keeps the filter drawer closed when the route has no serialized filter", () => {

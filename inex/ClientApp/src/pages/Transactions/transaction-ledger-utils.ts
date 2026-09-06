@@ -70,6 +70,17 @@ export interface CashFlowConversionResult extends LedgerSummary {
   warnings: ConversionWarning[];
 }
 
+export interface AccountBalanceLike {
+  currency: string;
+  value: number;
+}
+
+export interface AccountBalanceConversionResult {
+  value: number;
+  isComplete: boolean;
+  unavailableCurrencies: string[];
+}
+
 export interface BaseCurrencyEquivalent {
   currency: string;
   value: number;
@@ -213,6 +224,47 @@ export const getCashFlowConversionResult = (
     net: income + expense,
     isComplete: warnings.length === 0,
     warnings,
+  };
+};
+
+/**
+ * Converts an account overview using rates already present in the client cache.
+ * A missing conversion invalidates the whole total so a partial total is never shown.
+ */
+export const getAccountBalanceConversionResult = (
+  accounts: AccountBalanceLike[],
+  baseCurrency: string,
+  exchangeRates: ExchangeRateLike[],
+): AccountBalanceConversionResult => {
+  let value = 0;
+  const unavailableCurrencies = new Set<string>();
+
+  for (const account of accounts) {
+    if (account.value === 0) continue;
+
+    if (sameCurrency(account.currency, baseCurrency)) {
+      value += account.value;
+      continue;
+    }
+
+    const rate = exchangeRates.find((item) =>
+      sameCurrency(item.currencyFrom, baseCurrency)
+      && sameCurrency(item.currencyTo, account.currency)
+      && Number.isFinite(item.rate)
+      && item.rate > 0,
+    );
+    if (!rate) {
+      unavailableCurrencies.add(account.currency);
+      continue;
+    }
+
+    value += account.value / rate.rate;
+  }
+
+  return {
+    value,
+    isComplete: unavailableCurrencies.size === 0,
+    unavailableCurrencies: [...unavailableCurrencies],
   };
 };
 
