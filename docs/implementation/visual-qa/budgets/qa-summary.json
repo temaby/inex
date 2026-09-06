@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-29T07:35:11.730Z",
+  "generatedAt": "2026-09-06T21:17:53.973Z",
   "page": "budgets",
   "dataMode": "fixture",
   "harness": {
@@ -871,7 +871,7 @@
       "burnRowCount": 5,
       "overBudgetRowCount": 1,
       "atLimitRowCount": 1,
-      "maxRowHeight": 690.484375,
+      "maxRowHeight": 720.484375,
       "addDrawerOpen": false,
       "inlineEditOpen": true,
       "loadErrorVisible": false,
@@ -879,7 +879,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105 / 2,390 USD 285 USD left / 285 USD under pace BURN RATE % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 SORT Burn rate Remaining Amount Name Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 BUDGET PROGRESS CATEGORIES DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD Name Description Categories Dining out Amount USD Period SNAPSHOT - APR 2026 Budget 180.00 USD Spent 14.00 USD Remaining 166.00 USD Daily avg left 0.00 USD Delete Cancel Save",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105 / 2,390 USD 285 USD left / 285 USD under pace BURN RATE % of budget consumed On track Close to limit At limit Over budget Not touched Groceries cap 120% used Rent envelope 100% used Transport buffer 47% used Utilities reserve 36% used Dining out 8% used Budgets 5 of 5 budgets for April 2026 SORT Burn rate Remaining Amount Name Feb 2026 Mar 2026 Apr 2026 May 2026 Jun 2026 BUDGET PROGRESS CATEGORIES DAILY PACE REMAINING Groceries cap Living Groceries 505.00 USD / 420.00 USD 120% used Over by 85.00 USD 16.83 USD/day over budget -85.00 over · USD Over budget Name Description Categories Groceries Amount USD Period SNAPSHOT - APR 2026 Budget 420.00 USD Spent 505.00 USD Remaining 85.00 USD Daily avg left 0.00 USD Delete Cancel Save Rent envelope Home Rent 1,450.00 USD / 1,450.00 USD 100% used At limit 48.33 USD/day on pace 0.00 left · USD At limit Transport buffer Living Transport 56.00 USD / 120.00 USD 47% used 47% used 1.87 USD/day -64.00 USD vs pace +64.00 left · USD Utilities reserve Home Utilities 80.00 USD / 220.00 USD 36% used 36% used 2.67 USD/day -140.00 USD vs pace +140.00 left · USD Dining out Living Dining out 14.00 USD / 180.00 USD 8% used 8% used 0.47 USD/day -166.00 USD vs pace +166.00 left · USD",
       "routePath": "/budgets?year=2026&month=4",
       "pngDimensions": {
         "width": 1425,
@@ -1048,7 +1048,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105 / 0 USD 2,105 USD over / 2,105 USD ahead of pace BURN RATE % of budget consumed On track Close to limit At limit Over budget Not touched Budgets could not load Retry loading budgets for this month. Retry Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA PLAN Budgets Copy from Mar 2026 Add budget APR 2026 BUDGET 2,105 / 0 USD 2,105 USD over / 2,105 USD ahead of pace BURN RATE % of budget consumed On track Close to limit At limit Over budget Not touched Budgets could not load Controlled Budgets load failure. Retry Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/budgets?year=2026&month=4",
       "pngDimensions": {
         "width": 375,
