@@ -66,33 +66,6 @@ const formatDateRange = (range: number[]): string => {
 const areRangesEqual = (left: number[], right: number[]): boolean =>
     left.length === right.length && left.every((value, index) => value === right[index]);
 
-const ACCOUNT_BALANCES_PINNED_STORAGE_KEY = "inex.transactions.account-balances-pinned";
-const ACCOUNT_BALANCES_RAIL_BREAKPOINT = "(min-width: 1180px)";
-
-const readAccountBalancesPinnedPreference = (): boolean => {
-    try {
-        return window.localStorage.getItem(ACCOUNT_BALANCES_PINNED_STORAGE_KEY) === "true";
-    } catch {
-        return false;
-    }
-};
-
-const useAccountBalancesRailViewport = (): boolean => {
-    const getMatches = () => typeof window !== "undefined" && window.matchMedia(ACCOUNT_BALANCES_RAIL_BREAKPOINT).matches;
-    const [matches, setMatches] = useState(getMatches);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia(ACCOUNT_BALANCES_RAIL_BREAKPOINT);
-        const updateMatches = () => setMatches(mediaQuery.matches);
-
-        updateMatches();
-        mediaQuery.addEventListener("change", updateMatches);
-        return () => mediaQuery.removeEventListener("change", updateMatches);
-    }, []);
-
-    return matches;
-};
-
 const Transactions = () => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
@@ -115,15 +88,12 @@ const Transactions = () => {
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
-    const [accountBalancesPinned, setAccountBalancesPinned] = useState(readAccountBalancesPinnedPreference);
-    const [accountBalancesOpen, setAccountBalancesOpen] = useState(readAccountBalancesPinnedPreference);
+    const [accountBalancesOpen, setAccountBalancesOpen] = useState(false);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerVisibleCount, setLedgerVisibleCount] = useState(0);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
     const [ledgerRefreshToken, setLedgerRefreshToken] = useState(0);
-    const accountBalancesRailViewport = useAccountBalancesRailViewport();
-    const accountBalancesRailVisible = accountBalancesPinned && accountBalancesRailViewport;
 
     const activeAccounts = useMemo(
         () => allAccounts.filter((account: AccountResponse) => account.isEnabled),
@@ -135,10 +105,10 @@ const Transactions = () => {
     );
     const activeAccountIds = useMemo(() => activeAccounts.map(account => account.id), [activeAccounts]);
     const accountBalancesQuery = useGetAccountsSummaryQuery(activeAccountIds, {
-        skip: !(accountBalancesOpen || accountBalancesRailVisible) || activeAccountIds.length === 0,
+        skip: !accountBalancesOpen || activeAccountIds.length === 0,
     });
     const accountBalances = accountBalancesQuery.currentData ?? accountBalancesQuery.data ?? [];
-    const accountBalancesLoading = (accountBalancesOpen || accountBalancesRailVisible) && (
+    const accountBalancesLoading = accountBalancesOpen && (
         accountsLoading ||
         accountBalancesQuery.isLoading ||
         (accountBalancesQuery.isFetching && accountBalancesQuery.currentData === undefined)
@@ -152,14 +122,6 @@ const Transactions = () => {
 
         void accountBalancesQuery.refetch();
     };
-
-    useEffect(() => {
-        try {
-            window.localStorage.setItem(ACCOUNT_BALANCES_PINNED_STORAGE_KEY, String(accountBalancesPinned));
-        } catch {
-            // The presentation preference remains available for this session when browser storage is unavailable.
-        }
-    }, [accountBalancesPinned]);
 
     const canonicalFilter = useMemo(() => normalizeTransactionFilter(
         parseTransactionFilterParam(filterParam) ?? {
@@ -303,15 +265,6 @@ const Transactions = () => {
     const clearServerFilter = useCallback((nextFilter: TransactionFilter) => {
         applyServerFilter(nextFilter, true);
     }, [applyServerFilter]);
-
-    const toggleAccountBalancesPinned = useCallback(() => {
-        setAccountBalancesPinned((pinned) => !pinned);
-        setAccountBalancesOpen(true);
-    }, []);
-
-    const selectAccountBalance = useCallback((accountId: number) => {
-        applyServerFilter({ ...canonicalFilter, accountIds: [accountId] });
-    }, [applyServerFilter, canonicalFilter]);
 
     const monthControls = (
         <div className="transactions-month-controls" aria-label={t("transactions.month.chooser")}>
@@ -482,6 +435,16 @@ const Transactions = () => {
             >
                 {t("transactions.addTransaction")}
             </InExButton>
+            <InExButton
+                aria-expanded={accountBalancesOpen}
+                aria-haspopup="dialog"
+                id="transactions-account-balances-trigger"
+                kind="ghost"
+                onClick={() => setAccountBalancesOpen(open => !open)}
+                size="md"
+            >
+                {t("transactions.accountBalances")}
+            </InExButton>
         </div>
     );
 
@@ -491,23 +454,6 @@ const Transactions = () => {
         [TransactionType.TRANSFER]: t("transactions.newTransferSubtitle"),
         [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferSubtitle"),
     }[createMode];
-
-    const accountBalancesOverview = (
-        <AccountBalancesCompanion
-            activeAccountCount={activeAccounts.length}
-            accounts={accountBalances}
-            isError={accountBalancesError}
-            isExpanded={accountBalancesRailVisible || accountBalancesOpen}
-            isLoading={accountBalancesLoading}
-            isPinned={accountBalancesPinned}
-            onExpandedChange={() => setAccountBalancesOpen(open => !open)}
-            onPinChange={toggleAccountBalancesPinned}
-            onRetry={retryAccountBalances}
-            onSelectAccount={selectAccountBalance}
-            selectedAccountIds={canonicalFilter.accountIds}
-            variant={accountBalancesRailVisible ? "rail" : "inline"}
-        />
-    );
 
     return (
         <>
@@ -547,8 +493,6 @@ const Transactions = () => {
                         type="warning"
                     />}
 
-                    {!accountBalancesRailVisible && accountBalancesOverview}
-                    <div className={accountBalancesRailVisible ? "transactions-workspace transactions-workspace--pinned" : undefined}>
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">
                             <div className="transactions-ledger-toolbar__title">
@@ -634,12 +578,6 @@ const Transactions = () => {
                             refreshToken={ledgerRefreshToken}
                         />
                     </section>
-                    {accountBalancesRailVisible && (
-                        <aside className="transactions-account-balances-rail">
-                            {accountBalancesOverview}
-                        </aside>
-                    )}
-                    </div>
                 </section>
             </BasicPage>
 
@@ -670,6 +608,23 @@ const Transactions = () => {
                         type="error"
                     />
                 )}
+            </InExDrawer>
+
+            <InExDrawer
+                bodyPadding={0}
+                onClose={() => setAccountBalancesOpen(false)}
+                open={accountBalancesOpen}
+                subtitle={t("transactions.accountBalancesSubtitle")}
+                title={t("transactions.accountBalances")}
+                width={440}
+            >
+                <AccountBalancesCompanion
+                    accounts={accountBalances}
+                    isError={accountBalancesError}
+                    isLoading={accountBalancesLoading}
+                    onRetry={retryAccountBalances}
+                    showHeading={false}
+                />
             </InExDrawer>
 
             <InExDrawer

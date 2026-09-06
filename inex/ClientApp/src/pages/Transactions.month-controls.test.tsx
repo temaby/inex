@@ -12,7 +12,6 @@ import Transactions from "./Transactions";
 const navigateMock = vi.hoisted(() => vi.fn());
 const routerState = vi.hoisted(() => ({ search: "" }));
 const summaryQueryState = vi.hoisted(() => ({ data: undefined as TransactionSummaryResult | undefined }));
-const accountBalancesQueryState = vi.hoisted(() => ({ data: [] as Array<Record<string, unknown>> }));
 
 vi.mock("react-router-dom", async () => {
     const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -33,16 +32,10 @@ vi.mock("react-i18next", async () => {
                 const translations: Record<string, string> = {
                     "transactions.addTransaction": "Add transaction",
                     "transactions.accountBalances": "Account balances",
-                    "transactions.accountBalancesCollapse": "Collapse",
                     "transactions.accountBalancesEmpty": "No active accounts to display.",
                     "transactions.accountBalancesError": "Could not load account balances.",
-                    "transactions.accountBalancesExpand": "Expand",
                     "transactions.accountBalancesLoading": "Loading account balances",
-                    "transactions.accountBalancesOpenAccounts": "Open Accounts",
-                    "transactions.accountBalancesPin": "Pin overview",
-                    "transactions.accountBalancesSummary": `${params?.count ?? 0} active accounts`,
                     "transactions.accountBalancesSubtitle": "Active accounts in their native currencies.",
-                    "transactions.accountBalancesUnpin": "Unpin overview",
                     "transactions.advancedFilters": "Advanced filters",
                     "transactions.all": "All",
                     "transactions.clearAll": "Clear all",
@@ -107,7 +100,7 @@ vi.mock("../store/accounts/accounts-api", () => ({
         ],
     }),
     useGetAccountsSummaryQuery: () => ({
-        data: accountBalancesQueryState.data,
+        data: [],
         isError: false,
         isFetching: false,
         isLoading: false,
@@ -199,8 +192,6 @@ describe("Transactions month controls", () => {
         navigateMock.mockReset();
         routerState.search = "";
         summaryQueryState.data = undefined;
-        accountBalancesQueryState.data = [];
-        window.localStorage.removeItem("inex.transactions.account-balances-pinned");
         Object.defineProperty(window, "matchMedia", {
             writable: true,
             value: vi.fn().mockImplementation((query: string) => ({
@@ -250,47 +241,23 @@ describe("Transactions month controls", () => {
         );
     });
 
-    it("expands the in-page account overview and persists its pinned preference", () => {
-        const { unmount } = renderTransactions();
-
-        expect(screen.getByRole("region", { name: "Account balances" })).toBeInTheDocument();
-        const expand = screen.getByRole("button", { name: "Expand" });
-        expect(expand).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("No active accounts to display.")).not.toBeInTheDocument();
-
-        fireEvent.click(expand);
-        expect(screen.getByRole("button", { name: "Collapse" })).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("No active accounts to display.")).toBeVisible();
-
-        fireEvent.click(screen.getByRole("button", { name: "Pin overview" }));
-        expect(window.localStorage.getItem("inex.transactions.account-balances-pinned")).toBe("true");
-
-        unmount();
+    it("opens and closes the account balances drawer from the page action", () => {
         renderTransactions();
-        expect(screen.getByRole("button", { name: "Collapse" })).toHaveAttribute("aria-expanded", "true");
-    });
 
-    it("filters the ledger to the selected account from the expanded overview", () => {
-        accountBalancesQueryState.data = [{
-            id: 1,
-            key: "wallet",
-            name: "Wallet",
-            description: null,
-            isEnabled: true,
-            currencyId: 1,
-            currency: "USD",
-            value: 120,
-            thisMonthNet: 20,
-        }];
-        renderTransactions();
-        navigateMock.mockClear();
+        const accountBalances = screen.getByRole("button", { name: "Account balances" });
+        expect(accountBalances).toHaveAttribute("aria-expanded", "false");
+        expect(accountBalances).toHaveAttribute("aria-haspopup", "dialog");
+        expect(accountBalances.closest(".transactions-header-actions")).toBeInTheDocument();
+        expect(accountBalances.closest(".transactions-ledger-toolbar")).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", { name: "Expand" }));
-        fireEvent.click(screen.getByRole("button", { name: /Wallet/ }));
+        fireEvent.click(accountBalances);
+        expect(accountBalances).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("dialog", { name: "Account balances" })).toBeVisible();
 
-        const [target, options] = navigateMock.mock.calls[navigateMock.mock.calls.length - 1] as [string, { replace: boolean }];
-        expect(target).toContain("accountIds%3A1%3B");
-        expect(options).toEqual({ replace: true });
+        fireEvent.click(screen.getByRole("button", { name: "Close" }));
+        expect(accountBalances).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
     });
 
     it("keeps the filter drawer closed when the route has no serialized filter", () => {
