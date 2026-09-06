@@ -194,74 +194,74 @@ const states = [
     interaction: "open-filter-drawer",
   },
   {
-    name: "account-overview-expanded-1440",
-    screenshot: "account-overview-expanded-1440.png",
+    name: "account-overview-drawer-1440",
+    screenshot: "account-overview-drawer-1440.png",
     viewport: { width: 1440, height: 1000 },
     scenario: "populated",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
-    name: "account-overview-expanded-1024",
-    screenshot: "account-overview-expanded-1024.png",
+    name: "account-overview-drawer-1024",
+    screenshot: "account-overview-drawer-1024.png",
     viewport: { width: 1024, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
-    name: "account-overview-expanded-390",
-    screenshot: "account-overview-expanded-390.png",
+    name: "account-overview-drawer-390",
+    screenshot: "account-overview-drawer-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
-    name: "account-overview-expanded-360",
-    screenshot: "account-overview-expanded-360.png",
+    name: "account-overview-drawer-360",
+    screenshot: "account-overview-drawer-360.png",
     viewport: { width: 360, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
     name: "account-overview-pinned-desktop-1440",
     screenshot: "account-overview-pinned-desktop-1440.png",
     viewport: { width: 1440, height: 1000 },
     scenario: "populated",
-    interaction: "pin-account-overview",
+    interaction: "open-and-pin-account-overview",
   },
   {
     name: "account-overview-pinned-mobile-390",
     screenshot: "account-overview-pinned-mobile-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "pin-account-overview",
+    interaction: "open-and-pin-account-overview",
   },
   {
     name: "account-overview-pinned-tablet-1024",
     screenshot: "account-overview-pinned-tablet-1024.png",
     viewport: { width: 1024, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "pin-account-overview",
+    interaction: "open-and-pin-account-overview",
   },
   {
     name: "account-overview-pinned-mobile-360",
     screenshot: "account-overview-pinned-mobile-360.png",
     viewport: { width: 360, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "pin-account-overview",
+    interaction: "open-and-pin-account-overview",
   },
   {
     name: "account-overview-unavailable-390",
     screenshot: "account-overview-unavailable-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "missing-rate",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
     name: "account-overview-loading-390",
     screenshot: "account-overview-loading-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "account-balances-loading",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
     settleDelayMs: 2400,
   },
   {
@@ -269,21 +269,21 @@ const states = [
     screenshot: "account-overview-empty-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "account-balances-empty",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
     name: "account-overview-error-390",
     screenshot: "account-overview-error-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "account-balances-error",
-    interaction: "expand-account-overview",
+    interaction: "open-account-overview-drawer",
   },
   {
     name: "account-overview-retry-390",
     screenshot: "account-overview-retry-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "account-balances-error-retry",
-    interaction: "expand-account-overview-and-retry",
+    interaction: "open-account-overview-drawer-and-retry",
   },
   {
     name: "expanded-row-1440",
@@ -564,8 +564,8 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Filters"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Advanced filters')");
       return;
-    case "expand-account-overview":
-      await evaluate(client, clickButtonByTextExpression("Expand"));
+    case "open-account-overview-drawer":
+      await evaluate(client, clickButtonByTextExpression("Account balances"));
       if (state.scenario === "account-balances-loading") {
         await waitFor(client, "document.body.innerText.includes('Loading account balances')");
       } else if (state.scenario === "account-balances-empty") {
@@ -576,13 +576,15 @@ async function applyInteraction(client, state) {
         await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       }
       return;
-    case "expand-account-overview-and-retry":
-      await evaluate(client, clickButtonByTextExpression("Expand"));
+    case "open-account-overview-drawer-and-retry":
+      await evaluate(client, clickButtonByTextExpression("Account balances"));
       await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
       await activateRetryButton(client);
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       return;
-    case "pin-account-overview":
+    case "open-and-pin-account-overview":
+      await evaluate(client, clickButtonByTextExpression("Account balances"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
       await evaluate(client, clickButtonByTextExpression("Pin overview"));
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       return;
@@ -748,6 +750,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       advancedFilterDrawerOpen: document.body.innerText.includes("Advanced filters"),
       rowEditDrawerOpen: document.body.innerText.includes("Edit transaction"),
       accountBalancesInlineVisible: Boolean(document.querySelector(".transactions-account-balances--inline")),
+      accountBalancesDrawerVisible: Boolean(document.querySelector(".transactions-account-balances--drawer")),
       accountBalancesRailVisible: Boolean(document.querySelector(".transactions-account-balances--rail")),
       accountBalancesExpanded: Boolean(document.querySelector(".transactions-account-balances__list, .transactions-account-balances__state")),
       accountBalancesPinned: Boolean(document.querySelector(".transactions-account-balances [aria-pressed='true']")),
@@ -856,12 +859,12 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       recoveryActionsClearMobileNav: stateResults
         .filter((state) => state.loadErrorVisible || state.refreshErrorVisible)
         .every((state) => !state.recoveryActionOccludedAtStart),
-      accountBalancesInitiallyCollapsed: stateResults
+      accountBalancesInitiallyHidden: stateResults
         .filter((state) => state.name === "populated-1440" || state.name === "populated-1024" || state.name === "populated-390" || state.name === "populated-360")
-        .every((state) => state.accountBalancesInlineVisible && !state.accountBalancesExpanded && !state.accountBalancesRailVisible),
-      accountBalancesInlinePresentation: stateResults
-        .filter((state) => state.name.startsWith("account-overview-expanded-") || state.name.startsWith("account-overview-loading-") || state.name.startsWith("account-overview-empty-") || state.name.startsWith("account-overview-error-") || state.name.startsWith("account-overview-retry-") || state.name.startsWith("account-overview-unavailable-"))
-        .every((state) => state.accountBalancesInlineVisible && state.accountBalancesExpanded && !state.accountBalancesRailVisible),
+        .every((state) => !state.accountBalancesInlineVisible && !state.accountBalancesDrawerVisible && !state.accountBalancesRailVisible),
+      accountBalancesDrawerPresentation: stateResults
+        .filter((state) => state.name.startsWith("account-overview-drawer-") || state.name.startsWith("account-overview-loading-") || state.name.startsWith("account-overview-empty-") || state.name.startsWith("account-overview-error-") || state.name.startsWith("account-overview-retry-") || state.name.startsWith("account-overview-unavailable-"))
+        .every((state) => state.accountBalancesDrawerVisible && state.accountBalancesExpanded && !state.accountBalancesInlineVisible && !state.accountBalancesRailVisible),
       accountBalancesPinnedDesktopRail: stateResults
         .filter((state) => state.name === "account-overview-pinned-desktop-1440")
         .every((state) => state.accountBalancesRailVisible && state.accountBalancesExpanded && state.accountBalancesRailSticky && !state.accountBalancesInlineVisible),

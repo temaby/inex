@@ -103,6 +103,18 @@
     margin: 0;
 }
 
+.transactions-account-balances--drawer {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.transactions-account-balances__drawer-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 18px;
+}
+
 .transactions-account-balances__header {
     align-items: center;
     display: flex;
@@ -748,7 +760,8 @@
 
     .transactions-account-balances__total,
     .transactions-account-balances__conversion-warning,
-    .transactions-account-balances__accounts-link {
+    .transactions-account-balances__accounts-link,
+    .transactions-account-balances__drawer-actions {
         padding-left: 14px;
         padding-right: 14px;
     }

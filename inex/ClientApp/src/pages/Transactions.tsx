@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, DatePicker } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
@@ -124,6 +124,9 @@ const Transactions = () => {
     const [ledgerRefreshToken, setLedgerRefreshToken] = useState(0);
     const accountBalancesRailViewport = useAccountBalancesRailViewport();
     const accountBalancesRailVisible = accountBalancesPinned && accountBalancesRailViewport;
+    const accountBalancesHadFocus = useRef(false);
+    const previousAccountBalancesPinned = useRef(accountBalancesPinned);
+    const previousAccountBalancesRailVisible = useRef(accountBalancesRailVisible);
 
     const activeAccounts = useMemo(
         () => allAccounts.filter((account: AccountResponse) => account.isEnabled),
@@ -141,7 +144,10 @@ const Transactions = () => {
     const accountBalancesQuery = useGetAccountsSummaryQuery(visibleOverviewAccountIds, {
         skip: !(accountBalancesOpen || accountBalancesRailVisible) || visibleOverviewAccountIds.length === 0,
     });
-    const accountBalances = accountBalancesQuery.currentData ?? [];
+    const accountBalances = useMemo(() => {
+        const visibleAccountIds = new Set(visibleOverviewAccountIds);
+        return (accountBalancesQuery.currentData ?? []).filter(account => visibleAccountIds.has(account.id));
+    }, [accountBalancesQuery.currentData, visibleOverviewAccountIds]);
     const accountBalancesLoading = (accountBalancesOpen || accountBalancesRailVisible) && (
         accountsLoading ||
         accountBalancesQuery.isLoading ||
@@ -164,6 +170,17 @@ const Transactions = () => {
             // Keep the presentation setting in memory when browser storage is unavailable.
         }
     }, [accountBalancesPinned]);
+
+    useEffect(() => {
+        const presentationChanged = previousAccountBalancesRailVisible.current !== accountBalancesRailVisible;
+        const pinnedChanged = previousAccountBalancesPinned.current !== accountBalancesPinned;
+        previousAccountBalancesRailVisible.current = accountBalancesRailVisible;
+        previousAccountBalancesPinned.current = accountBalancesPinned;
+
+        if ((presentationChanged || pinnedChanged) && accountBalancesHadFocus.current) {
+            requestAnimationFrame(() => document.getElementById("transactions-account-balances-pin-control")?.focus());
+        }
+    }, [accountBalancesPinned, accountBalancesRailVisible]);
 
     const canonicalFilter = useMemo(() => normalizeTransactionFilter(
         parseTransactionFilterParam(filterParam) ?? {
@@ -493,6 +510,18 @@ const Transactions = () => {
             >
                 {t("transactions.addTransaction")}
             </InExButton>
+            {!accountBalancesPinned && (
+                <InExButton
+                    aria-expanded={accountBalancesOpen}
+                    aria-haspopup="dialog"
+                    id="transactions-account-balances-trigger"
+                    kind="ghost"
+                    onClick={() => setAccountBalancesOpen(true)}
+                    size="md"
+                >
+                    {t("transactions.accountBalances")}
+                </InExButton>
+            )}
         </div>
     );
 
@@ -514,8 +543,27 @@ const Transactions = () => {
             isPinned={accountBalancesPinned}
             onExpandedChange={() => setAccountBalancesOpen(open => !open)}
             onPinChange={toggleAccountBalancesPinned}
+            onFocusChange={(hasFocus) => { accountBalancesHadFocus.current = hasFocus; }}
             onRetry={retryAccountBalances}
             variant={accountBalancesRailVisible ? "rail" : "inline"}
+            visibleAccountCount={visibleOverviewAccounts.length}
+        />
+    );
+
+    const accountBalancesDrawerOverview = (
+        <AccountBalancesCompanion
+            accounts={accountBalances}
+            baseCurrency={baseCurrency}
+            conversion={accountBalanceConversion}
+            isError={accountBalancesError}
+            isExpanded
+            isLoading={accountBalancesLoading}
+            isPinned={accountBalancesPinned}
+            onExpandedChange={() => setAccountBalancesOpen(open => !open)}
+            onPinChange={toggleAccountBalancesPinned}
+            onFocusChange={(hasFocus) => { accountBalancesHadFocus.current = hasFocus; }}
+            onRetry={retryAccountBalances}
+            variant="drawer"
             visibleAccountCount={visibleOverviewAccounts.length}
         />
     );
@@ -558,7 +606,7 @@ const Transactions = () => {
                         type="warning"
                     />}
 
-                    {!accountBalancesRailVisible && accountBalancesOverview}
+                    {accountBalancesPinned && !accountBalancesRailVisible && accountBalancesOverview}
                     <div className={accountBalancesRailVisible ? "transactions-workspace transactions-workspace--pinned" : undefined}>
                     <section className="transactions-ledger-card" aria-label={t("transactions.ledger")}>
                         <div className="transactions-ledger-toolbar">
@@ -677,6 +725,17 @@ const Transactions = () => {
                         type="error"
                     />
                 )}
+            </InExDrawer>
+
+            <InExDrawer
+                bodyPadding={0}
+                onClose={() => setAccountBalancesOpen(false)}
+                open={!accountBalancesPinned && accountBalancesOpen}
+                subtitle={t("transactions.accountBalancesSubtitle")}
+                title={t("transactions.accountBalances")}
+                width={440}
+            >
+                {accountBalancesOpen && !accountBalancesPinned && accountBalancesDrawerOverview}
             </InExDrawer>
 
             <InExDrawer

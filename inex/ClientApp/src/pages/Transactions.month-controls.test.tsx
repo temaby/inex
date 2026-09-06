@@ -2,6 +2,7 @@ import * as React from "react";
 import { configureStore } from "@reduxjs/toolkit";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ratesSlice from "../store/rates/rates-slice";
@@ -12,6 +13,7 @@ import Transactions from "./Transactions";
 const navigateMock = vi.hoisted(() => vi.fn());
 const routerState = vi.hoisted(() => ({ search: "" }));
 const summaryQueryState = vi.hoisted(() => ({ data: undefined as TransactionSummaryResult | undefined }));
+const accountSummaryQueryMock = vi.hoisted(() => vi.fn());
 
 vi.mock("react-router-dom", async () => {
     const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -34,8 +36,14 @@ vi.mock("react-i18next", async () => {
                     "transactions.accountBalances": "Account balances",
                     "transactions.accountBalancesEmpty": "No active accounts to display.",
                     "transactions.accountBalancesError": "Could not load account balances.",
+                    "transactions.accountBalancesExpand": "Expand",
+                    "transactions.accountBalancesCollapse": "Collapse",
                     "transactions.accountBalancesLoading": "Loading account balances",
+                    "transactions.accountBalancesPin": "Pin overview",
                     "transactions.accountBalancesSubtitle": "Active accounts in their native currencies.",
+                    "transactions.accountBalancesUnpin": "Unpin overview",
+                    "transactions.summaryTotal": "TOTAL",
+                    "primitives.kindLabel.neutral": "Neutral",
                     "transactions.advancedFilters": "Advanced filters",
                     "transactions.all": "All",
                     "transactions.clearAll": "Clear all",
@@ -85,27 +93,33 @@ vi.mock("../store/accounts/accounts-api", () => ({
                 name: "Wallet",
                 description: null,
                 isEnabled: true,
+                isFavourite: true,
                 currencyId: 1,
                 currency: "USD",
             },
             {
                 id: 2,
+                key: "hidden-wallet",
+                name: "Hidden wallet",
+                description: null,
+                isEnabled: true,
+                isFavourite: false,
+                currencyId: 1,
+                currency: "USD",
+            },
+            {
+                id: 3,
                 key: "archived-wallet",
                 name: "Archived wallet",
                 description: null,
                 isEnabled: false,
+                isFavourite: true,
                 currencyId: 1,
                 currency: "USD",
             },
         ],
     }),
-    useGetAccountsSummaryQuery: () => ({
-        data: [],
-        isError: false,
-        isFetching: false,
-        isLoading: false,
-        refetch: vi.fn(),
-    }),
+    useGetAccountsSummaryQuery: (...args: unknown[]) => accountSummaryQueryMock(...args),
 }));
 
 vi.mock("../store/categories/categories-api", () => ({
@@ -178,9 +192,11 @@ const renderTransactions = () => {
     return {
         store,
         ...render(
-            <Provider store={store}>
-                <Transactions />
-            </Provider>,
+            <MemoryRouter>
+                <Provider store={store}>
+                    <Transactions />
+                </Provider>
+            </MemoryRouter>,
         ),
     };
 };
@@ -192,6 +208,16 @@ describe("Transactions month controls", () => {
         navigateMock.mockReset();
         routerState.search = "";
         summaryQueryState.data = undefined;
+        accountSummaryQueryMock.mockReset();
+        accountSummaryQueryMock.mockReturnValue({
+            currentData: [],
+            data: [],
+            isError: false,
+            isFetching: false,
+            isLoading: false,
+            refetch: vi.fn(),
+        });
+        window.localStorage.clear();
         Object.defineProperty(window, "matchMedia", {
             writable: true,
             value: vi.fn().mockImplementation((query: string) => ({
@@ -241,20 +267,84 @@ describe("Transactions month controls", () => {
         );
     });
 
-    it("renders the account balances overview inline and lets the user expand it", () => {
+    it("opens the unpinned account balances overview in its page-level drawer", () => {
         renderTransactions();
 
-        const accountBalances = screen.getByRole("button", { name: "transactions.accountBalancesExpand" });
+        const accountBalances = screen.getByRole("button", { name: "Account balances" });
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
-        expect(screen.getByRole("region", { name: "Account balances" })).toHaveClass("transactions-account-balances--inline");
         expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("region", { name: "Account balances" })).not.toBeInTheDocument();
 
         fireEvent.click(accountBalances);
         expect(accountBalances).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByRole("button", { name: "transactions.accountBalancesCollapse" })).toBeInTheDocument();
+        expect(screen.getByRole("dialog", { name: "Account balances" })).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: "Account balances" })).toHaveClass("transactions-account-balances--drawer");
+        expect(screen.queryByRole("region", { name: "Account balances" })).not.toHaveClass("transactions-account-balances--inline");
 
-        fireEvent.click(screen.getByRole("button", { name: "transactions.accountBalancesCollapse" }));
+        fireEvent.click(screen.getByRole("button", { name: "Close" }));
         expect(accountBalances).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("requests and totals only enabled accounts visible in Transactions", () => {
+        summaryQueryState.data = {
+            totalCount: 0,
+            typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+            viewTypeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+            currencySummaries: [],
+            baseCurrency: "USD",
+            currentScope: { totalCount: 0, typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 }, period: null, cashFlowBuckets: [] },
+            previousScope: null,
+        };
+        accountSummaryQueryMock.mockReturnValue({
+            currentData: [
+                { id: 1, key: "wallet", name: "Wallet", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "USD", value: 100, thisMonthNet: 0 },
+                { id: 2, key: "hidden-wallet", name: "Hidden wallet", description: null, isEnabled: true, isFavourite: false, currencyId: 1, currency: "USD", value: 200, thisMonthNet: 0 },
+                { id: 3, key: "archived-wallet", name: "Archived wallet", description: null, isEnabled: false, isFavourite: true, currencyId: 1, currency: "USD", value: 300, thisMonthNet: 0 },
+            ],
+            isError: false,
+            isFetching: false,
+            isLoading: false,
+            refetch: vi.fn(),
+        });
+        renderTransactions();
+
+        fireEvent.click(screen.getByRole("button", { name: "Account balances" }));
+
+        expect(accountSummaryQueryMock).toHaveBeenLastCalledWith([1], expect.objectContaining({ skip: false }));
+        expect(screen.getByText("Wallet")).toBeInTheDocument();
+        expect(screen.queryByText("Hidden wallet")).not.toBeInTheDocument();
+        expect(screen.queryByText("Archived wallet")).not.toBeInTheDocument();
+        expect(screen.getAllByRole("text", { name: "Neutral: +100.00 USD" })).toHaveLength(2);
+    });
+
+    it("shows a single sticky rail when the drawer overview is pinned on desktop", () => {
+        Object.defineProperty(window, "matchMedia", {
+            writable: true,
+            value: vi.fn().mockImplementation((query: string) => ({
+                matches: query === "(min-width: 1180px)",
+                media: query,
+                addEventListener: vi.fn(),
+                removeEventListener: vi.fn(),
+            })),
+        });
+        renderTransactions();
+
+        fireEvent.click(screen.getByRole("button", { name: "Account balances" }));
+        fireEvent.click(screen.getByRole("button", { name: "Pin overview" }));
+
+        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
+        expect(screen.getByRole("region", { name: "Account balances" })).toHaveClass("transactions-account-balances--rail");
+        expect(document.querySelector(".transactions-account-balances--inline")).not.toBeInTheDocument();
+    });
+
+    it("keeps a pinned mobile overview expanded inline with a collapse control", () => {
+        window.localStorage.setItem("inex.transactions.account-balances-pinned", "true");
+        renderTransactions();
+
+        const overview = screen.getByRole("region", { name: "Account balances" });
+        expect(overview).toHaveClass("transactions-account-balances--inline");
+        expect(screen.getByRole("button", { name: "Collapse" })).toHaveAttribute("aria-expanded", "true");
+        expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
     });
 
     it("keeps the filter drawer closed when the route has no serialized filter", () => {
