@@ -146,9 +146,11 @@
 
 .transactions-account-balances__total {
     align-items: baseline;
+    background: var(--income-bg);
     border-top: 1px solid var(--border-1);
+    color: var(--fg-1);
     display: flex;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     justify-content: space-between;
     gap: 12px;

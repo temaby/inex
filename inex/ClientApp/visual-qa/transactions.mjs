@@ -730,6 +730,11 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".transactions-ledger-row"));
     const groups = Array.from(document.querySelectorAll(".transactions-day-group"));
+    const accountBalanceList = document.querySelector(".transactions-account-balances__list");
+    const accountBalanceTotal = document.querySelector(".transactions-account-balances__total");
+    const accountBalanceRow = accountBalanceList?.querySelector("li");
+    const accountBalanceTotalStyle = accountBalanceTotal ? window.getComputedStyle(accountBalanceTotal) : null;
+    const accountBalanceRowStyle = accountBalanceRow ? window.getComputedStyle(accountBalanceRow) : null;
     return {
       title: document.title,
       scrollWidth: documentElement.scrollWidth,
@@ -758,6 +763,12 @@ async function collectMetrics(client, state, apiRequestCount) {
         const rail = document.querySelector(".transactions-account-balances-rail");
         return rail ? window.getComputedStyle(rail).position === "sticky" : false;
       })(),
+      accountBalancesTotalVisible: Boolean(accountBalanceTotal),
+      accountBalancesTotalAfterList: Boolean(accountBalanceList && accountBalanceTotal
+        && (accountBalanceList.compareDocumentPosition(accountBalanceTotal) & Node.DOCUMENT_POSITION_FOLLOWING)),
+      accountBalancesTotalEmphasized: Boolean(accountBalanceTotalStyle && accountBalanceRowStyle
+        && accountBalanceTotalStyle.backgroundColor !== "rgba(0, 0, 0, 0)"
+        && Number.parseFloat(accountBalanceTotalStyle.fontSize) >= Number.parseFloat(accountBalanceRowStyle.fontSize)),
       hiddenOverviewAccountVisible: Array.from(document.querySelectorAll(".transactions-account-balances__list li"))
         .some((item) => item.textContent?.includes("UZS cash")),
       accountBalancesZeroVisible: document.body.innerText.includes("0.00 PLN"),
@@ -871,6 +882,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       accountBalancesPinnedMobileInline: stateResults
         .filter((state) => state.name.startsWith("account-overview-pinned-mobile-") || state.name.startsWith("account-overview-pinned-tablet-"))
         .every((state) => state.accountBalancesInlineVisible && state.accountBalancesExpanded && !state.accountBalancesRailVisible),
+      accountBalancesTotalHierarchy: stateResults
+        .filter((state) => state.accountBalancesTotalVisible)
+        .every((state) => state.accountBalancesTotalAfterList && state.accountBalancesTotalEmphasized),
       desktopLedgerScanOrder: stateResults
         .filter((state) => state.name === "populated-1440" || state.name === "populated-1024")
         .every((state) => state.ledgerColumnLabels.join("|") === "Description|Account|Date|Amount"
@@ -942,6 +956,10 @@ export const visualQaConfig = {
     for (const state of stateResults.filter((item) => item.name.startsWith("account-overview-"))) {
       if (state.hasHorizontalOverflow) {
         failures.push(`${state.name}: account overview introduces horizontal overflow`);
+      }
+      if (state.accountBalancesTotalVisible
+        && (!state.accountBalancesTotalAfterList || !state.accountBalancesTotalEmphasized)) {
+        failures.push(`${state.name}: account overview total is not a distinct final summary row`);
       }
     }
 
