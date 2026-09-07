@@ -88,6 +88,14 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                         <div className="transactions-account-balances__state" role="status">{t("transactions.accountBalancesEmpty")}</div>
                     ) : (
                         <>
+                            <ul className="transactions-account-balances__list">
+                                {accounts.map((account) => (
+                                    <li key={account.id}>
+                                        <span className="transactions-account-balances__name">{account.name}</span>
+                                        <Num currency={account.currency} kind="neutral" signage="signed" value={account.value} />
+                                    </li>
+                                ))}
+                            </ul>
                             <div className="transactions-account-balances__total">
                                 <span>{t("transactions.summaryTotal")}</span>
                                 {conversion.isComplete ? (
@@ -101,14 +109,6 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                                     {t("transactions.accountBalancesConversionDetail", { currencies: conversion.unavailableCurrencies.join(", ") })}
                                 </p>
                             )}
-                            <ul className="transactions-account-balances__list">
-                                {accounts.map((account) => (
-                                    <li key={account.id}>
-                                        <span className="transactions-account-balances__name">{account.name}</span>
-                                        <Num currency={account.currency} kind="neutral" signage="signed" value={account.value} />
-                                    </li>
-                                ))}
-                            </ul>
                         </>
                     )}
                 </div>

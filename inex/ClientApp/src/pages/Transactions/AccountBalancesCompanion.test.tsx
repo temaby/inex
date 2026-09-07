@@ -71,6 +71,9 @@ describe("AccountBalancesCompanion", () => {
         expect(screen.getByRole("text", { name: "Neutral: 0.00 PLN" })).toBeVisible();
         expect(screen.getByText("TOTAL")).toBeVisible();
         expect(screen.getByRole("text", { name: "Neutral: 0.00 USD" })).toBeVisible();
+
+        const accountList = screen.getByRole("list");
+        expect(accountList.nextElementSibling).toHaveTextContent("TOTAL");
     });
 
     it("exposes keyboard-operable collapse and pin controls with their current states", () => {
