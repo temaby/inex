@@ -152,6 +152,35 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<UserAccountLinkState> GetUserAccountLinkStateAsync(int userId, CancellationToken ct = default)
+    {
+        var masterAccount = await _db.UserAccountLinks
+            .AsNoTracking()
+            .Where(link => link.LinkedUserId == userId && link.Status == UserAccountLinkStatus.Active)
+            .Select(link => new UserAccountSummary(
+                link.MasterUser.Id,
+                link.MasterUser.UserName!,
+                link.MasterUser.Email))
+            .SingleOrDefaultAsync(ct);
+
+        var linkedAccounts = await _db.UserAccountLinks
+            .AsNoTracking()
+            .Where(link => link.MasterUserId == userId && link.Status == UserAccountLinkStatus.Active)
+            .OrderBy(link => link.LinkedUser.UserName)
+            .Select(link => new UserAccountSummary(
+                link.LinkedUser.Id,
+                link.LinkedUser.UserName!,
+                link.LinkedUser.Email))
+            .ToListAsync(ct);
+
+        if (linkedAccounts.Count > 0)
+            return new UserAccountLinkState("master", masterAccount, linkedAccounts);
+
+        return masterAccount is null
+            ? new UserAccountLinkState("unlinked", null, Array.Empty<UserAccountSummary>())
+            : new UserAccountLinkState("linked", masterAccount, Array.Empty<UserAccountSummary>());
+    }
+
     public async Task<AuthResult> UpdateProfileAsync(int userId, UpdateProfileRequest request, CancellationToken ct = default)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString())

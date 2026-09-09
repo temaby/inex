@@ -112,6 +112,20 @@
       "unknownUser": "User",
       "unknownEmail": "No email"
     },
+    "link": {
+      "eyebrow": "Linked accounts",
+      "title": "Account relationship",
+      "description": "This status is read-only. It does not grant access to financial data.",
+      "loading": "Checking account relationship…",
+      "unavailable": "Account relationship status is currently unavailable.",
+      "linkedAccounts": "Linked accounts",
+      "masterAccount": "Your master account is {{username}}.",
+      "status": {
+        "unlinked": "No linked account relationship",
+        "master": "You manage linked accounts",
+        "linked": "Your account is linked to a master account"
+      }
+    },
     "account": {
       "eyebrow": "Preferences",
       "title": "Profile details",

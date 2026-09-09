@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using inex.Data;
+using inex.Data.Models;
 using inex.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -323,6 +324,60 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
         var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LinkState_ReturnsOnlyTheAuthenticatedUsersRelationship()
+    {
+        var masterClient = await _factory.CreateAuthenticatedClientAsync(
+            email: $"master-{Guid.NewGuid():N}@example.com", username: "master-user");
+        var linkedClient = await _factory.CreateAuthenticatedClientAsync(
+            email: $"linked-{Guid.NewGuid():N}@example.com", username: "linked-user");
+        var observerClient = await _factory.CreateAuthenticatedClientAsync(
+            email: $"observer-{Guid.NewGuid():N}@example.com", username: "observer-user");
+
+        var masterId = (await (await masterClient.GetAsync("/api/auth/me")).Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("id").GetInt32();
+        var linkedId = (await (await linkedClient.GetAsync("/api/auth/me")).Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("id").GetInt32();
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            db.UserAccountLinks.Add(new UserAccountLink
+            {
+                MasterUserId = masterId,
+                LinkedUserId = linkedId,
+                Status = UserAccountLinkStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                AcceptedAt = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var masterState = await (await masterClient.GetAsync("/api/auth/link-state"))
+            .Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("master", masterState.GetProperty("state").GetString());
+        Assert.Equal("linked-user", masterState.GetProperty("linkedAccounts")[0].GetProperty("username").GetString());
+
+        var linkedState = await (await linkedClient.GetAsync("/api/auth/link-state"))
+            .Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("linked", linkedState.GetProperty("state").GetString());
+        Assert.Equal("master-user", linkedState.GetProperty("masterAccount").GetProperty("username").GetString());
+
+        var observerState = await (await observerClient.GetAsync("/api/auth/link-state"))
+            .Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("unlinked", observerState.GetProperty("state").GetString());
+        Assert.Equal(0, observerState.GetProperty("linkedAccounts").GetArrayLength());
+        Assert.False(observerState.TryGetProperty("master-user", out _));
+    }
+
+    [Fact]
+    public async Task LinkState_WithoutToken_Returns401()
+    {
+        var response = await _factory.CreateClient().GetAsync("/api/auth/link-state");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
