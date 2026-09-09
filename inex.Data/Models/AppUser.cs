@@ -19,4 +19,6 @@ public class AppUser : IdentityUser<int>
     public ICollection<Tag> Tags { get; } = new List<Tag>();
     public ICollection<Transaction> Transactions { get; } = new List<Transaction>();
     public ICollection<RefreshToken> RefreshTokens { get; } = new List<RefreshToken>();
+    public ICollection<UserAccountLink> MasterAccountLinks { get; } = new List<UserAccountLink>();
+    public ICollection<UserAccountLink> LinkedAccountLinks { get; } = new List<UserAccountLink>();
 }

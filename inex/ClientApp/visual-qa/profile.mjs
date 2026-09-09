@@ -92,6 +92,9 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           ? fixture.profileVisualFixtureUpdatedUser
           : fixture.profileVisualFixtureUser);
       }
+      if (url.pathname === "/api/auth/link-state" && method === "GET") {
+        return jsonResponse({ state: "unlinked", masterAccount: null, linkedAccounts: [] });
+      }
       if (url.pathname === "/api/currencies" && method === "GET") {
         if (scenario === "currency-error") {
           return problemResponse("Profile currencies fixture failure", "Could not load currencies.", 500);

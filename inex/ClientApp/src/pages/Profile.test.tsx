@@ -7,6 +7,14 @@ import apiClient from "../utils/apiClient";
 import { changePassword, updateProfile } from "../store/auth/auth-actions";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 
+const translate = (key: string, values?: Record<string, string | number>) => {
+    if (!values) return key;
+    return Object.entries(values).reduce(
+        (text, [name, value]) => text.replace(`{{${name}}}`, String(value)),
+        key,
+    );
+};
+
 vi.mock("../layouts/BasicPage", () => ({
     default: ({ children, title, subtitle }: { children: React.ReactNode; title: React.ReactNode; subtitle?: React.ReactNode }) => (
         <main>
@@ -36,13 +44,7 @@ vi.mock("../store/hooks", () => ({
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
         i18n: { language: "en" },
-        t: (key: string, values?: Record<string, string | number>) => {
-            if (!values) return key;
-            return Object.entries(values).reduce(
-                (text, [name, value]) => text.replace(`{{${name}}}`, String(value)),
-                key,
-            );
-        },
+        t: translate,
     }),
 }));
 
@@ -80,12 +82,14 @@ describe("Profile", () => {
             currencyId: 2,
             languageCode: "en",
         });
-        mockApiGet.mockResolvedValue({
-            data: [
-                { id: 1, key: "USD", name: "US Dollar" },
-                { id: 2, key: "EUR", name: "Euro" },
-            ],
-        });
+        mockApiGet.mockImplementation((url: string) => Promise.resolve({
+            data: url === "/auth/link-state"
+                ? { state: "unlinked", masterAccount: null, linkedAccounts: [] }
+                : [
+                    { id: 1, key: "USD", name: "US Dollar" },
+                    { id: 2, key: "EUR", name: "Euro" },
+                ],
+        }));
     });
 
     it("renders the settings workspace with localized profile labels and mobile tab rail", async () => {
@@ -99,7 +103,64 @@ describe("Profile", () => {
         expect(screen.getByText("profile.security.title")).toBeInTheDocument();
 
         await waitFor(() => expect(mockApiGet).toHaveBeenCalledWith("/currencies"));
+        await waitFor(() => expect(mockApiGet).toHaveBeenCalledWith("/auth/link-state"));
+        expect(await screen.findByText("profile.link.status.unlinked")).toBeInTheDocument();
         expect(screen.queryByText("Confirm New Password")).not.toBeInTheDocument();
+    });
+
+    it("renders the authenticated user's linked-account status", async () => {
+        mockApiGet.mockImplementation((url: string) => Promise.resolve({
+            data: url === "/auth/link-state"
+                ? {
+                    state: "master",
+                    masterAccount: null,
+                    linkedAccounts: [{ id: 9, username: "linked-user", email: "linked@example.com" }],
+                }
+                : [
+                    { id: 1, key: "USD", name: "US Dollar" },
+                    { id: 2, key: "EUR", name: "Euro" },
+                ],
+        }));
+
+        render(<Profile />);
+
+        expect(await screen.findByText("profile.link.status.master")).toBeInTheDocument();
+        expect(screen.getByText("linked-user")).toBeInTheDocument();
+    });
+
+    it("renders the current user's master account when the user is linked", async () => {
+        mockApiGet.mockImplementation((url: string) => Promise.resolve({
+            data: url === "/auth/link-state"
+                ? {
+                    state: "linked",
+                    masterAccount: { id: 8, username: "master-user", email: "master@example.com" },
+                    linkedAccounts: [],
+                }
+                : [
+                    { id: 1, key: "USD", name: "US Dollar" },
+                    { id: 2, key: "EUR", name: "Euro" },
+                ],
+        }));
+
+        render(<Profile />);
+
+        expect(await screen.findByText("profile.link.status.linked")).toBeInTheDocument();
+        expect(screen.getByText("profile.link.masterAccount")).toBeInTheDocument();
+    });
+
+    it("shows a localized unavailable state when relationship status cannot load", async () => {
+        mockApiGet.mockImplementation((url: string) => url === "/auth/link-state"
+            ? Promise.reject(new Error("fixture failure"))
+            : Promise.resolve({
+                data: [
+                    { id: 1, key: "USD", name: "US Dollar" },
+                    { id: 2, key: "EUR", name: "Euro" },
+                ],
+            }));
+
+        render(<Profile />);
+
+        expect(await screen.findByText("profile.link.unavailable")).toBeInTheDocument();
     });
 
     it("preserves the updateProfile dispatch contract", async () => {

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Alert, Button, Form, Input, Select } from "antd";
 import type { FormInstance } from "antd/es/form";
-import { CheckCircle2, KeyRound, Languages, ShieldCheck, UserRound } from "lucide-react";
+import { CheckCircle2, KeyRound, Languages, Link2, ShieldCheck, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import BasicPage from "../layouts/BasicPage";
@@ -27,6 +27,20 @@ interface PasswordFormValues {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
+}
+
+type UserAccountLinkStateKind = "unlinked" | "master" | "linked";
+
+interface UserAccountSummary {
+    id: number;
+    username: string;
+    email: string | null;
+}
+
+interface UserAccountLinkState {
+    state: UserAccountLinkStateKind;
+    masterAccount: UserAccountSummary | null;
+    linkedAccounts: UserAccountSummary[];
 }
 
 type SettingsSection = "account" | "security";
@@ -139,6 +153,7 @@ const Profile = () => {
 
     const [activeSection, setActiveSection] = React.useState<SettingsSection>("account");
     const [currencies, setCurrencies] = React.useState<Currency[]>([]);
+    const [linkState, setLinkState] = React.useState<UserAccountLinkState | null | undefined>(undefined);
     const [currenciesError, setCurrenciesError] = React.useState<string | null>(null);
     const [isLoadingCurrencies, setIsLoadingCurrencies] = React.useState(true);
     const [isSavingProfile, setIsSavingProfile] = React.useState(false);
@@ -178,6 +193,22 @@ const Profile = () => {
             cancelled = true;
         };
     }, [t]);
+
+    React.useEffect(() => {
+        let cancelled = false;
+
+        apiClient.get<UserAccountLinkState>("/auth/link-state")
+            .then(({ data }) => {
+                if (!cancelled) setLinkState(data);
+            })
+            .catch(() => {
+                if (!cancelled) setLinkState(null);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     React.useEffect(() => {
         if (!user) return;
@@ -422,6 +453,37 @@ const Profile = () => {
                                 <strong>{t("profile.overview.protected")}</strong>
                             </div>
                         </div>
+                    </section>
+
+                    <section className="profile-link-status" aria-labelledby="profile-link-status-heading">
+                        <div className="profile-link-status__head">
+                            <Link2 size={20} aria-hidden="true" />
+                            <div>
+                                <span className="profile-eyebrow">{t("profile.link.eyebrow")}</span>
+                                <h2 id="profile-link-status-heading">{t("profile.link.title")}</h2>
+                                <p>{t("profile.link.description")}</p>
+                            </div>
+                        </div>
+                        {linkState === undefined ? <p>{t("profile.link.loading")}</p> : null}
+                        {linkState === null ? <p>{t("profile.link.unavailable")}</p> : null}
+                        {linkState ? (
+                            <div className="profile-link-status__content">
+                                <strong>{t(`profile.link.status.${linkState.state}`)}</strong>
+                                {linkState.state === "master" ? (
+                                    <ul aria-label={t("profile.link.linkedAccounts")}>
+                                        {linkState.linkedAccounts.map((account) => (
+                                            <li key={account.id}>
+                                                <span>{account.username}</span>
+                                                {account.email ? <small>{account.email}</small> : null}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
+                                {linkState.masterAccount ? (
+                                    <p>{t("profile.link.masterAccount", { username: linkState.masterAccount.username })}</p>
+                                ) : null}
+                            </div>
+                        ) : null}
                     </section>
 
                     <section

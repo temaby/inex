@@ -64,7 +64,7 @@ npm run lint
 | Hero consistency | 2026-06-14T12:13:01.274Z | 10 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
 | Dashboard | 2026-06-14T12:12:34.614Z | 8 | PASS: fixture, no failures, no backend calls |
 | Reports | 2026-06-14T08:45:48.855Z | 11 | PASS: fixture, no failures, no backend calls |
-| Profile | 2026-06-14T08:46:15.728Z | 8 | PASS: fixture, no failures, no backend calls |
+| Profile | 2026-09-09T20:59:18.859Z | 8 | PASS: fixture, no failures, no backend calls; linked-account status covered |
 | Auth | 2026-06-14T08:46:45.410Z | 12 | PASS: fixture, no failures, no backend calls |
 
 ### 2026-07-28 Page-Frame Update
@@ -80,6 +80,11 @@ npm run lint
 - Captured 41 Transactions screenshots, including populated, initial loading, initial error, first-use empty, filter-empty, missing-rate, progressive loading, refresh error, and long-range pagination states.
 - The required populated, empty, missing-rate, loading, and pagination matrix covers 1440px, 1024px, 390px, and 360px; initial and refresh failure recovery are also captured. The summary reports no page-level horizontal overflow or bottom-navigation occlusion.
 - The full-repository freshness verifier remains red only because the eight unrelated visual-QA summaries are older than its 24-hour window. The Transactions summary passes the canonical manifest with the normal safety checks.
+
+### 2026-09-09 Linked-Account Profile Status
+
+- Data mode: fixture; the new `GET /api/auth/link-state` request was intercepted for every Profile state, with no unhandled API requests or real backend calls.
+- Result: PASS. Eight screenshots cover desktop, 390px, and 360px Profile states; the summary reports no horizontal overflow and no bottom-navigation occlusion.
 
 ## Desktop QA Results
 

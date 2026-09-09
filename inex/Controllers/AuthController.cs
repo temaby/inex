@@ -99,6 +99,16 @@ public class AuthController : ControllerBase
         return Ok(new UserProfile(userId, username, email, currencyId, languageCode));
     }
 
+    /// <summary>Return the current user's active linked-account relationship state.</summary>
+    [HttpGet("link-state")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserAccountLinkState), StatusCodes.Status200OK)]
+    public async Task<ActionResult<UserAccountLinkState>> GetLinkState(CancellationToken ct)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await _authService.GetUserAccountLinkStateAsync(userId, ct));
+    }
+
     /// <summary>Update the current user's username and preferred currency</summary>
     [HttpPut("me")]
     [Authorize]
