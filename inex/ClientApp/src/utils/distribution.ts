@@ -36,7 +36,7 @@ const hashString = (value: string): number => {
 export const buildTopDistribution = <TPayload>(
     items: DistributionSource<TPayload>[],
     {
-        maxItems = 5,
+        maxItems = 3,
         otherKey = "other",
         otherLabel = "Other",
     }: {

@@ -15,7 +15,7 @@ export const accountsVisualFixtureMeta = {
   comparisonPeriodLabel: "Mar 2026",
   expectedBaseCurrency: "USD",
   expectedNetWorth: 33968.12,
-  expectedDistributionOrder: ["UZS", "USD", "PLN", "RUB", "BYN", "Other"],
+  expectedDistributionOrder: ["UZS", "USD", "PLN", "Other"],
   expectedPreviousMonthLabel: "May 2026",
   defaultCollapsedCurrencies: [],
   collapsedStateCurrency: "UZS",
