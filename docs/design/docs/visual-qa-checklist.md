@@ -58,8 +58,8 @@ npm run lint
 | Area | Generated | Screenshots | Summary |
 | --- | --- | ---: | --- |
 | Transactions | 2026-08-04T10:29:25.226Z | 41 | PASS: fixture, no failures, no backend calls |
-| Accounts | 2026-06-14T08:43:59.280Z | 13 | PASS: fixture, no failures, no backend calls |
-| Categories | 2026-06-14T08:44:26.022Z | 11 | PASS: fixture, no failures, no backend calls |
+| Accounts | 2026-09-11T14:43:55.568Z | 13 | PASS: fixture, no failures, no backend calls |
+| Categories | 2026-09-11T14:44:18.564Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
 | Hero consistency | 2026-06-14T12:13:01.274Z | 10 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
 | Dashboard | 2026-06-14T12:12:34.614Z | 8 | PASS: fixture, no failures, no backend calls |
@@ -85,6 +85,12 @@ npm run lint
 
 - Data mode: fixture; the new `GET /api/auth/link-state` request was intercepted for every Profile state, with no unhandled API requests or real backend calls.
 - Result: PASS. Eight screenshots cover desktop, 390px, and 360px Profile states; the summary reports no horizontal overflow and no bottom-navigation occlusion.
+
+### 2026-09-11 Five-Item Distribution Legends
+
+- Data mode: fixture; Accounts and Categories visual QA passed with no unhandled API requests or real backend calls.
+- Desktop and mobile captures show four leading segments plus localized Other when a remainder exists; bars and legends each contain five matching items.
+- Manual inspection of populated 1440px and 390px captures found no overlap, clipping, page-level horizontal overflow, or bottom-navigation occlusion.
 
 ## Desktop QA Results
 
