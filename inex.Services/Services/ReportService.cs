@@ -1,4 +1,5 @@
 using inex.Data.Repositories.Base;
+using inex.Data.Models;
 using inex.Services.Helpers;
 using inex.Services.Models.Mappers;
 using inex.Services.Models.Enums;
@@ -383,7 +384,7 @@ public class ReportService : Service, IReportService
         return new ListResponse<NetWorthHistoryPointResponse> { Data = points };
     }
 
-    public async Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null)
+    public async Task<MonthlyFinancialReport> GetMonthlyFinancialReport(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null, IReadOnlyCollection<int>? linkedUserIds = null)
     {
         DateTime currentDate = _clock.UtcNow.Date;
         int reportYear = year ?? currentDate.Year;
@@ -397,7 +398,7 @@ public class ReportService : Service, IReportService
         string currency = GetUserBaseCurrency(userId);
 
         var activeAccounts = _accountService.Get(userId, ActivityMode.ACTIVE).Data.ToDictionary(account => account.Id);
-        var accounts = activeAccounts;
+        var selectedMasterAccounts = activeAccounts;
         if (accountIds is not null)
         {
             int[] requestedAccountIds = accountIds.Distinct().ToArray();
@@ -406,19 +407,58 @@ public class ReportService : Service, IReportService
                 throw new ValidationFailedException("One or more selected accounts are unavailable.");
             }
 
-            accounts = requestedAccountIds.ToDictionary(accountId => accountId, accountId => activeAccounts[accountId]);
+            selectedMasterAccounts = requestedAccountIds.ToDictionary(accountId => accountId, accountId => activeAccounts[accountId]);
         }
-        var categories = _categoryService.Get(userId, ActivityMode.ALL).Data.ToDictionary(category => category.Id);
+
+        int[] requestedLinkedUserIds = linkedUserIds?.Distinct().ToArray() ?? [];
+        if (requestedLinkedUserIds.Length > 0)
+        {
+            int[] activeLinkedUserIds = DbInEx.UserAccountLinkRepository
+                .Get(true)
+                .Where(link => link.MasterUserId == userId
+                    && link.Status == UserAccountLinkStatus.Active
+                    && requestedLinkedUserIds.Contains(link.LinkedUserId))
+                .Select(link => link.LinkedUserId)
+                .ToArray();
+
+            if (activeLinkedUserIds.Length != requestedLinkedUserIds.Length)
+            {
+                throw new ValidationFailedException("One or more selected linked users are unavailable.");
+            }
+        }
+
         var filters = new Dictionary<string, string>
         {
             ["end"] = monthEnd.ToString("yyyy-MM-dd HH:mm:ss.fffffff")
         };
-        var transactions = _transactionService
-            .Get(userId, ActivityMode.ALL, filters)
-            .Data
-            .Where(transaction => accounts.ContainsKey(transaction.AccountId))
-            .ToList();
-        var rates = (await _exchangeRateService.Get(userId, monthStart.AddDays(-1), monthEnd, currency, ct)).Data;
+
+        var participants = new[] { userId }.Concat(requestedLinkedUserIds).ToArray();
+        var accounts = new Dictionary<int, AccountResponse>();
+        var categoriesByUser = new Dictionary<int, IReadOnlyDictionary<int, CategoryResponse>>();
+        var transactions = new List<(int UserId, TransactionResponse Transaction)>();
+        var rates = new List<ExchangeRateResponse>();
+
+        foreach (int participantId in participants)
+        {
+            var participantAccounts = participantId == userId
+                ? selectedMasterAccounts
+                : _accountService.Get(participantId, ActivityMode.ACTIVE).Data.ToDictionary(account => account.Id);
+            foreach ((int accountId, AccountResponse account) in participantAccounts)
+            {
+                accounts.Add(accountId, account);
+            }
+
+            var participantCategories = _categoryService.Get(participantId, ActivityMode.ALL).Data.ToDictionary(category => category.Id);
+            categoriesByUser.Add(participantId, participantCategories);
+
+            transactions.AddRange(_transactionService
+                .Get(participantId, ActivityMode.ALL, filters)
+                .Data
+                .Where(transaction => participantAccounts.ContainsKey(transaction.AccountId))
+                .Select(transaction => (participantId, transaction)));
+            rates.AddRange((await _exchangeRateService.Get(participantId, monthStart.AddDays(-1), monthEnd, currency, ct)).Data);
+        }
+
         var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>(StringTupleDateComparer.Instance);
         foreach (ExchangeRateResponse rate in rates)
         {
@@ -447,34 +487,35 @@ public class ReportService : Service, IReportService
         }
 
         var monthlyTransactions = transactions
-            .Where(transaction => transaction.Created >= monthStart && transaction.Created <= monthEnd)
+            .Where(item => item.Transaction.Created >= monthStart && item.Transaction.Created <= monthEnd)
             .ToList();
 
         var reportTransactions = monthlyTransactions
-            .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && !category.IsSystem)
-            .Select(transaction => new MonthlyReportTransaction(
-                transaction.Id,
-                transaction.CategoryId,
-                transaction.Created,
-                BuildCategoryPath(categories[transaction.CategoryId], categories),
-                transaction.Comment,
-                ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created)))
+            .Where(item => categoriesByUser[item.UserId].TryGetValue(item.Transaction.CategoryId, out CategoryResponse? category) && !category.IsSystem)
+            .Select(item => new MonthlyReportTransaction(
+                item.Transaction.Id,
+                item.UserId,
+                item.Transaction.CategoryId,
+                item.Transaction.Created,
+                BuildCategoryPath(categoriesByUser[item.UserId][item.Transaction.CategoryId], categoriesByUser[item.UserId]),
+                item.Transaction.Comment,
+                ConvertAmount(item.Transaction.Amount, item.Transaction.AccountId, item.Transaction.Created)))
             .ToList();
 
         var internalTransfers = monthlyTransactions
-            .Where(transaction => categories.TryGetValue(transaction.CategoryId, out CategoryResponse? category) && IsInternalTransfer(category))
-            .Select(transaction => ConvertAmount(transaction.Amount, transaction.AccountId, transaction.Created))
+            .Where(item => categoriesByUser[item.UserId].TryGetValue(item.Transaction.CategoryId, out CategoryResponse? category) && IsInternalTransfer(category))
+            .Select(item => ConvertAmount(item.Transaction.Amount, item.Transaction.AccountId, item.Transaction.Created))
             .ToList();
 
         decimal totalIncome = reportTransactions.Where(transaction => transaction.Amount > 0).Sum(transaction => transaction.Amount);
         decimal totalExpenses = Math.Abs(reportTransactions.Where(transaction => transaction.Amount < 0).Sum(transaction => transaction.Amount));
 
-        var incomeCategories = BuildCategorySummaries(reportTransactions, categories, transaction => transaction.Amount > 0);
-        var expenseCategories = BuildCategorySummaries(reportTransactions, categories, transaction => transaction.Amount < 0);
+        var incomeCategories = BuildCategorySummaries(reportTransactions, transaction => transaction.Amount > 0);
+        var expenseCategories = BuildCategorySummaries(reportTransactions, transaction => transaction.Amount < 0);
 
         var openingBalances = accounts.Keys.ToDictionary(accountId => accountId, _ => 0m);
         var closingBalances = accounts.Keys.ToDictionary(accountId => accountId, _ => 0m);
-        foreach (var transaction in transactions)
+        foreach ((_, TransactionResponse transaction) in transactions)
         {
             if (transaction.Created < monthStart)
             {
@@ -521,9 +562,9 @@ public class ReportService : Service, IReportService
         };
     }
 
-    public async Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null)
+    public async Task<byte[]> GetMonthlyFinancialReportPdf(int userId, int? year = null, int? month = null, CancellationToken ct = default, IReadOnlyCollection<int>? accountIds = null, IReadOnlyCollection<int>? linkedUserIds = null)
     {
-        MonthlyFinancialReport report = await GetMonthlyFinancialReport(userId, year, month, ct, accountIds);
+        MonthlyFinancialReport report = await GetMonthlyFinancialReport(userId, year, month, ct, accountIds, linkedUserIds);
         return new MonthlyFinancialReportDocument(report).GeneratePdf();
     }
 
@@ -547,15 +588,14 @@ public class ReportService : Service, IReportService
 
     private static IReadOnlyList<MonthlyReportCategory> BuildCategorySummaries(
         IEnumerable<MonthlyReportTransaction> transactions,
-        IReadOnlyDictionary<int, CategoryResponse> categories,
         Func<MonthlyReportTransaction, bool> includeTransaction)
     {
         const decimal otherCategoryThreshold = 10m;
         var categoryTotals = transactions
             .Where(includeTransaction)
-            .GroupBy(transaction => transaction.CategoryId)
+            .GroupBy(transaction => (transaction.UserId, transaction.CategoryId))
             .Select(group => new MonthlyReportCategory(
-                BuildCategoryPath(categories[group.Key], categories),
+                group.First().Category,
                 Math.Abs(group.Sum(transaction => transaction.Amount))))
             .OrderByDescending(category => category.Amount)
             .ThenBy(category => category.Name, StringComparer.InvariantCulture)
@@ -661,7 +701,7 @@ public class ReportService : Service, IReportService
     private IExchangeRateService _exchangeRateService;
     private IClock _clock;
 
-    private record MonthlyReportTransaction(int Id, int CategoryId, DateTime Date, string Category, string? Description, decimal Amount);
+    private record MonthlyReportTransaction(int Id, int UserId, int CategoryId, DateTime Date, string Category, string? Description, decimal Amount);
 
     private sealed class StringTupleDateComparer : IEqualityComparer<(string, DateTime)>
     {

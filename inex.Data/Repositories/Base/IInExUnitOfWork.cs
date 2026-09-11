@@ -6,6 +6,7 @@ public interface IInExUnitOfWork : IUnitOfWork
 {
     IRepository<Currency> CurrencyRepository { get; }
     IRepository<AppUser> UserRepository { get; }
+    IRepository<UserAccountLink> UserAccountLinkRepository { get; }
     IEditableRepository<Category> CategoryRepository { get; }
     IEditableRepository<Budget> BudgetRepository { get; }
     IEditableRepository<Account> AccountRepository { get; }
