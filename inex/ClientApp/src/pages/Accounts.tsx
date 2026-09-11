@@ -721,7 +721,7 @@ const Accounts = () => {
                                                         style={{ background: distributionColorMap[group.key] }}
                                                     />
                                                     <span className="accounts-distribution__copy">
-                                                        <strong>{group.label}</strong>
+                                                        <strong title={group.label}>{group.label}</strong>
                                                         {renderBaseEquivalent(group.baseSubtotal, {
                                                             className: "accounts-distribution__amount",
                                                         })}

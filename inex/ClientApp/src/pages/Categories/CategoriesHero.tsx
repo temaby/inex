@@ -147,7 +147,7 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                                             style={{ background: distributionColorMap[item.key] }}
                                         />
                                         <span className="categories-hero__legend-copy">
-                                            <strong>{label}</strong>
+                                            <strong title={label}>{label}</strong>
                                             <small>
                                                 <Num
                                                     value={item.value}
