@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
+using inex.Data;
+using inex.Data.Models;
 using inex.Tests.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace inex.Tests.Reports;
 
@@ -147,6 +150,41 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
         Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(content, 0, 4));
     }
 
+    [Fact]
+    public async Task MonthlyPdf_OnlyAnActiveMasterCanSelectALinkedUser()
+    {
+        var masterClient = await CreateAuthenticatedClientAsync();
+        var linkedClient = await CreateAuthenticatedClientAsync();
+        var observerClient = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(masterClient);
+        int linkedId = await GetCurrentUserIdAsync(linkedClient);
+        int observerId = await GetCurrentUserIdAsync(observerClient);
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            db.UserAccountLinks.Add(new UserAccountLink
+            {
+                MasterUserId = masterId,
+                LinkedUserId = linkedId,
+                Status = UserAccountLinkStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                AcceptedAt = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        string period = $"year={DateTime.UtcNow.Year}&month={DateTime.UtcNow.Month}";
+        var validResponse = await masterClient.GetAsync($"/api/reports/monthly-pdf?{period}&linkedUserIds={linkedId}");
+        var observerResponse = await masterClient.GetAsync($"/api/reports/monthly-pdf?{period}&linkedUserIds={observerId}");
+        var reverseResponse = await linkedClient.GetAsync($"/api/reports/monthly-pdf?{period}&linkedUserIds={masterId}");
+
+        Assert.Equal(HttpStatusCode.OK, validResponse.StatusCode);
+        Assert.Equal("application/pdf", validResponse.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, observerResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, reverseResponse.StatusCode);
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(9999)]
@@ -164,6 +202,12 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
         _factory.CreateAuthenticatedClientAsync(
             email: $"{Guid.NewGuid()}@example.com",
             username: $"user-{Guid.NewGuid():N}");
+
+    private static async Task<int> GetCurrentUserIdAsync(HttpClient client)
+    {
+        var body = await (await client.GetAsync("/api/auth/me")).Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
+    }
 
     private static async Task<int> CreateAccountAsync(HttpClient client, string key)
     {

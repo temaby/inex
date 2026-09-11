@@ -525,6 +525,88 @@ public class ReportServiceTests
     }
 
     [Fact]
+    public async Task GetMonthlyFinancialReport_IncludesExplicitlySelectedActiveLinkedUserWithoutMergingCategories()
+    {
+        const int linkedUserId = 84;
+        var uow = new Mock<IInExUnitOfWork>();
+        var accountService = new Mock<IAccountService>();
+        var categoryService = new Mock<ICategoryService>();
+        var transactionService = new Mock<ITransactionService>();
+        var exchangeRateService = new Mock<IExchangeRateService>();
+        var userRepository = new Mock<IRepository<AppUser>>();
+        var linkRepository = new Mock<IRepository<UserAccountLink>>();
+
+        userRepository.Setup(repository => repository.Get(true, It.IsAny<Expression<Func<AppUser, bool>>?>(), It.IsAny<Expression<Func<AppUser, object>>[]>()))
+            .Returns(new[]
+            {
+                new AppUser { Id = UserId, Currency = new Currency { Key = "USD" } },
+                new AppUser { Id = linkedUserId, Currency = new Currency { Key = "EUR" } },
+            }.AsQueryable());
+        linkRepository.Setup(repository => repository.Get(true, It.IsAny<Expression<Func<UserAccountLink, bool>>?>(), It.IsAny<Expression<Func<UserAccountLink, object>>[]>()))
+            .Returns(new[]
+            {
+                new UserAccountLink { MasterUserId = UserId, LinkedUserId = linkedUserId, Status = UserAccountLinkStatus.Active },
+            }.AsQueryable());
+        uow.SetupGet(unitOfWork => unitOfWork.UserRepository).Returns(userRepository.Object);
+        uow.SetupGet(unitOfWork => unitOfWork.UserAccountLinkRepository).Returns(linkRepository.Object);
+
+        accountService.Setup(service => service.Get(UserId, ActivityMode.ACTIVE))
+            .Returns(new ListResponse<AccountResponse> { Data = [Account(20, "USD")] });
+        accountService.Setup(service => service.Get(linkedUserId, ActivityMode.ACTIVE))
+            .Returns(new ListResponse<AccountResponse> { Data = [Account(21, "EUR")] });
+        categoryService.Setup(service => service.Get(UserId, ActivityMode.ALL))
+            .Returns(new ListResponse<CategoryResponse> { Data = [Category(10, "Salary")] });
+        categoryService.Setup(service => service.Get(linkedUserId, ActivityMode.ALL))
+            .Returns(new ListResponse<CategoryResponse> { Data = [Category(10, "Salary")] });
+        transactionService.Setup(service => service.Get(UserId, ActivityMode.ALL, It.IsAny<IDictionary<string, string>>()))
+            .Returns(new ListResponse<TransactionResponse> { Data = [Transaction(1, 20, 10, 100m, Start.AddDays(1))] });
+        transactionService.Setup(service => service.Get(linkedUserId, ActivityMode.ALL, It.IsAny<IDictionary<string, string>>()))
+            .Returns(new ListResponse<TransactionResponse> { Data = [Transaction(2, 21, 10, 100m, Start.AddDays(1))] });
+        exchangeRateService.Setup(service => service.Get(UserId, It.IsAny<DateTime>(), It.IsAny<DateTime>(), "USD", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListResponse<ExchangeRateResponse> { Data = [] });
+        exchangeRateService.Setup(service => service.Get(linkedUserId, It.IsAny<DateTime>(), It.IsAny<DateTime>(), "USD", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListResponse<ExchangeRateResponse> { Data = [Rate("EUR", 2m, Start.AddDays(1)), Rate("EUR", 2m, ClockNow.Date)] });
+
+        var service = new ReportService(uow.Object, accountService.Object, categoryService.Object, transactionService.Object, exchangeRateService.Object, new FakeClock(ClockNow));
+
+        MonthlyFinancialReport report = await service.GetMonthlyFinancialReport(UserId, 2026, 5, linkedUserIds: [linkedUserId]);
+
+        Assert.Equal(150m, report.TotalIncome);
+        Assert.Equal([50m, 100m], report.IncomeCategories.Select(category => category.Amount).Order().ToArray());
+        Assert.Equal(2, report.IncomeCategories.Count(category => category.Name == "Salary"));
+    }
+
+    [Fact]
+    public async Task GetMonthlyFinancialReport_RejectsAnUnrelatedLinkedUserBeforeLoadingTheirData()
+    {
+        const int unrelatedUserId = 84;
+        var uow = new Mock<IInExUnitOfWork>();
+        var accountService = new Mock<IAccountService>();
+        var userRepository = new Mock<IRepository<AppUser>>();
+        var linkRepository = new Mock<IRepository<UserAccountLink>>();
+
+        userRepository.Setup(repository => repository.Get(true, It.IsAny<Expression<Func<AppUser, bool>>?>(), It.IsAny<Expression<Func<AppUser, object>>[]>()))
+            .Returns(new[] { new AppUser { Id = UserId, Currency = new Currency { Key = "USD" } } }.AsQueryable());
+        linkRepository.Setup(repository => repository.Get(true, It.IsAny<Expression<Func<UserAccountLink, bool>>?>(), It.IsAny<Expression<Func<UserAccountLink, object>>[]>()))
+            .Returns(Array.Empty<UserAccountLink>().AsQueryable());
+        uow.SetupGet(unitOfWork => unitOfWork.UserRepository).Returns(userRepository.Object);
+        uow.SetupGet(unitOfWork => unitOfWork.UserAccountLinkRepository).Returns(linkRepository.Object);
+        accountService.Setup(service => service.Get(UserId, ActivityMode.ACTIVE))
+            .Returns(new ListResponse<AccountResponse> { Data = [] });
+
+        var service = new ReportService(
+            uow.Object,
+            accountService.Object,
+            Mock.Of<ICategoryService>(),
+            Mock.Of<ITransactionService>(),
+            Mock.Of<IExchangeRateService>(),
+            new FakeClock(ClockNow));
+
+        await Assert.ThrowsAsync<ValidationFailedException>(() => service.GetMonthlyFinancialReport(UserId, 2026, 5, linkedUserIds: [unrelatedUserId]));
+        accountService.Verify(service => service.Get(unrelatedUserId, It.IsAny<ActivityMode>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GetMonthlyFinancialReportPdf_ExcludesInactiveByrHistoricalBalanceAndRetainsInactiveCategory()
     {
         var inactiveCategory = Category(id: 10, name: "Salary", isEnabled: false);

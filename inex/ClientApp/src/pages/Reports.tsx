@@ -17,6 +17,17 @@ export interface ReportsHubContext {
     periodLabel: string;
 }
 
+interface UserAccountSummary {
+    id: number;
+    username: string;
+    email: string | null;
+}
+
+interface UserAccountLinkState {
+    state: "unlinked" | "master" | "linked";
+    linkedAccounts: UserAccountSummary[];
+}
+
 const dateFormat = "YYYY-MM";
 
 const Reports = () => {
@@ -27,6 +38,8 @@ const Reports = () => {
     const [isMonthlyPdfExporting, setIsMonthlyPdfExporting] = useState(false);
     const [isMonthlyPdfConfigurationOpen, setIsMonthlyPdfConfigurationOpen] = useState(false);
     const [selectedAccountIds, setSelectedAccountIds] = useState<number[]>([]);
+    const [linkedAccounts, setLinkedAccounts] = useState<UserAccountSummary[]>([]);
+    const [selectedLinkedUserIds, setSelectedLinkedUserIds] = useState<number[]>([]);
     const activeAccountsQuery = useGetAccountsQuery("active");
     const activeAccounts = activeAccountsQuery.data ?? [];
     const normalizedPath = location.pathname.replace(/\/+$/, "") || "/";
@@ -72,7 +85,7 @@ const Reports = () => {
         URL.revokeObjectURL(url);
     };
 
-    const handleMonthlyPdfExport = async (accountIds?: number[]) => {
+    const handleMonthlyPdfExport = async (accountIds?: number[], linkedUserIds?: number[]) => {
         setIsMonthlyPdfExporting(true);
         try {
             const response = await apiClient.get("/reports/monthly-pdf", {
@@ -80,6 +93,7 @@ const Reports = () => {
                     year: hubPeriod.year(),
                     month: hubPeriod.month() + 1,
                     ...(accountIds ? { accountIds } : {}),
+                    ...(linkedUserIds?.length ? { linkedUserIds } : {}),
                 },
                 paramsSerializer: { indexes: null },
                 responseType: "blob",
@@ -99,18 +113,26 @@ const Reports = () => {
         }
     };
 
-    const openMonthlyPdfConfiguration = () => {
+    const openMonthlyPdfConfiguration = async () => {
         if (activeAccountsQuery.isError) {
             message.error(t("reports.monthlyPdfAccountsLoadError"));
             return;
         }
 
         setSelectedAccountIds(activeAccounts.map((account) => account.id));
+        setSelectedLinkedUserIds([]);
+        try {
+            const response = await apiClient.get<UserAccountLinkState>("/auth/link-state");
+            setLinkedAccounts(response.data.state === "master" ? response.data.linkedAccounts : []);
+        } catch {
+            message.error(t("reports.monthlyPdfLinkedAccountsLoadError"));
+            return;
+        }
         setIsMonthlyPdfConfigurationOpen(true);
     };
 
     const handleConfiguredMonthlyPdfExport = async () => {
-        if (await handleMonthlyPdfExport(selectedAccountIds)) {
+        if (await handleMonthlyPdfExport(selectedAccountIds, selectedLinkedUserIds)) {
             setIsMonthlyPdfConfigurationOpen(false);
         }
     };
@@ -133,7 +155,7 @@ const Reports = () => {
                 kind="default"
                 icon={<Settings2 size={16} aria-hidden="true" />}
                 disabled={activeAccountsQuery.isLoading}
-                onClick={openMonthlyPdfConfiguration}
+                onClick={() => void openMonthlyPdfConfiguration()}
             >
                 {t("reports.configure")}
             </InExButton>
@@ -180,14 +202,13 @@ const Reports = () => {
                 okText={t("reports.monthlyPdfConfigureExport")}
                 cancelText={t("common.cancel")}
                 confirmLoading={isMonthlyPdfExporting}
-                okButtonProps={{ disabled: selectedAccountIds.length === 0 || activeAccounts.length === 0 }}
+                okButtonProps={{ disabled: selectedAccountIds.length === 0 && selectedLinkedUserIds.length === 0 }}
                 onCancel={() => setIsMonthlyPdfConfigurationOpen(false)}
                 onOk={() => void handleConfiguredMonthlyPdfExport()}
             >
                 <p>{t("reports.monthlyPdfConfigureDescription")}</p>
-                {activeAccounts.length === 0 ? (
-                    <p>{t("reports.monthlyPdfNoActiveAccounts")}</p>
-                ) : (
+                {activeAccounts.length === 0 && linkedAccounts.length === 0 ? <p>{t("reports.monthlyPdfNoActiveAccounts")}</p> : null}
+                {activeAccounts.length > 0 ? (
                     <>
                         <label htmlFor="monthly-pdf-accounts">{t("reports.monthlyPdfAccountsLabel")}</label>
                         <Select
@@ -202,7 +223,23 @@ const Reports = () => {
                             onChange={setSelectedAccountIds}
                         />
                     </>
-                )}
+                ) : null}
+                {linkedAccounts.length > 0 ? (
+                    <>
+                        <label htmlFor="monthly-pdf-linked-users">{t("reports.monthlyPdfLinkedUsersLabel")}</label>
+                        <Select
+                            id="monthly-pdf-linked-users"
+                            mode="multiple"
+                            value={selectedLinkedUserIds}
+                            options={linkedAccounts.map((account) => ({
+                                value: account.id,
+                                label: account.email ? `${account.username} (${account.email})` : account.username,
+                            }))}
+                            style={{ width: "100%", marginTop: 8 }}
+                            onChange={setSelectedLinkedUserIds}
+                        />
+                    </>
+                ) : null}
             </Modal>
         </>
     );
