@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T13:59:53.765Z",
+  "generatedAt": "2026-09-11T14:43:55.568Z",
   "page": "accounts",
   "dataMode": "fixture",
   "harness": {
@@ -19,6 +19,7 @@
       "UZS",
       "USD",
       "PLN",
+      "RUB",
       "Other"
     ],
     "fixedNow": "2026-06-14T12:00:00.000Z",
@@ -174,27 +175,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -211,7 +215,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
@@ -270,27 +274,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -307,7 +314,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1009,
@@ -348,7 +355,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.859375,
+      "lastContentBottom": 772.359375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -366,27 +373,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -403,11 +413,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 2708,
+        "height": 2752,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -444,7 +454,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.859375,
+      "lastContentBottom": 772.359375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -462,27 +472,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -499,11 +512,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 345,
-        "height": 2708,
+        "height": 2752,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -540,7 +553,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.0625,
+      "lastContentBottom": 771.5625,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -558,27 +571,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -595,11 +611,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 0 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list Filtering by \"zzzz-no-match\" Clear search No accounts match Try clearing search or showing all accounts. Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 0 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list Filtering by \"zzzz-no-match\" Clear search No accounts match Try clearing search or showing all accounts. Clear filters Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 1515,
+        "height": 1560,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -710,7 +726,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.859375,
+      "lastContentBottom": 772.359375,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -732,27 +748,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -769,11 +788,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports Add account Create an account and assign its currency Name Description Currency Select currency Status Active Disabled Favourite Favourite Not favourite Cancel Create account",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports Add account Create an account and assign its currency Name Description Currency Select currency Status Active Disabled Favourite Favourite Not favourite Cancel Create account",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 390,
-        "height": 2708,
+        "height": 2752,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -811,7 +830,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.859375,
+      "lastContentBottom": 772.359375,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -833,27 +852,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -870,11 +892,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports Add account Create an account and assign its currency Name Description Currency Select currency Status Active Disabled Favourite Favourite Not favourite Cancel Create account",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports Add account Create an account and assign its currency Name Description Currency Select currency Status Active Disabled Favourite Favourite Not favourite Cancel Create account",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 360,
-        "height": 2708,
+        "height": 2752,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -930,27 +952,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -967,7 +992,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% Name Description Currency UZS - UZS Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 199,093,440.00 UZS USD equivalent 16,591.12 USD Rate to base 0.000083 USD / UZS Account ID #201 USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% Name Description Currency BYN - BYN Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 4,200.00 BYN USD equivalent 1,354.84 USD Rate to base 0.3226 USD / BYN Account ID #204 GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
@@ -1009,7 +1034,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 772.359375,
+      "lastContentBottom": 771.859375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -1027,27 +1052,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -1064,11 +1092,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% Name Description Currency UZS - UZS Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 199,093,440.00 UZS USD equivalent 16,591.12 USD Rate to base 0.000083 USD / UZS Account ID #201 USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% Name Description Currency BYN - BYN Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 4,200.00 BYN USD equivalent 1,354.84 USD Rate to base 0.3226 USD / BYN Account ID #204 GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 3498,
+        "height": 3543,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1124,27 +1152,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -1163,7 +1194,7 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
@@ -1204,7 +1235,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.578125,
+      "lastContentBottom": 772.078125,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -1222,27 +1253,30 @@
       "toolbarSearchRightOffset": 0,
       "groupShareBarCount": 0,
       "heroDistributionBarCount": 1,
-      "distributionSegmentCount": 4,
-      "distributionLegendItemCount": 4,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
       "distributionSegmentColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendMarkerColors": [
         "rgb(234, 88, 12)",
         "rgb(15, 118, 110)",
         "rgb(71, 85, 105)",
-        "rgb(161, 98, 7)"
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
       ],
       "distributionLegendLabels": [
         "UZS",
         "USD",
         "PLN",
+        "RUB",
         "Other"
       ],
-      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4%",
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
       "momVisible": false,
       "previousMonthVisible": true,
       "heroPrimaryValueText": "33,968USD",
@@ -1261,11 +1295,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 6,
-      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% Other 4,552.00 USD 13.4% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 2563,
+        "height": 2607,
         "mode": "fullPage"
       },
       "requestLog": [

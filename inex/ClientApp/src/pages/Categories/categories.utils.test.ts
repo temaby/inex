@@ -85,7 +85,7 @@ describe("category spend utilities", () => {
         expect(stats.topParentSpend).toBe(65);
     });
 
-    it("builds top-three distribution plus Other from parent spend", () => {
+    it("builds top-four distribution plus Other from parent spend", () => {
         const categories = [
             category(1, "P1"),
             category(2, "P2"),
@@ -110,9 +110,10 @@ describe("category spend utilities", () => {
             "P6",
             "P5",
             "P4",
+            "P3",
             "Other",
         ]);
-        expect(stats.distribution[stats.distribution.length - 1]?.value).toBe(6);
+        expect(stats.distribution[stats.distribution.length - 1]?.value).toBe(3);
     });
 
     it("sorts leaf categories by spend while keeping zero-spend rows stable at the end", () => {
