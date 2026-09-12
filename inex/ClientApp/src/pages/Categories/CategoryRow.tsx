@@ -18,28 +18,34 @@ interface CategoryRowProps {
     category: CategoryResponse;
     depth: number;
     hasChildren: boolean;
-    expanded: boolean;
+    isEditing: boolean;
+    isCollapsed: boolean;
+    isCollapseDisabled: boolean;
     paletteColor: string;
     periodLabel: string;
     stats?: CategorySpendStat;
     statsAvailable: boolean;
     budget?: BudgetDetails;
     currency: string;
-    onToggle: () => void;
+    onEdit: () => void;
+    onBranchToggle: () => void;
 }
 
 export const CategoryRow: React.FC<CategoryRowProps> = ({
     category,
     depth,
     hasChildren,
-    expanded,
+    isEditing,
+    isCollapsed,
+    isCollapseDisabled,
     paletteColor,
     periodLabel,
     stats,
     statsAvailable,
     budget,
     currency,
-    onToggle,
+    onEdit,
+    onBranchToggle,
 }) => {
     const { t } = useTranslation();
     const locked = isSystemCategory(category);
@@ -64,7 +70,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
         "category-row",
         "r-category-row",
         rowKindClass,
-        expanded ? "is-expanded" : "",
+        isEditing ? "is-expanded" : "",
         !category.isEnabled ? "is-disabled" : "",
     ]
         .filter(Boolean)
@@ -72,13 +78,17 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     const indent = Math.min(depth * 28, 42);
 
     return (
-        <button
-            aria-expanded={expanded}
+        <div
             className={rowClassName}
-            onClick={onToggle}
-            type="button"
+            style={{ "--category-indent": `${indent}px` } as React.CSSProperties}
         >
-            <span className="category-row__name" style={{ paddingLeft: `calc(16px + ${indent}px)` }}>
+            <button
+                aria-label={t("categories.inlineEdit.edit", { category: category.name })}
+                className="category-row__edit"
+                onClick={onEdit}
+                type="button"
+            >
+            <span className="category-row__name">
                 {depth > 0 ? <span className="category-row__connector" /> : null}
                 <span
                     className="category-row__swatch"
@@ -158,15 +168,26 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 )}
             </span>
             <span className="category-row__icon" aria-hidden="true">
-                {expanded ? (
-                    <ChevronUp size={17} />
-                ) : hasChildren ? (
-                    <ChevronDown size={17} />
-                ) : (
-                    <Settings2 size={16} />
-                )}
+                <Settings2 size={16} />
             </span>
-        </button>
+            </button>
+            {hasChildren ? (
+                <button
+                    aria-expanded={!isCollapsed}
+                    aria-label={t(
+                        isCollapsed ? "categories.branch.expand" : "categories.branch.collapse",
+                        { category: category.name },
+                    )}
+                    className="category-row__branch-toggle"
+                    disabled={isCollapseDisabled}
+                    onClick={onBranchToggle}
+                    title={isCollapseDisabled ? t("categories.branch.finishEditing") : undefined}
+                    type="button"
+                >
+                    {isCollapsed ? <ChevronDown size={17} /> : <ChevronUp size={17} />}
+                </button>
+            ) : null}
+        </div>
     );
 };
 

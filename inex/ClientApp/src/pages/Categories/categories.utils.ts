@@ -121,6 +121,23 @@ export const flattenCategoryTree = (
         ...flattenCategoryTree(node.children, depth + 1),
     ]);
 
+export const filterCollapsedCategoryTree = (
+    rows: FlattenedCategoryNode[],
+    collapsedCategoryIds: Set<number>,
+): FlattenedCategoryNode[] => {
+    const ancestors: FlattenedCategoryNode[] = [];
+
+    return rows.filter((row) => {
+        while (ancestors.length > 0 && ancestors[ancestors.length - 1].depth >= row.depth) {
+            ancestors.pop();
+        }
+
+        const hidden = ancestors.some((ancestor) => collapsedCategoryIds.has(ancestor.category.id));
+        ancestors.push(row);
+        return !hidden;
+    });
+};
+
 export const includeAncestorCategories = (
     matched: CategoryResponse[],
     all: CategoryResponse[],
@@ -172,6 +189,26 @@ export const hasChildCategories = (
     category: CategoryResponse,
     allItems: CategoryResponse[],
 ): boolean => allItems.some((item) => item.parentId === category.id);
+
+export const isDescendantCategory = (
+    categoryId: number,
+    ancestorId: number,
+    allItems: CategoryResponse[],
+): boolean => {
+    const byId = new Map(allItems.map((item) => [item.id, item]));
+    const visited = new Set<number>();
+    let current = byId.get(categoryId);
+
+    while (current?.parentId != null && !visited.has(current.id)) {
+        if (current.parentId === ancestorId) {
+            return true;
+        }
+        visited.add(current.id);
+        current = byId.get(current.parentId);
+    }
+
+    return false;
+};
 
 export const getCategoryBaseCurrency = (
     exchangeRates: CategoryExchangeRate[],

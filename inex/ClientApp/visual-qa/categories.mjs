@@ -58,6 +58,27 @@ const states = [
     scenario: "populated",
   },
   {
+    name: "collapsed-branch-1440",
+    screenshot: "collapsed-branch-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "populated",
+    interaction: "collapse-first-branch",
+  },
+  {
+    name: "collapsed-branch-390",
+    screenshot: "collapsed-branch-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "collapse-first-branch",
+  },
+  {
+    name: "collapsed-branch-360",
+    screenshot: "collapsed-branch-360.png",
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "collapse-first-branch",
+  },
+  {
     name: "filter-empty-390",
     screenshot: "filter-empty-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -175,12 +196,21 @@ async function applyInteraction(client, state) {
       return;
     case "expand-first-row":
       await evaluate(client, `(() => {
-        const row = document.querySelector(".category-row:not(.category-row--parent)");
-        if (!row) return false;
-        row.click();
+        const editButton = document.querySelector(".category-row:not(.category-row--parent) .category-row__edit");
+        if (!editButton) return false;
+        editButton.click();
         return true;
       })()`);
       await waitFor(client, "document.body.innerText.includes('Edit category')");
+      return;
+    case "collapse-first-branch":
+      await evaluate(client, `(() => {
+        const toggle = document.querySelector(".category-row__branch-toggle[aria-expanded='true']");
+        if (!toggle) return false;
+        toggle.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.querySelector(\".category-row__branch-toggle[aria-expanded='false']\") !== null && !document.body.innerText.includes('Groceries')");
       return;
     case undefined:
       return;
@@ -219,9 +249,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const rows = Array.from(document.querySelectorAll(".category-row"));
     const columnHeaders = Array.from(document.querySelectorAll(".categories-list .inex-list-panel__columns span"));
     const firstRowCells = rows[0]
-      ? Array.from(rows[0].children).filter((child) => child instanceof HTMLElement)
+      ? Array.from(rows[0].querySelectorAll(":scope > .category-row__edit > span"))
       : [];
-    const expandedRows = rows.filter((row) => row.getAttribute("aria-expanded") === "true");
+    const branchToggles = Array.from(document.querySelectorAll(".category-row__branch-toggle"));
+    const expandedRows = branchToggles.filter((toggle) => toggle.getAttribute("aria-expanded") === "true");
     const inlineEdit = document.querySelector(".category-inline-edit");
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".categories-hero__summary");
@@ -307,6 +338,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       rowCount: rows.length,
       expandedRowCount: expandedRows.length,
+      branchToggleCount: branchToggles.length,
+      collapsedBranchCount: branchToggles.filter((toggle) => toggle.getAttribute("aria-expanded") === "false").length,
       inlineEditOpen: Boolean(inlineEdit),
       heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
       heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
@@ -393,6 +426,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.heroComparisonVisible) {
       failures.push(`${state.name}: Categories hero still shows visible Change from period copy`);
+    }
+    if (state.interaction === "collapse-first-branch" && state.collapsedBranchCount !== 1) {
+      failures.push(`${state.name}: Categories collapsed branch state was not rendered`);
     }
     for (const label of state.toolbarLabels) {
       const normalLetterSpacing = label.letterSpacing === "0px" || label.letterSpacing === "normal";

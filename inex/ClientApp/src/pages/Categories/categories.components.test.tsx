@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 
 import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { CategoryResponse } from "../../store/categories/categories-api";
@@ -33,13 +34,16 @@ const renderRow = (overrides: Partial<ComponentProps<typeof CategoryRow>> = {}) 
             category={category()}
             depth={0}
             hasChildren={false}
-            expanded={false}
+            isEditing={false}
+            isCollapsed={false}
+            isCollapseDisabled={false}
             paletteColor="#0f766e"
             periodLabel="June 2026"
             statsAvailable
             budget={budget}
             currency="USD"
-            onToggle={vi.fn()}
+            onEdit={vi.fn()}
+            onBranchToggle={vi.fn()}
             {...overrides}
         />,
     );
@@ -84,14 +88,14 @@ describe("Category row", () => {
     });
 
     it("treats root leaf rows as leaf rows instead of parent rows", () => {
-        const { getByRole } = renderRow({
+        const { container } = renderRow({
             category: category({ parentId: null }),
             depth: 0,
             hasChildren: false,
         });
 
-        expect(getByRole("button")).toHaveClass("category-row--leaf");
-        expect(getByRole("button")).not.toHaveClass("category-row--parent");
+        expect(container.querySelector(".category-row")).toHaveClass("category-row--leaf");
+        expect(container.querySelector(".category-row")).not.toHaveClass("category-row--parent");
     });
 
     it("renders activity and spend values when stats are available", () => {
@@ -105,10 +109,33 @@ describe("Category row", () => {
             statsAvailable: true,
         });
 
-        const row = screen.getByRole("button");
+        const row = screen.getByRole("button", { name: "categories.inlineEdit.edit" });
         expect(row).toHaveTextContent("3 categories.activity.txns");
         expect(row).toHaveTextContent("42.50 USD");
         expect(screen.queryByLabelText("categories.activity.unavailable")).not.toBeInTheDocument();
         expect(screen.queryByLabelText("categories.activity.spendUnavailable")).not.toBeInTheDocument();
+    });
+
+    it("separates branch collapse from row editing", async () => {
+        const user = userEvent.setup();
+        const onEdit = vi.fn();
+        const onBranchToggle = vi.fn();
+        renderRow({ hasChildren: true, onEdit, onBranchToggle });
+
+        const branchToggle = screen.getByRole("button", { name: "categories.branch.collapse" });
+        expect(branchToggle).toHaveAttribute("aria-expanded", "true");
+
+        await user.click(branchToggle);
+        expect(onBranchToggle).toHaveBeenCalledOnce();
+        expect(onEdit).not.toHaveBeenCalled();
+
+        await user.click(screen.getByRole("button", { name: "categories.inlineEdit.edit" }));
+        expect(onEdit).toHaveBeenCalledOnce();
+    });
+
+    it("disables collapse when it would discard a descendant edit", () => {
+        renderRow({ hasChildren: true, isCollapseDisabled: true });
+
+        expect(screen.getByRole("button", { name: "categories.branch.collapse" })).toBeDisabled();
     });
 });

@@ -138,4 +138,64 @@ describe("Categories empty-state create focus", () => {
         });
         expect(screen.getByText("Groceries")).toBeInTheDocument();
     });
+
+    it("keeps collapsed descendants discoverable through search without opening the editor", async () => {
+        const user = userEvent.setup();
+        const store = makeStore();
+        const categories = [
+            {
+                id: 1,
+                key: "food",
+                name: "Food",
+                description: null,
+                parentId: null,
+                isEnabled: true,
+                isSystem: false,
+                systemCode: null,
+            },
+            {
+                id: 2,
+                key: "groceries",
+                name: "Groceries",
+                description: null,
+                parentId: 1,
+                isEnabled: true,
+                isSystem: false,
+                systemCode: null,
+            },
+        ];
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/categories?mode=ALL") {
+                return { data: { data: categories } };
+            }
+            if (url === "/budgets") {
+                return { data: { data: [] } };
+            }
+            return { data: null };
+        });
+
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Categories />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        const branchToggle = await screen.findByRole("button", { name: "categories.branch.collapse" });
+        await user.click(branchToggle);
+        expect(branchToggle).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("Groceries")).not.toBeInTheDocument();
+        expect(screen.queryByText("mock-category-edit")).not.toBeInTheDocument();
+
+        await user.type(screen.getByRole("searchbox", { name: "categories.search.label" }), "groceries");
+        expect(screen.getByText("Food")).toBeInTheDocument();
+        const groceriesRow = screen.getByText("Groceries").closest(".category-row");
+        expect(groceriesRow).not.toBeNull();
+
+        await user.click(within(groceriesRow as HTMLElement).getByRole("button", {
+            name: "categories.inlineEdit.edit",
+        }));
+        expect(screen.getByText("mock-category-edit")).toBeInTheDocument();
+    });
 });

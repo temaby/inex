@@ -32,10 +32,11 @@ import {
     buildBudgetCategoryIndex,
     categoryPaletteColor,
     computeCategorySpendStats,
+    filterCollapsedCategoryTree,
     flattenCategoryTree,
     getCategoryBaseCurrency,
-    hasChildCategories,
     includeAncestorCategories,
+    isDescendantCategory,
     sortLeafCategoriesBySpend,
 } from "./Categories/categories.utils";
 import "./Categories/categories.css";
@@ -167,7 +168,8 @@ const Categories = () => {
     const [activeOnly, setActiveOnly] = React.useState(true);
     const [search, setSearch] = React.useState("");
     const [view, setView] = React.useState<CategoriesViewMode>("tree");
-    const [expandedId, setExpandedId] = React.useState<number | null>(null);
+    const [editingId, setEditingId] = React.useState<number | null>(null);
+    const [collapsedCategoryIds, setCollapsedCategoryIds] = React.useState<Set<number>>(new Set());
     const [createError, setCreateError] = React.useState<string | null>(null);
     const [createSubmitting, setCreateSubmitting] = React.useState(false);
     const [currencies, setCurrencies] = React.useState<CurrencyOption[]>([]);
@@ -237,10 +239,10 @@ const Categories = () => {
     }, []);
 
     React.useEffect(() => {
-        if (expandedId != null && !categories.some((category) => category.id === expandedId)) {
-            setExpandedId(null);
+        if (editingId != null && !categories.some((category) => category.id === editingId)) {
+            setEditingId(null);
         }
-    }, [categories, expandedId]);
+    }, [categories, editingId]);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -304,6 +306,11 @@ const Categories = () => {
         () => flattenCategoryTree(buildCategoriesTree(filteredCategories)),
         [filteredCategories],
     );
+    const hasSearch = search.trim().length > 0;
+    const visibleTreeRows = React.useMemo(
+        () => hasSearch ? treeRows : filterCollapsedCategoryTree(treeRows, collapsedCategoryIds),
+        [collapsedCategoryIds, hasSearch, treeRows],
+    );
 
     const categoryStats = React.useMemo(
         () =>
@@ -342,7 +349,7 @@ const Categories = () => {
             }));
     }, [categories, categoryStats, filteredCategories]);
 
-    const rows = view === "tree" ? treeRows : bySpendRows;
+    const rows = view === "tree" ? visibleTreeRows : bySpendRows;
     const showInitialLoading = isLoading && categories.length === 0;
     const showFullError = isError && categories.length === 0;
     const showPartialError = isError && categories.length > 0;
@@ -356,6 +363,18 @@ const Categories = () => {
         setSearch("");
         setActiveOnly(false);
     };
+
+    const toggleBranch = React.useCallback((categoryId: number) => {
+        setCollapsedCategoryIds((current) => {
+            const next = new Set(current);
+            if (next.has(categoryId)) {
+                next.delete(categoryId);
+            } else {
+                next.add(categoryId);
+            }
+            return next;
+        });
+    }, []);
 
     const createFormId = "category-create-form";
 
@@ -393,23 +412,31 @@ const Categories = () => {
 
     const renderRows = (items: typeof rows) =>
         items.map(({ category, depth, hasChildren }) => {
-            const expanded = expandedId === category.id;
+            const isEditing = editingId === category.id;
+            const hasBranch = view === "tree" && hasChildren;
+            const isCollapseDisabled =
+                !collapsedCategoryIds.has(category.id) &&
+                editingId != null &&
+                isDescendantCategory(editingId, category.id, categories);
             return (
                 <React.Fragment key={category.id}>
                     <CategoryRow
                         category={category}
                         depth={depth}
-                        hasChildren={hasChildren || hasChildCategories(category, categories)}
-                        expanded={expanded}
+                        hasChildren={hasBranch}
+                        isEditing={isEditing}
+                        isCollapsed={collapsedCategoryIds.has(category.id)}
+                        isCollapseDisabled={isCollapseDisabled}
                         paletteColor={categoryPaletteColor(category, categories)}
                         periodLabel={periodLabel}
                         stats={categoryStats.byCategoryId.get(category.id)}
                         statsAvailable={categoryStats.available}
                         budget={budgetByCategoryId.get(category.id)}
                         currency={categoryStats.currency}
-                        onToggle={() => setExpandedId(expanded ? null : category.id)}
+                        onEdit={() => setEditingId(isEditing ? null : category.id)}
+                        onBranchToggle={() => toggleBranch(category.id)}
                     />
-                    {expanded ? (
+                    {isEditing ? (
                         <CategoryInlineEdit
                             category={category}
                             allCategories={categories}
@@ -418,7 +445,7 @@ const Categories = () => {
                             budget={budgetByCategoryId.get(category.id)}
                             currency={categoryStats.currency}
                             periodLabel={periodLabel}
-                            onClose={() => setExpandedId(null)}
+                            onClose={() => setEditingId(null)}
                         />
                     ) : null}
                 </React.Fragment>

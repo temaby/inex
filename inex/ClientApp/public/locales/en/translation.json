@@ -586,6 +586,7 @@
       "label": "Search categories"
     },
     "inlineEdit": {
+      "edit": "Edit {{category}}",
       "editSection": "Edit category",
       "snapshotSection": "Snapshot · {{period}}",
       "systemNotice": "This is a system category. It can't be renamed, disabled, or deleted.",
@@ -593,6 +594,11 @@
       "setBudget": "Set budget",
       "reparentNotSupported": "Reparenting is not supported yet",
       "noParent": "Top-level category"
+    },
+    "branch": {
+      "collapse": "Collapse {{category}} branch",
+      "expand": "Expand {{category}} branch",
+      "finishEditing": "Finish editing the open category before collapsing this branch."
     },
     "snapshot": {
       "spend": "Spend",
