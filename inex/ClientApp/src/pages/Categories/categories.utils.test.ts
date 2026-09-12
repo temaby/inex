@@ -6,6 +6,10 @@ import type { CategoryResponse } from "../../store/categories/categories-api";
 import {
     buildBudgetCategoryIndex,
     computeCategorySpendStats,
+    filterCollapsedCategoryTree,
+    flattenCategoryTree,
+    buildCategoriesTree,
+    isDescendantCategory,
     sortLeafCategoriesBySpend,
 } from "./categories.utils";
 
@@ -44,6 +48,39 @@ const transaction = (
 });
 
 describe("category spend utilities", () => {
+    it("hides all descendants of a collapsed branch without changing sibling order", () => {
+        const categories = [
+            category(1, "Food"),
+            category(2, "Groceries", 1),
+            category(3, "Fresh food", 2),
+            category(4, "Home"),
+        ];
+        const rows = flattenCategoryTree(buildCategoriesTree(categories));
+
+        expect(filterCollapsedCategoryTree(rows, new Set([1])).map((row) => row.category.name)).toEqual([
+            "Food",
+            "Home",
+        ]);
+        expect(filterCollapsedCategoryTree(rows, new Set([2])).map((row) => row.category.name)).toEqual([
+            "Food",
+            "Groceries",
+            "Home",
+        ]);
+    });
+
+    it("identifies descendants without looping on malformed parent relationships", () => {
+        const categories = [
+            category(1, "Food"),
+            category(2, "Groceries", 1),
+            category(3, "Fresh food", 2),
+            category(4, "Broken", 4),
+        ];
+
+        expect(isDescendantCategory(3, 1, categories)).toBe(true);
+        expect(isDescendantCategory(1, 3, categories)).toBe(false);
+        expect(isDescendantCategory(4, 1, categories)).toBe(false);
+    });
+
     it("computes current-month expense stats and rolls child spend up to parents", () => {
         const categories = [
             category(1, "Food"),

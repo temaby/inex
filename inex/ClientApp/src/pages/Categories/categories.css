@@ -287,17 +287,23 @@
 }
 
 .category-row {
-    align-items: stretch;
     background: var(--bg-surface);
-    border: 0;
     border-bottom: 1px solid var(--border-1);
+    color: inherit;
+    position: relative;
+    width: 100%;
+}
+
+.category-row__edit {
+    align-items: stretch;
+    background: transparent;
+    border: 0;
     color: inherit;
     cursor: pointer;
     display: grid;
-    font-family: var(--font-sans);
+    font: inherit;
     grid-template-columns: var(--categories-list-columns);
     padding: 0;
-    position: relative;
     text-align: left;
     width: 100%;
 }
@@ -333,7 +339,12 @@
 
 .category-row__name {
     gap: 10px;
+    padding-left: calc(16px + var(--category-indent, 0px));
     padding-right: 0;
+}
+
+.category-row--parent .category-row__name {
+    padding-left: calc(50px + var(--category-indent, 0px));
 }
 
 .category-row__connector {
@@ -429,6 +440,35 @@
 .category-row__icon {
     color: var(--fg-3);
     justify-content: center;
+}
+
+.category-row__branch-toggle {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--fg-3);
+    cursor: pointer;
+    display: inline-flex;
+    height: 28px;
+    justify-content: center;
+    left: calc(12px + var(--category-indent, 0px));
+    padding: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    z-index: 1;
+}
+
+.category-row__branch-toggle:focus-visible,
+.category-row__edit:focus-visible {
+    box-shadow: var(--focus-ring);
+    outline: none;
+}
+
+.category-row__branch-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
 }
 
 .category-inline-edit {
@@ -576,7 +616,7 @@
         width: 100% !important;
     }
 
-    .category-row {
+    .category-row__edit {
         grid-template-columns: minmax(0, 1fr) 80px 28px;
     }
 
@@ -585,8 +625,12 @@
     }
 
     .category-row__name {
-        padding-left: 16px !important;
+        padding-left: calc(16px + var(--category-indent, 0px)) !important;
         padding-right: 8px;
+    }
+
+    .category-row--parent .category-row__name {
+        padding-left: calc(50px + var(--category-indent, 0px)) !important;
     }
 
     .category-row__spent {

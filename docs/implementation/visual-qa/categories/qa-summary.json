@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T14:44:18.477Z",
+  "generatedAt": "2026-09-12T16:59:27.275Z",
   "page": "categories",
   "dataMode": "fixture",
   "harness": {
@@ -37,6 +37,9 @@
     "populated-spend-1024.png",
     "populated-390.png",
     "populated-360.png",
+    "collapsed-branch-1440.png",
+    "collapsed-branch-390.png",
+    "collapsed-branch-360.png",
     "filter-empty-390.png",
     "first-use-empty-390.png",
     "drawer-open-390.png",
@@ -53,6 +56,27 @@
     "GET /budgets?year=2026&month=4",
     "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
     "GET /currencies",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /categories?mode=ALL",
+    "GET /budgets?year=2026&month=4",
+    "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
+    "GET /currencies",
+    "GET /exchange/rates/2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /categories?mode=ALL",
+    "GET /budgets?year=2026&month=4",
+    "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
+    "GET /currencies",
+    "GET /exchange/rates/2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /categories?mode=ALL",
+    "GET /budgets?year=2026&month=4",
+    "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
+    "GET /currencies",
+    "GET /exchange/rates/2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /categories?mode=ALL",
@@ -149,7 +173,9 @@
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
-      "expandedRowCount": 0,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 320,
       "heroDividerOffset": 320,
@@ -291,6 +317,8 @@
       "drawerBounds": null,
       "rowCount": 8,
       "expandedRowCount": 0,
+      "branchToggleCount": 0,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 320,
       "heroDividerOffset": 320,
@@ -431,7 +459,9 @@
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
-      "expandedRowCount": 0,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 390,
       "heroDividerOffset": 390,
@@ -572,7 +602,9 @@
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
-      "expandedRowCount": 0,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 360,
       "heroDividerOffset": 360,
@@ -691,6 +723,435 @@
       ]
     },
     {
+      "name": "collapsed-branch-1440",
+      "dataMode": "fixture",
+      "screenshot": "collapsed-branch-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "scenario": "populated",
+      "interaction": "collapse-first-branch",
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": null,
+      "lastContentBottom": 968.484375,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 9,
+      "expandedRowCount": 1,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 1,
+      "inlineEditOpen": false,
+      "heroSummaryWidth": 320,
+      "heroDividerOffset": 320,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 260,
+      "toolbarSearchRightOffset": 0,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(15, 118, 110)",
+        "rgb(29, 78, 216)",
+        "rgb(234, 88, 12)",
+        "rgb(219, 39, 119)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(15, 118, 110)",
+        "rgb(29, 78, 216)",
+        "rgb(234, 88, 12)",
+        "rgb(219, 39, 119)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "Home",
+        "Living",
+        "Travel",
+        "Health",
+        "Other"
+      ],
+      "heroPrimaryValueText": "1,937USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "Most spent in Home1,450USD75% of total",
+      "heroSecondaryTextHasDecimal": false,
+      "heroComparisonVisible": false,
+      "toolbarLabels": [
+        {
+          "text": "Status",
+          "color": "rgb(107, 122, 144)",
+          "fontSize": "11px",
+          "fontWeight": "700",
+          "letterSpacing": "normal",
+          "textTransform": "uppercase"
+        },
+        {
+          "text": "View",
+          "color": "rgb(107, 122, 144)",
+          "fontSize": "11px",
+          "fontWeight": "700",
+          "letterSpacing": "normal",
+          "textTransform": "uppercase"
+        }
+      ],
+      "columnAlignmentDeltas": [
+        {
+          "header": "Category",
+          "left": 0,
+          "right": 0,
+          "width": 0
+        },
+        {
+          "header": "Spend",
+          "left": 0,
+          "right": 0,
+          "width": 0
+        },
+        {
+          "header": "Activity",
+          "left": 0,
+          "right": 0,
+          "width": 0
+        },
+        {
+          "header": "",
+          "left": 0,
+          "right": 0,
+          "width": 0
+        }
+      ],
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Other 130.00 USD 7%",
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "maxRowHeight": 60.5,
+      "addDrawerOpen": false,
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 7,
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Categories Add category APRIL 2026 SPEND 1,937 USD Most spent in Home 1,450 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Other 130.00 USD 7% Categories 11 of 12 categories · active only STATUS Active All VIEW Tree By spend CATEGORY SPEND ACTIVITY Living Daily life 186.50 USD April 2026 4 txns last 24 Apr Home Rent and utilities Budgeted 1,450.00 USD April 2026 1 txn last 2 Apr Rent Apartment rent Budgeted 1,450.00 USD April 2026 1 txn last 2 Apr Income Money in — — Health Health and care 80.00 USD April 2026 1 txn last 14 Apr Travel Trips and visas 90.00 USD April 2026 1 txn last 12 Apr Learning Books and courses 70.00 USD April 2026 1 txn last 16 Apr Fees Bank and service fees 60.00 USD April 2026 1 txn last 20 Apr Transfer Internal movement — —",
+      "routePath": "/categories",
+      "pngDimensions": {
+        "width": 1425,
+        "height": 1075,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /categories?mode=ALL",
+        "GET /budgets?year=2026&month=4",
+        "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
+        "GET /currencies",
+        "GET /exchange/rates/2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "collapsed-branch-390",
+      "dataMode": "fixture",
+      "screenshot": "collapsed-branch-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "scenario": "populated",
+      "interaction": "collapse-first-branch",
+      "title": "InEx",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": 839,
+      "lastContentBottom": 772.421875,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 9,
+      "expandedRowCount": 1,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 1,
+      "inlineEditOpen": false,
+      "heroSummaryWidth": 390,
+      "heroDividerOffset": 390,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 350,
+      "toolbarSearchRightOffset": 0,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(15, 118, 110)",
+        "rgb(29, 78, 216)",
+        "rgb(234, 88, 12)",
+        "rgb(219, 39, 119)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(15, 118, 110)",
+        "rgb(29, 78, 216)",
+        "rgb(234, 88, 12)",
+        "rgb(219, 39, 119)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "Home",
+        "Living",
+        "Travel",
+        "Health",
+        "Other"
+      ],
+      "heroPrimaryValueText": "1,937USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "Most spent in Home1,450USD75% of total",
+      "heroSecondaryTextHasDecimal": false,
+      "heroComparisonVisible": false,
+      "toolbarLabels": [
+        {
+          "text": "Status",
+          "color": "rgb(107, 122, 144)",
+          "fontSize": "11px",
+          "fontWeight": "700",
+          "letterSpacing": "normal",
+          "textTransform": "uppercase"
+        },
+        {
+          "text": "View",
+          "color": "rgb(107, 122, 144)",
+          "fontSize": "11px",
+          "fontWeight": "700",
+          "letterSpacing": "normal",
+          "textTransform": "uppercase"
+        }
+      ],
+      "columnAlignmentDeltas": [
+        {
+          "header": "Category",
+          "left": 0,
+          "right": -282,
+          "width": -282
+        },
+        {
+          "header": "Spend",
+          "left": -282,
+          "right": -362,
+          "width": -80
+        },
+        {
+          "header": "Activity",
+          "left": 0,
+          "right": 0,
+          "width": 0
+        },
+        {
+          "header": "",
+          "left": -362,
+          "right": -390,
+          "width": -28
+        }
+      ],
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Other 130.00 USD 7%",
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "maxRowHeight": 60.5,
+      "addDrawerOpen": false,
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 7,
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,937 USD Most spent in Home 1,450 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Other 130.00 USD 7% Categories 11 of 12 categories · active only STATUS Active All VIEW Tree By spend Living Daily life 186.50 USD April 2026 Home Rent and utilities Budgeted 1,450.00 USD April 2026 Rent Apartment rent Budgeted 1,450.00 USD April 2026 Income Money in — Health Health and care 80.00 USD April 2026 Travel Trips and visas 90.00 USD April 2026 Learning Books and courses 70.00 USD April 2026 Fees Bank and service fees 60.00 USD April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/categories",
+      "pngDimensions": {
+        "width": 375,
+        "height": 1467,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /categories?mode=ALL",
+        "GET /budgets?year=2026&month=4",
+        "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
+        "GET /currencies",
+        "GET /exchange/rates/2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "collapsed-branch-360",
+      "dataMode": "fixture",
+      "screenshot": "collapsed-branch-360.png",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "scenario": "populated",
+      "interaction": "collapse-first-branch",
+      "title": "InEx",
+      "scrollWidth": 360,
+      "clientWidth": 360,
+      "bodyScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": 839,
+      "lastContentBottom": 772.421875,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 9,
+      "expandedRowCount": 1,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 1,
+      "inlineEditOpen": false,
+      "heroSummaryWidth": 360,
+      "heroDividerOffset": 360,
+      "distributionEyebrow": {
+        "text": "By category",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 320,
+      "toolbarSearchRightOffset": 0,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(15, 118, 110)",
+        "rgb(29, 78, 216)",
+        "rgb(234, 88, 12)",
+        "rgb(219, 39, 119)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(15, 118, 110)",
+        "rgb(29, 78, 216)",
+        "rgb(234, 88, 12)",
+        "rgb(219, 39, 119)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "Home",
+        "Living",
+        "Travel",
+        "Health",
+        "Other"
+      ],
+      "heroPrimaryValueText": "1,937USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "Most spent in Home1,450USD75% of total",
+      "heroSecondaryTextHasDecimal": false,
+      "heroComparisonVisible": false,
+      "toolbarLabels": [
+        {
+          "text": "Status",
+          "color": "rgb(107, 122, 144)",
+          "fontSize": "11px",
+          "fontWeight": "700",
+          "letterSpacing": "normal",
+          "textTransform": "uppercase"
+        },
+        {
+          "text": "View",
+          "color": "rgb(107, 122, 144)",
+          "fontSize": "11px",
+          "fontWeight": "700",
+          "letterSpacing": "normal",
+          "textTransform": "uppercase"
+        }
+      ],
+      "columnAlignmentDeltas": [
+        {
+          "header": "Category",
+          "left": 0,
+          "right": -252,
+          "width": -252
+        },
+        {
+          "header": "Spend",
+          "left": -252,
+          "right": -332,
+          "width": -80
+        },
+        {
+          "header": "Activity",
+          "left": 0,
+          "right": 0,
+          "width": 0
+        },
+        {
+          "header": "",
+          "left": -332,
+          "right": -360,
+          "width": -28
+        }
+      ],
+      "distributionText": "BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Other 130.00 USD 7%",
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "maxRowHeight": 60.5,
+      "addDrawerOpen": false,
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 7,
+      "textSample": "InEx QA MANAGE Categories Add category APRIL 2026 SPEND 1,937 USD Most spent in Home 1,450 USD 75% of total BY CATEGORY Home 1,450.00 USD 75% Living 186.50 USD 10% Travel 90.00 USD 5% Health 80.00 USD 4% Other 130.00 USD 7% Categories 11 of 12 categories · active only STATUS Active All VIEW Tree By spend Living Daily life 186.50 USD April 2026 Home Rent and utilities Budgeted 1,450.00 USD April 2026 Rent Apartment rent Budgeted 1,450.00 USD April 2026 Income Money in — Health Health and care 80.00 USD April 2026 Travel Trips and visas 90.00 USD April 2026 Learning Books and courses 70.00 USD April 2026 Fees Bank and service fees 60.00 USD April 2026 Transfer Internal movement — Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/categories",
+      "pngDimensions": {
+        "width": 345,
+        "height": 1467,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /categories?mode=ALL",
+        "GET /budgets?year=2026&month=4",
+        "GET /transactions?mode=ALL&pageSize=250&page=1&startDate=2026-04-01T00:00:00&endDate=2026-04-30T23:59:59",
+        "GET /currencies",
+        "GET /exchange/rates/2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
       "name": "filter-empty-390",
       "dataMode": "fixture",
       "screenshot": "filter-empty-390.png",
@@ -714,6 +1175,8 @@
       "drawerBounds": null,
       "rowCount": 0,
       "expandedRowCount": 0,
+      "branchToggleCount": 0,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 390,
       "heroDividerOffset": 390,
@@ -835,6 +1298,8 @@
       "drawerBounds": null,
       "rowCount": 0,
       "expandedRowCount": 0,
+      "branchToggleCount": 0,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": null,
       "heroDividerOffset": null,
@@ -913,7 +1378,9 @@
         "width": 390
       },
       "rowCount": 11,
-      "expandedRowCount": 0,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 375,
       "heroDividerOffset": 375,
@@ -1058,7 +1525,9 @@
         "width": 360
       },
       "rowCount": 11,
-      "expandedRowCount": 0,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": 345,
       "heroDividerOffset": 345,
@@ -1199,7 +1668,9 @@
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
-      "expandedRowCount": 1,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": true,
       "heroSummaryWidth": 320,
       "heroDividerOffset": 320,
@@ -1340,7 +1811,9 @@
       "drawerWithinViewport": null,
       "drawerBounds": null,
       "rowCount": 11,
-      "expandedRowCount": 1,
+      "expandedRowCount": 2,
+      "branchToggleCount": 2,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": true,
       "heroSummaryWidth": 390,
       "heroDividerOffset": 390,
@@ -1482,6 +1955,8 @@
       "drawerBounds": null,
       "rowCount": 0,
       "expandedRowCount": 0,
+      "branchToggleCount": 0,
+      "collapsedBranchCount": 0,
       "inlineEditOpen": false,
       "heroSummaryWidth": null,
       "heroDividerOffset": null,
