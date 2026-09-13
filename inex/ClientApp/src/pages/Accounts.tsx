@@ -57,10 +57,10 @@ interface CurrencyOption {
     key: string;
 }
 
-const currencyToneClass = (currency: string): string => {
-    const tones = ["teal", "slate", "amber", "terracotta", "ink"];
-    const seed = currency.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return tones[seed % tones.length];
+const currencyMarkerColor = (currency: string): string => {
+    const palette = ["#1D4ED8", "#0F766E", "#9333EA", "#DB2777", "#EA580C", "#65A30D", "#475569"];
+    const seed = currency.split("").reduce((sum, char) => ((sum * 31) + char.charCodeAt(0)) | 0, 0);
+    return palette[Math.abs(seed) % palette.length];
 };
 
 const getCurrencySegmentWidth = (share: number): number =>
@@ -417,7 +417,7 @@ const Accounts = () => {
         );
     };
 
-    const renderRow = (account: AccountDisplay) => {
+    const renderRow = (account: AccountDisplay, groupColor?: string) => {
         const share = account.baseValue === null || equivalentShareTotal === null
             ? null
             : equivalentShareTotal > 0
@@ -436,17 +436,26 @@ const Accounts = () => {
             <div className="accounts-row-wrap" key={account.id}>
                 <button
                     aria-expanded={expanded}
-                    className={`accounts-row${account.isEnabled ? "" : " is-disabled"}${isZeroValue ? " is-zero-value" : ""}`}
+                    className={`accounts-row${groupColor ? " accounts-row--tree-leaf" : ""}${account.isEnabled ? "" : " is-disabled"}${isZeroValue ? " is-zero-value" : ""}`}
                     onClick={() => setExpandedId(expanded ? null : account.id)}
+                    style={groupColor ? { "--accounts-currency-color": groupColor } as React.CSSProperties : undefined}
                     type="button"
                 >
                     <span className="accounts-row__main">
-                        <span className="accounts-row__name">{account.name}</span>
-                        <span className="accounts-row__meta">
-                            {displayDescription && <span>{displayDescription}</span>}
-                            {!account.isEnabled && (
-                                <InExTag kind="neutral">{t("accounts.disabled")}</InExTag>
-                            )}
+                        {groupColor && (
+                            <span className="accounts-row__tree-prefix" aria-hidden="true">
+                                <span className="accounts-row__connector" />
+                                <span className="accounts-row__marker" />
+                            </span>
+                        )}
+                        <span className="accounts-row__title">
+                            <span className="accounts-row__name">{account.name}</span>
+                            <span className="accounts-row__meta">
+                                {displayDescription && <span>{displayDescription}</span>}
+                                {!account.isEnabled && (
+                                    <InExTag kind="neutral">{t("accounts.disabled")}</InExTag>
+                                )}
+                            </span>
                         </span>
                     </span>
                     <span className="accounts-row__balance">
@@ -549,7 +558,7 @@ const Accounts = () => {
         }
 
         if (viewMode === "flat") {
-            return <div className="accounts-list">{sortedFlatAccounts.map(renderRow)}</div>;
+            return <div className="accounts-list">{sortedFlatAccounts.map((account) => renderRow(account))}</div>;
         }
 
         return (
@@ -560,13 +569,14 @@ const Accounts = () => {
                 getBranchId={(group) => group.currency}
                 isCollapseDisabled={(group) => group.accounts.some((account) => account.id === expandedId)}
                 onToggle={toggleCurrencyGroup}
-                renderChildren={(group) => <div className="accounts-list">{group.accounts.map(renderRow)}</div>}
+                renderChildren={(group) => {
+                    const groupColor = currencyMarkerColor(group.currency);
+                    return <div className="accounts-list">{group.accounts.map((account) => renderRow(account, groupColor))}</div>;
+                }}
                 renderBranch={(group, branch) => {
-                    const groupShare = group.share === null
-                        ? t("accounts.equivalent.unavailable")
-                        : t("accounts.shareOfNetWorth", { value: group.share.toFixed(1) });
                     const collapseDisabled = !branch.isCollapsed
                         && group.accounts.some((account) => account.id === expandedId);
+                    const groupColor = currencyMarkerColor(group.currency);
 
                     return (
                         <div className="accounts-group">
@@ -588,13 +598,15 @@ const Accounts = () => {
                                 </span>
                             </button>
                             <span className="accounts-group__identity">
-                                    <span className={`accounts-currency-badge is-${currencyToneClass(group.currency)}`}>
-                                        {group.currency}
-                                    </span>
-                                    <span className="accounts-group__count">- {formatGroupCount(group.accounts.length)}</span>
+                                <span
+                                    aria-hidden="true"
+                                    className="accounts-group__marker"
+                                    style={{ background: groupColor }}
+                                />
+                                <strong className="accounts-group__title">{group.currency}</strong>
+                                <span className="accounts-group__count">{formatGroupCount(group.accounts.length)}</span>
                             </span>
                             <span className="accounts-group__metrics">
-                                <span className="accounts-group__share">{groupShare}</span>
                                 <span className="accounts-group__balance">
                                     <span className="accounts-group__subtotal">
                                         {group.accounts.every((account) => account.value !== undefined)

@@ -58,7 +58,7 @@ npm run lint
 | Area | Generated | Screenshots | Summary |
 | --- | --- | ---: | --- |
 | Transactions | 2026-08-04T10:29:25.226Z | 41 | PASS: fixture, no failures, no backend calls |
-| Accounts | 2026-09-13T14:08:20.151Z | 18 | PASS: fixture, no failures, no backend calls |
+| Accounts | 2026-09-13T15:00:18.479Z | 18 | PASS: fixture, no failures, no backend calls |
 | Categories | 2026-09-11T14:44:18.564Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
 | Hero consistency | 2026-06-14T12:13:01.274Z | 10 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
@@ -97,6 +97,12 @@ npm run lint
 - Data mode: fixture; 18 Accounts screenshots cover grouped and flat views at 1440px, 1024px, 390px, and 360px without unhandled API requests or real backend calls.
 - The grouped list uses continuous currency branches with keyboard-accessible disclosure. Captures include collapsed, filtered, expanded-edit, protected edit/collapse, disabled zero-balance, and incomplete-rate states.
 - Result: PASS. The summary reports no page-level horizontal overflow or mobile bottom-navigation occlusion.
+
+### 2026-09-13 Accounts Currency Tree Visual Alignment (#371)
+
+- Data mode: fixture; all API requests were intercepted, with no unhandled requests or real backend calls.
+- The refreshed 18 screenshots cover plain currency branch titles, shared branch/leaf color markers, depth-one leaf connectors, aggregate metadata, expanded and collapsed branches at desktop and mobile widths.
+- Result: PASS. `qa-summary.json` reports no horizontal overflow or mobile bottom-navigation occlusion. The repository-wide freshness verifier remains red only for seven unrelated stale page summaries.
 
 ## Desktop QA Results
 
