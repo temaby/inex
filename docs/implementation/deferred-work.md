@@ -83,3 +83,9 @@ Items surfaced during review but out of scope for the originating story. Each en
 ## Deferred from: code review of 10-4-frontend-ux-reports-hub-dashboard-landing-and-drill-down-chrome.md (2026-06-05)
 
 - **Monthly history report still uses USD as the report currency** - `inex/ClientApp/src/pages/Reports/ReportMonthlyHistory.tsx` had pre-existing hardcoded USD query/formatting behavior before Story 10.4. Address in report-domain currency behavior work rather than this chrome-only story.
+
+---
+
+## From: One-shot Accounts table header typography (2026-09-13)
+
+- **Accounts and Categories visual-QA scripts can leave tracked evidence incomplete on a fixture timeout** — the harness clears its output directory before running all states, so a later timeout leaves only partial screenshots and removed summaries. Make evidence writes atomic or preserve the prior output until a complete run succeeds.
