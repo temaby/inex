@@ -123,7 +123,7 @@ export const flattenCategoryTree = (
 
 export const filterCollapsedCategoryTree = (
     rows: FlattenedCategoryNode[],
-    collapsedCategoryIds: Set<number>,
+    collapsedCategoryIds: ReadonlySet<string>,
 ): FlattenedCategoryNode[] => {
     const ancestors: FlattenedCategoryNode[] = [];
 
@@ -132,7 +132,7 @@ export const filterCollapsedCategoryTree = (
             ancestors.pop();
         }
 
-        const hidden = ancestors.some((ancestor) => collapsedCategoryIds.has(ancestor.category.id));
+        const hidden = ancestors.some((ancestor) => collapsedCategoryIds.has(String(ancestor.category.id)));
         ancestors.push(row);
         return !hidden;
     });

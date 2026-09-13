@@ -8,6 +8,7 @@ import authSlice from "../store/auth/auth-slice";
 import ratesSlice from "../store/rates/rates-slice";
 import { accountsApi } from "../store/accounts/accounts-api";
 import Accounts from "./Accounts";
+import { getTreeExpansionStorageKey } from "./tree-expansion-preferences";
 import {
     accountsVisualFixtureAccounts,
     accountsVisualFixtureCurrencies,
@@ -126,6 +127,7 @@ const populatedSummaries = [
 
 describe("Accounts empty-state create focus", () => {
     beforeEach(() => {
+        window.localStorage.clear();
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: [] } };
@@ -260,6 +262,28 @@ describe("Accounts empty-state create focus", () => {
         expect(fixtureGroup).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
         expect(accountsVisualFixtureMeta.collapsedStateCurrency).toBe("UZS");
+    });
+
+    it("restores a saved currency-group state without applying it to another tree", async () => {
+        window.localStorage.setItem(getTreeExpansionStorageKey("accounts", 1), JSON.stringify(["UZS", "removed-currency"]));
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/accounts?mode=ALL") return { data: { data: accountsVisualFixtureAccounts } };
+            if (url.startsWith("/accounts/details?mode=active")) return { data: { data: accountsVisualFixtureSummaries } };
+            return { data: null };
+        });
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+
+        render(
+            <Provider store={makeStore(accountsVisualFixtureRates)}>
+                <MemoryRouter>
+                    <Accounts />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        const uzsGroup = await screen.findByRole("button", { name: "accounts.group.expand" });
+        expect(uzsGroup).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
     });
 
     it("keeps an open account editor mounted and hides non-matching currency groups", async () => {

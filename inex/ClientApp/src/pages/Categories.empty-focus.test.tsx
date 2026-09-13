@@ -10,6 +10,7 @@ import { budgetsApi } from "../store/budgets/budgets-api";
 import { categoriesApi } from "../store/categories/categories-api";
 import ratesSlice from "../store/rates/rates-slice";
 import Categories from "./Categories";
+import { getTreeExpansionStorageKey } from "./tree-expansion-preferences";
 
 const apiClientMock = vi.hoisted(() => Object.assign(vi.fn(), { get: vi.fn() }));
 
@@ -84,6 +85,7 @@ const makeStore = () =>
 
 describe("Categories empty-state create focus", () => {
     beforeEach(() => {
+        window.localStorage.clear();
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
             if (url === "/categories?mode=ALL") {
                 return { data: { data: [] } };
@@ -197,5 +199,30 @@ describe("Categories empty-state create focus", () => {
             name: "categories.inlineEdit.edit",
         }));
         expect(screen.getByText("mock-category-edit")).toBeInTheDocument();
+    });
+
+    it("restores a saved category branch independently from account groups", async () => {
+        window.localStorage.setItem(getTreeExpansionStorageKey("categories", 1), JSON.stringify(["1", "removed-category"]));
+        const categories = [
+            { id: 1, key: "food", name: "Food", description: null, parentId: null, isEnabled: true, isSystem: false, systemCode: null },
+            { id: 2, key: "groceries", name: "Groceries", description: null, parentId: 1, isEnabled: true, isSystem: false, systemCode: null },
+        ];
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/categories?mode=ALL") return { data: { data: categories } };
+            if (url === "/budgets") return { data: { data: [] } };
+            return { data: null };
+        });
+
+        render(
+            <Provider store={makeStore()}>
+                <MemoryRouter>
+                    <Categories />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        const branchToggle = await screen.findByRole("button", { name: "categories.branch.expand" });
+        expect(branchToggle).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("Groceries")).not.toBeInTheDocument();
     });
 });

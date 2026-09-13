@@ -33,6 +33,7 @@ import {
 } from "../store/accounts/accounts-api";
 import AccountCreateForm from "./Accounts/AccountCreateForm";
 import AccountEditForm from "./Accounts/AccountEditForm";
+import { useCollapsedTreeNodeIds } from "./tree-expansion-preferences";
 import {
     AccountDisplay,
     buildDisplayAccounts,
@@ -86,13 +87,14 @@ const Accounts = () => {
     const [viewMode, setViewMode] = useState<AccountViewMode>("currency");
     const [search, setSearch] = useState("");
     const [expandedId, setExpandedId] = useState<number | null>(null);
-    const [collapsedCurrencies, setCollapsedCurrencies] = useState<Set<string>>(new Set());
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
     const [pendingCreatedFocusRestore, setPendingCreatedFocusRestore] = useState(false);
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
 
     const exchangeRates = useAppSelector((state) => state.rates.items);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
+    const userId = useAppSelector((state) => state.auth.user?.id);
+    const [collapsedCurrencies, setCollapsedCurrencies] = useCollapsedTreeNodeIds("accounts", userId);
     const profileCurrency = useMemo(
         () => currencies.find((currency) => currency.id === userCurrencyId)?.key.trim() || null,
         [currencies, userCurrencyId],

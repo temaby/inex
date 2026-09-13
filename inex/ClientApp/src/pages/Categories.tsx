@@ -22,6 +22,7 @@ import apiClient from "../utils/apiClient";
 import CategoryCreateForm from "./Categories/CategoryCreateForm";
 import { CategoryInlineEdit } from "./Categories/CategoryInlineEdit";
 import { CategoryRow } from "./Categories/CategoryRow";
+import { useCollapsedTreeNodeIds } from "./tree-expansion-preferences";
 import { CategoriesHero } from "./Categories/CategoriesHero";
 import {
     CategoriesToolbar,
@@ -169,7 +170,6 @@ const Categories = () => {
     const [search, setSearch] = React.useState("");
     const [view, setView] = React.useState<CategoriesViewMode>("tree");
     const [editingId, setEditingId] = React.useState<number | null>(null);
-    const [collapsedCategoryIds, setCollapsedCategoryIds] = React.useState<Set<number>>(new Set());
     const [createError, setCreateError] = React.useState<string | null>(null);
     const [createSubmitting, setCreateSubmitting] = React.useState(false);
     const [currencies, setCurrencies] = React.useState<CurrencyOption[]>([]);
@@ -187,6 +187,8 @@ const Categories = () => {
     const { data: currentMonthBudgets } = useGetBudgetsQuery(period);
     const exchangeRates = useAppSelector((state) => state.rates.items);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
+    const userId = useAppSelector((state) => state.auth.user?.id);
+    const [collapsedCategoryIds, setCollapsedCategoryIds] = useCollapsedTreeNodeIds("categories", userId);
     const profileCurrency = React.useMemo(
         () => currencies.find((currency) => currency.id === userCurrencyId)?.key.trim() || null,
         [currencies, userCurrencyId],
@@ -365,12 +367,13 @@ const Categories = () => {
     };
 
     const toggleBranch = React.useCallback((categoryId: number) => {
+        const nodeId = String(categoryId);
         setCollapsedCategoryIds((current) => {
             const next = new Set(current);
-            if (next.has(categoryId)) {
-                next.delete(categoryId);
+            if (next.has(nodeId)) {
+                next.delete(nodeId);
             } else {
-                next.add(categoryId);
+                next.add(nodeId);
             }
             return next;
         });
@@ -415,7 +418,7 @@ const Categories = () => {
             const isEditing = editingId === category.id;
             const hasBranch = view === "tree" && hasChildren;
             const isCollapseDisabled =
-                !collapsedCategoryIds.has(category.id) &&
+                !collapsedCategoryIds.has(String(category.id)) &&
                 editingId != null &&
                 isDescendantCategory(editingId, category.id, categories);
             return (
@@ -425,7 +428,7 @@ const Categories = () => {
                         depth={depth}
                         hasChildren={hasBranch}
                         isEditing={isEditing}
-                        isCollapsed={collapsedCategoryIds.has(category.id)}
+                        isCollapsed={collapsedCategoryIds.has(String(category.id))}
                         isCollapseDisabled={isCollapseDisabled}
                         paletteColor={categoryPaletteColor(category, categories)}
                         periodLabel={periodLabel}
