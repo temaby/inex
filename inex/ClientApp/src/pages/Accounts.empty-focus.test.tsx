@@ -214,6 +214,11 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.queryByText("cash WALLET")).not.toBeInTheDocument();
         expect(screen.getByText("Daily card")).toBeVisible();
         expect(document.querySelector(".accounts-group__bar")).not.toBeInTheDocument();
+        expect(document.querySelector(".accounts-currency-badge")).not.toBeInTheDocument();
+        expect(document.querySelector(".accounts-group__title")).toHaveTextContent("USD");
+        expect((document.querySelector(".accounts-group__marker") as HTMLElement).style.background).not.toBe("");
+        expect(document.querySelector(".accounts-row--tree-leaf .accounts-row__connector")).toBeInTheDocument();
+        expect(document.querySelector(".accounts-row--tree-leaf .accounts-row__marker")).toBeInTheDocument();
     });
 
     it("renders fixture currency groups expanded by default and supports collapsed-state QA", async () => {

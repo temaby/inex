@@ -384,9 +384,29 @@
     display: flex;
     flex-wrap: wrap;
     font-size: 12px;
-    gap: 7px;
+    gap: 8px;
     grid-column: 1;
     min-width: 0;
+}
+
+.accounts-group__marker,
+.accounts-row__marker {
+    background: var(--accounts-currency-color);
+    border-radius: 4px;
+    flex: 0 0 auto;
+    height: 12px;
+    width: 12px;
+}
+
+.accounts-group__title {
+    color: var(--fg-1);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.accounts-group__count {
+    color: var(--fg-3);
+    font-size: 12px;
 }
 
 .accounts-group__chevron {
@@ -401,7 +421,7 @@
 .accounts-group__balance {
     display: grid;
     gap: 4px;
-    grid-column: 2;
+    grid-column: 2 / 5;
     justify-items: end;
     min-width: 0;
     text-align: right;
@@ -413,17 +433,6 @@
     font-size: 13px;
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-}
-
-.accounts-group__share {
-    color: var(--fg-3);
-    font-size: 12px;
-    font-family: var(--font-num);
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    grid-column: 4;
-    justify-self: end;
-    text-align: right;
 }
 
 .accounts-list-header {
@@ -503,6 +512,36 @@
 .accounts-row__share,
 .accounts-row__balance {
     min-width: 0;
+}
+
+.accounts-row__main {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.accounts-row__title {
+    display: block;
+    min-width: 0;
+}
+
+.accounts-row__tree-prefix {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 8px;
+}
+
+.accounts-row__connector {
+    background: var(--border-2);
+    height: 1px;
+    width: 18px;
+}
+
+.accounts-row--tree-leaf .accounts-row__marker {
+    height: 9px;
+    opacity: 0.68;
+    width: 9px;
 }
 
 .accounts-row__name {
@@ -658,39 +697,6 @@
     justify-content: flex-end;
 }
 
-.accounts-currency-badge {
-    align-items: center;
-    border-radius: var(--radius-pill);
-    color: var(--fg-2);
-    display: inline-flex;
-    font-family: var(--font-num);
-    font-size: 12px;
-    font-weight: 800;
-    justify-content: center;
-    min-width: 54px;
-    padding: 4px 9px;
-}
-
-.is-teal {
-    background: var(--income-bg);
-}
-
-.is-slate {
-    background: var(--transfer-bg);
-}
-
-.is-amber {
-    background: var(--warn-bg);
-}
-
-.is-terracotta {
-    background: var(--expense-bg);
-}
-
-.is-ink {
-    background: var(--bg-muted);
-}
-
 @keyframes accounts-pulse {
     0%,
     100% {
@@ -812,6 +818,11 @@
     .accounts-group__balance {
         justify-items: start;
         text-align: left;
+    }
+
+    .accounts-group__marker {
+        height: 10px;
+        width: 10px;
     }
 
     .accounts-row {
