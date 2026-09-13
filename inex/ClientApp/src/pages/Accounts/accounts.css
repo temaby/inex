@@ -507,6 +507,10 @@
     background: var(--bg-stripe);
 }
 
+.accounts-row--tree-leaf {
+    padding-left: 42px;
+}
+
 .accounts-row__main,
 .accounts-row__currency,
 .accounts-row__share,
@@ -829,6 +833,10 @@
         gap: 6px;
         grid-template-columns: minmax(0, 1fr) auto;
         padding: 10px 12px;
+    }
+
+    .accounts-row--tree-leaf {
+        padding-left: 40px;
     }
 
     .accounts-list-header {
