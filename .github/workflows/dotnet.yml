@@ -73,8 +73,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push image (arm64)
+      - name: Check whether image already exists
+        id: ecr-image
         run: |
+          if IMAGE_TAG=$(aws ecr batch-get-image \
+            --repository-name "${{ secrets.ECR_REPOSITORY }}" \
+            --image-ids imageTag="${{ github.sha }}" \
+            --region "${{ secrets.AWS_REGION }}" \
+            --query 'images[0].imageId.imageTag' \
+            --output text 2>/dev/null) && [ "$IMAGE_TAG" = "${{ github.sha }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Image already exists; reusing it for deployment."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Image not confirmed in ECR; it will be built and pushed."
+          fi
+
+      - name: Build and push image (arm64)
+        if: steps.ecr-image.outputs.exists != 'true'
+        run: |
+          echo "Publishing new image."
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}"
           docker buildx build --platform linux/arm64 --provenance=false -f docker/api/Dockerfile -t "$IMAGE_URI" --push .
 
