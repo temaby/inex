@@ -57,11 +57,11 @@ describe("category spend utilities", () => {
         ];
         const rows = flattenCategoryTree(buildCategoriesTree(categories));
 
-        expect(filterCollapsedCategoryTree(rows, new Set([1])).map((row) => row.category.name)).toEqual([
+        expect(filterCollapsedCategoryTree(rows, new Set(["1"])).map((row) => row.category.name)).toEqual([
             "Food",
             "Home",
         ]);
-        expect(filterCollapsedCategoryTree(rows, new Set([2])).map((row) => row.category.name)).toEqual([
+        expect(filterCollapsedCategoryTree(rows, new Set(["2"])).map((row) => row.category.name)).toEqual([
             "Food",
             "Groceries",
             "Home",
