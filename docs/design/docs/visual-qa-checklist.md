@@ -58,7 +58,7 @@ npm run lint
 | Area | Generated | Screenshots | Summary |
 | --- | --- | ---: | --- |
 | Transactions | 2026-08-04T10:29:25.226Z | 41 | PASS: fixture, no failures, no backend calls |
-| Accounts | 2026-09-11T14:43:55.568Z | 13 | PASS: fixture, no failures, no backend calls |
+| Accounts | 2026-09-13T14:08:20.151Z | 18 | PASS: fixture, no failures, no backend calls |
 | Categories | 2026-09-11T14:44:18.564Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
 | Hero consistency | 2026-06-14T12:13:01.274Z | 10 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
@@ -92,6 +92,12 @@ npm run lint
 - Desktop and mobile captures show four leading segments plus localized Other when a remainder exists; bars and legends each contain five matching items.
 - Manual inspection of populated 1440px and 390px captures found no overlap, clipping, page-level horizontal overflow, or bottom-navigation occlusion.
 
+### 2026-09-13 Accounts Currency Tree
+
+- Data mode: fixture; 18 Accounts screenshots cover grouped and flat views at 1440px, 1024px, 390px, and 360px without unhandled API requests or real backend calls.
+- The grouped list uses continuous currency branches with keyboard-accessible disclosure. Captures include collapsed, filtered, expanded-edit, protected edit/collapse, disabled zero-balance, and incomplete-rate states.
+- Result: PASS. The summary reports no page-level horizontal overflow or mobile bottom-navigation occlusion.
+
 ## Desktop QA Results
 
 | Route | State | 1440px | 1024px | Screenshot | Notes |
@@ -101,7 +107,7 @@ npm run lint
 | `/transactions` | filter-empty | PASS | N/A | `transactions/filter-empty-390.png` | dataMode: fixture; filter-empty state passed visual and overflow checks. |
 | `/transactions` | drawer-open | PASS | PASS | `transactions/expanded-row-1440.png`; `transactions/drawer-open-390.png`; `transactions/drawer-open-360.png` | dataMode: fixture; add/edit drawer remains within viewport. |
 | `/transactions` | filter drawer open | PASS | PASS | `transactions/filter-empty-390.png`; `transactions/populated-1024.png` | dataMode: fixture; filter controls render without clipping; no separate filter drawer screenshot exists in current harness. |
-| `/accounts` | populated | PASS | PASS | `accounts/populated-1440.png`; `accounts/populated-flat-1024.png` | dataMode: fixture; grouped and flat account layouts inspected; grouped currency sections do not render per-group share bars. |
+| `/accounts` | populated | PASS | PASS | `accounts/populated-1440.png`; `accounts/populated-1024.png`; `accounts/populated-flat-1024.png` | dataMode: fixture; continuous currency branches and flat account layout inspected; grouped currency sections do not render per-group share bars. |
 | `/accounts` | empty | PASS | N/A | `accounts/first-use-empty-390.png` | dataMode: fixture; empty-state affordance clears bottom nav. |
 | `/accounts` | drawer-open | PASS | PASS | `accounts/drawer-open-390.png`; `accounts/drawer-open-360.png` | dataMode: fixture; drawer content and footer visible. |
 | `/categories` | populated (tree) | PASS | PASS | `categories/populated-1440.png`; `categories/populated-390.png`; `categories/populated-360.png` | dataMode: fixture; tree view inspected across desktop and mobile widths. |
@@ -128,7 +134,7 @@ npm run lint
 | `/transactions` | empty | PASS | N/A | `transactions/first-use-empty-390.png` | dataMode: fixture; empty-state action remains visible. |
 | `/transactions` | filter-empty | PASS | N/A | `transactions/filter-empty-390.png` | dataMode: fixture; filter-empty copy and controls fit. |
 | `/transactions` | drawer-open | PASS | N/A | `transactions/drawer-open-390.png`; `transactions/drawer-open-360.png` | dataMode: fixture; drawer within viewport. |
-| `/accounts` | populated | PASS | N/A | `accounts/populated-390.png`; `accounts/populated-360.png` | dataMode: fixture; account rows stack without page overflow. |
+| `/accounts` | grouped states | PASS | PASS | `accounts/populated-390.png`; `accounts/populated-360.png`; `accounts/collapsed-group-390.png`; `accounts/filtered-group-390.png`; `accounts/disabled-zero-balance-390.png`; `accounts/incomplete-rate-360.png` | dataMode: fixture; account rows and branch controls fit without page overflow. |
 | `/accounts` | empty | PASS | N/A | `accounts/first-use-empty-390.png` | dataMode: fixture; empty-state button clear of bottom nav. |
 | `/categories` | populated | PASS | PASS | `categories/populated-390.png`; `categories/populated-360.png` | dataMode: fixture; required 360px route passes. |
 | `/categories` | empty | PASS | PASS | `categories/first-use-empty-390.png`; `categories/populated-360.png` | dataMode: fixture; empty-state screenshot at 390 and route baseline at 360 show no blocking mobile failures. |

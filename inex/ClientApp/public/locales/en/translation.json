@@ -427,7 +427,8 @@
       "accountCount": "{{count}} account",
       "accountCount_plural": "{{count}} accounts",
       "expand": "Expand {{currency}} accounts",
-      "collapse": "Collapse {{currency}} accounts"
+      "collapse": "Collapse {{currency}} accounts",
+      "finishEditing": "Finish editing this account before collapsing its currency group"
     },
     "inventory": {
       "summary": "Visible accounts: {{visible}} / {{total}} in scope",

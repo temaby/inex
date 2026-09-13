@@ -46,6 +46,12 @@ const states = [
     interaction: "select-flat-view",
   },
   {
+    name: "populated-1024",
+    screenshot: "populated-1024.png",
+    viewport: { width: 1024, height: defaultViewportHeight },
+    scenario: "populated",
+  },
+  {
     name: "populated-390",
     screenshot: "populated-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -113,6 +119,33 @@ const states = [
     interaction: "collapse-fixture-group",
   },
   {
+    name: "filtered-group-390",
+    screenshot: "filtered-group-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "search-usd-operating",
+  },
+  {
+    name: "expanded-edit-collapse-protected-1440",
+    screenshot: "expanded-edit-collapse-protected-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "populated",
+    interaction: "expand-first-row-and-protect-group",
+  },
+  {
+    name: "disabled-zero-balance-390",
+    screenshot: "disabled-zero-balance-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "select-all-scope",
+  },
+  {
+    name: "incomplete-rate-360",
+    screenshot: "incomplete-rate-360.png",
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "incomplete-rate",
+  },
+  {
     name: "load-error-390",
     screenshot: "load-error-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -145,7 +178,11 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse(currencies);
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
-        return jsonResponse({ data: fixture.accountsVisualFixtureRates });
+        return jsonResponse({
+          data: scenario === "incomplete-rate"
+            ? fixture.accountsVisualFixtureRates.filter((rate) => rate.currencyTo !== "GEL")
+            : fixture.accountsVisualFixtureRates,
+        });
       }
       if (url.pathname === "/api/accounts" && method === "GET") {
         if (scenario === "accounts-error") {
@@ -182,6 +219,17 @@ async function applyInteraction(client, state, fixture) {
       })()`);
       await waitFor(client, "document.body.innerText.includes('No accounts match')");
       return;
+    case "search-usd-operating":
+      await evaluate(client, `(() => {
+        const input = document.querySelector("input[type='search'][aria-label='Search accounts']");
+        if (!input) return false;
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+        setter.call(input, "USD operating");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes('USD operating') && !document.body.innerText.includes('UZS main wallet')");
+      return;
     case "open-drawer":
       await evaluate(client, clickButtonByTextExpression("Add account"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
@@ -195,19 +243,33 @@ async function applyInteraction(client, state, fixture) {
       })()`);
       await waitFor(client, "document.body.innerText.includes('SNAPSHOT')");
       return;
+    case "expand-first-row-and-protect-group":
+      await evaluate(client, `(() => {
+        const row = document.querySelector(".accounts-row");
+        if (!row) return false;
+        row.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes('SNAPSHOT')");
+      await waitFor(client, "Boolean(document.querySelector('.accounts-group__toggle:disabled'))");
+      return;
+    case "select-all-scope":
+      await evaluate(client, clickButtonByTextExpression("All"));
+      await waitFor(client, "document.body.innerText.includes('USD closed card')");
+      return;
     case "collapse-fixture-group":
       await evaluate(client, `(() => {
         const currency = ${JSON.stringify(fixture.accountsVisualFixtureMeta.collapsedStateCurrency)};
-        const button = Array.from(document.querySelectorAll(".accounts-group__head"))
-          .find((item) => item.textContent && item.textContent.includes(currency));
+        const button = Array.from(document.querySelectorAll(".accounts-group__toggle"))
+          .find((item) => item.parentElement?.textContent?.includes(currency));
         if (!button) return false;
         button.click();
         return true;
       })()`);
       await waitFor(client, `(() => {
         const currency = ${JSON.stringify(fixture.accountsVisualFixtureMeta.collapsedStateCurrency)};
-        const button = Array.from(document.querySelectorAll(".accounts-group__head"))
-          .find((item) => item.textContent && item.textContent.includes(currency));
+        const button = Array.from(document.querySelectorAll(".accounts-group__toggle"))
+          .find((item) => item.parentElement?.textContent?.includes(currency));
         return button && button.getAttribute("aria-expanded") === "false";
       })()`);
       return;
@@ -246,7 +308,7 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const rows = Array.from(document.querySelectorAll(".accounts-row"));
-    const groupButtons = Array.from(document.querySelectorAll(".accounts-group__head"));
+    const groupButtons = Array.from(document.querySelectorAll(".accounts-group__toggle"));
     const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".accounts-hero__net");
@@ -296,7 +358,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       : null;
     const collapsedGroups = groupButtons
       .filter((button) => button.getAttribute("aria-expanded") === "false")
-      .map((button) => button.textContent.trim().replace(/\\s+/g, " ").slice(0, 80));
+      .map((button) => button.parentElement?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 80) ?? "");
 
     return {
       title: document.title,
