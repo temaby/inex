@@ -92,7 +92,7 @@
 
 .accounts-toolbar h2 {
     color: var(--fg-1);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     margin: 4px 0 0;
 }
@@ -200,6 +200,7 @@
 
 .accounts-card {
     --accounts-inventory-grid: minmax(260px, 1.2fr) minmax(210px, 1fr) 88px minmax(96px, 112px) 24px;
+    --accounts-inventory-inline-padding: 34px;
     overflow: hidden;
 }
 
@@ -345,7 +346,7 @@
     gap: 10px;
     grid-template-columns: var(--accounts-inventory-grid);
     min-height: 50px;
-    padding: 8px 14px 8px 50px;
+    padding: 8px 14px;
     position: relative;
     text-align: left;
 }
@@ -387,6 +388,7 @@
     gap: 8px;
     grid-column: 1;
     min-width: 0;
+    padding-left: 36px;
 }
 
 .accounts-group__marker,
@@ -445,7 +447,7 @@
     gap: 10px;
     grid-template-columns: var(--accounts-inventory-grid);
     letter-spacing: 0;
-    padding: 9px 34px 7px;
+    padding: 9px var(--accounts-inventory-inline-padding) 7px;
 }
 
 .accounts-list-header span:nth-child(2),
@@ -462,7 +464,7 @@
 }
 
 .accounts-card > .accounts-groups {
-    padding: 0;
+    padding: 10px 20px 20px;
 }
 
 .accounts-row-wrap {
@@ -508,7 +510,7 @@
 }
 
 .accounts-row--tree-leaf {
-    padding-left: 42px;
+    padding-left: 14px;
 }
 
 .accounts-row__main,
@@ -795,6 +797,10 @@
         padding: 8px 14px 14px;
     }
 
+    .accounts-card > .accounts-groups {
+        padding: 8px 14px 14px;
+    }
+
     .accounts-first-empty {
         padding: 14px;
     }
@@ -807,6 +813,7 @@
 
     .accounts-group__identity {
         grid-column: 1;
+        padding-left: 0;
     }
 
     .accounts-group__metrics {
