@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T14:43:55.568Z",
+  "generatedAt": "2026-09-13T14:08:20.151Z",
   "page": "accounts",
   "dataMode": "fixture",
   "harness": {
@@ -43,6 +43,7 @@
   "screenshots": [
     "populated-1440.png",
     "populated-flat-1024.png",
+    "populated-1024.png",
     "populated-390.png",
     "populated-360.png",
     "filter-empty-390.png",
@@ -53,6 +54,10 @@
     "expanded-row-390.png",
     "collapsed-group-1440.png",
     "collapsed-group-390.png",
+    "filtered-group-390.png",
+    "expanded-edit-collapse-protected-1440.png",
+    "disabled-zero-balance-390.png",
+    "incomplete-rate-360.png",
     "load-error-390.png"
   ],
   "apiRequests": [
@@ -91,6 +96,12 @@
     "GET /currencies",
     "GET /accounts?mode=ALL",
     "GET /exchange/rates/2026-06-14",
+    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /currencies",
+    "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-14",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
@@ -112,6 +123,31 @@
     "GET /exchange/rates/2026-06-14",
     "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "GET /currencies",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /currencies",
+    "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-14",
+    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
+    "GET /currencies",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /currencies",
+    "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-14",
+    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /currencies",
+    "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-14",
+    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /currencies",
+    "GET /accounts?mode=ALL",
+    "GET /exchange/rates/2026-06-14",
+    "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /currencies",
@@ -219,7 +255,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
-        "height": 1579,
+        "height": 1459,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -338,6 +374,105 @@
       ]
     },
     {
+      "name": "populated-1024",
+      "dataMode": "fixture",
+      "screenshot": "populated-1024.png",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "scenario": "populated",
+      "interaction": null,
+      "title": "InEx",
+      "scrollWidth": 1024,
+      "clientWidth": 1024,
+      "bodyScrollWidth": 1024,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": null,
+      "lastContentBottom": 867.765625,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 6,
+      "heroSummaryWidth": 320,
+      "heroDividerOffset": 320,
+      "distributionEyebrow": {
+        "text": "By currency",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 260,
+      "toolbarSearchRightOffset": 0,
+      "groupShareBarCount": 0,
+      "heroDistributionBarCount": 1,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "UZS",
+        "USD",
+        "PLN",
+        "RUB",
+        "Other"
+      ],
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
+      "momVisible": false,
+      "previousMonthVisible": true,
+      "heroPrimaryValueText": "33,968USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "+383 USD+1%from May 2026",
+      "heroSecondaryTextHasDecimal": false,
+      "heroDeltaPeriodOnOwnLine": true,
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "byCurrentBalanceVisibleInHeroDistribution": false,
+      "maxRowHeight": 60,
+      "collapsedGroups": [],
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 6,
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "routePath": "/accounts",
+      "pngDimensions": {
+        "width": 1009,
+        "height": 1459,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /currencies",
+        "GET /accounts?mode=ALL",
+        "GET /exchange/rates/2026-06-14",
+        "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
       "name": "populated-390",
       "dataMode": "fixture",
       "screenshot": "populated-390.png",
@@ -417,7 +552,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 2752,
+        "height": 2654,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -516,7 +651,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 345,
-        "height": 2752,
+        "height": 2654,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -792,7 +927,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 390,
-        "height": 2752,
+        "height": 2654,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -896,7 +1031,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 360,
-        "height": 2752,
+        "height": 2654,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -992,11 +1127,11 @@
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
       "apiRequestCount": 7,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% Name Description Currency BYN - BYN Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 4,200.00 BYN USD equivalent 1,354.84 USD Rate to base 0.3226 USD / BYN Account ID #204 GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% Name Description Currency UZS - UZS Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 199,093,440.00 UZS USD equivalent 16,591.12 USD Rate to base 0.000083 USD / UZS Account ID #201 USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
-        "height": 2009,
+        "height": 1889,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1096,7 +1231,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 3543,
+        "height": 3445,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1198,7 +1333,7 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 1425,
-        "height": 1519,
+        "height": 1399,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1299,7 +1434,398 @@
       "routePath": "/accounts",
       "pngDimensions": {
         "width": 375,
-        "height": 2607,
+        "height": 2509,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /currencies",
+        "GET /accounts?mode=ALL",
+        "GET /exchange/rates/2026-06-14",
+        "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "filtered-group-390",
+      "dataMode": "fixture",
+      "screenshot": "filtered-group-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "scenario": "populated",
+      "interaction": "search-usd-operating",
+      "title": "InEx",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": 839,
+      "lastContentBottom": 771.953125,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 1,
+      "heroSummaryWidth": 356,
+      "heroDividerOffset": 356,
+      "distributionEyebrow": {
+        "text": "By currency",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 328,
+      "toolbarSearchRightOffset": 0,
+      "groupShareBarCount": 0,
+      "heroDistributionBarCount": 1,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "UZS",
+        "USD",
+        "PLN",
+        "RUB",
+        "Other"
+      ],
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
+      "momVisible": false,
+      "previousMonthVisible": true,
+      "heroPrimaryValueText": "33,968USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "+383 USD+1%from May 2026",
+      "heroSecondaryTextHasDecimal": false,
+      "heroDeltaPeriodOnOwnLine": true,
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "byCurrentBalanceVisibleInHeroDistribution": false,
+      "maxRowHeight": 145.28125,
+      "collapsedGroups": [],
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 6,
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 1 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list Filtering by \"USD operating\" Clear search USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/accounts",
+      "pngDimensions": {
+        "width": 375,
+        "height": 1507,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /currencies",
+        "GET /accounts?mode=ALL",
+        "GET /exchange/rates/2026-06-14",
+        "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "expanded-edit-collapse-protected-1440",
+      "dataMode": "fixture",
+      "screenshot": "expanded-edit-collapse-protected-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "scenario": "populated",
+      "interaction": "expand-first-row-and-protect-group",
+      "title": "InEx",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": null,
+      "lastContentBottom": 967.765625,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 6,
+      "heroSummaryWidth": 320,
+      "heroDividerOffset": 320,
+      "distributionEyebrow": {
+        "text": "By currency",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 260,
+      "toolbarSearchRightOffset": 0,
+      "groupShareBarCount": 0,
+      "heroDistributionBarCount": 1,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "UZS",
+        "USD",
+        "PLN",
+        "RUB",
+        "Other"
+      ],
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
+      "momVisible": false,
+      "previousMonthVisible": true,
+      "heroPrimaryValueText": "33,968USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "+383 USD+1%from May 2026",
+      "heroSecondaryTextHasDecimal": false,
+      "heroDeltaPeriodOnOwnLine": true,
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "byCurrentBalanceVisibleInHeroDistribution": false,
+      "maxRowHeight": 60,
+      "collapsedGroups": [],
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 7,
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list ACCOUNT BALANCE CURRENCY SHARE UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% Name Description Currency UZS - UZS Active Disabled Favourite Favourite Not favourite Delete Update SNAPSHOT Current balance 199,093,440.00 UZS USD equivalent 16,591.12 USD Rate to base 0.000083 USD / UZS Account ID #201 USD - 1 account 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7%",
+      "routePath": "/accounts",
+      "pngDimensions": {
+        "width": 1425,
+        "height": 1889,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /currencies",
+        "GET /accounts?mode=ALL",
+        "GET /exchange/rates/2026-06-14",
+        "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207",
+        "GET /currencies"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "disabled-zero-balance-390",
+      "dataMode": "fixture",
+      "screenshot": "disabled-zero-balance-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "scenario": "populated",
+      "interaction": "select-all-scope",
+      "title": "InEx",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": 839,
+      "lastContentBottom": 772.328125,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 7,
+      "heroSummaryWidth": 356,
+      "heroDividerOffset": 356,
+      "distributionEyebrow": {
+        "text": "By currency",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 328,
+      "toolbarSearchRightOffset": 0,
+      "groupShareBarCount": 0,
+      "heroDistributionBarCount": 1,
+      "distributionSegmentCount": 5,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendMarkerColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "UZS",
+        "USD",
+        "PLN",
+        "RUB",
+        "Other"
+      ],
+      "heroDistributionText": "UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7%",
+      "momVisible": false,
+      "previousMonthVisible": true,
+      "heroPrimaryValueText": "33,968USD",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "+383 USD+1%from May 2026",
+      "heroSecondaryTextHasDecimal": false,
+      "heroDeltaPeriodOnOwnLine": true,
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "byCurrentBalanceVisibleInHeroDistribution": false,
+      "maxRowHeight": 145.96875,
+      "collapsedGroups": [],
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 6,
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH 33,968 USD +383 USD +1% from May 2026 BY CURRENCY UZS 16,591.12 USD 48.8% USD 9,200.00 USD 27.1% PLN 3,625.00 USD 10.7% RUB 2,608.70 USD 7.7% Other 1,943.30 USD 5.7% Accounts Visible accounts: 7 / 7 in scope all accounts STATUS Active All VIEW By currency Flat list UZS - 1 account 48.8% 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS 48.8% USD - 2 accounts 27.1% 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD 27.1% USD closed card Disabled card DISABLED 0.00 USD 0.00 USD USD 0.0% PLN - 1 account 10.7% 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN 10.7% RUB - 1 account 7.7% 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB 7.7% BYN - 1 account 4.0% 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN 4.0% GEL - 1 account 1.7% 1,735.96 GEL ≈ 588 USD GEL travel Travel buffer 1,735.96 GEL ≈ 588 USD GEL 1.7% Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/accounts",
+      "pngDimensions": {
+        "width": 375,
+        "height": 2800,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /currencies",
+        "GET /accounts?mode=ALL",
+        "GET /exchange/rates/2026-06-14",
+        "GET /accounts/details?mode=active&ids[0]=201&ids[1]=202&ids[2]=203&ids[3]=204&ids[4]=205&ids[5]=206&ids[6]=207"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "incomplete-rate-360",
+      "dataMode": "fixture",
+      "screenshot": "incomplete-rate-360.png",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "scenario": "incomplete-rate",
+      "interaction": null,
+      "title": "InEx",
+      "scrollWidth": 360,
+      "clientWidth": 360,
+      "bodyScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "bottomNavTop": 839,
+      "lastContentBottom": 771.859375,
+      "drawerOpen": false,
+      "drawerWithinViewport": null,
+      "drawerBounds": null,
+      "rowCount": 6,
+      "heroSummaryWidth": 326,
+      "heroDividerOffset": 326,
+      "distributionEyebrow": {
+        "text": "By currency",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "toolbarSearchWidth": 298,
+      "toolbarSearchRightOffset": 0,
+      "groupShareBarCount": 0,
+      "heroDistributionBarCount": 0,
+      "distributionSegmentCount": 0,
+      "distributionLegendItemCount": 5,
+      "distributionSegmentColors": [],
+      "distributionLegendMarkerColors": [
+        "rgb(234, 88, 12)",
+        "rgb(15, 118, 110)",
+        "rgb(71, 85, 105)",
+        "rgb(29, 78, 216)",
+        "rgb(77, 124, 15)"
+      ],
+      "distributionLegendLabels": [
+        "UZS",
+        "USD",
+        "PLN",
+        "RUB",
+        "Other"
+      ],
+      "heroDistributionText": "UZS 16,591.12 USD 49.7% USD 9,200.00 USD 27.6% PLN 3,625.00 USD 10.9% RUB 2,608.70 USD 7.8% Other 1,354.84 USD 4.1%",
+      "momVisible": false,
+      "previousMonthVisible": true,
+      "heroPrimaryValueText": "Balance unavailable",
+      "heroPrimaryValueHasDecimal": false,
+      "heroSecondaryText": "Change from May 2026 unavailable",
+      "heroSecondaryTextHasDecimal": false,
+      "heroDeltaPeriodOnOwnLine": false,
+      "usdEquivalentVisibleInHeroDistribution": false,
+      "byCurrentBalanceVisibleInHeroDistribution": false,
+      "maxRowHeight": 145.28125,
+      "collapsedGroups": [],
+      "loadErrorVisible": false,
+      "filterEmptyVisible": false,
+      "firstUseEmptyVisible": false,
+      "dataModeLabel": "fixture",
+      "apiRequestCount": 6,
+      "textSample": "InEx QA MANAGE Accounts Add account NET WORTH Balance unavailable Change from May 2026 unavailable BY CURRENCY UZS 16,591.12 USD 49.7% USD 9,200.00 USD 27.6% PLN 3,625.00 USD 10.9% RUB 2,608.70 USD 7.8% Other 1,354.84 USD 4.1% Accounts Visible accounts: 6 / 6 in scope active only: 6 active STATUS Active All VIEW By currency Flat list UZS - 1 account Equivalent unavailable 199,093,440.00 UZS ≈ 16,591 USD UZS main wallet Cash reserves 199,093,440.00 UZS ≈ 16,591 USD UZS Equivalent unavailable USD - 1 account Equivalent unavailable 9,200.00 USD 9,200.00 USD USD operating Payroll and vendors 9,200.00 USD 9,200.00 USD USD Equivalent unavailable PLN - 1 account Equivalent unavailable 14,500.00 PLN ≈ 3,625 USD PLN card Poland expenses 14,500.00 PLN ≈ 3,625 USD PLN Equivalent unavailable RUB - 1 account Equivalent unavailable 240,000.00 RUB ≈ 2,609 USD RUB savings 240,000.00 RUB ≈ 2,609 USD RUB Equivalent unavailable BYN - 1 account Equivalent unavailable 4,200.00 BYN ≈ 1,355 USD BYN reserve Belarus reserve 4,200.00 BYN ≈ 1,355 USD BYN Equivalent unavailable GEL - 1 account Equivalent unavailable 1,735.96 GEL Equivalent unavailable GEL travel Travel buffer 1,735.96 GEL Equivalent unavailable GEL Equivalent unavailable Dashboard Transactions Accounts Categories Budgets Reports",
+      "routePath": "/accounts",
+      "pngDimensions": {
+        "width": 345,
+        "height": 2734,
         "mode": "fullPage"
       },
       "requestLog": [

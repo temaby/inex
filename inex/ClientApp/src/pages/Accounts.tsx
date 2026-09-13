@@ -14,6 +14,7 @@ import {
 import {
     EmptyState,
     FilterEmpty,
+    HierarchyList,
     InExButton,
     InExDrawer,
     Input,
@@ -552,60 +553,72 @@ const Accounts = () => {
         }
 
         return (
-            <div className="accounts-groups">
-                {groups.map((group) => {
-                    const collapsed = collapsedCurrencies.has(group.currency);
+            <HierarchyList
+                branches={groups}
+                className="accounts-groups"
+                collapsedIds={collapsedCurrencies}
+                getBranchId={(group) => group.currency}
+                isCollapseDisabled={(group) => group.accounts.some((account) => account.id === expandedId)}
+                onToggle={toggleCurrencyGroup}
+                renderChildren={(group) => <div className="accounts-list">{group.accounts.map(renderRow)}</div>}
+                renderBranch={(group, branch) => {
                     const groupShare = group.share === null
                         ? t("accounts.equivalent.unavailable")
                         : t("accounts.shareOfNetWorth", { value: group.share.toFixed(1) });
+                    const collapseDisabled = !branch.isCollapsed
+                        && group.accounts.some((account) => account.id === expandedId);
 
                     return (
-                        <section className="accounts-group" key={group.currency}>
+                        <div className="accounts-group">
+                            <div className="accounts-group__head">
                             <button
-                                aria-expanded={!collapsed}
-                                aria-label={t(collapsed ? "accounts.group.expand" : "accounts.group.collapse", {
+                                aria-controls={branch.childrenId}
+                                aria-expanded={!branch.isCollapsed}
+                                aria-label={t(branch.isCollapsed ? "accounts.group.expand" : "accounts.group.collapse", {
                                     currency: group.currency,
                                 })}
-                                className="accounts-group__head"
-                                onClick={() => toggleCurrencyGroup(group.currency)}
+                                className="accounts-group__toggle"
+                                disabled={collapseDisabled}
+                                onClick={branch.toggle}
+                                title={collapseDisabled ? t("accounts.group.finishEditing") : undefined}
                                 type="button"
                             >
-                                <span className="accounts-group__identity">
-                                    <span className="accounts-group__chevron" aria-hidden="true">
-                                        {collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-                                    </span>
+                                <span className="accounts-group__chevron" aria-hidden="true">
+                                    {branch.isCollapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+                                </span>
+                            </button>
+                            <span className="accounts-group__identity">
                                     <span className={`accounts-currency-badge is-${currencyToneClass(group.currency)}`}>
                                         {group.currency}
                                     </span>
                                     <span className="accounts-group__count">- {formatGroupCount(group.accounts.length)}</span>
-                                </span>
-                                <span className="accounts-group__metrics">
-                                    <span className="accounts-group__share">{groupShare}</span>
-                                    <span className="accounts-group__balance">
-                                        <span className="accounts-group__subtotal">
-                                            {group.accounts.every((account) => account.value !== undefined)
-                                                ? (
-                                                    <Num
-                                                        currency={group.currency}
-                                                        kind={group.subtotal < 0 ? "expense" : "neutral"}
-                                                        value={toFixedMoney(group.subtotal)}
-                                                    />
-                                                )
-                                                : t("accounts.hero.balanceUnavailable")}
-                                        </span>
-                                        {renderBaseEquivalent(group.baseSubtotal, {
-                                            approx: group.currency !== baseCurrency,
-                                            className: "accounts-group__base",
-                                            fractionDigits: group.currency !== baseCurrency ? 0 : undefined,
-                                        })}
+                            </span>
+                            <span className="accounts-group__metrics">
+                                <span className="accounts-group__share">{groupShare}</span>
+                                <span className="accounts-group__balance">
+                                    <span className="accounts-group__subtotal">
+                                        {group.accounts.every((account) => account.value !== undefined)
+                                            ? (
+                                                <Num
+                                                    currency={group.currency}
+                                                    kind={group.subtotal < 0 ? "expense" : "neutral"}
+                                                    value={toFixedMoney(group.subtotal)}
+                                                />
+                                            )
+                                            : t("accounts.hero.balanceUnavailable")}
                                     </span>
+                                    {renderBaseEquivalent(group.baseSubtotal, {
+                                        approx: group.currency !== baseCurrency,
+                                        className: "accounts-group__base",
+                                        fractionDigits: group.currency !== baseCurrency ? 0 : undefined,
+                                    })}
                                 </span>
-                            </button>
-                            {!collapsed && <div className="accounts-list">{group.accounts.map(renderRow)}</div>}
-                        </section>
+                            </span>
+                            </div>
+                        </div>
                     );
-                })}
-            </div>
+                }}
+            />
         );
     };
 

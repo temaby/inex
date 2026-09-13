@@ -431,7 +431,8 @@
       "accountCount": "{{count}} счёт",
       "accountCount_plural": "{{count}} счетов",
       "expand": "Развернуть счета {{currency}}",
-      "collapse": "Свернуть счета {{currency}}"
+      "collapse": "Свернуть счета {{currency}}",
+      "finishEditing": "Завершите редактирование счёта перед сворачиванием группы валюты"
     },
     "inventory": {
       "summary": "Видимые счета: {{visible}} / {{total}} в области",

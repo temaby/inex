@@ -36,5 +36,7 @@ export type {
     ListPanelNoMatchRowProps,
     ListPanelProps,
 } from "./ListPanel";
+export { HierarchyList } from "./HierarchyList";
+export type { HierarchyBranchState, HierarchyListProps } from "./HierarchyList";
 export { PageSection, ResponsiveGrid, ResponsiveStack } from "./Layout";
 export type { PageSectionProps, ResponsiveGridProps, ResponsiveStackProps } from "./Layout";

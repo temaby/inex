@@ -248,11 +248,53 @@ describe("Accounts empty-state create focus", () => {
             name: "accounts.group.collapse",
         }))[0];
         expect(fixtureGroup).toHaveAttribute("aria-expanded", "true");
+        expect(fixtureGroup).toHaveAttribute("aria-controls", "hierarchy-children-UZS");
 
         await userEvent.setup().click(fixtureGroup);
 
         expect(fixtureGroup).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
         expect(accountsVisualFixtureMeta.collapsedStateCurrency).toBe("UZS");
+    });
+
+    it("keeps an open account editor mounted and hides non-matching currency groups", async () => {
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/accounts?mode=ALL") {
+                return { data: { data: accountsVisualFixtureAccounts } };
+            }
+            if (url.startsWith("/accounts/details?mode=active")) {
+                return { data: { data: accountsVisualFixtureSummaries } };
+            }
+            return { data: null };
+        });
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        const user = userEvent.setup();
+        const store = makeStore(accountsVisualFixtureRates);
+
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Accounts />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        const accountRow = await screen.findByRole("button", { name: /UZS main wallet/ });
+        await user.click(accountRow);
+        expect(screen.getByText("mock-account-edit")).toBeVisible();
+
+        const uzsGroupToggle = (await screen.findAllByRole("button", {
+            name: "accounts.group.collapse",
+        }))[0];
+        expect(uzsGroupToggle).toBeDisabled();
+        expect(screen.getByText("mock-account-edit")).toBeVisible();
+
+        const searchbox = screen.getByRole("searchbox", { name: "accounts.searchLabel" });
+        await user.clear(searchbox);
+        await user.type(searchbox, "USD operating");
+
+        expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
+        expect(screen.getByText("USD operating")).toBeVisible();
+        expect(document.querySelectorAll(".accounts-group")).toHaveLength(1);
     });
 });
