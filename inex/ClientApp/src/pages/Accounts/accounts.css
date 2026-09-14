@@ -439,6 +439,7 @@
 
 .accounts-list-header {
     align-items: center;
+    background: var(--bg-muted);
     border-bottom: 1px solid var(--border-1);
     color: var(--fg-3);
     display: grid;

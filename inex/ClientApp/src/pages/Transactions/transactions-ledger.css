@@ -399,7 +399,7 @@
 }
 
 .transactions-ledger-head {
-    background: var(--bg-stripe);
+    background: var(--bg-muted);
     border-bottom: 1px solid var(--border-1);
     color: var(--fg-3);
     font-size: 11px;
