@@ -344,14 +344,16 @@
 }
 
 .category-row--parent .category-row__name {
-    padding-left: calc(50px + var(--category-indent, 0px));
+    padding-left: calc(
+        var(--inex-hierarchy-toggle-anchor) + var(--inex-hierarchy-toggle-size) + 10px + var(--category-indent, 0px)
+    );
 }
 
 .category-row__connector {
     background: var(--border-2);
     flex: 0 0 auto;
     height: 1px;
-    width: 18px;
+    width: var(--inex-hierarchy-connector-width);
 }
 
 .category-row__swatch {
@@ -367,7 +369,7 @@
 
 .category-row__title strong {
     color: var(--fg-1);
-    font-size: 14px;
+    font-size: var(--inex-hierarchy-parent-font-size);
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -375,12 +377,12 @@
 }
 
 .category-row--child .category-row__title strong {
-    font-size: 13.5px;
+    font-size: var(--inex-hierarchy-leaf-font-size);
     font-weight: 500;
 }
 
 .category-row--leaf .category-row__title strong {
-    font-size: 13.5px;
+    font-size: var(--inex-hierarchy-leaf-font-size);
     font-weight: 500;
 }
 
@@ -443,24 +445,13 @@
 }
 
 .category-row__branch-toggle {
-    align-items: center;
-    background: transparent;
-    border: 0;
-    color: var(--fg-3);
-    cursor: pointer;
-    display: inline-flex;
-    height: 28px;
-    justify-content: center;
-    left: calc(12px + var(--category-indent, 0px));
-    padding: 0;
+    left: calc(var(--inex-hierarchy-toggle-anchor) + var(--category-indent, 0px));
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
     z-index: 1;
 }
 
-.category-row__branch-toggle:focus-visible,
 .category-row__edit:focus-visible {
     box-shadow: var(--focus-ring);
     outline: none;
@@ -630,7 +621,9 @@
     }
 
     .category-row--parent .category-row__name {
-        padding-left: calc(50px + var(--category-indent, 0px)) !important;
+        padding-left: calc(
+            var(--inex-hierarchy-toggle-anchor) + var(--inex-hierarchy-toggle-size) + 10px + var(--category-indent, 0px)
+        ) !important;
     }
 
     .category-row__spent {

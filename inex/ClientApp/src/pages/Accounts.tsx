@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Alert } from "antd";
 import {
     ChevronDown,
-    ChevronRight,
     ChevronUp,
     Plus,
     RefreshCw,
@@ -14,6 +13,7 @@ import {
 import {
     EmptyState,
     FilterEmpty,
+    HierarchyBranchToggle,
     HierarchyList,
     InExButton,
     InExDrawer,
@@ -582,23 +582,18 @@ const Accounts = () => {
 
                     return (
                         <div className="accounts-group">
-                            <div className="accounts-group__head">
-                            <button
-                                aria-controls={branch.childrenId}
-                                aria-expanded={!branch.isCollapsed}
-                                aria-label={t(branch.isCollapsed ? "accounts.group.expand" : "accounts.group.collapse", {
+                            <div className="accounts-group__head inex-hierarchy-row inex-hierarchy-row--parent">
+                            <HierarchyBranchToggle
+                                childrenId={branch.childrenId}
+                                ariaLabel={t(branch.isCollapsed ? "accounts.group.expand" : "accounts.group.collapse", {
                                     currency: group.currency,
                                 })}
                                 className="accounts-group__toggle"
                                 disabled={collapseDisabled}
-                                onClick={branch.toggle}
+                                isCollapsed={branch.isCollapsed}
+                                onToggle={branch.toggle}
                                 title={collapseDisabled ? t("accounts.group.finishEditing") : undefined}
-                                type="button"
-                            >
-                                <span className="accounts-group__chevron" aria-hidden="true">
-                                    {branch.isCollapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-                                </span>
-                            </button>
+                            />
                             <span className="accounts-group__identity">
                                 <span
                                     aria-hidden="true"
