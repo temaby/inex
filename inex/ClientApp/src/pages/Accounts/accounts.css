@@ -200,7 +200,7 @@
 
 .accounts-card {
     --accounts-inventory-grid: minmax(260px, 1.2fr) minmax(210px, 1fr) 88px minmax(96px, 112px) 24px;
-    --accounts-inventory-inline-padding: 20px;
+    --accounts-inventory-inline-padding: 16px;
     overflow: hidden;
 }
 
@@ -217,7 +217,7 @@
     gap: 12px;
     justify-content: space-between;
     min-width: 0;
-    padding: 14px 20px;
+    padding: 14px var(--accounts-inventory-inline-padding);
 }
 
 .accounts-toolbar__filters {
@@ -286,19 +286,19 @@
 }
 
 .accounts-inline-error {
-    margin: 12px 20px;
+    margin: 12px var(--accounts-inventory-inline-padding);
 }
 
 .accounts-filter-strip {
     background: var(--bg-stripe);
     border-bottom: 1px solid var(--border-1);
-    padding: 10px 20px;
+    padding: 10px var(--accounts-inventory-inline-padding);
 }
 
 .accounts-empty-wrap,
 .accounts-load-failure,
 .accounts-loading {
-    padding: 20px;
+    padding: var(--accounts-inventory-inline-padding);
 }
 
 .accounts-first-empty {
@@ -468,11 +468,11 @@
 }
 
 .accounts-card > .accounts-list {
-    padding: 10px 20px 20px;
+    padding: 10px var(--accounts-inventory-inline-padding) 20px;
 }
 
 .accounts-card > .accounts-groups {
-    padding: 10px 20px 20px;
+    padding: 10px var(--accounts-inventory-inline-padding) 20px;
 }
 
 .accounts-row-wrap {
