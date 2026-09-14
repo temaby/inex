@@ -364,10 +364,10 @@
     display: flex;
     flex-wrap: wrap;
     font-size: 12px;
-    gap: 8px;
+    gap: 10px;
     grid-column: 1;
     min-width: 0;
-    padding-left: calc(var(--inex-hierarchy-toggle-anchor) + var(--inex-hierarchy-toggle-size) - 4px);
+    padding-left: calc(var(--inex-hierarchy-toggle-anchor) + var(--inex-hierarchy-toggle-size) + 10px);
 }
 
 .accounts-group__marker,
@@ -446,7 +446,7 @@
 }
 
 .accounts-card > .accounts-groups {
-    padding: 10px var(--accounts-inventory-inline-padding) 20px;
+    padding: 10px 0 20px;
 }
 
 .accounts-row-wrap {
@@ -496,6 +496,10 @@
 }
 
 @media (min-width: 769px) {
+    .accounts-groups .accounts-row {
+        padding-inline: var(--accounts-inventory-inline-padding);
+    }
+
     .accounts-row--tree-leaf .accounts-row__main {
         padding-left: var(--inex-hierarchy-depth-increment);
     }
@@ -523,7 +527,7 @@
     align-items: center;
     display: inline-flex;
     flex: 0 0 auto;
-    gap: 8px;
+    gap: 10px;
 }
 
 .accounts-row__connector {
@@ -786,7 +790,7 @@
     }
 
     .accounts-card > .accounts-groups {
-        padding: 8px 14px 14px;
+        padding: 8px 0 14px;
     }
 
     .accounts-first-empty {
@@ -831,7 +835,7 @@
     }
 
     .accounts-row--tree-leaf {
-        padding-left: 40px;
+        padding-left: calc(var(--inex-hierarchy-toggle-anchor) + var(--inex-hierarchy-toggle-size) + 4px);
     }
 
     .accounts-list-header {
