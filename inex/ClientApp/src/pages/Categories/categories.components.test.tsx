@@ -133,6 +133,31 @@ describe("Category row", () => {
         expect(onEdit).toHaveBeenCalledOnce();
     });
 
+    it("uses the shared right/down disclosure semantics", () => {
+        const { rerender } = renderRow({ hasChildren: true, isCollapsed: true });
+
+        expect(document.querySelector("[data-hierarchy-disclosure='collapsed']")).toBeInTheDocument();
+
+        rerender(
+            <CategoryRow
+                category={category()}
+                depth={0}
+                hasChildren={true}
+                isEditing={false}
+                isCollapsed={false}
+                isCollapseDisabled={false}
+                paletteColor="#0f766e"
+                periodLabel="June 2026"
+                statsAvailable
+                currency="USD"
+                onEdit={vi.fn()}
+                onBranchToggle={vi.fn()}
+            />,
+        );
+
+        expect(document.querySelector("[data-hierarchy-disclosure='expanded']")).toBeInTheDocument();
+    });
+
     it("disables collapse when it would discard a descendant edit", () => {
         renderRow({ hasChildren: true, isCollapseDisabled: true });
 

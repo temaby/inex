@@ -1,15 +1,13 @@
 import * as React from "react";
 import dayjs from "dayjs";
 import {
-    ChevronDown,
-    ChevronUp,
     Lock,
     Settings2,
     Target,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Num } from "../../components/primitives";
+import { HIERARCHY_DEPTH_INCREMENT, HierarchyBranchToggle, Num } from "../../components/primitives";
 import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { type CategorySpendStat, isSystemCategory } from "./categories.utils";
@@ -69,13 +67,15 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     const rowClassName = [
         "category-row",
         "r-category-row",
+        "inex-hierarchy-row",
+        hasChildren ? "inex-hierarchy-row--parent" : "inex-hierarchy-row--leaf",
         rowKindClass,
         isEditing ? "is-expanded" : "",
         !category.isEnabled ? "is-disabled" : "",
     ]
         .filter(Boolean)
         .join(" ");
-    const indent = Math.min(depth * 28, 42);
+    const indent = Math.min(depth * HIERARCHY_DEPTH_INCREMENT, 42);
 
     return (
         <div
@@ -94,9 +94,13 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                     className="category-row__swatch"
                     style={{
                         background: paletteColor,
-                        height: depth > 0 ? 9 : 12,
+                        height: depth > 0
+                            ? "var(--inex-hierarchy-leaf-marker-size)"
+                            : "var(--inex-hierarchy-marker-size)",
                         opacity: depth > 0 ? 0.65 : 1,
-                        width: depth > 0 ? 9 : 12,
+                        width: depth > 0
+                            ? "var(--inex-hierarchy-leaf-marker-size)"
+                            : "var(--inex-hierarchy-marker-size)",
                     }}
                 />
                 <span className="category-row__title">
@@ -172,20 +176,17 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
             </span>
             </button>
             {hasChildren ? (
-                <button
-                    aria-expanded={!isCollapsed}
-                    aria-label={t(
+                <HierarchyBranchToggle
+                    ariaLabel={t(
                         isCollapsed ? "categories.branch.expand" : "categories.branch.collapse",
                         { category: category.name },
                     )}
                     className="category-row__branch-toggle"
                     disabled={isCollapseDisabled}
-                    onClick={onBranchToggle}
+                    isCollapsed={isCollapsed}
+                    onToggle={onBranchToggle}
                     title={isCollapseDisabled ? t("categories.branch.finishEditing") : undefined}
-                    type="button"
-                >
-                    {isCollapsed ? <ChevronDown size={17} /> : <ChevronUp size={17} />}
-                </button>
+                />
             ) : null}
         </div>
     );

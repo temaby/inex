@@ -1,0 +1,40 @@
+.inex-hierarchy-list,
+.inex-hierarchy-row {
+    --inex-hierarchy-toggle-anchor: 12px;
+    --inex-hierarchy-toggle-size: 28px;
+    --inex-hierarchy-depth-increment: 28px;
+    --inex-hierarchy-connector-width: 18px;
+    --inex-hierarchy-marker-size: 12px;
+    --inex-hierarchy-leaf-marker-size: 9px;
+    --inex-hierarchy-parent-font-size: 14px;
+    --inex-hierarchy-leaf-font-size: 13.5px;
+}
+
+.inex-hierarchy-toggle {
+    align-items: center;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--fg-3);
+    cursor: pointer;
+    display: inline-flex;
+    height: var(--inex-hierarchy-toggle-size);
+    justify-content: center;
+    padding: 0;
+    width: var(--inex-hierarchy-toggle-size);
+}
+
+.inex-hierarchy-toggle:focus-visible {
+    box-shadow: var(--focus-ring);
+    outline: none;
+}
+
+.inex-hierarchy-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+.inex-hierarchy-toggle__icon {
+    color: var(--fg-4);
+    display: inline-flex;
+}

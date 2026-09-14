@@ -352,31 +352,10 @@
 }
 
 .accounts-group__toggle {
-    align-items: center;
-    appearance: none;
-    background: transparent;
-    border: 0;
-    color: var(--fg-3);
-    cursor: pointer;
-    display: inline-flex;
-    height: 28px;
-    justify-content: center;
-    left: 12px;
-    padding: 0;
+    left: var(--inex-hierarchy-toggle-anchor);
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
-}
-
-.accounts-group__toggle:focus-visible {
-    box-shadow: var(--focus-ring);
-    outline: none;
-}
-
-.accounts-group__toggle:disabled {
-    cursor: not-allowed;
-    opacity: 0.48;
 }
 
 .accounts-group__identity {
@@ -388,7 +367,7 @@
     gap: 8px;
     grid-column: 1;
     min-width: 0;
-    padding-left: 36px;
+    padding-left: calc(var(--inex-hierarchy-toggle-anchor) + var(--inex-hierarchy-toggle-size) - 4px);
 }
 
 .accounts-group__marker,
@@ -396,24 +375,19 @@
     background: var(--accounts-currency-color);
     border-radius: 4px;
     flex: 0 0 auto;
-    height: 12px;
-    width: 12px;
+    height: var(--inex-hierarchy-marker-size);
+    width: var(--inex-hierarchy-marker-size);
 }
 
 .accounts-group__title {
     color: var(--fg-1);
-    font-size: 14px;
+    font-size: var(--inex-hierarchy-parent-font-size);
     font-weight: 600;
 }
 
 .accounts-group__count {
     color: var(--fg-3);
     font-size: 12px;
-}
-
-.accounts-group__chevron {
-    color: var(--fg-4);
-    display: inline-flex;
 }
 
 .accounts-group__metrics {
@@ -523,7 +497,7 @@
 
 @media (min-width: 769px) {
     .accounts-row--tree-leaf .accounts-row__main {
-        padding-left: 28px;
+        padding-left: var(--inex-hierarchy-depth-increment);
     }
 }
 
@@ -555,19 +529,19 @@
 .accounts-row__connector {
     background: var(--border-2);
     height: 1px;
-    width: 18px;
+    width: var(--inex-hierarchy-connector-width);
 }
 
 .accounts-row--tree-leaf .accounts-row__marker {
-    height: 9px;
+    height: var(--inex-hierarchy-leaf-marker-size);
     opacity: 0.68;
-    width: 9px;
+    width: var(--inex-hierarchy-leaf-marker-size);
 }
 
 .accounts-row__name {
     color: var(--fg-1);
     display: block;
-    font-size: 14px;
+    font-size: var(--inex-hierarchy-parent-font-size);
     font-weight: 700;
     overflow: hidden;
     text-overflow: ellipsis;
