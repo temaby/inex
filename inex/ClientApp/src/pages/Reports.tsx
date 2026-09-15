@@ -49,7 +49,6 @@ const Reports = () => {
         "/reports/category": t("reports.categoryReport"),
         "/reports/budget": t("reports.budgetReport"),
         "/reports/history": t("reports.historyReport"),
-        "/reports/heatmap": t("reports.heatmapReport"),
     };
 
     const title = reportTitles[normalizedPath] || t("reports.title");

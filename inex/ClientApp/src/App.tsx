@@ -27,7 +27,6 @@ const Reports = React.lazy(() => import('./pages/Reports'));
 const ReportCategory = React.lazy(() => import("./pages/Reports/ReportCategory"));
 const ReportBudgetSpending = React.lazy(() => import("./pages/Reports/ReportBudgetSpending"));
 const ReportMonthlyHistory = React.lazy(() => import("./pages/Reports/ReportMonthlyHistory"));
-const ReportSpendingHeatmap = React.lazy(() => import("./pages/Reports/ReportSpendingHeatmap"));
 const ReportList = React.lazy(() => import("./pages/Reports/ReportList"));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -99,7 +98,6 @@ const App = () => {
                     <Route path="category" element={<ReportCategory />} />
                     <Route path="budget" element={<ReportBudgetSpending />} />
                     <Route path="history" element={<ReportMonthlyHistory />} />
-                    <Route path="heatmap" element={<ReportSpendingHeatmap />} />
                 </Route>
             </Route>
 

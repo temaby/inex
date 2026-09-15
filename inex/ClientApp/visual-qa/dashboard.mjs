@@ -281,9 +281,6 @@ function collectAdditionalFailures(stateResults) {
     if (/MoM Delta/.test(state.dashboardTopText)) {
       failures.push(`${state.name}: Dashboard top card still contains standalone MoM Delta`);
     }
-    if (/Spending Heatmap/.test(state.textSample)) {
-      failures.push(`${state.name}: Dashboard still contains Spending Heatmap as the primary insight`);
-    }
   }
 
   return failures;

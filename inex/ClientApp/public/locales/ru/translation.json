@@ -215,10 +215,6 @@
         "title": "Карточки итогов месяца",
         "description": "Место для доходов, расходов, чистых накоплений и изменений месяц к месяцу."
       },
-      "spendingHeatmap": {
-        "title": "Тепловая карта расходов",
-        "description": "Место для дневной интенсивности расходов за выбранный месяц."
-      },
       "netWorthChart": {
         "title": "График истории чистого капитала",
         "description": "Место для истории стоимости счетов по валютам и периодам."
@@ -824,15 +820,6 @@
     "internalTransfersSent": "Отправлено",
     "internalTransfersNetChange": "Чистое изменение",
     "internalTransfersCount": "Транзакции",
-    "heatmapReport": "Тепловая карта расходов",
-    "heatmapRange": "{{start}} - {{end}}",
-    "heatmapLoading": "Загружаем тепловую карту расходов",
-    "heatmapError": "Не удалось загрузить тепловую карту",
-    "heatmapEmpty": "Нет данных для тепловой карты",
-    "heatmapTooltipSpend": "Расход: {{amount}}",
-    "heatmapLegendLess": "Меньше",
-    "heatmapLegendMore": "Больше",
-    "heatmapLegendCell": "Интенсивность расходов",
     "subtitleHub": "Анализ",
     "subtitleDrilldown": "Детали отчёта",
     "allReports": "Все отчёты",
@@ -856,8 +843,6 @@
     "summaryTitle": "Сводка отчёта",
     "summaryValue": "Значение",
     "month": "Месяц",
-    "heatmapSummaryTitle": "Текстовая сводка тепловой карты",
-    "heatmapSummaryTotals": "{{days}} дней с расходами, всего {{total}}",
     "categorySummaryTitle": "Текстовая сводка отчёта по категориям",
     "categorySummaryCaption": "Итоги по категориям, показанные в таблице отчёта.",
     "budgetSummaryTitle": "Текстовая сводка бюджетного отчёта",
@@ -873,14 +858,12 @@
       "categoryDescription": "Смотрите доходы и расходы по категориям и переходите к связанным транзакциям.",
       "budgetDescription": "Сравнивайте план бюджета с фактическими расходами и остатком.",
       "historyDescription": "Просматривайте доходы, расходы и накопления за выбранный год.",
-      "heatmapDescription": "Оценивайте интенсивность ежедневных расходов за отчётный период.",
       "metricPeriod": "Период",
       "metricFocus": "Фокус",
       "metricRange": "Диапазон",
       "metricSelectedMonth": "Выбранный месяц",
       "metricBudget": "План и факт",
-      "metricYear": "12 месяцев",
-      "metricCurrentMonth": "Текущий месяц"
+      "metricYear": "12 месяцев"
     },
     "viewCategoryReport": "Открыть отчет по категориям"
   },

@@ -25,7 +25,6 @@ public class ReportsController : ApiControllerBase
 
     public const string GetCategoryReportRoute = "category";
     public const string GetMonthlyHistoryRoute = "history/{year}";
-    public const string GetSpendingHeatmapRoute = "spending-heatmap";
     public const string GetNetWorthRoute = "net-worth";
     public const string GetMonthlyFinancialPdfRoute = "monthly-pdf";
 
@@ -64,21 +63,6 @@ public class ReportsController : ApiControllerBase
     public async Task<ActionResult> GetMonthlyHistory(int year, string currency = "USD", CancellationToken ct = default)
     {
         return Ok(await _reportService.GetMonthlyHistory(CurrentUserId, year, currency, ct));
-    }
-
-    /// <summary>Get daily spending heatmap report</summary>
-    /// <param name="start">Inclusive start date</param>
-    /// <param name="end">Inclusive end date</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Daily spending totals in the user's base currency</returns>
-    [HttpGet]
-    [Route(GetSpendingHeatmapRoute)]
-    [ProducesResponseType(typeof(PagedResponse<SpendingHeatmapDayResponse, ReportMetadata>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetSpendingHeatmap(DateTime? start = null, DateTime? end = null, CancellationToken ct = default)
-    {
-        DateTime endDate = (end ?? DateTime.UtcNow).Date;
-        DateTime startDate = (start ?? endDate.AddMonths(-12)).Date;
-        return Ok(await _reportService.GetSpendingHeatmap(CurrentUserId, startDate, endDate, ct));
     }
 
     /// <summary>Get monthly historical net-worth report</summary>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BarChart3, CalendarDays, Flame, PieChart, Target } from "lucide-react";
+import { BarChart3, CalendarDays, PieChart, Target } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -43,15 +43,6 @@ const cards: ReportCard[] = [
         metricValueKey: "reports.hub.metricYear",
         sectionKey: "reports.hub.sectionTrends",
         icon: BarChart3,
-    },
-    {
-        id: "heatmap",
-        titleKey: "reports.heatmapReport",
-        descriptionKey: "reports.hub.heatmapDescription",
-        metricLabelKey: "reports.hub.metricRange",
-        metricValueKey: "reports.hub.metricCurrentMonth",
-        sectionKey: "reports.hub.sectionSpending",
-        icon: Flame,
     },
 ];
 

@@ -1,5 +1,4 @@
 import type { BudgetReportResponse } from "../../model/Report/BudgetReport";
-import type { SpendingHeatmapResponse } from "../../model/Report/SpendingHeatmap";
 import type { CategoryExchangeRate } from "../../pages/Categories/categories.utils";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
@@ -17,11 +16,10 @@ export const reportsVisualFixtureMeta = {
   baseline: "Reports mockup parity",
   fixedNow: "2026-04-30T12:00:00.000Z",
   expectedBaseCurrency: "USD",
-  expectedReportCardCount: 4,
+  expectedReportCardCount: 3,
   expectedCategoryReportRows: 3,
   expectedBudgetReportRows: 5,
   expectedHistoryMonths: 12,
-  expectedHeatmapDays: 30,
   nonApplicableStates: ["filter-empty", "drawer-open", "expanded-row"],
 } as const;
 
@@ -295,22 +293,4 @@ export const reportsVisualFixtureHistoryReport: HistoryReportResponse = {
     { month: 11, monthName: "Nov", income: 3400, expense: 2760, savings: 640 },
     { month: 12, monthName: "Dec", income: 3450, expense: 3120, savings: 330 },
   ],
-};
-
-export const reportsVisualFixtureHeatmapReport: SpendingHeatmapResponse = {
-  metadata: {
-    currency: "USD",
-    start: "2026-04-01",
-    end: "2026-04-30",
-  },
-  data: Array.from({ length: 30 }, (_, index) => {
-    const day = index + 1;
-    const spendPattern = [0, 18, 44, 0, 84, 122, 0, 12, 0, 64];
-
-    return {
-      date: `2026-04-${day.toString().padStart(2, "0")}`,
-      totalSpend: spendPattern[index % spendPattern.length] + (day % 6 === 0 ? 38 : 0),
-      currency: "USD",
-    };
-  }),
 };
