@@ -217,10 +217,6 @@
         "title": "Month summary cards",
         "description": "Reserved for income, expenses, net savings, and month-over-month deltas."
       },
-      "spendingHeatmap": {
-        "title": "Spending heatmap",
-        "description": "Reserved for daily spending intensity across the selected month."
-      },
       "netWorthChart": {
         "title": "Historical net worth chart",
         "description": "Reserved for account value history across currencies and periods."
@@ -841,17 +837,6 @@
     "internalTransfersSent": "Sent",
     "internalTransfersNetChange": "Net change",
     "internalTransfersCount": "Transactions",
-    "heatmapReport": "Spending Heatmap",
-    "heatmapRange": "{{start}} - {{end}}",
-    "heatmapLoading": "Loading spending heatmap",
-    "heatmapError": "Failed to load spending heatmap",
-    "heatmapEmpty": "No heatmap data available",
-    "heatmapTooltipSpend": "Spend: {{amount}}",
-    "heatmapLegendLess": "Less",
-    "heatmapLegendMore": "More",
-    "heatmapLegendCell": "Spending intensity",
-    "heatmapSummaryTitle": "Spending heatmap data summary",
-    "heatmapSummaryTotals": "{{days}} spend days, {{total}} total spend",
     "categorySummaryTitle": "Category report data summary",
     "categorySummaryCaption": "Category totals shown in the report table.",
     "budgetSummaryTitle": "Budget report data summary",
@@ -868,14 +853,12 @@
       "categoryDescription": "See spending and income by category, then jump into matching transactions.",
       "budgetDescription": "Compare planned budgets with actual spend and remaining capacity.",
       "historyDescription": "Review income, expenses, and savings across the selected year.",
-      "heatmapDescription": "Scan daily spending intensity for the current reporting window.",
       "metricPeriod": "Period",
       "metricFocus": "Focus",
       "metricRange": "Range",
       "metricSelectedMonth": "Selected month",
       "metricBudget": "Budget vs actual",
-      "metricYear": "12 months",
-      "metricCurrentMonth": "Current month"
+      "metricYear": "12 months"
     }
   },
   "notFound": {

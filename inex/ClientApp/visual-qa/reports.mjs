@@ -118,20 +118,6 @@ const states = [
     scenario: "populated",
     routePath: "/reports/history?year=2026",
   },
-  {
-    name: "heatmap-report-390",
-    screenshot: "heatmap-report-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "populated",
-    routePath: "/reports/heatmap?interval=2026-04",
-  },
-  {
-    name: "heatmap-error-390",
-    screenshot: "heatmap-error-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "heatmap-error",
-    routePath: "/reports/heatmap?interval=2026-04",
-  },
 ];
 
 function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef) {
@@ -173,12 +159,6 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname.startsWith("/api/reports/history/") && method === "GET") {
         return jsonResponse(fixture.reportsVisualFixtureHistoryReport);
       }
-      if (url.pathname === "/api/reports/spending-heatmap" && method === "GET") {
-        if (scenario === "heatmap-error") {
-          return problemResponse("Heatmap fixture failure", "Controlled Reports heatmap failure.", 500);
-        }
-        return jsonResponse(fixture.reportsVisualFixtureHeatmapReport);
-      }
       if (url.pathname === "/api/reports/monthly-pdf" && method === "GET") {
         return jsonResponse({ generated: true });
       }
@@ -219,7 +199,7 @@ async function applyInteraction(client, state) {
 }
 
 async function waitForReportsReady(client, state) {
-  await waitFor(client, "document.body.innerText.includes('Reports') || document.body.innerText.includes('Category Report') || document.body.innerText.includes('Budget Control') || document.body.innerText.includes('Cash Flow') || document.body.innerText.includes('Spending Heatmap')");
+  await waitFor(client, "document.body.innerText.includes('Reports') || document.body.innerText.includes('Category Report') || document.body.innerText.includes('Budget Control') || document.body.innerText.includes('Cash Flow')");
 
   if (state.routePath === "/reports") {
     await waitFor(client, "document.body.innerText.includes('Category Report') && document.body.innerText.includes('Budget Control') && document.body.innerText.includes('Cash Flow')");
@@ -227,10 +207,6 @@ async function waitForReportsReady(client, state) {
   }
   if (state.scenario === "budget-error") {
     await waitFor(client, "document.body.innerText.includes('reports.budgetReportError')");
-    return;
-  }
-  if (state.scenario === "heatmap-error") {
-    await waitFor(client, "document.body.innerText.includes('Failed to load spending heatmap')");
     return;
   }
   if (state.name.startsWith("category-empty")) {
@@ -248,9 +224,6 @@ async function waitForReportsReady(client, state) {
   if (state.routePath.startsWith("/reports/history")) {
     await waitFor(client, "document.body.innerText.includes('Cash flow chart data summary') && document.body.innerText.includes('Apr')");
     return;
-  }
-  if (state.routePath.startsWith("/reports/heatmap")) {
-    await waitFor(client, "document.body.innerText.includes('Spending heatmap data summary')");
   }
 }
 
@@ -276,8 +249,7 @@ async function collectMetrics(client, state, apiRequestCount) {
     const statCards = Array.from(document.querySelectorAll(".report-stat"));
     const tableRows = Array.from(document.querySelectorAll(".report-table .ant-table-row"));
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
-    const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary, .spending-heatmap__summary"));
-    const heatmapCells = Array.from(document.querySelectorAll(".spending-heatmap rect"));
+    const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary"));
 
     return {
       title: document.title,
@@ -301,14 +273,12 @@ async function collectMetrics(client, state, apiRequestCount) {
       tableRowCount: tableRows.length,
       chartSurfaceCount: chartSurfaces.length,
       accessibleSummaryCount: accessibleSummaries.length,
-      heatmapCellCount: heatmapCells.length,
       hubVisible: reportCards.length > 0,
       categoryReportVisible: document.body.innerText.includes("Category report data summary"),
       budgetReportVisible: document.body.innerText.includes("Budget report data summary"),
       historyReportVisible: document.body.innerText.includes("Cash flow chart data summary"),
-      heatmapReportVisible: document.body.innerText.includes("Spending heatmap data summary"),
-      reportErrorVisible: document.body.innerText.includes("reports.budgetReportError") || document.body.innerText.includes("Failed to load spending heatmap"),
-      emptyReportVisible: document.body.innerText.includes("No data") || document.body.innerText.includes("No heatmap data available"),
+      reportErrorVisible: document.body.innerText.includes("reports.budgetReportError"),
+      emptyReportVisible: document.body.innerText.includes("No data"),
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
@@ -374,7 +344,6 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       expectedCategoryReportRows: fixture.reportsVisualFixtureMeta.expectedCategoryReportRows,
       expectedBudgetReportRows: fixture.reportsVisualFixtureMeta.expectedBudgetReportRows,
       expectedHistoryMonths: fixture.reportsVisualFixtureMeta.expectedHistoryMonths,
-      expectedHeatmapDays: fixture.reportsVisualFixtureMeta.expectedHeatmapDays,
       nonApplicableStates: fixture.reportsVisualFixtureMeta.nonApplicableStates,
     },
     screenshots: stateResults.map((state) => state.screenshot),

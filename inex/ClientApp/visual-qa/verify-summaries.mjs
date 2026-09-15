@@ -136,7 +136,6 @@ const canonicalSummaries = [
       "/reports/category?interval=2026-04",
       "/reports/budget?interval=2026-04",
       "/reports/history?year=2026",
-      "/reports/heatmap?interval=2026-04",
     ],
     screenshots: [
       "hub-populated-1440.png",
@@ -151,8 +150,6 @@ const canonicalSummaries = [
       "budget-report-390.png",
       "budget-error-390.png",
       "history-report-1440.png",
-      "heatmap-report-390.png",
-      "heatmap-error-390.png",
     ],
   },
   {

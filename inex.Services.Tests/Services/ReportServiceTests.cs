@@ -125,52 +125,6 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task GetSpendingHeatmap_ReturnsZeroFilledDailyRows()
-    {
-        var service = CreateService(
-            categories: [Category(id: 10, name: "Groceries")],
-            accounts: [Account(id: 20, currency: "USD")],
-            transactions: [Transaction(id: 1, accountId: 20, categoryId: 10, amount: -25m)],
-            rates: []);
-
-        var result = await service.GetSpendingHeatmap(UserId, Start, Start.AddDays(2));
-        var rows = result.Data.ToList();
-
-        Assert.Equal(3, rows.Count);
-        Assert.All(rows, row => Assert.Equal("USD", row.Currency));
-        Assert.Equal(Start, result.Metadata.Start);
-        Assert.Equal(Start.AddDays(2), result.Metadata.End);
-        Assert.Equal(0m, rows[0].TotalSpend);
-        Assert.Equal(25m, rows[1].TotalSpend);
-        Assert.Equal(0m, rows[2].TotalSpend);
-    }
-
-    [Fact]
-    public async Task GetSpendingHeatmap_AggregatesExpensesOnlyAndExcludesSystemTransfers()
-    {
-        var expenseCategory = Category(id: 10, name: "Groceries");
-        var incomeCategory = Category(id: 11, name: "Salary");
-        var systemCategory = Category(id: 12, name: "Transfer", isSystem: true);
-
-        var service = CreateService(
-            categories: [expenseCategory, incomeCategory, systemCategory],
-            accounts: [Account(id: 20, currency: "USD")],
-            transactions:
-            [
-                Transaction(id: 1, accountId: 20, categoryId: expenseCategory.Id, amount: -30m),
-                Transaction(id: 2, accountId: 20, categoryId: expenseCategory.Id, amount: -20m, created: Start.AddDays(1)),
-                Transaction(id: 3, accountId: 20, categoryId: incomeCategory.Id, amount: 100m, created: Start.AddDays(1)),
-                Transaction(id: 4, accountId: 20, categoryId: systemCategory.Id, amount: -200m, created: Start.AddDays(1))
-            ],
-            rates: []);
-
-        var result = await service.GetSpendingHeatmap(UserId, Start, Start.AddDays(1));
-        var rows = result.Data.ToList();
-
-        Assert.Equal(50m, rows.Single(row => row.Date == Start.AddDays(1)).TotalSpend);
-    }
-
-    [Fact]
     public async Task GetMonthlyFinancialReport_CalculatesTotalsBalancesAndExcludesTransfers()
     {
         var incomeCategory = Category(id: 10, name: "Salary");
@@ -634,54 +588,6 @@ public class ReportServiceTests
         Assert.Equal(inactiveCategory.Name, report.IncomeCategories[0].Name);
         Assert.True(pdf.Length > 4);
         Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
-    }
-
-    [Fact]
-    public async Task GetSpendingHeatmap_ConvertsMixedCurrenciesUsingHistoricalRates()
-    {
-        var expenseCategory = Category(id: 10, name: "Groceries");
-
-        var service = CreateService(
-            categories: [expenseCategory],
-            accounts:
-            [
-                Account(id: 20, currency: "USD"),
-                Account(id: 21, currency: "EUR")
-            ],
-            transactions:
-            [
-                Transaction(id: 1, accountId: 20, categoryId: expenseCategory.Id, amount: -30m),
-                Transaction(id: 2, accountId: 21, categoryId: expenseCategory.Id, amount: -50m, created: Start.AddDays(1))
-            ],
-            rates:
-            [
-                Rate(currencyTo: "EUR", rate: 2m, date: Start.AddDays(1))
-            ]);
-
-        var result = await service.GetSpendingHeatmap(UserId, Start, Start.AddDays(1));
-        var rows = result.Data.ToList();
-
-        Assert.Equal(55m, rows.Single(row => row.Date == Start.AddDays(1)).TotalSpend);
-    }
-
-    [Fact]
-    public async Task GetSpendingHeatmap_IncludesTransactionsOnEndDateAfterMidnight()
-    {
-        var expenseCategory = Category(id: 10, name: "Groceries");
-
-        var service = CreateService(
-            categories: [expenseCategory],
-            accounts: [Account(id: 20, currency: "USD")],
-            transactions:
-            [
-                Transaction(id: 1, accountId: 20, categoryId: expenseCategory.Id, amount: -15m, created: Start.AddDays(1).AddHours(18))
-            ],
-            rates: []);
-
-        var result = await service.GetSpendingHeatmap(UserId, Start, Start.AddDays(1));
-        var rows = result.Data.ToList();
-
-        Assert.Equal(15m, rows.Single(row => row.Date == Start.AddDays(1)).TotalSpend);
     }
 
     [Fact]

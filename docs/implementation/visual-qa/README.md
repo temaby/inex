@@ -101,8 +101,6 @@ Reports coverage currently includes:
 - populated budget drill-down at 390px
 - controlled budget report load-error at 390px
 - populated cash-flow history chart at 1440px
-- populated heatmap drill-down at 390px
-- controlled heatmap load-error at 390px
 
 Dashboard coverage currently includes:
 
@@ -110,7 +108,6 @@ Dashboard coverage currently includes:
 - first-use empty dashboard at 390px
 - controlled month-summary load-error at 390px
 - controlled net-worth load-error at 390px
-- controlled heatmap load-error at 390px
 
 Hero consistency coverage currently includes:
 

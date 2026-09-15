@@ -17,38 +17,6 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
     }
 
     [Fact]
-    public async Task SpendingHeatmap_AnonymousRequest_Returns401()
-    {
-        var client = _factory.CreateClient();
-
-        var response = await client.GetAsync("/api/reports/spending-heatmap?start=2026-05-01&end=2026-05-02");
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task SpendingHeatmap_AuthenticatedRequest_ReturnsDailySpendRows()
-    {
-        var client = await CreateAuthenticatedClientAsync();
-        int accountId = await CreateAccountAsync(client, "heatmap-account");
-        int categoryId = await CreateCategoryAsync(client, "heatmap-category");
-        await CreateTransactionAsync(client, accountId, categoryId, new DateTime(2026, 5, 2), -42m);
-
-        var response = await client.GetAsync("/api/reports/spending-heatmap?start=2026-05-01&end=2026-05-03");
-
-        response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("USD", body.GetProperty("metadata").GetProperty("currency").GetString());
-
-        var rows = body.GetProperty("data").EnumerateArray().ToList();
-        Assert.Equal(3, rows.Count);
-        Assert.Equal(0m, rows[0].GetProperty("totalSpend").GetDecimal());
-        Assert.Equal(42m, rows[1].GetProperty("totalSpend").GetDecimal());
-        Assert.Equal(0m, rows[2].GetProperty("totalSpend").GetDecimal());
-        Assert.All(rows, row => Assert.Equal("USD", row.GetProperty("currency").GetString()));
-    }
-
-    [Fact]
     public async Task CategoryReport_AuthenticatedRequestReturnsInternalTransferSummaryOutsideOrdinaryTotals()
     {
         var client = await CreateAuthenticatedClientAsync();
@@ -247,7 +215,7 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
             categoryId,
             created,
             amount,
-            comment = "heatmap expense",
+            comment = "report expense",
         });
         response.EnsureSuccessStatusCode();
     }

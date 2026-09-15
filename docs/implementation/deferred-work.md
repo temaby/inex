@@ -4,6 +4,12 @@ Items surfaced during review but out of scope for the originating story. Each en
 
 ---
 
+## From: Issue #389 Spending Heatmap removal
+
+- **Reports visual-QA run cannot refresh evidence** — `npm run visual-qa:reports` clears the Reports output directory, then times out in the pre-existing monthly-PDF configuration interaction waiting for fixture account labels. The heatmap-specific scenarios and stale evidence were removed, and unaffected screenshots were restored from `HEAD`; repair the shared PDF visual-QA interaction before attempting a fresh Reports evidence capture.
+
+---
+
 ## From: Story 1.1 Object-Level Authorization
 
 - **Transfer creation still loads source and destination accounts by ID only** - `TransactionService.CreateAsync(CreateTransferRequest, userId)` uses `AccountRepository.Get(true).First(i => i.Id == itemDTO.AccountFromId)` and the same pattern for `AccountToId`. Story 1.1 covered single-entity read/update/delete endpoints only; transfer creation needs a follow-up ownership predicate on both accounts before creating paired transactions.
