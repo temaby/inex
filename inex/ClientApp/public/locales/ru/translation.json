@@ -697,6 +697,7 @@
     "remainingLeft": "{{amount}} {{currency}} осталось",
     "remainingOver": "{{amount}} {{currency}} сверх лимита",
     "percentUsed": "Использовано {{percent}}%",
+    "percent": "{{percent}}%",
     "dailyPace": "Дневной темп",
     "metricsUnavailable": "Метрики недоступны",
     "metricsError": "Ошибка метрик",
