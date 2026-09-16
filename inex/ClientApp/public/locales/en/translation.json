@@ -693,6 +693,7 @@
     "remainingLeft": "{{amount}} {{currency}} left",
     "remainingOver": "{{amount}} {{currency}} over",
     "percentUsed": "{{percent}}% used",
+    "percent": "{{percent}}%",
     "dailyPace": "Daily pace",
     "metricsUnavailable": "Metrics unavailable",
     "metricsError": "Metrics failed",

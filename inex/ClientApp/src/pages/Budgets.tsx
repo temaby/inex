@@ -675,8 +675,12 @@ const Budgets = () => {
                                     {highestBurnBudgets.map(({ budget, percentUsed: rowPercent, status }) => (
                                         <div className="budgets-burn-row" key={budget.id}>
                                             <span title={budget.name}>{budget.name}</span>
-                                            <UsageBar percent={rowPercent} status={status} />
-                                            <strong>{t("budgets.percentUsed", { percent: Math.round(rowPercent) })}</strong>
+                                            <UsageBar
+                                                percent={rowPercent}
+                                                status={status}
+                                                ariaLabel={t("budgets.percentUsed", { percent: Math.round(rowPercent) })}
+                                            />
+                                            <strong>{t("budgets.percent", { percent: Math.round(rowPercent) })}</strong>
                                         </div>
                                     ))}
                                 </div>
@@ -1083,12 +1087,13 @@ const PaceCell: React.FC<PaceDisplayProps> = ({ pace, currency }) => {
 interface UsageBarProps {
     percent: number;
     status: BudgetUsageStatus;
+    ariaLabel?: string;
     markerPercent?: number;
     markerLabel?: string;
     dataQa?: string;
 }
 
-const UsageBar: React.FC<UsageBarProps> = ({ percent, status, markerPercent, markerLabel, dataQa }) => {
+const UsageBar: React.FC<UsageBarProps> = ({ percent, status, ariaLabel, markerPercent, markerLabel, dataQa }) => {
     const clampedPercent = Math.max(0, Math.min(100, percent));
     const roundedPercent = Math.round(clampedPercent);
     const clampedMarkerPercent = markerPercent === undefined
@@ -1100,6 +1105,7 @@ const UsageBar: React.FC<UsageBarProps> = ({ percent, status, markerPercent, mar
             aria-valuemax={100}
             aria-valuemin={0}
             aria-valuenow={roundedPercent}
+            aria-label={ariaLabel}
             className={`budget-usage-bar is-${status}`}
             data-qa={dataQa}
             role="progressbar"
