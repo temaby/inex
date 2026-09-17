@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, DatePicker, Form, Input, message } from "antd";
 import type { MenuProps } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import { ChevronDown, ChevronLeft, ChevronRight, Copy, FilterX, Plus, RefreshCw, Target, WalletCards } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Copy, FilterX, Plus, RefreshCw, WalletCards } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
@@ -857,9 +857,9 @@ const Budgets = () => {
                                     <ListPanelColumnHeader
                                         columns={[
                                             t("budgets.budget"),
-                                            t("budgets.progress"),
+                                            t("budgets.spent"),
+                                            t("budgets.spentPlan"),
                                             t("budgets.categories"),
-                                            t("budgets.dailyPace"),
                                             t("budgets.remaining"),
                                         ]}
                                     />
@@ -878,20 +878,13 @@ const Budgets = () => {
                                         const remainingAmount = getReportMetric(reportItem, "remainingAmount");
                                         const percentageUsed = getReportMetric(reportItem, "percentageUsed");
                                         const usageStatus = isReportReady ? getBudgetUsageStatus(reportItem) : "unavailable";
-                                        const overBudget = usageStatus === "over";
-                                        const atLimit = usageStatus === "atLimit";
                                         const expanded = expandedBudgetId === budget.id;
                                         const { categoryNames, parentNames } = getBudgetCategoryContext(budget);
                                         const primaryCategory = categoryNames[0] ?? t("budgets.uncategorized");
+                                        const categoryPath = parentNames[0] && parentNames[0] !== primaryCategory
+                                            ? `${parentNames[0]} / ${primaryCategory}`
+                                            : primaryCategory;
                                         const hiddenCategoryCount = Math.max(0, categoryNames.length - 1);
-                                        const pace = isReportReady && reportItem
-                                            ? getBudgetPaceMetrics({
-                                                budgetedAmount: budget.value,
-                                                spentAmount: reportItem.spentAmount,
-                                                selectedMonth,
-                                                today,
-                                            })
-                                            : undefined;
                                         const snapshot: BudgetEditSnapshot | undefined = isReportReady && reportItem
                                             ? getBudgetEditSnapshot({
                                                 budgetedAmount: budget.value,
@@ -901,10 +894,6 @@ const Budgets = () => {
                                                 today,
                                             })
                                             : undefined;
-                                        const remainingSublabel = (remainingAmount ?? 0) < 0
-                                            ? t("budgets.remainingSublabelOver", { currency })
-                                            : t("budgets.remainingSublabelLeft", { currency });
-
                                         return (
                                             <article className={`budget-row is-${usageStatus}`} key={budget.id}>
                                                 <button
@@ -915,88 +904,55 @@ const Budgets = () => {
                                                 >
                                                     <span className="budget-row__identity">
                                                         <span className="budget-row__title">{budget.name}</span>
-                                                        <span className="budget-row__parent-context">
-                                                            {parentNames.length > 0
-                                                                ? parentNames.join(" / ")
-                                                                : t("budgets.uncategorized")}
-                                                        </span>
                                                     </span>
                                                     <span className={`budget-row__caret${expanded ? " is-expanded" : ""}`} aria-hidden="true">
                                                         <ChevronDown size={16} />
                                                     </span>
                                                 </button>
-                                                <div className="budget-row__categories">
-                                                    <span>{primaryCategory}</span>
-                                                    {hiddenCategoryCount > 0 && (
-                                                        <span>{t("budgets.categoryOverflow", { count: hiddenCategoryCount })}</span>
-                                                    )}
-                                                </div>
                                                 <div className="budget-row__progress">
                                                     <div className="budget-row__progress-meta">
                                                         {isReportReady && reportItem ? (
                                                             <>
-                                                                <span>
-                                                                    <Num value={spentAmount ?? 0} currency={currency} kind="expense" currencySize="sm" />
-                                                                    {" / "}
-                                                                    <Num value={budget.value} currency={currency} kind="neutral" currencySize="sm" />
-                                                                </span>
-                                                                <strong>{t("budgets.percentUsed", { percent: Math.round(percentageUsed ?? 0) })}</strong>
+                                                                <UsageBar
+                                                                    percent={percentageUsed ?? 0}
+                                                                    status={usageStatus}
+                                                                    ariaLabel={t("budgets.percentUsed", { percent: Math.round(percentageUsed ?? 0) })}
+                                                                />
+                                                                <strong>{t("budgets.percent", { percent: Math.round(percentageUsed ?? 0) })}</strong>
                                                             </>
                                                         ) : (
                                                             <span>{metricStateLabel}</span>
                                                         )}
                                                     </div>
-                                                    {isReportReady && reportItem ? (
-                                                        <UsageBar percent={percentageUsed ?? 0} status={usageStatus} />
-                                                    ) : (
-                                                        <div className="budget-usage-bar is-unavailable">
-                                                            <span>{metricStateLabel}</span>
-                                                        </div>
-                                                    )}
-                                                    <span className="budget-row__status">
-                                                        {!isReportReady
-                                                            ? metricStateLabel
-                                                            : overBudget
-                                                                ? t("budgets.overBudgetBy", {
-                                                                    amount: Math.abs(remainingAmount ?? 0).toLocaleString(undefined, {
-                                                                        minimumFractionDigits: 2,
-                                                                        maximumFractionDigits: 2,
-                                                                    }),
-                                                                    currency,
-                                                                })
-                                                                : atLimit
-                                                                    ? t("budgets.atLimit")
-                                                                    : t("budgets.percentUsed", { percent: Math.round(percentageUsed ?? 0) })}
-                                                    </span>
                                                 </div>
-                                                <div className="budget-row__pace" data-label={t("budgets.dailyPace")}>
-                                                    {pace ? (
-                                                        <PaceCell pace={pace} currency={currency} />
-                                                    ) : (
+                                                <div className="budget-row__spent" data-label={t("budgets.spentPlan")}>
+                                                    {!isReportReady || spentAmount === undefined ? (
                                                         <span>{metricStateLabel}</span>
+                                                    ) : (
+                                                        <span>
+                                                            <Num value={spentAmount} currency={currency} kind="expense" currencySize="sm" />
+                                                            {" / "}
+                                                            <Num value={budget.value} currency={currency} kind="neutral" currencySize="sm" />
+                                                        </span>
                                                     )}
+                                                </div>
+                                                <div className="budget-row__categories" data-label={t("budgets.categories")}>
+                                                    <span>{categoryPath}</span>
+                                                    {hiddenCategoryCount > 0 && <span>{t("budgets.categoryOverflow", { count: hiddenCategoryCount })}</span>}
                                                 </div>
                                                 <div className="budget-row__amount" data-label={t("budgets.remaining")}>
                                                     {!isReportReady || remainingAmount === undefined ? (
                                                         <span>{metricStateLabel}</span>
                                                     ) : (
-                                                        <>
-                                                            <Num
-                                                                value={remainingAmount}
-                                                                kind={remainingAmount < 0 ? "warn" : "neutral"}
-                                                                signage="signed"
-                                                                bare
-                                                            />
-                                                            <span>{remainingSublabel}</span>
-                                                        </>
+                                                        <Num
+                                                            value={remainingAmount}
+                                                            currency={currency}
+                                                            kind={remainingAmount < 0 ? "expense" : "neutral"}
+                                                            signage="signed"
+                                                            currencySize="sm"
+                                                        />
                                                     )}
                                                 </div>
-                                                {(overBudget || atLimit) && (
-                                                    <div className="budget-row__notice">
-                                                        <Target size={14} />
-                                                        {overBudget ? t("budgets.overBudget") : t("budgets.atLimit")}
-                                                    </div>
-                                                )}
                                                 {expanded && (
                                                     <div className="budget-row__edit">
                                                         <BudgetEditForm
@@ -1026,12 +982,6 @@ const Budgets = () => {
         </>
     );
 };
-
-const formatMetricAmount = (amount: number) =>
-    Math.abs(amount).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
 
 interface PaceDisplayProps {
     pace: BudgetPaceMetrics;
@@ -1063,25 +1013,6 @@ const PaceVerdict: React.FC<PaceDisplayProps> = ({ pace, currency }) => {
         return <span className="pace-verdict is-onPace">{t("budgets.pace.onPace")}</span>;
     }
     return <span className="pace-verdict is-idle">{t("budgets.pace.idle")}</span>;
-};
-
-const PaceCell: React.FC<PaceDisplayProps> = ({ pace, currency }) => {
-    const { t } = useTranslation();
-    const dailyAverage = formatMetricAmount(pace.dailyAverageSpent);
-    const paceDelta = formatMetricAmount(pace.paceDelta);
-
-    return (
-        <div className="budget-pace-cell">
-            <strong>{t("budgets.pace.dailyAverage", { amount: dailyAverage, currency })}</strong>
-            <span className={`pace-verdict is-${pace.paceStatus}`}>
-                {pace.paceStatus === "ahead" && t("budgets.pace.deltaAhead", { amount: paceDelta, currency })}
-                {pace.paceStatus === "under" && t("budgets.pace.deltaUnder", { amount: paceDelta, currency })}
-                {pace.paceStatus === "onPace" && t("budgets.pace.deltaOnPace")}
-                {pace.paceStatus === "overBudget" && t("budgets.pace.deltaOverBudget")}
-                {pace.paceStatus === "idle" && t("budgets.pace.idle")}
-            </span>
-        </div>
-    );
 };
 
 interface UsageBarProps {

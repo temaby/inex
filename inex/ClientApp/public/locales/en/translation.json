@@ -686,6 +686,7 @@
     "clearSearch": "Clear search",
     "progress": "Progress",
     "spent": "Spent",
+    "spentPlan": "Spent / plan",
     "remaining": "Remaining",
     "overBudget": "Over budget",
     "overBudgetBy": "Over by {{amount}} {{currency}}",

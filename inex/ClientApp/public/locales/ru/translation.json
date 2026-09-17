@@ -690,6 +690,7 @@
     "clearSearch": "Очистить поиск",
     "progress": "Прогресс",
     "spent": "Потрачено",
+    "spentPlan": "Расход / план",
     "remaining": "Остаток",
     "overBudget": "Превышен бюджет",
     "overBudgetBy": "Превышение на {{amount}} {{currency}}",
