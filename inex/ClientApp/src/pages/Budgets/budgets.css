@@ -344,7 +344,7 @@
 }
 
 .budgets-list .inex-list-panel__columns {
-  grid-template-columns: minmax(180px, 1.35fr) minmax(120px, 0.8fr) minmax(180px, 1.25fr) minmax(120px, 0.8fr) minmax(120px, 0.85fr);
+  grid-template-columns: minmax(150px, 1.25fr) minmax(150px, 1fr) minmax(150px, 1fr) minmax(140px, 1fr) minmax(120px, 0.85fr);
   padding-left: var(--space-4);
   padding-right: var(--space-4);
 }
@@ -353,7 +353,7 @@
   border-top: 1px solid var(--border-1);
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: minmax(180px, 1.35fr) minmax(120px, 0.8fr) minmax(180px, 1.25fr) minmax(120px, 0.8fr) minmax(120px, 0.85fr);
+  grid-template-columns: minmax(150px, 1.25fr) minmax(150px, 1fr) minmax(150px, 1fr) minmax(140px, 1fr) minmax(120px, 0.85fr);
   min-width: 0;
   padding: var(--space-3) var(--space-4);
   position: relative;
@@ -393,24 +393,16 @@
   overflow-wrap: anywhere;
 }
 
-.budget-row__parent-context,
-.budget-row__status,
-.budget-row__pace span,
-.budget-row__amount span {
+.budget-row__spent,
+.budget-row__amount {
   color: var(--fg-3);
   font-size: var(--fs-12);
-}
-
-.budget-row__parent-context {
-  color: var(--fg-2);
-  font-weight: var(--fw-semibold);
-  overflow-wrap: anywhere;
 }
 
 .budget-row__categories {
   align-content: start;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-2);
   min-width: 0;
 }
@@ -439,15 +431,15 @@
 }
 
 .budget-row__categories {
-  order: 3;
+  order: 4;
 }
 
 .budget-row__main {
   order: 1;
 }
 
-.budget-row__pace {
-  order: 4;
+.budget-row__spent {
+  order: 3;
 }
 
 .budget-row__amount {
@@ -455,7 +447,7 @@
 }
 
 .budget-row__progress-meta {
-  align-items: baseline;
+  align-items: center;
   color: var(--fg-2);
   display: flex;
   flex-wrap: wrap;
@@ -465,7 +457,8 @@
   min-width: 0;
 }
 
-.budget-row__progress-meta > span {
+.budget-row__progress-meta > .budget-usage-bar {
+  flex: 1 1 0;
   min-width: 0;
 }
 
@@ -475,37 +468,24 @@
   font-weight: var(--fw-semibold);
 }
 
-.budget-row__pace,
-.budget-row__amount,
+.budget-row__spent,
 .budget-row__amount {
-  display: grid;
   font-variant-numeric: tabular-nums;
-  gap: 2px;
   min-width: 0;
   text-align: right;
 }
 
-.budget-pace-cell {
-  display: grid;
-  gap: 2px;
+.budget-row__spent > span {
+  white-space: nowrap;
 }
 
-.budget-pace-cell strong {
-  color: var(--fg-1);
-  font-family: var(--font-num);
-  font-size: var(--fs-13);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--fw-semibold);
+.budget-row__categories span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.budget-row__notice {
-  align-items: center;
-  color: var(--expense-600);
-  display: flex;
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  gap: var(--space-1);
-  grid-column: 1 / -1;
+.budget-row__categories span + span {
+  flex: 0 0 auto;
 }
 
 .budget-row__caret {
@@ -654,10 +634,25 @@
   }
 
   .budget-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .budget-row__pace,
+  .budget-row__main {
+    grid-column: 1;
+  }
+
+  .budget-row__amount {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .budget-row__progress,
+  .budget-row__spent,
+  .budget-row__categories {
+    grid-column: 1 / -1;
+  }
+
+  .budget-row__spent,
   .budget-row__amount {
     display: flex;
     justify-content: space-between;
@@ -665,12 +660,16 @@
     text-align: left;
   }
 
-  .budget-row__pace::before,
+  .budget-row__spent::before,
   .budget-row__amount::before {
     color: var(--fg-3);
     content: attr(data-label);
     font-size: var(--fs-12);
     font-weight: var(--fw-semibold);
+  }
+
+  .budget-row__amount::before {
+    content: none;
   }
 }
 
