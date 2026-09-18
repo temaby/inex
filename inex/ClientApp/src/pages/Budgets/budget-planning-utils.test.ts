@@ -197,9 +197,11 @@ describe("budget planning helpers", () => {
         expect(getBudgetPeriodSelection(null, current).format("YYYY-MM-DD")).toBe("2026-04-01");
     });
 
-    it("omits unsupported months from the period chip window", () => {
+    it("keeps exactly three supported months in the period chip window", () => {
         expect(getSupportedBudgetPeriodWindow(dayjs("2020-01-01")).map((option) => option.key))
             .toEqual(["2020-01", "2020-02", "2020-03"]);
+        expect(getSupportedBudgetPeriodWindow(dayjs("2026-06-01")).map((option) => option.key))
+            .toEqual(["2026-05", "2026-06", "2026-07"]);
         expect(getSupportedBudgetPeriodWindow(dayjs("2030-12-01")).map((option) => option.key))
             .toEqual(["2030-10", "2030-11", "2030-12"]);
     });
@@ -214,25 +216,24 @@ describe("budget planning helpers", () => {
         expect(getSupportedBudgetMonthFromParams(null, null, dayjs("2031-06-15")).format("YYYY-MM-DD")).toBe("2030-12-01");
     });
 
-    it("sorts visible budgets by mockup toolbar modes without changing API data", () => {
+    it("sorts visible budgets by supported toolbar modes without changing API data", () => {
         const groceries = createBudgetDetails({ id: 1, name: "Groceries", value: 500, categoryIds: [1] });
         const rent = createBudgetDetails({ id: 2, name: "Rent", value: 1200, categoryIds: [2] });
         const cafes = createBudgetDetails({ id: 3, name: "Cafes", value: 200, categoryIds: [3] });
-        const budgets = [groceries, rent, cafes];
+        const dining = createBudgetDetails({ id: 4, name: "Dining", value: 500, categoryIds: [4] });
+        const budgets = [groceries, rent, cafes, dining];
         const reportItems = [
             reportItem({ categoryIds: [1], spentAmount: 450, remainingAmount: 50, percentageUsed: 90 }),
             reportItem({ categoryIds: [2], spentAmount: 700, remainingAmount: 500, percentageUsed: 58.3 }),
             reportItem({ categoryIds: [3], spentAmount: 260, remainingAmount: -60, percentageUsed: 130 }),
         ];
 
-        expect(getSortedBudgets(budgets, reportItems, "burnRate").map((budget) => budget.name))
-            .toEqual(["Cafes", "Groceries", "Rent"]);
         expect(getSortedBudgets(budgets, reportItems, "remaining").map((budget) => budget.name))
-            .toEqual(["Cafes", "Groceries", "Rent"]);
+            .toEqual(["Cafes", "Groceries", "Dining", "Rent"]);
         expect(getSortedBudgets(budgets, reportItems, "amount").map((budget) => budget.name))
-            .toEqual(["Rent", "Groceries", "Cafes"]);
+            .toEqual(["Rent", "Dining", "Groceries", "Cafes"]);
         expect(getSortedBudgets(budgets, reportItems, "name").map((budget) => budget.name))
-            .toEqual(["Cafes", "Groceries", "Rent"]);
-        expect(budgets.map((budget) => budget.name)).toEqual(["Groceries", "Rent", "Cafes"]);
+            .toEqual(["Cafes", "Dining", "Groceries", "Rent"]);
+        expect(budgets.map((budget) => budget.name)).toEqual(["Groceries", "Rent", "Cafes", "Dining"]);
     });
 });

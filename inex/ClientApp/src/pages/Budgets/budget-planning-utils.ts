@@ -25,7 +25,7 @@ export type BudgetUsageStatus = "unavailable" | "idle" | "ok" | "near" | "atLimi
 
 export type BudgetPaceStatus = "idle" | "under" | "onPace" | "ahead" | "overBudget";
 
-export type BudgetSortMode = "burnRate" | "remaining" | "amount" | "name";
+export type BudgetSortMode = "remaining" | "amount" | "name";
 
 export interface BudgetPaceMetrics {
     dayOfMonth: number;
@@ -131,11 +131,7 @@ export const getSortedBudgets = (
 
     if (sortMode === "name") return byName;
     if (sortMode === "amount") return right.value - left.value || byName;
-    if (sortMode === "remaining") {
-        return (leftReport?.remainingAmount ?? left.value) - (rightReport?.remainingAmount ?? right.value) || byName;
-    }
-
-    return (rightReport?.percentageUsed ?? 0) - (leftReport?.percentageUsed ?? 0) || byName;
+    return (leftReport?.remainingAmount ?? left.value) - (rightReport?.remainingAmount ?? right.value) || byName;
 });
 
 export const getBudgetUsageStatus = (
@@ -284,16 +280,26 @@ export const getBudgetPeriodSelection = (
 
 export const getSupportedBudgetPeriodWindow = (
     selectedMonth: Dayjs,
-    offsets = [-2, -1, 0, 1, 2],
-): BudgetPeriodOption[] =>
-    offsets
-        .map((offset) => selectedMonth.add(offset, "month").date(1).startOf("day"))
-        .filter((period) => !isBudgetPeriodDisabled(period))
+): BudgetPeriodOption[] => {
+    const normalizedMonth = getSupportedBudgetMonth(selectedMonth).date(1).startOf("day");
+    const earliestMonth = normalizedMonth.year(BUDGET_MIN_YEAR).month(0);
+    const latestStartMonth = normalizedMonth.year(BUDGET_MAX_YEAR).month(9);
+    let windowStart = normalizedMonth.subtract(1, "month");
+
+    if (windowStart.isBefore(earliestMonth, "month")) {
+        windowStart = earliestMonth;
+    } else if (windowStart.isAfter(latestStartMonth, "month")) {
+        windowStart = latestStartMonth;
+    }
+
+    return [0, 1, 2]
+        .map((offset) => windowStart.add(offset, "month").date(1).startOf("day"))
         .map((period) => ({
             key: period.format("YYYY-MM"),
             label: period.format("MMM YYYY"),
             period,
         }));
+};
 
 export const getSupportedBudgetMonthFromParams = (
     yearParam: string | null,

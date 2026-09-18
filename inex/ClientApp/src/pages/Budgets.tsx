@@ -139,7 +139,7 @@ const Budgets = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [expandedBudgetId, setExpandedBudgetId] = useState<number | null>(null);
     const [searchText, setSearchText] = useState("");
-    const [sortMode, setSortMode] = useState<BudgetSortMode>("burnRate");
+    const [sortMode, setSortMode] = useState<BudgetSortMode>("amount");
     const [drawerError, setDrawerError] = useState<string | null>(null);
     const [copyError, setCopyError] = useState<string | null>(null);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
@@ -467,7 +467,6 @@ const Budgets = () => {
     );
 
     const sortOptions = [
-        { key: "burnRate", label: t("budgets.sort.burnRate") },
         { key: "remaining", label: t("budgets.sort.remaining") },
         { key: "amount", label: t("budgets.sort.amount") },
         { key: "name", label: t("budgets.sort.name") },
