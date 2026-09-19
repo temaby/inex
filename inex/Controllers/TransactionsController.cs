@@ -11,6 +11,7 @@ using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.Transaction;
 using inex.Services.Services.Base;
+using inex.Services.Services.Authorization;
 
 namespace inex.Controllers;
 
@@ -41,9 +42,12 @@ public class TransactionsController : ApiControllerBase
 
     #region Constructors
 
-    public TransactionsController(ITransactionService transactionService)
+    public TransactionsController(
+        ITransactionService transactionService,
+        ILinkedAccountReadScopeResolver readScopeResolver)
     {
         _transactionService = transactionService;
+        _readScopeResolver = readScopeResolver;
     }
 
     #endregion Constructors
@@ -64,29 +68,33 @@ public class TransactionsController : ApiControllerBase
     /// <param name="mode">Activity mode (all, active, inactive)</param>
     /// <param name="pageSize">Amount of items per page</param>
     /// <param name="page">Current page number</param>
+    /// <param name="linkedUserId">Optional actively linked user whose transactions should be read</param>
     /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate, type, search.</param>
     /// <returns>List of transactions with pagination metadata</returns>
     [HttpGet]
     [Route(GetAllRoute)]
     [ProducesResponseType(typeof(IEnumerable<TransactionResponse>), StatusCodes.Status200OK)]
-    public ActionResult List(string? mode, int pageSize, int page, [FromQuery] TransactionFilterQuery filter)
+    public ActionResult List(string? mode, int pageSize, int page, int? linkedUserId, [FromQuery] TransactionFilterQuery filter)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        PagedResponse<TransactionResponse, PaginationMetadata> resultsDTO = _transactionService.Get(CurrentUserId, activityMode, pageSize, page, filter);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        PagedResponse<TransactionResponse, PaginationMetadata> resultsDTO = _transactionService.Get(readableUserId, activityMode, pageSize, page, filter);
         return Ok(resultsDTO);
     }
 
     /// <summary>Get transaction summary for a user</summary>
     /// <param name="mode">Activity mode (all, active, inactive)</param>
+    /// <param name="linkedUserId">Optional actively linked user whose transactions should be summarized</param>
     /// <param name="filter">Typed query filters. Supported query parameters: accountId, categoryId, tag, ref, startDate, endDate, type, search.</param>
     /// <returns>Transaction summary for the filtered scope</returns>
     [HttpGet]
     [Route(GetSummaryRoute)]
     [ProducesResponseType(typeof(TransactionSummaryResponse), StatusCodes.Status200OK)]
-    public ActionResult Summary(string? mode, [FromQuery] TransactionFilterQuery filter)
+    public ActionResult Summary(string? mode, int? linkedUserId, [FromQuery] TransactionFilterQuery filter)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        TransactionSummaryResponse resultDTO = _transactionService.GetSummary(CurrentUserId, activityMode, filter);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        TransactionSummaryResponse resultDTO = _transactionService.GetSummary(readableUserId, activityMode, filter);
         return Ok(resultDTO);
     }
 
@@ -162,6 +170,7 @@ public class TransactionsController : ApiControllerBase
     #region Private Fields
 
     private readonly ITransactionService _transactionService;
+    private readonly ILinkedAccountReadScopeResolver _readScopeResolver;
 
     #endregion Private Fields
 }
