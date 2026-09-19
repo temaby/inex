@@ -13,6 +13,7 @@ using Polly;
 using inex.Services.Infrastructure.Resilience;
 using inex.Services.Infrastructure.Time;
 using inex.Application.ExchangeRates.Synchronization.Interfaces;
+using inex.Services.Services.Authorization;
 
 namespace inex.Services.Extensions;
 
@@ -35,6 +36,7 @@ public static class InExServicesExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserOnboardingService, UserOnboardingService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ILinkedAccountReadScopeResolver, LinkedAccountReadScopeResolver>();
 
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IBudgetService, BudgetService>();

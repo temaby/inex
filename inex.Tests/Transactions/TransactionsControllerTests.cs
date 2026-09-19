@@ -1,9 +1,11 @@
 using System.Net.Http.Json;
 using inex.Data;
+using inex.Data.Models;
 using inex.Services.Models.Records.Transaction;
 using inex.Services.Services;
 using inex.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace inex.Tests.Transactions;
 
@@ -587,6 +589,146 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task LinkedRead_ActiveMasterCanListAndSummarizeLinkedTransactionsWhileDefaultStaysOwnUser()
+    {
+        var masterClient = await CreateAuthenticatedClientAsync();
+        var linkedClient = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(masterClient);
+        int linkedId = await GetCurrentUserIdAsync(linkedClient);
+        int masterAccountId = await CreateAccountAsync(masterClient, "linked-read-master-account");
+        int masterCategoryId = await CreateCategoryAsync(masterClient, "linked-read-master-category");
+        int linkedAccountId = await CreateAccountAsync(linkedClient, "linked-read-linked-account");
+        int linkedCategoryId = await CreateCategoryAsync(linkedClient, "linked-read-linked-category");
+        int masterTransactionId = await CreateTransactionWithAmountAndCommentAsync(
+            masterClient, masterAccountId, masterCategoryId, 11m, "own-scope-marker");
+        int linkedTransactionId = await CreateTransactionWithAmountAndCommentAsync(
+            linkedClient, linkedAccountId, linkedCategoryId, 25m, "linked-scope-marker");
+        await AddUserAccountLinkAsync(masterId, linkedId, UserAccountLinkStatus.Active);
+
+        var linkedListResponse = await masterClient.GetAsync(
+            $"/api/transactions?linkedUserId={linkedId}&search=linked-scope-marker&pageSize=20&page=1");
+        var linkedSummaryResponse = await masterClient.GetAsync(
+            $"/api/transactions/summary?linkedUserId={linkedId}&search=linked-scope-marker");
+        var ownListResponse = await masterClient.GetAsync(
+            "/api/transactions?search=own-scope-marker&pageSize=20&page=1");
+
+        linkedListResponse.EnsureSuccessStatusCode();
+        linkedSummaryResponse.EnsureSuccessStatusCode();
+        ownListResponse.EnsureSuccessStatusCode();
+
+        var linkedList = await linkedListResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var linkedTransaction = Assert.Single(linkedList.GetProperty("data").EnumerateArray());
+        Assert.Equal(linkedTransactionId, linkedTransaction.GetProperty("id").GetInt32());
+        Assert.Equal(1, linkedList.GetProperty("metadata").GetProperty("totalItems").GetInt32());
+
+        var linkedSummary = await linkedSummaryResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, linkedSummary.GetProperty("totalCount").GetInt32());
+        Assert.Equal(25m, Assert.Single(linkedSummary.GetProperty("currencySummaries").EnumerateArray())
+            .GetProperty("income").GetDecimal());
+
+        var ownList = await ownListResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(masterTransactionId, Assert.Single(ownList.GetProperty("data").EnumerateArray())
+            .GetProperty("id").GetInt32());
+    }
+
+    [Fact]
+    public async Task LinkedRead_ActiveRelationshipDoesNotGrantDetailOrMutationAccess()
+    {
+        var masterClient = await CreateAuthenticatedClientAsync();
+        var linkedClient = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(masterClient);
+        int linkedId = await GetCurrentUserIdAsync(linkedClient);
+        var linkedTransaction = await CreateTransactionFixtureAsync(linkedClient, "linked-owner-only");
+        await AddUserAccountLinkAsync(masterId, linkedId, UserAccountLinkStatus.Active);
+
+        var detailResponse = await masterClient.GetAsync(
+            $"/api/transactions/{linkedTransaction.TransactionId}");
+        var updateResponse = await masterClient.PutAsJsonAsync(
+            $"/api/transactions/{linkedTransaction.TransactionId}",
+            new
+            {
+                id = linkedTransaction.TransactionId,
+                accountId = linkedTransaction.AccountId,
+                categoryId = linkedTransaction.CategoryId,
+                created = DateTime.UtcNow,
+                amount = 99m,
+                comment = "attempted linked update",
+            });
+        var deleteResponse = await masterClient.DeleteAsync(
+            $"/api/transactions/{linkedTransaction.TransactionId}");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(detailResponse);
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(updateResponse);
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(deleteResponse);
+
+        var ownerResponse = await linkedClient.GetAsync(
+            $"/api/transactions/{linkedTransaction.TransactionId}");
+        ownerResponse.EnsureSuccessStatusCode();
+        var ownerTransaction = await ownerResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(10m, ownerTransaction.GetProperty("amount").GetDecimal());
+        Assert.Equal("initial", ownerTransaction.GetProperty("comment").GetString());
+    }
+
+    [Theory]
+    [InlineData(UserAccountLinkStatus.Pending)]
+    [InlineData(UserAccountLinkStatus.Rejected)]
+    [InlineData(UserAccountLinkStatus.Revoked)]
+    public async Task LinkedRead_NonActiveRelationshipReturnsGenericNotFound(UserAccountLinkStatus status)
+    {
+        var masterClient = await CreateAuthenticatedClientAsync();
+        var linkedClient = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(masterClient);
+        int linkedId = await GetCurrentUserIdAsync(linkedClient);
+        await AddUserAccountLinkAsync(masterId, linkedId, status);
+
+        await AssertLinkedScopeUnavailableAsync(masterClient, linkedId);
+    }
+
+    [Fact]
+    public async Task LinkedRead_RejectsReverseUnrelatedAndSiblingRelationships()
+    {
+        var masterClient = await CreateAuthenticatedClientAsync();
+        var linkedClient = await CreateAuthenticatedClientAsync();
+        var siblingClient = await CreateAuthenticatedClientAsync();
+        var unrelatedClient = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(masterClient);
+        int linkedId = await GetCurrentUserIdAsync(linkedClient);
+        int siblingId = await GetCurrentUserIdAsync(siblingClient);
+        await AddUserAccountLinkAsync(masterId, linkedId, UserAccountLinkStatus.Active);
+        await AddUserAccountLinkAsync(masterId, siblingId, UserAccountLinkStatus.Active);
+
+        await AssertLinkedScopeUnavailableAsync(linkedClient, masterId);
+        await AssertLinkedScopeUnavailableAsync(unrelatedClient, linkedId);
+        await AssertLinkedScopeUnavailableAsync(linkedClient, siblingId);
+    }
+
+    [Fact]
+    public async Task LinkedRead_RevocationBlocksTheNextRequest()
+    {
+        var masterClient = await CreateAuthenticatedClientAsync();
+        var linkedClient = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(masterClient);
+        int linkedId = await GetCurrentUserIdAsync(linkedClient);
+        await AddUserAccountLinkAsync(masterId, linkedId, UserAccountLinkStatus.Active);
+
+        var activeResponse = await masterClient.GetAsync(
+            $"/api/transactions?linkedUserId={linkedId}&pageSize=20&page=1");
+        activeResponse.EnsureSuccessStatusCode();
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            var link = await db.UserAccountLinks.SingleAsync(candidate =>
+                candidate.MasterUserId == masterId && candidate.LinkedUserId == linkedId);
+            link.Status = UserAccountLinkStatus.Revoked;
+            link.RevokedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+        }
+
+        await AssertLinkedScopeUnavailableAsync(masterClient, linkedId);
+    }
+
+    [Fact]
     public async Task ListAndSummary_SearchUseTheCompleteFilteredScopeBeforePagination()
     {
         var client = await CreateAuthenticatedClientAsync();
@@ -788,6 +930,50 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
         _factory.CreateAuthenticatedClientAsync(
             email: $"{Guid.NewGuid()}@example.com",
             username: $"user-{Guid.NewGuid():N}");
+
+    private static async Task<int> GetCurrentUserIdAsync(HttpClient client)
+    {
+        var response = await client.GetAsync("/api/auth/me");
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("id").GetInt32();
+    }
+
+    private async Task AddUserAccountLinkAsync(
+        int masterUserId,
+        int linkedUserId,
+        UserAccountLinkStatus status)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+        db.UserAccountLinks.Add(new UserAccountLink
+        {
+            MasterUserId = masterUserId,
+            LinkedUserId = linkedUserId,
+            Status = status,
+            CreatedAt = DateTime.UtcNow,
+            AcceptedAt = status == UserAccountLinkStatus.Active ? DateTime.UtcNow : null,
+            RevokedAt = status == UserAccountLinkStatus.Revoked ? DateTime.UtcNow : null,
+        });
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task AssertLinkedScopeUnavailableAsync(HttpClient client, int linkedUserId)
+    {
+        var listResponse = await client.GetAsync(
+            $"/api/transactions?linkedUserId={linkedUserId}&pageSize=20&page=1");
+        var summaryResponse = await client.GetAsync(
+            $"/api/transactions/summary?linkedUserId={linkedUserId}");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(listResponse);
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(summaryResponse);
+
+        var listProblem = await listResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var summaryProblem = await summaryResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Requested linked user is unavailable.", listProblem.GetProperty("detail").GetString());
+        Assert.Equal(listProblem.GetProperty("type").GetString(), summaryProblem.GetProperty("type").GetString());
+        Assert.Equal(listProblem.GetProperty("detail").GetString(), summaryProblem.GetProperty("detail").GetString());
+    }
 
     private static async Task<TransactionFixtureIds> CreateTransactionFixtureAsync(HttpClient client, string key)
     {
