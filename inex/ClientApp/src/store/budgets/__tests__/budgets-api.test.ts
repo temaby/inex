@@ -6,6 +6,7 @@ import { vi } from "vitest";
 import { BudgetDetails } from "../../../model/Budget/BudgetDetails";
 import apiClient from "../../../utils/apiClient";
 import { budgetsApi, type BudgetListParams } from "../budgets-api";
+import linkedAccountSlice, { linkedAccountActions } from "../../linkedAccount/linked-account-slice";
 
 vi.mock("../../../utils/apiClient", () => ({
   default: vi.fn(),
@@ -57,6 +58,7 @@ function createTestStore() {
   return configureStore({
     reducer: {
       [budgetsApi.reducerPath]: budgetsApi.reducer,
+      linkedAccount: linkedAccountSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(budgetsApi.middleware),
@@ -98,7 +100,31 @@ describe("budgetsApi", () => {
       url: "/budgets",
       method: "get",
       data: undefined,
-      params: mayParams,
+      params: { ...mayParams, linkedUserId: undefined },
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("getBudgets: linked user is sent and cached separately from self", async () => {
+    const store = createTestStore();
+    mockApiClient.mockImplementation(async (config) => {
+      const request = config as AxiosRequestConfig;
+      const params = request.params as BudgetListParams;
+      return axiosResponse({ data: params.linkedUserId === 2 ? aprilBudgets : mayBudgets });
+    });
+
+    const selfParams = { year: 2026, month: 5 };
+    const linkedParams = { year: 2026, month: 5, linkedUserId: 2 };
+    await store.dispatch(budgetsApi.endpoints.getBudgets.initiate(selfParams));
+    await store.dispatch(budgetsApi.endpoints.getBudgets.initiate(linkedParams));
+
+    expect(budgetsApi.endpoints.getBudgets.select(selfParams)(store.getState()).data).toEqual(mayBudgets);
+    expect(budgetsApi.endpoints.getBudgets.select(linkedParams)(store.getState()).data).toEqual(aprilBudgets);
+    expect(mockApiClient).toHaveBeenLastCalledWith({
+      url: "/budgets",
+      method: "get",
+      data: undefined,
+      params: linkedParams,
       signal: expect.any(AbortSignal),
     });
   });
@@ -191,5 +217,32 @@ describe("budgetsApi", () => {
 
     expect(cached.isError).toBe(true);
     expect(cached.error).toMatchObject({ status: 500 });
+  });
+
+  it("getBudgets: revoked linked scope clears the selected workspace", async () => {
+    const store = createTestStore();
+    store.dispatch(linkedAccountActions.beginLoading(1));
+    store.dispatch(linkedAccountActions.setLinkState({
+      userId: 1,
+      linkState: {
+        state: "master",
+        masterAccount: null,
+        linkedAccounts: [{ id: 2, username: "linked", email: null, baseCurrency: "EUR" }],
+      },
+    }));
+    store.dispatch(linkedAccountActions.selectLinkedUser(2));
+    mockApiClient.mockRejectedValue({
+      response: { status: 404, data: { detail: "Unavailable" } },
+      message: "Unavailable",
+    } as AxiosError);
+
+    await store.dispatch(budgetsApi.endpoints.getBudgets.initiate({
+      year: 2026,
+      month: 5,
+      linkedUserId: 2,
+    }));
+
+    expect(store.getState().linkedAccount.selectedLinkedUserId).toBeNull();
+    expect(store.getState().linkedAccount.unavailable).toBe(true);
   });
 });

@@ -33,6 +33,34 @@ const defaultViewportHeight = 900;
 
 const states = [
   {
+    name: "linked-readonly-1440",
+    screenshot: "linked-readonly-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
+    name: "linked-readonly-1024",
+    screenshot: "linked-readonly-1024.png",
+    viewport: { width: 1024, height: defaultViewportHeight },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
+    name: "linked-readonly-390",
+    screenshot: "linked-readonly-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
+    name: "linked-readonly-360",
+    screenshot: "linked-readonly-360.png",
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
     name: "populated-1440",
     screenshot: "populated-1440.png",
     viewport: { width: 1440, height: 1000 },
@@ -118,6 +146,18 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/auth/me" && method === "GET") {
         return jsonResponse(authUser);
       }
+      if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
+        return jsonResponse({
+          state: "master",
+          masterAccount: null,
+          linkedAccounts: [{
+            id: 2,
+            username: "Linked QA",
+            email: "linked@example.test",
+            baseCurrency: "PLN",
+          }],
+        });
+      }
       if (url.pathname === "/api/currencies" && method === "GET") {
         return jsonResponse(fixture.budgetsVisualFixtureCurrencies);
       }
@@ -155,6 +195,32 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 
 async function applyInteraction(client, state) {
   switch (state.interaction) {
+    case "select-linked-account":
+      await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
+      await evaluate(client, `(() => {
+        const selector = document.querySelector('[aria-label="Financial workspace"]');
+        if (!selector) return false;
+        const trigger = selector.closest('.ant-select')?.querySelector('.ant-select-selector') ?? selector;
+        trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+        return true;
+      })()`);
+      await waitFor(client, "Boolean(document.querySelector('.ant-select-item-option'))");
+      await evaluate(client, `(() => {
+        const option = Array.from(document.querySelectorAll('.ant-select-item-option'))
+          .find((item) => item.textContent.includes('Linked QA'));
+        if (!option) return false;
+        option.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes(\"Linked QA's financial workspace\") && document.body.innerText.includes('read-only mode')");
+      await evaluate(client, `(() => {
+        const row = document.querySelector('.budget-row__main');
+        if (!row) return false;
+        row.click();
+        return true;
+      })()`);
+      await waitFor(client, "Boolean(document.querySelector('.budget-readonly-details'))");
+      return;
     case "sort-by-amount":
       await evaluate(client, clickButtonByTextExpression("Amount"));
       await waitFor(client, `(() => {
@@ -320,6 +386,14 @@ async function collectMetrics(client, state, apiRequestCount) {
       maxRowHeight: rows.length ? Math.max(...rows.map((row) => row.getBoundingClientRect().height)) : null,
       addDrawerOpen: document.body.innerText.includes("Add Budget"),
       inlineEditOpen: editPanels.length > 0,
+      linkedSelectorVisible: Boolean(document.querySelector('[aria-label="Financial workspace"]')),
+      readOnlyNoticeVisible: document.body.innerText.includes("read-only mode"),
+      readOnlyDetailsVisible: Boolean(document.querySelector(".budget-readonly-details")),
+      editFormVisible: Boolean(document.querySelector(".budget-edit-form")),
+      addBudgetVisible: Array.from(document.querySelectorAll("button"))
+        .some((button) => button.textContent?.trim() === "Add budget"),
+      copyBudgetVisible: Array.from(document.querySelectorAll("button"))
+        .some((button) => button.textContent?.trim().startsWith("Copy from")),
       loadErrorVisible: document.body.innerText.includes("Budgets could not load"),
       filterEmptyVisible: document.body.innerText.includes("No budgets match this search"),
       firstUseEmptyVisible: document.body.innerText.includes("No budgets planned for this month"),
@@ -359,6 +433,13 @@ function collectAdditionalFailures(stateResults) {
   const failures = [];
 
   for (const state of stateResults) {
+    if (state.scenario === "linked") {
+      if (!state.linkedSelectorVisible) failures.push(`${state.name}: linked-account selector is not visible`);
+      if (!state.readOnlyNoticeVisible) failures.push(`${state.name}: linked read-only notice is not visible`);
+      if (!state.readOnlyDetailsVisible || state.editFormVisible) failures.push(`${state.name}: linked budget expansion is not read-only`);
+      if (state.addBudgetVisible || state.copyBudgetVisible || state.addDrawerOpen) failures.push(`${state.name}: budget mutation control is visible in linked mode`);
+      continue;
+    }
     if (state.scenario !== "populated") continue;
 
     if (state.viewport.width >= 1024 && state.heroSummaryWidth !== 320) {

@@ -4,6 +4,7 @@ using inex.Services.Models.Records.Budget;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
+using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -36,9 +37,12 @@ public class BudgetsController : ApiControllerBase
 
     #region Constructors
 
-    public BudgetsController(IBudgetService budgetService)
+    public BudgetsController(
+        IBudgetService budgetService,
+        ILinkedAccountReadScopeResolver readScopeResolver)
     {
         _budgetService = budgetService;
+        _readScopeResolver = readScopeResolver;
     }
 
     #endregion Constructors
@@ -56,13 +60,15 @@ public class BudgetsController : ApiControllerBase
     }
 
     /// <summary>Get list of budgets for a user</summary>
+    /// <param name="linkedUserId">Optional actively linked user whose budgets should be read</param>
     /// <returns>List of budgets</returns>
     [HttpGet]
     [Route(GetAllRoute)]
     [ProducesResponseType(typeof(IEnumerable<BudgetResponse>), StatusCodes.Status200OK)]
-    public ActionResult List(int? year = null, int? month = null)
+    public ActionResult List(int? year = null, int? month = null, int? linkedUserId = null)
     {
-        ListResponse<BudgetResponse> resultsDTO = _budgetService.Get(CurrentUserId, year, month);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        ListResponse<BudgetResponse> resultsDTO = _budgetService.Get(readableUserId, year, month);
         return Ok(resultsDTO);
     }
 
@@ -124,6 +130,7 @@ public class BudgetsController : ApiControllerBase
     #region Private Fields
 
     private readonly IBudgetService _budgetService;
+    private readonly ILinkedAccountReadScopeResolver _readScopeResolver;
 
     #endregion Private Fields
 }
