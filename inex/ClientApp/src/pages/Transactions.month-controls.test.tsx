@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ratesSlice from "../store/rates/rates-slice";
 import transactionsSlice from "../store/transactions/transactions-slice";
+import authSlice from "../store/auth/auth-slice";
+import linkedAccountSlice, { linkedAccountActions } from "../store/linkedAccount/linked-account-slice";
 import type { TransactionSummaryResult } from "../store/transactions/transactions-api";
 import Transactions from "./Transactions";
 
@@ -14,6 +16,10 @@ const navigateMock = vi.hoisted(() => vi.fn());
 const routerState = vi.hoisted(() => ({ search: "" }));
 const summaryQueryState = vi.hoisted(() => ({ data: undefined as TransactionSummaryResult | undefined }));
 const accountSummaryQueryMock = vi.hoisted(() => vi.fn());
+const accountsQueryMock = vi.hoisted(() => vi.fn());
+const categoriesQueryMock = vi.hoisted(() => vi.fn());
+const summaryQueryMock = vi.hoisted(() => vi.fn());
+const transactionListProps = vi.hoisted(() => ({ current: null as unknown }));
 
 vi.mock("react-router-dom", async () => {
     const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -85,8 +91,9 @@ vi.mock("../store/hooks", async () => {
 });
 
 vi.mock("../store/accounts/accounts-api", () => ({
-    useGetAccountsQuery: () => ({
-        data: [
+    useGetAccountsQuery: (...args: unknown[]) => {
+        accountsQueryMock(...args);
+        const accounts = [
             {
                 id: 1,
                 key: "wallet",
@@ -117,14 +124,16 @@ vi.mock("../store/accounts/accounts-api", () => ({
                 currencyId: 1,
                 currency: "USD",
             },
-        ],
-    }),
+        ];
+        return { currentData: accounts, data: accounts };
+    },
     useGetAccountsSummaryQuery: (...args: unknown[]) => accountSummaryQueryMock(...args),
 }));
 
 vi.mock("../store/categories/categories-api", () => ({
-    useGetCategoriesQuery: () => ({
-        data: [
+    useGetCategoriesQuery: (...args: unknown[]) => {
+        categoriesQueryMock(...args);
+        const categories = [
             {
                 id: 1,
                 key: "food",
@@ -135,16 +144,20 @@ vi.mock("../store/categories/categories-api", () => ({
                 isSystem: false,
                 systemCode: null,
             },
-        ],
-    }),
+        ];
+        return { currentData: categories, data: categories };
+    },
 }));
 
 vi.mock("../store/transactions/transactions-api", () => ({
-    useGetTransactionsSummaryQuery: () => ({
+    useGetTransactionsSummaryQuery: (...args: unknown[]) => {
+        summaryQueryMock(...args);
+        return {
         currentData: summaryQueryState.data,
         data: summaryQueryState.data,
         isLoading: false,
-    }),
+        };
+    },
 }));
 
 vi.mock("../store/rates/rates-action", () => ({
@@ -164,7 +177,10 @@ vi.mock("./Transactions/TransactionFilterForm", () => ({
 }));
 
 vi.mock("./Transactions/TransactionList", () => ({
-    default: ({ accounts }: { accounts: { name: string }[] }) => <div data-testid="transaction-list">{accounts.map(account => account.name).join(", ")}</div>,
+    default: (props: { accounts: { name: string }[] }) => {
+        transactionListProps.current = props;
+        return <div data-testid="transaction-list">{props.accounts.map(account => account.name).join(", ")}</div>;
+    },
 }));
 
 vi.mock("../components/primitives/InExDrawer", () => ({
@@ -181,13 +197,30 @@ vi.mock("../components/primitives/InExDrawer", () => ({
     ) : null,
 }));
 
-const renderTransactions = () => {
+const renderTransactions = (linkedMode = false) => {
     const store = configureStore({
         reducer: {
+            auth: authSlice.reducer,
+            linkedAccount: linkedAccountSlice.reducer,
             rates: ratesSlice.reducer,
             transactions: transactionsSlice.reducer,
         },
     });
+    store.dispatch(authSlice.actions.setCredentials({
+        accessToken: "token",
+        expiresIn: 3600,
+        user: { id: 1, username: "owner", email: "owner@example.com", currencyId: 1, languageCode: "en" },
+    }));
+    store.dispatch(linkedAccountActions.beginLoading(1));
+    store.dispatch(linkedAccountActions.setLinkState({
+        userId: 1,
+        linkState: {
+            state: "master",
+            masterAccount: null,
+            linkedAccounts: [{ id: 2, username: "linked", email: null, baseCurrency: "PLN" }],
+        },
+    }));
+    if (linkedMode) store.dispatch(linkedAccountActions.selectLinkedUser(2));
 
     return {
         store,
@@ -208,6 +241,10 @@ describe("Transactions month controls", () => {
         navigateMock.mockReset();
         routerState.search = "";
         summaryQueryState.data = undefined;
+        accountsQueryMock.mockReset();
+        categoriesQueryMock.mockReset();
+        summaryQueryMock.mockReset();
+        transactionListProps.current = null;
         accountSummaryQueryMock.mockReset();
         accountSummaryQueryMock.mockReturnValue({
             currentData: [],
@@ -310,7 +347,10 @@ describe("Transactions month controls", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "Account balances" }));
 
-        expect(accountSummaryQueryMock).toHaveBeenLastCalledWith([1], expect.objectContaining({ skip: false }));
+        expect(accountSummaryQueryMock).toHaveBeenLastCalledWith(
+            { ids: [1], linkedUserId: null },
+            expect.objectContaining({ skip: false }),
+        );
         expect(screen.getByText("Wallet")).toBeInTheDocument();
         expect(screen.queryByText("Hidden wallet")).not.toBeInTheDocument();
         expect(screen.queryByText("Archived wallet")).not.toBeInTheDocument();
@@ -417,5 +457,46 @@ describe("Transactions month controls", () => {
         fireEvent.click(screen.getByRole("button", { name: "Add transaction" }));
         expect(screen.getByTestId("transaction-create")).toHaveTextContent("Wallet");
         expect(screen.getByTestId("transaction-create")).not.toHaveTextContent("Archived wallet");
+    });
+
+    it("scopes all financial reads and removes mutation entry points in linked mode", () => {
+        renderTransactions(true);
+
+        expect(accountsQueryMock).toHaveBeenCalledWith({ mode: "ALL", linkedUserId: 2 });
+        expect(categoriesQueryMock).toHaveBeenCalledWith({ mode: "ALL", linkedUserId: 2 });
+        expect(summaryQueryMock).toHaveBeenCalledWith(expect.objectContaining({ linkedUserId: 2 }));
+        expect(accountSummaryQueryMock).toHaveBeenCalledWith(
+            { ids: [1], linkedUserId: 2 },
+            expect.any(Object),
+        );
+        expect(transactionListProps.current).toMatchObject({
+            dataOwnerId: 2,
+            linkedUserId: 2,
+            readOnly: true,
+        });
+        expect(screen.getByText("linkedAccount.readOnly")).toBeVisible();
+        expect(screen.queryByRole("button", { name: "Add transaction" })).not.toBeInTheDocument();
+    });
+
+    it("clears owner-specific filters while preserving compatible filters on a scope switch", () => {
+        routerState.search = "?filter=accountIds%3A1%3BcategoryIds%3A1%3Btype%3Aincome%3Bsearch%3Akeep%3Btags%3Ashared%3Brefs%3Areceipt%3B";
+        const { store } = renderTransactions();
+        navigateMock.mockClear();
+
+        act(() => {
+            store.dispatch(linkedAccountActions.selectLinkedUser(2));
+        });
+
+        expect(navigateMock).toHaveBeenCalledWith(
+            expect.not.stringContaining("accountIds"),
+            { replace: true },
+        );
+        const [target] = navigateMock.mock.calls[navigateMock.mock.calls.length - 1] ?? [];
+        expect(target).not.toContain("categoryIds");
+        expect(target).toContain("type%3Aincome");
+        expect(target).toContain("search%3Akeep");
+        expect(target).toContain("tags%3Ashared");
+        expect(target).toContain("refs%3Areceipt");
+        expect(transactionListProps.current).toMatchObject({ dataOwnerId: 2, readOnly: true });
     });
 });
