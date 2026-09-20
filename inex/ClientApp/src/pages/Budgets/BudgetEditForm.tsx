@@ -141,7 +141,7 @@ const BudgetEditForm: React.FC<BudgetEditFormProps> = ({
             }).unwrap();
             if (state.year !== record.year || state.month !== record.month) {
                 dispatch(budgetsApi.util.invalidateTags([
-                    { type: "BudgetsList", id: `${record.year}-${record.month}` },
+                    { type: "BudgetsList", id: `self:${record.year}-${record.month}` },
                 ]));
             }
             message.success(t("budgets.updated"));

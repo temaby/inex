@@ -12,6 +12,7 @@ interface ListResponse<T> {
 export interface BudgetListParams {
   year: number;
   month: number;
+  linkedUserId?: number | null;
 }
 
 export interface BudgetCreateRequest {
@@ -41,7 +42,8 @@ export interface CopyBudgetsRequest {
   targetMonth: number;
 }
 
-const budgetPeriodTag = ({ year, month }: BudgetListParams) => `${year}-${month}`;
+const budgetPeriodTag = ({ year, month, linkedUserId }: BudgetListParams) =>
+  `${linkedUserId ?? "self"}:${year}-${month}`;
 
 const invalidateBudgetReport = async (
   queryFulfilled: Promise<unknown>,
@@ -57,9 +59,9 @@ export const budgetsApi = createApi({
   tagTypes: ["BudgetsList"],
   endpoints: (builder) => ({
     getBudgets: builder.query<BudgetDetails[], BudgetListParams>({
-      query: ({ year, month }) => ({
+      query: ({ year, month, linkedUserId }) => ({
         url: "/budgets",
-        params: { year, month },
+        params: { year, month, linkedUserId: linkedUserId ?? undefined },
       }),
       transformResponse: (response: ListResponse<BudgetDetails>) =>
         response.data ?? [],
@@ -107,11 +109,11 @@ export const budgetsApi = createApi({
       invalidatesTags: (result, error, params) => [
         {
           type: "BudgetsList",
-          id: `${params.targetYear}-${params.targetMonth}`,
+          id: `self:${params.targetYear}-${params.targetMonth}`,
         },
         {
           type: "BudgetsList",
-          id: `${params.sourceYear}-${params.sourceMonth}`,
+          id: `self:${params.sourceYear}-${params.sourceMonth}`,
         },
       ],
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {

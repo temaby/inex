@@ -150,6 +150,11 @@ const Budgets = () => {
     const initialSearchParamsInvalidRef = React.useRef(false);
     const drawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
+    const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
+    const isLinkedMode = selectedLinkedUserId !== null;
 
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const year = searchParams.get("year");
@@ -174,11 +179,14 @@ const Budgets = () => {
     const selectedYear = selectedMonth.year();
     const selectedMonthNumber = selectedMonth.month() + 1;
     const reportCurrency = useMemo(
-        () => currenciesResolved ? getBudgetReportCurrency(currencies, userCurrencyId) : null,
-        [currencies, currenciesResolved, userCurrencyId],
+        () => isLinkedMode
+            ? selectedLinkedAccount?.baseCurrency.trim() || null
+            : (currenciesResolved ? getBudgetReportCurrency(currencies, userCurrencyId) : null),
+        [currencies, currenciesResolved, isLinkedMode, selectedLinkedAccount?.baseCurrency, userCurrencyId],
     );
     const reportCurrencyResolved = reportCurrency !== null;
-    const hasCurrencyResolutionError = currenciesResolved && !reportCurrencyResolved;
+    const hasCurrencyResolutionError = (isLinkedMode || currenciesResolved) && !reportCurrencyResolved;
+    const hasCurrencyLoadError = !isLinkedMode && currencyLoadError;
 
     useEffect(() => {
         let cancelled = false;
@@ -210,7 +218,11 @@ const Budgets = () => {
         isFetching: isBudgetFetching,
         error: budgetError,
         refetch: refetchBudgets,
-    } = useGetBudgetsQuery({ year: selectedYear, month: selectedMonthNumber });
+    } = useGetBudgetsQuery({
+        year: selectedYear,
+        month: selectedMonthNumber,
+        linkedUserId: selectedLinkedUserId,
+    });
     const budgets = currentBudgets ?? [];
 
     const {
@@ -224,12 +236,17 @@ const Budgets = () => {
             year: selectedYear,
             month: selectedMonthNumber,
             currency: reportCurrency,
+            linkedUserId: selectedLinkedUserId,
         }
         : skipToken);
 
     const [createBudget, { isLoading: isCreateLoading }] = useCreateBudgetMutation();
     const [copyBudgets, { isLoading: isCopyLoading }] = useCopyBudgetsMutation();
-    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+    const { currentData: allCategories = [] } = useGetCategoriesQuery(
+        selectedLinkedUserId === null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
     const categories = useMemo(
         () => allCategories.filter((category: CategoryResponse) => category.isEnabled),
         [allCategories],
@@ -249,7 +266,7 @@ const Budgets = () => {
         isLoading: !reportCurrencyResolved || isReportInitialLoading,
         isFetching: isReportFetching,
         hasReportData: Boolean(budgetReport),
-        hasError: Boolean(reportError) || hasCurrencyResolutionError || currencyLoadError,
+        hasError: Boolean(reportError) || hasCurrencyResolutionError || hasCurrencyLoadError,
     });
     const isReportReady = reportMetricsState === "ready";
     const monthOptions = getSupportedBudgetPeriodWindow(selectedMonth);
@@ -372,6 +389,13 @@ const Budgets = () => {
         setPendingCreatedFocusRestore(false);
     }, [drawerOpen, focusDrawerTrigger, hasBudgets, pendingCreatedFocusRestore]);
 
+    useEffect(() => {
+        setDrawerOpen(false);
+        setExpandedBudgetId(null);
+        setCopyError(null);
+        setDrawerError(null);
+    }, [selectedLinkedUserId]);
+
     const openDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         drawerTriggerRef.current = event.currentTarget;
         setDrawerError(null);
@@ -422,7 +446,7 @@ const Budgets = () => {
     };
 
     const handleCopyFromPrevious = async () => {
-        if (previousMonthDisabled) return;
+        if (isLinkedMode || previousMonthDisabled) return;
 
         setCopyError(null);
         try {
@@ -448,7 +472,7 @@ const Budgets = () => {
         }
     };
 
-    const pageActions = (
+    const pageActions = !isLinkedMode ? (
         <div className="budgets-page-actions">
             <InExButton
                 icon={<Copy size={16} />}
@@ -464,7 +488,7 @@ const Budgets = () => {
                 {t("budgets.addBudget")}
             </InExButton>
         </div>
-    );
+    ) : undefined;
 
     const sortOptions = [
         { key: "remaining", label: t("budgets.sort.remaining") },
@@ -486,7 +510,7 @@ const Budgets = () => {
 
     return (
         <>
-            <InExDrawer
+            {!isLinkedMode && <InExDrawer
                 open={drawerOpen}
                 onClose={closeDrawer}
                 title={t("budgets.addDrawerTitle")}
@@ -570,10 +594,20 @@ const Budgets = () => {
                         />
                     </Form.Item>
                 </Form>
-            </InExDrawer>
+            </InExDrawer>}
 
             <BasicPage frame="management" title={t("budgets.title")} subtitle={t("budgets.subtitle")} extra={pageActions}>
                 <div className="budgets-workspace">
+                    {isLinkedMode ? (
+                        <Alert
+                            className="budgets-alert"
+                            message={t("linkedAccount.readOnly", {
+                                username: selectedLinkedAccount?.username ?? "",
+                            })}
+                            showIcon
+                            type="info"
+                        />
+                    ) : null}
                     {!showFirstUseEmpty && (
                     <section className="budgets-hero" data-qa="hero-card">
                         <div className="budgets-hero__summary">
@@ -690,7 +724,7 @@ const Budgets = () => {
                     </section>
                     )}
 
-                    {copyError && (
+                    {!isLinkedMode && copyError && (
                         <Alert
                             message={copyError}
                             type="error"
@@ -735,9 +769,11 @@ const Budgets = () => {
                                     }
                                 />
                             )}
-                            {(reportError || hasCurrencyResolutionError || currencyLoadError) && (
+                            {(reportError || hasCurrencyResolutionError || hasCurrencyLoadError) && (
                                 <Alert
-                                    message={t("budgets.error.reportMetrics")}
+                                    message={t(isLinkedMode
+                                        ? "budgets.error.reportMetricsReadOnly"
+                                        : "budgets.error.reportMetrics")}
                                     type="warning"
                                     showIcon
                                     action={
@@ -764,8 +800,10 @@ const Budgets = () => {
                                 <EmptyState
                                     iconNode={<WalletCards size={30} />}
                                     title={t("budgets.emptyState.title")}
-                                    description={t("budgets.emptyState.description")}
-                                    actions={
+                                    description={isLinkedMode
+                                        ? t("linkedAccount.readOnly", { username: selectedLinkedAccount?.username ?? "" })
+                                        : t("budgets.emptyState.description")}
+                                    actions={!isLinkedMode ? (
                                         <>
                                             <InExButton icon={<Plus size={16} />} kind="primary" onClick={openDrawer}>
                                                 {t("budgets.addBudget")}
@@ -779,7 +817,7 @@ const Budgets = () => {
                                                 {t("budgets.copyFromMonth", { month: previousMonth.format("MMM YYYY") })}
                                             </InExButton>
                                         </>
-                                    }
+                                    ) : undefined}
                                 />
                             ) : (
                                 <ListPanel className="budgets-list" ariaLabel={t("budgets.listLabel")}>
@@ -954,13 +992,24 @@ const Budgets = () => {
                                                 </div>
                                                 {expanded && (
                                                     <div className="budget-row__edit">
-                                                        <BudgetEditForm
-                                                            record={budget}
-                                                            currency={currency}
-                                                            selectedMonth={selectedMonth}
-                                                            snapshot={snapshot}
-                                                            onCollapse={() => setExpandedBudgetId(null)}
-                                                        />
+                                                        {isLinkedMode ? (
+                                                            <BudgetReadOnlyDetails
+                                                                budget={budget}
+                                                                categoryNames={categoryNames}
+                                                                currency={currency}
+                                                                ownerName={selectedLinkedAccount?.username ?? ""}
+                                                                selectedMonth={selectedMonth}
+                                                                snapshot={snapshot}
+                                                            />
+                                                        ) : (
+                                                            <BudgetEditForm
+                                                                record={budget}
+                                                                currency={currency}
+                                                                selectedMonth={selectedMonth}
+                                                                snapshot={snapshot}
+                                                                onCollapse={() => setExpandedBudgetId(null)}
+                                                            />
+                                                        )}
                                                     </div>
                                                 )}
                                             </article>
@@ -981,6 +1030,83 @@ const Budgets = () => {
         </>
     );
 };
+
+interface BudgetReadOnlyDetailsProps {
+    budget: BudgetDetails;
+    categoryNames: string[];
+    currency: string;
+    ownerName: string;
+    selectedMonth: Dayjs;
+    snapshot?: BudgetEditSnapshot;
+}
+
+const BudgetReadOnlyDetails: React.FC<BudgetReadOnlyDetailsProps> = ({
+    budget,
+    categoryNames,
+    currency,
+    ownerName,
+    selectedMonth,
+    snapshot,
+}) => {
+    const { t } = useTranslation();
+
+    return (
+        <section
+            className="budget-readonly-details"
+            aria-label={t("linkedAccount.readOnly", { username: ownerName })}
+        >
+            <div className="budget-readonly-details__copy">
+                <div>
+                    <span>{t("budgets.description")}</span>
+                    <strong>{budget.description || t("budgets.noDescription")}</strong>
+                </div>
+                <div>
+                    <span>{t("budgets.categories")}</span>
+                    <strong>{categoryNames.join(", ") || t("budgets.uncategorized")}</strong>
+                </div>
+            </div>
+            {snapshot ? (
+                <section className="budget-edit-form__snapshot" aria-label={t("budgets.snapshot.title", {
+                    month: selectedMonth.format("MMM YYYY"),
+                })}>
+                    <div className="budget-edit-form__snapshot-title">
+                        {t("budgets.snapshot.title", { month: selectedMonth.format("MMM YYYY") })}
+                    </div>
+                    <div className="budget-edit-form__snapshot-grid">
+                        <ReadOnlySnapshotMetric label={t("budgets.snapshot.budget")} value={snapshot.budgetedAmount} currency={currency} />
+                        <ReadOnlySnapshotMetric label={t("budgets.snapshot.spent")} value={snapshot.spentAmount} currency={currency} kind="expense" />
+                        <ReadOnlySnapshotMetric
+                            label={t("budgets.snapshot.remaining")}
+                            value={snapshot.remainingAmount}
+                            currency={currency}
+                            kind={snapshot.remainingAmount < 0 ? "warn" : "neutral"}
+                        />
+                        <ReadOnlySnapshotMetric label={t("budgets.snapshot.dailyAverageLeft")} value={snapshot.dailyAverageLeft} currency={currency} />
+                    </div>
+                </section>
+            ) : null}
+        </section>
+    );
+};
+
+interface ReadOnlySnapshotMetricProps {
+    label: string;
+    value: number;
+    currency: string;
+    kind?: "expense" | "neutral" | "warn";
+}
+
+const ReadOnlySnapshotMetric: React.FC<ReadOnlySnapshotMetricProps> = ({
+    label,
+    value,
+    currency,
+    kind = "neutral",
+}) => (
+    <div className="budget-edit-form__snapshot-metric">
+        <span>{label}</span>
+        <strong><Num value={value} currency={currency} kind={kind} compact /></strong>
+    </div>
+);
 
 interface PaceDisplayProps {
     pace: BudgetPaceMetrics;

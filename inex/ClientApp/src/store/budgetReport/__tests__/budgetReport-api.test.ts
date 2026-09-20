@@ -80,7 +80,31 @@ describe("budgetReportApi", () => {
       url: "/reports/budget/comparison",
       method: "get",
       data: undefined,
-      params: usdParams,
+      params: { ...usdParams, linkedUserId: undefined },
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("getBudgetReport: linked user is sent and cached separately from self", async () => {
+    const store = createTestStore();
+    mockApiClient.mockImplementation(async (config) => {
+      const request = config as AxiosRequestConfig;
+      const params = request.params as BudgetReportParams;
+      return axiosResponse(params.linkedUserId === 2 ? eurReport : usdReport);
+    });
+
+    const selfParams = { year: 2026, month: 5, currency: "EUR" };
+    const linkedParams = { ...selfParams, linkedUserId: 2 };
+    await store.dispatch(budgetReportApi.endpoints.getBudgetReport.initiate(selfParams));
+    await store.dispatch(budgetReportApi.endpoints.getBudgetReport.initiate(linkedParams));
+
+    expect(budgetReportApi.endpoints.getBudgetReport.select(selfParams)(store.getState()).data).toEqual(usdReport);
+    expect(budgetReportApi.endpoints.getBudgetReport.select(linkedParams)(store.getState()).data).toEqual(eurReport);
+    expect(mockApiClient).toHaveBeenLastCalledWith({
+      url: "/reports/budget/comparison",
+      method: "get",
+      data: undefined,
+      params: linkedParams,
       signal: expect.any(AbortSignal),
     });
   });

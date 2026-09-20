@@ -769,6 +769,7 @@
       "loadDescription": "Retry loading budgets for this month.",
       "partialRefresh": "Some refreshed budget data could not load. Existing rows remain visible.",
       "reportMetrics": "Budget metrics could not load. Editing remains available.",
+      "reportMetricsReadOnly": "Budget metrics could not load. The linked budget plan remains read-only.",
       "retry": "Retry"
     },
     "formErrors": {

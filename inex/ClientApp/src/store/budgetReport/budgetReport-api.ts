@@ -7,10 +7,11 @@ export interface BudgetReportParams {
   year: number;
   month: number;
   currency: string;
+  linkedUserId?: number | null;
 }
 
-const budgetReportTag = ({ year, month, currency }: BudgetReportParams) =>
-  `${year}-${month}-${currency}`;
+const budgetReportTag = ({ year, month, currency, linkedUserId }: BudgetReportParams) =>
+  `${linkedUserId ?? "self"}:${year}-${month}-${currency}`;
 
 export const budgetReportApi = createApi({
   reducerPath: "budgetReportApi",
@@ -18,9 +19,9 @@ export const budgetReportApi = createApi({
   tagTypes: ["BudgetReport"],
   endpoints: (builder) => ({
     getBudgetReport: builder.query<BudgetReportResponse, BudgetReportParams>({
-      query: ({ year, month, currency }) => ({
+      query: ({ year, month, currency, linkedUserId }) => ({
         url: "/reports/budget/comparison",
-        params: { year, month, currency },
+        params: { year, month, currency, linkedUserId: linkedUserId ?? undefined },
       }),
       providesTags: (result, error, params) => [
         { type: "BudgetReport", id: budgetReportTag(params) },

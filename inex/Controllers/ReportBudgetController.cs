@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.Report;
 using inex.Services.Services.Base;
+using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -24,23 +25,34 @@ public class ReportBudgetController : ApiControllerBase
     #endregion Routes
 
     private readonly IBudgetReportService _budgetReportService;
+    private readonly ILinkedAccountReadScopeResolver _readScopeResolver;
 
-    public ReportBudgetController(IBudgetReportService budgetReportService)
+    public ReportBudgetController(
+        IBudgetReportService budgetReportService,
+        ILinkedAccountReadScopeResolver readScopeResolver)
     {
         _budgetReportService = budgetReportService;
+        _readScopeResolver = readScopeResolver;
     }
 
     /// <summary>Get budget comparison report</summary>
     /// <param name="year">Year</param>
     /// <param name="month">Month</param>
     /// <param name="currency">Currency</param>
+    /// <param name="linkedUserId">Optional actively linked user whose budget comparison should be read</param>
     /// <returns>Budget comparison report</returns>
     [HttpGet]
     [Route(GetComparisonRoute)]
     [ProducesResponseType(typeof(PagedResponse<BudgetComparisonResponse, ReportMetadata>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetComparison(int year, int month, string currency = "USD", CancellationToken ct = default)
+    public async Task<ActionResult> GetComparison(
+        int year,
+        int month,
+        string currency = "USD",
+        int? linkedUserId = null,
+        CancellationToken ct = default)
     {
-        var result = await _budgetReportService.GetBudgetComparison(CurrentUserId, year, month, currency, ct);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        var result = await _budgetReportService.GetBudgetComparison(readableUserId, year, month, currency, ct);
         return Ok(result);
     }
 }

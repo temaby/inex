@@ -73,6 +73,57 @@ public class BudgetReportServiceTests
         Assert.Equal([1, 2], row.CategoryIds);
     }
 
+    [Fact]
+    public async Task GetBudgetComparison_UsesTheResolvedUserForEveryFinancialDependency()
+    {
+        const int linkedUserId = 84;
+        var uow = new Mock<IInExUnitOfWork>();
+        var budgetService = new Mock<IBudgetService>();
+        var transactionService = new Mock<ITransactionService>();
+        var exchangeRateService = new Mock<IExchangeRateService>();
+        var accountService = new Mock<IAccountService>();
+        var categoryService = new Mock<ICategoryService>();
+
+        budgetService.Setup(service => service.Get(linkedUserId, 2026, 6))
+            .Returns(new ListResponse<BudgetResponse>
+            {
+                Data = [Budget(id: 1, name: "Linked plan", value: 200m, categoryIds: [1])]
+            });
+        transactionService.Setup(service => service.Get(linkedUserId, ActivityMode.ALL, It.IsAny<IDictionary<string, string>>()))
+            .Returns(new ListResponse<TransactionResponse>
+            {
+                Data = [Transaction(id: 1, accountId: 10, categoryId: 1, amount: -50m)]
+            });
+        accountService.Setup(service => service.Get(linkedUserId, ActivityMode.ALL))
+            .Returns(new ListResponse<AccountResponse> { Data = [Account(id: 10, currency: "EUR")] });
+        categoryService.Setup(service => service.Get(linkedUserId, ActivityMode.ALL))
+            .Returns(new ListResponse<CategoryResponse> { Data = [Category(id: 1, name: "Linked category")] });
+        exchangeRateService.Setup(service => service.Get(
+                linkedUserId,
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
+                "EUR",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListResponse<ExchangeRateResponse> { Data = [] });
+
+        var service = new BudgetReportService(
+            uow.Object,
+            budgetService.Object,
+            transactionService.Object,
+            exchangeRateService.Object,
+            accountService.Object,
+            categoryService.Object);
+
+        var result = await service.GetBudgetComparison(linkedUserId, 2026, 6, "EUR");
+
+        Assert.Equal(50m, Assert.Single(result.Data).SpentAmount);
+        budgetService.VerifyAll();
+        transactionService.VerifyAll();
+        accountService.VerifyAll();
+        categoryService.VerifyAll();
+        exchangeRateService.VerifyAll();
+    }
+
     private static BudgetReportService CreateService(
         IEnumerable<BudgetResponse> budgets,
         IEnumerable<CategoryResponse> categories,
