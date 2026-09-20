@@ -76,7 +76,9 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
         (account) => account.id === linkedAccount.selectedLinkedUserId,
     );
     const currentPage = location.pathname.slice(1).split("/", 1)[0];
-    const supportsLinkedContext = currentPage === "accounts" || currentPage === "categories";
+    const supportsLinkedContext = currentPage === "transactions"
+        || currentPage === "accounts"
+        || currentPage === "categories";
     const initials = getInitials(username);
 
     const handleNavigate = (path: string) => {

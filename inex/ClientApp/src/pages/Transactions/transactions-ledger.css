@@ -458,6 +458,14 @@
     background: var(--bg-stripe);
 }
 
+.transactions-ledger-row--read-only {
+    cursor: default;
+}
+
+.transactions-ledger-row--read-only:hover {
+    background: var(--bg-surface);
+}
+
 .transactions-ledger-row:focus-visible,
 .transactions-ledger-row--restored-focus,
 .transactions-filter-chip:focus-visible,

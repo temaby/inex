@@ -102,15 +102,31 @@ const Transactions = () => {
     const queryParams = new URLSearchParams(location.search);
     const filterParam = queryParams.get("filter");
 
+    const userId = useAppSelector(state => state.auth.user?.id);
+    const selectedLinkedUserId = useAppSelector(state => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector(state => state.linkedAccount.linkState?.linkedAccounts.find(
+        account => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
+    const isLinkedMode = selectedLinkedUserId !== null;
+    const dataOwnerId = selectedLinkedUserId ?? userId;
+
     const {
-        data: allAccounts = [],
+        currentData: allAccounts = [],
         isError: accountsError,
         isLoading: accountsLoading,
         refetch: refetchAccounts,
-    } = useGetAccountsQuery("ALL");
-    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
+    } = useGetAccountsQuery(
+        selectedLinkedUserId === null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
+    const { currentData: allCategories = [] } = useGetCategoriesQuery(
+        selectedLinkedUserId === null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
     const formError = useAppSelector(state => state.transactions.error);
-    const cachedExchangeRates = useAppSelector(state => state.rates.cached?.items ?? []);
+    const cachedExchangeRateItems = useAppSelector(state => state.rates.cached?.items ?? []);
     const cachedRatesLoading = useAppSelector(state => state.rates.cached?.loading ?? false);
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
 
@@ -141,7 +157,10 @@ const Transactions = () => {
         [allCategories],
     );
     const visibleOverviewAccountIds = useMemo(() => visibleOverviewAccounts.map(account => account.id), [visibleOverviewAccounts]);
-    const accountBalancesQuery = useGetAccountsSummaryQuery(visibleOverviewAccountIds, {
+    const accountBalancesQuery = useGetAccountsSummaryQuery({
+        ids: visibleOverviewAccountIds,
+        linkedUserId: selectedLinkedUserId,
+    }, {
         skip: !(accountBalancesOpen || accountBalancesRailVisible) || visibleOverviewAccountIds.length === 0,
     });
     const accountBalances = useMemo(() => {
@@ -194,16 +213,13 @@ const Transactions = () => {
     const activeMonthRangeKey = activeMonthRange.join(":");
     const [pendingMonthRange, setPendingMonthRange] = useState<number[]>(activeMonthRange);
     const pendingMonthRangeKey = pendingMonthRange.join(":");
-    const summaryQuery = useGetTransactionsSummaryQuery(canonicalFilter);
+    const summaryQuery = useGetTransactionsSummaryQuery({
+        filter: canonicalFilter,
+        linkedUserId: selectedLinkedUserId,
+    });
     const summaryData = summaryQuery.currentData;
     const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
-    const baseCurrency = summaryData?.baseCurrency ?? "USD";
-    const accountBalanceConversion = useMemo(
-        () => summaryData
-            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, cachedExchangeRates)
-            : { value: 0, isComplete: false, unavailableCurrencies: [] },
-        [accountBalances, baseCurrency, cachedExchangeRates, summaryData],
-    );
+    const baseCurrency = summaryData?.baseCurrency ?? selectedLinkedAccount?.baseCurrency ?? "USD";
     const cachedRateRange = useMemo(() => {
         const currentPeriod = summaryData?.currentScope.period;
         if (!currentPeriod) return null;
@@ -217,11 +233,20 @@ const Transactions = () => {
 
         const startDate = summaryData.previousScope?.period?.startDate.slice(0, 10) ?? currentPeriod.startDate.slice(0, 10);
         const endDate = currentPeriod.endDate.slice(0, 10);
-        return { startDate, endDate, key: `${startDate}:${endDate}` };
-    }, [accountBalances, accountBalancesOpen, accountBalancesRailVisible, baseCurrency, summaryData]);
+        return { startDate, endDate, key: `${selectedLinkedUserId ?? "self"}:${startDate}:${endDate}` };
+    }, [accountBalances, accountBalancesOpen, accountBalancesRailVisible, baseCurrency, selectedLinkedUserId, summaryData]);
     const cachedRateRangeKey = cachedRateRange?.key;
     const cachedRateStartDate = cachedRateRange?.startDate;
     const cachedRateEndDate = cachedRateRange?.endDate;
+    const cachedExchangeRates = cachedRatesCompletedKey === cachedRateRangeKey
+        ? cachedExchangeRateItems
+        : [];
+    const accountBalanceConversion = useMemo(
+        () => summaryData
+            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, cachedExchangeRates)
+            : { value: 0, isComplete: false, unavailableCurrencies: [] },
+        [accountBalances, baseCurrency, cachedExchangeRates, summaryData],
+    );
     const currentConversion = useMemo(
         () => summaryData
             ? getCashFlowConversionResult(summaryData.currentScope, baseCurrency, cachedExchangeRates)
@@ -266,14 +291,28 @@ const Transactions = () => {
 
     useEffect(() => {
         if (!cachedRateRangeKey || !cachedRateStartDate || !cachedRateEndDate) return;
-        dispatch(fetchCachedRatesForRange(cachedRateStartDate, cachedRateEndDate));
-    }, [cachedRateEndDate, cachedRateRangeKey, cachedRateStartDate, dispatch]);
+        dispatch(fetchCachedRatesForRange(cachedRateStartDate, cachedRateEndDate, selectedLinkedUserId));
+    }, [cachedRateEndDate, cachedRateRangeKey, cachedRateStartDate, dispatch, selectedLinkedUserId]);
 
     const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {
         const normalizedFilter = normalizeTransactionFilter(nextFilter);
         dispatch(transactionsActions.setFilter({ filter: normalizedFilter }));
         navigate(`${location.pathname}${buildTransactionFilterSearch(normalizedFilter)}`, { replace });
     }, [dispatch, location.pathname, navigate]);
+
+    const previousDataOwnerId = useRef(dataOwnerId);
+    useEffect(() => {
+        if (previousDataOwnerId.current === dataOwnerId) return;
+
+        previousDataOwnerId.current = dataOwnerId;
+        setAddDrawerOpen(false);
+        setFilterDrawerOpen(false);
+        applyServerFilter({
+            ...canonicalFilter,
+            accountIds: [],
+            categoryIds: [],
+        });
+    }, [applyServerFilter, canonicalFilter, dataOwnerId]);
 
     useEffect(() => {
         dispatch(transactionsActions.setFilter({ filter: canonicalFilter }));
@@ -485,6 +524,7 @@ const Transactions = () => {
     ];
 
     const openAddDrawer = () => {
+        if (isLinkedMode) return;
         dispatch(transactionsActions.setError({ error: null }));
         setCreateMode(TransactionType.EXPENSE);
         setAddDrawerOpen(true);
@@ -502,14 +542,14 @@ const Transactions = () => {
 
     const headerActions = (
         <div className="transactions-header-actions">
-            <InExButton
+            {!isLinkedMode && <InExButton
                 icon={<Plus size={16} />}
                 kind="primary"
                 onClick={openAddDrawer}
                 size="md"
             >
                 {t("transactions.addTransaction")}
-            </InExButton>
+            </InExButton>}
             {!accountBalancesPinned && (
                 <InExButton
                     aria-expanded={accountBalancesOpen}
@@ -572,6 +612,16 @@ const Transactions = () => {
         <>
             <BasicPage frame="management" title={t("transactions.title")} subtitle={t("transactions.subtitle")} extra={headerActions}>
                 <section className="transactions-ledger">
+                    {isLinkedMode ? (
+                        <Alert
+                            className="transactions-rate-warning"
+                            message={t("linkedAccount.readOnly", {
+                                username: selectedLinkedAccount?.username ?? "",
+                            })}
+                            showIcon
+                            type="info"
+                        />
+                    ) : null}
                     <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card">
                         {kpiItems.map(item => (
                             <div className={`transactions-kpi${ledgerInitialLoading || summaryInitialLoading || conversionLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
@@ -684,12 +734,15 @@ const Transactions = () => {
                             baseCurrency={baseCurrency}
                             categories={allCategories}
                             cachedExchangeRates={cachedExchangeRates}
+                            dataOwnerId={dataOwnerId}
                             filter={canonicalFilter}
+                            linkedUserId={selectedLinkedUserId}
                             onAddTransaction={openAddDrawer}
                             onClearFilters={clearAllFilters}
                             onInitialLoadingChange={setLedgerInitialLoading}
                             onVisibleCountChange={setLedgerVisibleCount}
                             periodLabel={periodLabel}
+                            readOnly={isLinkedMode}
                             refreshToken={ledgerRefreshToken}
                         />
                     </section>
@@ -698,7 +751,7 @@ const Transactions = () => {
                 </section>
             </BasicPage>
 
-            <InExDrawer
+            {!isLinkedMode && <InExDrawer
                 onClose={closeAddDrawer}
                 open={addDrawerOpen}
                 subtitle={addDrawerSubtitle}
@@ -725,7 +778,7 @@ const Transactions = () => {
                         type="error"
                     />
                 )}
-            </InExDrawer>
+            </InExDrawer>}
 
             <InExDrawer
                 bodyPadding={0}

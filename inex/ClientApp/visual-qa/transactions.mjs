@@ -126,6 +126,13 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
 }
 
 const states = [
+  ...visualQaViewports.map(({ suffix, viewport }) => ({
+    name: `linked-readonly-${suffix}`,
+    screenshot: `linked-readonly-${suffix}.png`,
+    viewport,
+    scenario: "linked",
+    interaction: "select-linked-account",
+  })),
   {
     name: "populated-1440",
     screenshot: "populated-1440.png",
@@ -437,6 +444,18 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/auth/me" && method === "GET") {
         return jsonResponse(authUser);
       }
+      if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
+        return jsonResponse({
+          state: "master",
+          masterAccount: null,
+          linkedAccounts: [{
+            id: 2,
+            username: "Linked QA",
+            email: "linked@example.test",
+            baseCurrency: "PLN",
+          }],
+        });
+      }
       if (url.pathname === "/api/accounts" && method === "GET") {
         return jsonResponse({ data: fixture.transactionsVisualFixtureAccounts });
       }
@@ -515,6 +534,25 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 
 async function applyInteraction(client, state) {
   switch (state.interaction) {
+    case "select-linked-account":
+      await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
+      await evaluate(client, `(() => {
+        const selector = document.querySelector('[aria-label="Financial workspace"]');
+        if (!selector) return false;
+        const trigger = selector.closest('.ant-select')?.querySelector('.ant-select-selector') ?? selector;
+        trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+        return true;
+      })()`);
+      await waitFor(client, "Boolean(document.querySelector('.ant-select-item-option'))");
+      await evaluate(client, `(() => {
+        const option = Array.from(document.querySelectorAll('.ant-select-item-option'))
+          .find((item) => item.textContent.includes('Linked QA'));
+        if (!option) return false;
+        option.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes(\"Linked QA's financial workspace\") && document.body.innerText.includes('read-only mode')");
+      return;
     case "search-no-match":
       await evaluate(client, `(() => {
         const input = document.querySelector("input[type='search'][aria-label='Search']");
@@ -778,6 +816,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       })),
       ledgerColumnLabels: ledgerColumns.map((column) => column.textContent?.trim() ?? ""),
       rowsKeyboardOperable: rows.every((row) => row.getAttribute("role") === "button" && row.tabIndex === 0),
+      linkedRowsNonInteractive: rows.every((row) => row.getAttribute("role") === null && row.tabIndex === -1),
+      linkedSelectorVisible: Boolean(document.querySelector('[aria-label="Financial workspace"]')),
+      readOnlyNoticeVisible: document.body.innerText.includes("read-only mode"),
+      addTransactionVisible: Array.from(document.querySelectorAll("button"))
+        .some((button) => button.textContent?.trim() === "Add transaction" || button.textContent?.trim() === "Add"),
       mobileAmountFirst: rows.every((row) => {
         const amount = row.querySelector(".transactions-row-amount");
         const main = row.querySelector(".transactions-row-main");
@@ -926,6 +969,12 @@ export const visualQaConfig = {
   buildSummary,
   collectAdditionalFailures: (stateResults) => {
     const failures = [];
+    for (const state of stateResults.filter((item) => item.scenario === "linked")) {
+      if (!state.linkedSelectorVisible) failures.push(`${state.name}: linked-account selector is not visible`);
+      if (!state.readOnlyNoticeVisible) failures.push(`${state.name}: linked read-only notice is not visible`);
+      if (state.addTransactionVisible) failures.push(`${state.name}: transaction mutation control is visible in linked mode`);
+      if (!state.linkedRowsNonInteractive || state.rowEditDrawerOpen) failures.push(`${state.name}: linked transaction rows remain editable`);
+    }
     for (const state of stateResults.filter((item) => item.name === "populated-1440" || item.name === "populated-1024")) {
       if (state.ledgerColumnLabels.join("|") !== "Description|Account|Date|Amount") {
         failures.push(`${state.name}: desktop ledger order is not Description, Account, Date, Amount`);

@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { vi } from "vitest";
 
 import apiClient from "../../../utils/apiClient";
+import linkedAccountSlice, { linkedAccountActions } from "../../linkedAccount/linked-account-slice";
 import {
   transactionsApi,
   normalizeTransactionFilterParams,
@@ -107,6 +108,7 @@ const summaryFixture: TransactionSummaryResult = {
 function createTestStore() {
   return configureStore({
     reducer: {
+      linkedAccount: linkedAccountSlice.reducer,
       [transactionsApi.reducerPath]: transactionsApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
@@ -177,6 +179,51 @@ describe("transactionsApi", () => {
       params: undefined,
       signal: expect.any(AbortSignal),
     });
+  });
+
+  it("scopes linked list and summary requests and keeps their caches separate from self-view", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(fixture));
+    const linkedArgs = { ...args, linkedUserId: 2 };
+
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate(args));
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate(linkedArgs));
+    await store.dispatch(transactionsApi.endpoints.getTransactionsSummary.initiate({
+      filter: emptyFilter,
+      linkedUserId: 2,
+    }));
+
+    expect(mockApiClient).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      url: "/transactions?mode=active&pageSize=25&page=1&linkedUserId=2",
+    }));
+    expect(mockApiClient).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      url: "/transactions/summary?mode=active&linkedUserId=2",
+    }));
+    expect(transactionsApi.endpoints.getTransactions.select(args)(store.getState()).data).toEqual(fixture);
+    expect(transactionsApi.endpoints.getTransactions.select(linkedArgs)(store.getState()).data).toEqual(fixture);
+  });
+
+  it("clears the selected linked workspace when a scoped transaction read is revoked", async () => {
+    const store = createTestStore();
+    store.dispatch(linkedAccountActions.beginLoading(1));
+    store.dispatch(linkedAccountActions.setLinkState({
+      userId: 1,
+      linkState: {
+        state: "master",
+        masterAccount: null,
+        linkedAccounts: [{ id: 2, username: "linked", email: null, baseCurrency: "PLN" }],
+      },
+    }));
+    store.dispatch(linkedAccountActions.selectLinkedUser(2));
+    mockApiClient.mockRejectedValue({
+      response: { status: 404, data: { message: "Not found" } },
+      message: "Not found",
+    } as AxiosError);
+
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate({ ...args, linkedUserId: 2 }));
+
+    expect(store.getState().linkedAccount.selectedLinkedUserId).toBeNull();
+    expect(store.getState().linkedAccount.unavailable).toBe(true);
   });
 
   it("serializes transaction range filters with times so final-day activity is included", async () => {
