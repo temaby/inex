@@ -160,7 +160,8 @@ public class AuthService : IAuthService
             .Select(link => new UserAccountSummary(
                 link.MasterUser.Id,
                 link.MasterUser.UserName!,
-                link.MasterUser.Email))
+                link.MasterUser.Email,
+                link.MasterUser.Currency.Key))
             .SingleOrDefaultAsync(ct);
 
         var linkedAccounts = await _db.UserAccountLinks
@@ -170,7 +171,8 @@ public class AuthService : IAuthService
             .Select(link => new UserAccountSummary(
                 link.LinkedUser.Id,
                 link.LinkedUser.UserName!,
-                link.LinkedUser.Email))
+                link.LinkedUser.Email,
+                link.LinkedUser.Currency.Key))
             .ToListAsync(ct);
 
         if (linkedAccounts.Count > 0)

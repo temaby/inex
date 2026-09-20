@@ -19,6 +19,7 @@ interface CategoryRowProps {
     isEditing: boolean;
     isCollapsed: boolean;
     isCollapseDisabled: boolean;
+    readOnly?: boolean;
     paletteColor: string;
     periodLabel: string;
     stats?: CategorySpendStat;
@@ -36,6 +37,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     isEditing,
     isCollapsed,
     isCollapseDisabled,
+    readOnly = false,
     paletteColor,
     periodLabel,
     stats,
@@ -76,17 +78,18 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
         .filter(Boolean)
         .join(" ");
     const indent = Math.min(depth * HIERARCHY_DEPTH_INCREMENT, 42);
+    const RowAction = readOnly ? "div" : "button";
 
     return (
         <div
             className={rowClassName}
             style={{ "--category-indent": `${indent}px` } as React.CSSProperties}
         >
-            <button
-                aria-label={t("categories.inlineEdit.edit", { category: category.name })}
-                className="category-row__edit"
-                onClick={onEdit}
-                type="button"
+            <RowAction
+                aria-label={readOnly ? undefined : t("categories.inlineEdit.edit", { category: category.name })}
+                className={`category-row__edit${readOnly ? " category-row__edit--readonly" : ""}`}
+                onClick={readOnly ? undefined : onEdit}
+                type={readOnly ? undefined : "button"}
             >
             <span className="category-row__name">
                 {depth > 0 ? <span className="category-row__connector" /> : null}
@@ -171,10 +174,12 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                     </strong>
                 )}
             </span>
-            <span className="category-row__icon" aria-hidden="true">
-                <Settings2 size={16} />
-            </span>
-            </button>
+            {!readOnly ? (
+                <span className="category-row__icon" aria-hidden="true">
+                    <Settings2 size={16} />
+                </span>
+            ) : null}
+            </RowAction>
             {hasChildren ? (
                 <HierarchyBranchToggle
                     ariaLabel={t(

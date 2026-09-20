@@ -9,6 +9,7 @@ import budgetsSlice from "../store/budgets/budgets-slice";
 import { budgetsApi } from "../store/budgets/budgets-api";
 import { categoriesApi } from "../store/categories/categories-api";
 import ratesSlice from "../store/rates/rates-slice";
+import linkedAccountSlice from "../store/linkedAccount/linked-account-slice";
 import Categories from "./Categories";
 import { getTreeExpansionStorageKey } from "./tree-expansion-preferences";
 
@@ -57,12 +58,13 @@ vi.mock("./Categories/CategoryInlineEdit", () => ({
     CategoryInlineEdit: () => <div>mock-category-edit</div>,
 }));
 
-const makeStore = () =>
+const makeStore = (withLinkedAccount = false) =>
     configureStore({
         reducer: {
             auth: authSlice.reducer,
             budgets: budgetsSlice.reducer,
             rates: ratesSlice.reducer,
+            linkedAccount: linkedAccountSlice.reducer,
             [budgetsApi.reducerPath]: budgetsApi.reducer,
             [categoriesApi.reducerPath]: categoriesApi.reducer,
         },
@@ -78,7 +80,25 @@ const makeStore = () =>
             },
             rates: {
                 items: [],
+                requestKey: null,
+                completedKey: null,
                 error: null,
+            },
+            linkedAccount: {
+                sessionUserId: 1,
+                linkState: withLinkedAccount ? {
+                    state: "master" as const,
+                    masterAccount: null,
+                    linkedAccounts: [{
+                        id: 2,
+                        username: "linked-user",
+                        email: "linked@example.com",
+                        baseCurrency: "USD",
+                    }],
+                } : null,
+                selectedLinkedUserId: withLinkedAccount ? 2 : null,
+                loading: false,
+                unavailable: false,
             },
         },
     });
@@ -104,6 +124,40 @@ describe("Categories empty-state create focus", () => {
             }
             return { data: null };
         });
+    });
+
+    it("uses linked category data and exposes no mutation controls in linked mode", async () => {
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/categories?mode=ALL&linkedUserId=2") {
+                return { data: { data: [{
+                    id: 10,
+                    key: "linked-category",
+                    name: "Linked category",
+                    description: null,
+                    parentId: null,
+                    isEnabled: true,
+                    isSystem: false,
+                    systemCode: null,
+                }] } };
+            }
+            return { data: { data: [] } };
+        });
+
+        render(
+            <Provider store={makeStore(true)}>
+                <MemoryRouter>
+                    <Categories />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        expect(await screen.findByText("Linked category")).toBeVisible();
+        expect(screen.queryByRole("button", { name: "categories.addCategory" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "categories.inlineEdit.edit" })).not.toBeInTheDocument();
+        expect(screen.getByText("linkedAccount.readOnly")).toBeVisible();
+        expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({
+            url: "/categories?mode=ALL&linkedUserId=2",
+        }));
     });
 
     it("returns focus to the mounted page-head Add category button after first create", async () => {

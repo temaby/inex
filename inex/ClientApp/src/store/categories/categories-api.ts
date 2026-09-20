@@ -34,13 +34,26 @@ interface UpdateCategoryArgs {
   isEnabled: boolean;
 }
 
+export type CategoriesQueryArgs = string | {
+  mode: string;
+  linkedUserId?: number | null;
+};
+
+function normalizeCategoriesQueryArgs(args: CategoriesQueryArgs) {
+  return typeof args === "string" ? { mode: args, linkedUserId: null } : args;
+}
+
 export const categoriesApi = createApi({
   reducerPath: "categoriesApi",
   baseQuery: axiosBaseQuery,
   tagTypes: ["Category"],
   endpoints: (builder) => ({
-    getCategories: builder.query<CategoryResponse[], string>({
-      query: (mode) => ({ url: `/categories?mode=${mode}` }),
+    getCategories: builder.query<CategoryResponse[], CategoriesQueryArgs>({
+      query: (args) => {
+        const { mode, linkedUserId } = normalizeCategoriesQueryArgs(args);
+        const linkedUserQuery = linkedUserId == null ? "" : `&linkedUserId=${linkedUserId}`;
+        return { url: `/categories?mode=${mode}${linkedUserQuery}` };
+      },
       transformResponse: (response: ListResponse<CategoryResponse>) =>
         response.data ?? [],
       providesTags: (result) =>

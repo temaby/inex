@@ -6,6 +6,7 @@ using inex.Services.Models.Records.Account;
 using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
+using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -38,9 +39,12 @@ public class AccountsController : ApiControllerBase
 
     #region Constructors
 
-    public AccountsController(IAccountService accountService)
+    public AccountsController(
+        IAccountService accountService,
+        ILinkedAccountReadScopeResolver readScopeResolver)
     {
         _accountService = accountService;
+        _readScopeResolver = readScopeResolver;
     }
 
     #endregion Constructors
@@ -59,26 +63,30 @@ public class AccountsController : ApiControllerBase
 
     /// <summary>Get list of accounts for a user</summary>
     /// <param name="mode">Activity mode (all, active, inactive)</param>
+    /// <param name="linkedUserId">Optional actively linked user whose accounts should be read</param>
     /// <returns>List of accounts</returns>
     [HttpGet]
     [Route(GetAllRoute)]
     [ProducesResponseType(typeof(ListResponse<AccountResponse>), StatusCodes.Status200OK)]
-    public ActionResult List(string mode)
+    public ActionResult List(string mode, int? linkedUserId)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ListResponse<AccountResponse> resultsDTO = _accountService.Get(CurrentUserId, activityMode);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        ListResponse<AccountResponse> resultsDTO = _accountService.Get(readableUserId, activityMode);
         return Ok(resultsDTO);
     }
 
     /// <summary>Get details for a list of accounts for a user</summary>
     /// <param name="ids">Account ids</param>
+    /// <param name="linkedUserId">Optional actively linked user whose account summaries should be read</param>
     /// <returns>List of accounts with status</returns>
     [HttpGet]
     [Route(GetStatusRoute)]
     [ProducesResponseType(typeof(ListResponse<AccountSummary>), StatusCodes.Status200OK)]
-    public ActionResult DetailsForList([FromQuery] IEnumerable<int> ids)
+    public ActionResult DetailsForList([FromQuery] IEnumerable<int> ids, int? linkedUserId)
     {
-        ListResponse<AccountSummary> resultsDTO = _accountService.GetDetails(CurrentUserId, ids);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        ListResponse<AccountSummary> resultsDTO = _accountService.GetDetails(readableUserId, ids);
         return Ok(resultsDTO);
     }
 
@@ -130,6 +138,7 @@ public class AccountsController : ApiControllerBase
     #region Private Fields
 
     private readonly IAccountService _accountService;
+    private readonly ILinkedAccountReadScopeResolver _readScopeResolver;
 
     #endregion Private Fields
 }

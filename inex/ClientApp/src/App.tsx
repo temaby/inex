@@ -11,6 +11,7 @@ import { inexTheme } from "./styles/antd-theme";
 
 import { restoreSession } from './store/auth/auth-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
+import { fetchLinkedAccountContext } from "./store/linkedAccount/linked-account-actions";
 
 import "antd/dist/reset.css";
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
@@ -42,6 +43,8 @@ const PageFallback = () => (
 const App = () => {
     const dispatch = useAppDispatch();
     const accessToken = useAppSelector(s => s.auth.accessToken);
+    const userId = useAppSelector(s => s.auth.user?.id);
+    const selectedLinkedUserId = useAppSelector(s => s.linkedAccount.selectedLinkedUserId);
     const { i18n } = useTranslation();
     const location = useLocation();
     const antdLocale = i18n.language === "ru" ? ruRU : enUS;
@@ -70,8 +73,15 @@ const App = () => {
      */
     useEffect(() => {
         if (!accessToken || location.pathname === "/transactions") return;
-        dispatch(fetchRatesForDate(date));
-    }, [accessToken, date, dispatch, location.pathname]);
+        const currentPage = location.pathname.slice(1).split("/", 1)[0];
+        const supportsLinkedContext = currentPage === "accounts" || currentPage === "categories";
+        dispatch(fetchRatesForDate(date, supportsLinkedContext ? selectedLinkedUserId : null));
+    }, [accessToken, date, dispatch, location.pathname, selectedLinkedUserId]);
+
+    useEffect(() => {
+        if (!accessToken || !userId) return;
+        dispatch(fetchLinkedAccountContext(userId));
+    }, [accessToken, dispatch, userId]);
 
     return (
         <SignageProvider>

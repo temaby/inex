@@ -110,6 +110,14 @@
     flex: 0 0 auto;
 }
 
+.inex-linked-account-select {
+    width: 190px;
+}
+
+.inex-linked-account-alert {
+    border-bottom: 1px solid var(--warn-200);
+}
+
 .inex-user-pill {
     appearance: none;
     background: var(--bg-surface);
@@ -435,6 +443,10 @@
         margin-left: auto;
     }
 
+    .inex-linked-account-select {
+        width: 140px;
+    }
+
     .r-user-pill {
         padding: 4px 8px 4px 4px;
     }
@@ -493,6 +505,20 @@
 
     .inex-list-panel__columns {
         display: none;
+    }
+}
+
+@media (max-width: 380px) {
+    .inex-logo__wordmark {
+        display: none;
+    }
+
+    .inex-topnav__brand {
+        margin-right: 8px;
+    }
+
+    .inex-linked-account-select {
+        width: 132px;
     }
 }
 

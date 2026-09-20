@@ -361,11 +361,13 @@ public class AuthControllerTests : IClassFixture<InExWebApplicationFactory>
             .Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("master", masterState.GetProperty("state").GetString());
         Assert.Equal("linked-user", masterState.GetProperty("linkedAccounts")[0].GetProperty("username").GetString());
+        Assert.Equal("USD", masterState.GetProperty("linkedAccounts")[0].GetProperty("baseCurrency").GetString());
 
         var linkedState = await (await linkedClient.GetAsync("/api/auth/link-state"))
             .Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("linked", linkedState.GetProperty("state").GetString());
         Assert.Equal("master-user", linkedState.GetProperty("masterAccount").GetProperty("username").GetString());
+        Assert.Equal("USD", linkedState.GetProperty("masterAccount").GetProperty("baseCurrency").GetString());
 
         var observerState = await (await observerClient.GetAsync("/api/auth/link-state"))
             .Content.ReadFromJsonAsync<JsonElement>();

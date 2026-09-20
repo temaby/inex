@@ -7,12 +7,13 @@ import { MemoryRouter } from "react-router-dom";
 
 import { InExButton } from "../components/primitives";
 import authSlice from "../store/auth/auth-slice";
+import linkedAccountSlice from "../store/linkedAccount/linked-account-slice";
 import AppShell from "./AppShell";
 
 vi.mock("react-i18next", async (importOriginal) => ({
     ...await importOriginal<typeof import("react-i18next")>(),
     useTranslation: () => ({
-        t: (key: string) => ({
+        t: (key: string, options?: Record<string, unknown>) => ({
             "nav.accounts": "Accounts",
             "nav.budgets": "Budgets",
             "nav.categories": "Categories",
@@ -22,14 +23,18 @@ vi.mock("react-i18next", async (importOriginal) => ({
             "nav.reports": "Reports",
             "nav.signOut": "Sign out",
             "nav.transactions": "Transactions",
+            "linkedAccount.myData": "My data",
+            "linkedAccount.selectorLabel": "Financial workspace",
+            "linkedAccount.linkedOption": `${String(options?.username)} · ${String(options?.currency)}`,
         }[key] ?? key),
     }),
 }));
 
-const renderShell = () => {
+const renderShell = (withLinkedAccount = false, route = "/dashboard") => {
     const store = configureStore({
         reducer: {
             auth: authSlice.reducer,
+            linkedAccount: linkedAccountSlice.reducer,
         },
         preloadedState: {
             auth: {
@@ -39,12 +44,28 @@ const renderShell = () => {
                 isInitializing: false,
                 error: null,
             },
+            linkedAccount: {
+                sessionUserId: 1,
+                linkState: withLinkedAccount ? {
+                    state: "master" as const,
+                    masterAccount: null,
+                    linkedAccounts: [{
+                        id: 2,
+                        username: "linked-user",
+                        email: "linked@example.com",
+                        baseCurrency: "PLN",
+                    }],
+                } : null,
+                selectedLinkedUserId: null,
+                loading: false,
+                unavailable: false,
+            },
         },
     });
 
-    return render(
+    const rendered = render(
         <Provider store={store}>
-            <MemoryRouter initialEntries={["/dashboard"]}>
+            <MemoryRouter initialEntries={[route]}>
                 <AppShell
                     extra={<InExButton kind="primary">Primary action</InExButton>}
                     frame="analytics"
@@ -56,6 +77,8 @@ const renderShell = () => {
             </MemoryRouter>
         </Provider>,
     );
+
+    return { ...rendered, store };
 };
 
 describe("AppShell keyboard navigation", () => {
@@ -108,5 +131,22 @@ describe("AppShell keyboard navigation", () => {
         await user.tab();
         await user.tab();
         expect(document.activeElement).toBe(bottomReports);
+    });
+
+    it("shows the workspace selector only to masters and switches context in memory", async () => {
+        const user = userEvent.setup();
+        const { store } = renderShell(true, "/accounts");
+
+        const selector = screen.getByRole("combobox", { name: "Financial workspace" });
+        await user.click(selector);
+        await user.click(await screen.findByText("linked-user · PLN"));
+
+        expect(store.getState().linkedAccount.selectedLinkedUserId).toBe(2);
+    });
+
+    it("hides the workspace selector on pages that do not consume linked context", () => {
+        renderShell(true, "/dashboard");
+
+        expect(screen.queryByRole("combobox", { name: "Financial workspace" })).toBeNull();
     });
 });

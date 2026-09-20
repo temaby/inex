@@ -17,7 +17,8 @@ import type { TransactionResponse } from "../model/Transaction/TransactionRespon
 import { budgetsApi, useGetBudgetsQuery } from "../store/budgets/budgets-api";
 import type { CategoryResponse } from "../store/categories/categories-api";
 import { useGetCategoriesQuery } from "../store/categories/categories-api";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { fetchCachedRatesForRange } from "../store/rates/rates-action";
 import apiClient from "../utils/apiClient";
 import CategoryCreateForm from "./Categories/CategoryCreateForm";
 import { CategoryInlineEdit } from "./Categories/CategoryInlineEdit";
@@ -96,7 +97,10 @@ const getPeriodQueryDates = ({ year, month }: CategoryPeriod) => ({
     endDate: formatPeriodDateTime(year, month, new Date(year, month, 0).getDate(), "end"),
 });
 
-const fetchPeriodTransactions = async (period: CategoryPeriod): Promise<TransactionResponse[] | null> => {
+const fetchPeriodTransactions = async (
+    period: CategoryPeriod,
+    linkedUserId?: number | null,
+): Promise<TransactionResponse[] | null> => {
     const { startDate, endDate } = getPeriodQueryDates(period);
     const transactions: TransactionResponse[] = [];
     const seenIds = new Set<number>();
@@ -111,6 +115,7 @@ const fetchPeriodTransactions = async (period: CategoryPeriod): Promise<Transact
                 page,
                 startDate,
                 endDate,
+                linkedUserId: linkedUserId ?? undefined,
             },
         });
 
@@ -165,6 +170,7 @@ const useCurrentPeriod = () => {
 
 const Categories = () => {
     const { i18n, t } = useTranslation();
+    const dispatch = useAppDispatch();
     const [addOpen, setAddOpen] = React.useState(false);
     const [activeOnly, setActiveOnly] = React.useState(true);
     const [search, setSearch] = React.useState("");
@@ -175,23 +181,40 @@ const Categories = () => {
     const [currencies, setCurrencies] = React.useState<CurrencyOption[]>([]);
     const addDrawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
     const period = useCurrentPeriod();
-    const [periodTransactions, setPeriodTransactions] = React.useState<TransactionResponse[] | null>(null);
+    const [periodTransactions, setPeriodTransactions] = React.useState<{
+        key: string;
+        items: TransactionResponse[] | null;
+    } | null>(null);
+    const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
 
     const {
-        data: categories = [],
+        currentData: categories = [],
         isLoading,
         isFetching,
         isError,
         refetch,
-    } = useGetCategoriesQuery("ALL");
-    const { data: currentMonthBudgets } = useGetBudgetsQuery(period);
-    const exchangeRates = useAppSelector((state) => state.rates.items);
+    } = useGetCategoriesQuery(
+        selectedLinkedUserId === null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
+    const { data: currentMonthBudgets } = useGetBudgetsQuery(period, { skip: selectedLinkedUserId !== null });
+    const currentRates = useAppSelector((state) => state.rates.items);
+    const cachedRates = useAppSelector((state) => state.rates.cached?.items ?? []);
+    const exchangeRates = selectedLinkedUserId === null ? currentRates : cachedRates;
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
     const userId = useAppSelector((state) => state.auth.user?.id);
-    const [collapsedCategoryIds, setCollapsedCategoryIds] = useCollapsedTreeNodeIds("categories", userId);
+    const isLinkedMode = selectedLinkedUserId !== null;
+    const dataOwnerId = selectedLinkedUserId ?? userId;
+    const [collapsedCategoryIds, setCollapsedCategoryIds] = useCollapsedTreeNodeIds("categories", dataOwnerId);
     const profileCurrency = React.useMemo(
-        () => currencies.find((currency) => currency.id === userCurrencyId)?.key.trim() || null,
-        [currencies, userCurrencyId],
+        () => selectedLinkedAccount?.baseCurrency
+            ?? currencies.find((currency) => currency.id === userCurrencyId)?.key.trim()
+            ?? null,
+        [currencies, selectedLinkedAccount?.baseCurrency, userCurrencyId],
     );
     const baseCurrency = React.useMemo(
         () => getCategoryBaseCurrency(exchangeRates, profileCurrency),
@@ -207,8 +230,11 @@ const Categories = () => {
             budget.year === period.year && budget.month === period.month,
         );
     });
-    const budgetsForPeriod = currentMonthBudgets ?? cachedBudgets;
-    const currentPeriodTransactions = periodTransactions;
+    const budgetsForPeriod = isLinkedMode ? [] : currentMonthBudgets ?? cachedBudgets;
+    const periodRequestKey = `${selectedLinkedUserId ?? "self"}:${period.year}-${period.month}`;
+    const currentPeriodTransactions = periodTransactions?.key === periodRequestKey
+        ? periodTransactions.items
+        : null;
 
     const focusAddTrigger = React.useCallback((preferPageHeadFallback = false) => {
         const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
@@ -248,24 +274,36 @@ const Categories = () => {
 
     React.useEffect(() => {
         let cancelled = false;
-        setPeriodTransactions(null);
+        const requestKey = `${selectedLinkedUserId ?? "self"}:${period.year}-${period.month}`;
 
-        fetchPeriodTransactions(period)
+        fetchPeriodTransactions(period, selectedLinkedUserId)
             .then((transactions) => {
                 if (!cancelled) {
-                    setPeriodTransactions(transactions);
+                    setPeriodTransactions({ key: requestKey, items: transactions });
                 }
             })
             .catch(() => {
                 if (!cancelled) {
-                    setPeriodTransactions(null);
+                    setPeriodTransactions({ key: requestKey, items: null });
                 }
             });
 
         return () => {
             cancelled = true;
         };
-    }, [period.month, period.year]);
+    }, [period.month, period.year, selectedLinkedUserId]);
+
+    React.useEffect(() => {
+        if (selectedLinkedUserId === null) return;
+
+        const { startDate, endDate } = getPeriodQueryDates(period);
+        dispatch(fetchCachedRatesForRange(startDate, endDate, selectedLinkedUserId));
+    }, [dispatch, period.month, period.year, selectedLinkedUserId]);
+
+    React.useEffect(() => {
+        setAddOpen(false);
+        setEditingId(null);
+    }, [selectedLinkedUserId]);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -402,7 +440,7 @@ const Categories = () => {
         </React.Fragment>
     );
 
-    const pageExtra = (
+    const pageExtra = !isLinkedMode ? (
         <InExButton
             kind="primary"
             icon={<Plus size={16} aria-hidden="true" />}
@@ -411,7 +449,7 @@ const Categories = () => {
         >
             {t("categories.addCategory")}
         </InExButton>
-    );
+    ) : undefined;
 
     const renderRows = (items: typeof rows) =>
         items.map(({ category, depth, hasChildren }) => {
@@ -430,6 +468,7 @@ const Categories = () => {
                         isEditing={isEditing}
                         isCollapsed={collapsedCategoryIds.has(String(category.id))}
                         isCollapseDisabled={isCollapseDisabled}
+                        readOnly={isLinkedMode}
                         paletteColor={categoryPaletteColor(category, categories)}
                         periodLabel={periodLabel}
                         stats={categoryStats.byCategoryId.get(category.id)}
@@ -439,7 +478,7 @@ const Categories = () => {
                         onEdit={() => setEditingId(isEditing ? null : category.id)}
                         onBranchToggle={() => toggleBranch(category.id)}
                     />
-                    {isEditing ? (
+                    {isEditing && !isLinkedMode ? (
                         <CategoryInlineEdit
                             category={category}
                             allCategories={categories}
@@ -457,7 +496,7 @@ const Categories = () => {
 
     return (
         <React.Fragment>
-            <InExDrawer
+            {!isLinkedMode ? <InExDrawer
                 title={t("categories.addDrawerTitle")}
                 subtitle={t("categories.addDrawerSubtitle")}
                 open={addOpen}
@@ -478,7 +517,7 @@ const Categories = () => {
                     onError={() => setCreateError(t("categories.formErrors.createFailed"))}
                     onSubmittingChange={setCreateSubmitting}
                 />
-            </InExDrawer>
+            </InExDrawer> : null}
             <BasicPage
                 frame="management"
                 title={t("categories.title")}
@@ -486,6 +525,16 @@ const Categories = () => {
                 extra={pageExtra}
             >
                 <div className="categories-workspace">
+                    {isLinkedMode ? (
+                        <Alert
+                            className="categories-alert"
+                            message={t("linkedAccount.readOnly", {
+                                username: selectedLinkedAccount?.username ?? "",
+                            })}
+                            showIcon
+                            type="info"
+                        />
+                    ) : null}
                     {!showFirstUseEmpty && !showFullError ? (
                         <React.Fragment>
                             <CategoriesHero
@@ -525,8 +574,10 @@ const Categories = () => {
                         <EmptyState
                             iconNode={<FolderTree size={30} />}
                             title={t("categories.emptyState.title")}
-                            description={t("categories.emptyState.description")}
-                            actions={
+                            description={isLinkedMode
+                                ? t("linkedAccount.readOnly", { username: selectedLinkedAccount?.username ?? "" })
+                                : t("categories.emptyState.description")}
+                            actions={!isLinkedMode ? (
                                 <InExButton
                                     kind="primary"
                                     icon={<Plus size={16} aria-hidden="true" />}
@@ -534,7 +585,7 @@ const Categories = () => {
                                 >
                                     {t("categories.emptyState.addManually")}
                                 </InExButton>
-                            }
+                            ) : undefined}
                         />
                     ) : null}
                     {!showFullError && !showFirstUseEmpty ? (

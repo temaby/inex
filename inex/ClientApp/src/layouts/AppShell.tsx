@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Dropdown } from "antd";
+import { Alert, Dropdown, Select } from "antd";
 import type { MenuProps } from "antd";
 import {
     ArrowLeftRight,
@@ -17,6 +17,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/auth/auth-actions";
+import { linkedAccountActions } from "../store/linkedAccount/linked-account-slice";
 import "./AppShell.css";
 
 interface AppShellProps {
@@ -70,7 +71,12 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
     const dispatch = useAppDispatch();
     const location = useLocation();
     const username = useAppSelector((s) => s.auth.user?.username);
+    const linkedAccount = useAppSelector((s) => s.linkedAccount);
+    const selectedLinkedAccount = linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === linkedAccount.selectedLinkedUserId,
+    );
     const currentPage = location.pathname.slice(1).split("/", 1)[0];
+    const supportsLinkedContext = currentPage === "accounts" || currentPage === "categories";
     const initials = getInitials(username);
 
     const handleNavigate = (path: string) => {
@@ -80,6 +86,17 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
     const handleLogout = async () => {
         await dispatch(logoutUser());
     };
+
+    const linkedAccountOptions = [
+        { label: t("linkedAccount.myData"), value: "self" },
+        ...(linkedAccount.linkState?.linkedAccounts.map((account) => ({
+            label: t("linkedAccount.linkedOption", {
+                username: account.username,
+                currency: account.baseCurrency,
+            }),
+            value: String(account.id),
+        })) ?? []),
+    ];
 
     const profileMenuItems: MenuProps["items"] = [
         {
@@ -133,6 +150,21 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
                 </nav>
 
                 <div className="inex-topnav__actions r-topnav-actions">
+                    {supportsLinkedContext
+                    && linkedAccount.linkState?.state === "master"
+                    && linkedAccountOptions.length > 1 ? (
+                        <Select
+                            aria-label={t("linkedAccount.selectorLabel")}
+                            className="inex-linked-account-select"
+                            loading={linkedAccount.loading}
+                            onChange={(value) => dispatch(linkedAccountActions.selectLinkedUser(
+                                value === "self" ? null : Number(value),
+                            ))}
+                            options={linkedAccountOptions}
+                            popupMatchSelectWidth={false}
+                            value={selectedLinkedAccount ? String(selectedLinkedAccount.id) : "self"}
+                        />
+                    ) : null}
                     <Dropdown
                         menu={{ items: profileMenuItems, onClick: handleProfileMenuClick }}
                         placement="bottomRight"
@@ -150,6 +182,18 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
                     </Dropdown>
                 </div>
             </header>
+
+            {linkedAccount.unavailable ? (
+                <Alert
+                    banner
+                    closable
+                    className="inex-linked-account-alert"
+                    message={t("linkedAccount.unavailable")}
+                    onClose={() => dispatch(linkedAccountActions.dismissUnavailable())}
+                    showIcon
+                    type="warning"
+                />
+            ) : null}
 
             <div className="inex-page-head r-page-head">
                 <div className={`inex-page-frame inex-page-frame--${frame} inex-page-head__frame`}>
