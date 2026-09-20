@@ -93,6 +93,7 @@ describe("TransactionList", () => {
                 baseCurrency="USD"
                 categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                 cachedExchangeRates={[{ currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 }]}
+                dataOwnerId={1}
                 filter={{ accountIds: [], categoryIds: [], range: [], refs: [], search: "", tags: [], type: "all" }}
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
@@ -121,6 +122,7 @@ describe("TransactionList", () => {
                 baseCurrency="USD"
                 categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                 cachedExchangeRates={[{ currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-05", rate: 4 }]}
+                dataOwnerId={1}
                 filter={{ accountIds: [], categoryIds: [], range: [], refs: [], search: "", tags: [], type: "all" }}
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
@@ -175,6 +177,7 @@ describe("TransactionList", () => {
                     baseCurrency="USD"
                     categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
                     cachedExchangeRates={[]}
+                    dataOwnerId={1}
                     filter={activeFilter}
                     onAddTransaction={vi.fn()}
                     onClearFilters={vi.fn()}
@@ -218,5 +221,34 @@ describe("TransactionList", () => {
         fireEvent.click(screen.getByRole("button", { name: "Delete fixture" }));
 
         await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Ledger" })));
+    });
+
+    it("renders linked rows without pointer or keyboard edit affordances", () => {
+        const { container } = render(
+            <TransactionList
+                accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "PLN" }]}
+                baseCurrency="USD"
+                categories={[{ id: 1, key: "groceries", name: "Groceries", description: null, isEnabled: true, isSystem: false, systemCode: null }]}
+                cachedExchangeRates={[]}
+                dataOwnerId={2}
+                filter={{ accountIds: [], categoryIds: [], range: [], refs: [], search: "", tags: [], type: "all" }}
+                linkedUserId={2}
+                onAddTransaction={vi.fn()}
+                onClearFilters={vi.fn()}
+                onInitialLoadingChange={vi.fn()}
+                onVisibleCountChange={vi.fn()}
+                periodLabel="June 2026"
+                readOnly
+                refreshToken={0}
+            />,
+        );
+
+        const row = container.querySelector(".transactions-ledger-row");
+        expect(row).toHaveClass("transactions-ledger-row--read-only");
+        expect(row).not.toHaveAttribute("role");
+        expect(row).not.toHaveAttribute("tabindex");
+        fireEvent.click(row as Element);
+        fireEvent.keyDown(row as Element, { key: "Enter" });
+        expect(screen.queryByRole("button", { name: "Save fixture" })).not.toBeInTheDocument();
     });
 });

@@ -30,12 +30,15 @@ interface TransactionListProps {
     baseCurrency: string;
     categories: CategoryResponse[];
     cachedExchangeRates: ExchangeRateLike[];
+    dataOwnerId: number | undefined;
     filter: NormalizedTransactionFilter;
+    linkedUserId?: number | null;
     onAddTransaction: () => void;
     onClearFilters: () => void;
     onInitialLoadingChange: (loading: boolean) => void;
     onVisibleCountChange: (count: number) => void;
     periodLabel: string;
+    readOnly?: boolean;
     refreshToken: number;
 }
 
@@ -62,7 +65,7 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
     return Array.from(groups.values()).sort((left, right) => right.dateKey.localeCompare(left.dateKey));
 };
 
-const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categories, filter, onAddTransaction, onClearFilters, onInitialLoadingChange, onVisibleCountChange, periodLabel, refreshToken }: TransactionListProps) => {
+const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categories, dataOwnerId, filter, linkedUserId, onAddTransaction, onClearFilters, onInitialLoadingChange, onVisibleCountChange, periodLabel, readOnly = false, refreshToken }: TransactionListProps) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const formError = useAppSelector(state => state.transactions.error);
@@ -73,7 +76,10 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
     const [restoredFocusId, setRestoredFocusId] = useState<number | null>(null);
     const initialFailureRef = useRef<HTMLDivElement>(null);
     const navigationMode = getTransactionNavigationMode(filter.range);
-    const requestKey = useMemo(() => JSON.stringify({ filter, pageSize: pagination.size, navigationMode }), [filter, pagination.size, navigationMode]);
+    const requestKey = useMemo(
+        () => JSON.stringify({ dataOwnerId, filter, pageSize: pagination.size, navigationMode }),
+        [dataOwnerId, filter, pagination.size, navigationMode],
+    );
     const [progressivePages, setProgressivePages] = useState(() => createProgressivePageAccumulator<TransactionResponse>(requestKey));
     const loadMoreSentinel = useRef<HTMLDivElement | null>(null);
     const handledRefreshToken = useRef(refreshToken);
@@ -86,8 +92,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
 
     const requestedPage = navigationMode === "progressive" ? requestedProgressivePage : pagination.current;
     const query = useGetTransactionsQuery(
-        { pageSize: pagination.size, page: requestedPage, filter },
-        { skip: accounts.length === 0 || categories.length === 0 },
+        { pageSize: pagination.size, page: requestedPage, filter, linkedUserId },
     );
     const currentPageData = query.currentData;
 
@@ -150,6 +155,10 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
         setEditRecord(null);
     }, []);
 
+    useEffect(() => {
+        setEditRecord(null);
+    }, [dataOwnerId]);
+
     const restoreLedgerFocusAfterMutation = useCallback((updatedTransactionId: number | null) => {
         closeEditDrawer();
         const queueFocus = (refreshedPage?: TransactionsPagedResult) => {
@@ -159,7 +168,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
         if (navigationMode === "progressive") {
             setRequestedProgressivePage(1);
             setProgressivePages(createProgressivePageAccumulator<TransactionResponse>(requestKey));
-            void dispatch(transactionsApi.endpoints.getTransactions.initiate({ pageSize: pagination.size, page: 1, filter }, { forceRefetch: true })).unwrap()
+            void dispatch(transactionsApi.endpoints.getTransactions.initiate({ pageSize: pagination.size, page: 1, filter, linkedUserId }, { forceRefetch: true })).unwrap()
                 .then(queueFocus)
                 .catch(() => queueFocus());
             return;
@@ -168,7 +177,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
         void query.refetch().unwrap()
             .then(queueFocus)
             .catch(() => queueFocus());
-    }, [closeEditDrawer, dispatch, filter, navigationMode, pagination.size, query, requestKey]);
+    }, [closeEditDrawer, dispatch, filter, linkedUserId, navigationMode, pagination.size, query, requestKey]);
 
     useEffect(() => {
         if (handledRefreshToken.current === refreshToken) return;
@@ -178,14 +187,14 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
             setRequestedProgressivePage(1);
             setProgressivePages(createProgressivePageAccumulator<TransactionResponse>(requestKey));
             void dispatch(transactionsApi.endpoints.getTransactions.initiate(
-                { pageSize: pagination.size, page: 1, filter },
+                { pageSize: pagination.size, page: 1, filter, linkedUserId },
                 { forceRefetch: true, subscribe: false },
             ));
             return;
         }
 
         void query.refetch();
-    }, [dispatch, filter, navigationMode, pagination.size, query, refreshToken, requestKey]);
+    }, [dispatch, filter, linkedUserId, navigationMode, pagination.size, query, refreshToken, requestKey]);
 
     useEffect(() => {
         if (focusTargetId === undefined) return undefined;
@@ -222,7 +231,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
     }
 
     if (!isCurrentDataLoading && transactions.length === 0) {
-        return <div className="transactions-empty-wrap"><EmptyState actions={<InExButton icon={<Plus size={15} />} kind="primary" onClick={onAddTransaction} size="md">{t("transactions.add")}</InExButton>} iconNode={<Inbox size={28} />} description={t("transactions.emptyDescription")} title={t("transactions.empty")} /></div>;
+        return <div className="transactions-empty-wrap"><EmptyState actions={readOnly ? undefined : <InExButton icon={<Plus size={15} />} kind="primary" onClick={onAddTransaction} size="md">{t("transactions.add")}</InExButton>} iconNode={<Inbox size={28} />} description={t("transactions.emptyDescription")} title={t("transactions.empty")} /></div>;
     }
 
     return <>
@@ -242,12 +251,19 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
                 const currency = account?.currency ?? transaction.accountCurrency;
                 const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, transaction.created, baseCurrency, cachedExchangeRates);
                 const openEdit = () => {
+                    if (readOnly) return;
                     setRestoredFocusId(null);
                     setEditRecord(transaction);
                 };
-                return <div className={`transactions-ledger-row transactions-ledger-row--${kind}${restoredFocusId === transaction.id ? " transactions-ledger-row--restored-focus" : ""}`} data-transaction-id={transaction.id} key={transaction.id} onBlur={() => setRestoredFocusId(null)} onClick={openEdit} onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEdit(); }
-                }} role="button" tabIndex={0}>
+                const interactiveProps: React.HTMLAttributes<HTMLDivElement> = readOnly ? {} : {
+                    onClick: openEdit,
+                    onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openEdit(); }
+                    },
+                    role: "button",
+                    tabIndex: 0,
+                };
+                return <div className={`transactions-ledger-row transactions-ledger-row--${kind}${readOnly ? " transactions-ledger-row--read-only" : ""}${restoredFocusId === transaction.id ? " transactions-ledger-row--restored-focus" : ""}`} data-transaction-id={transaction.id} key={transaction.id} onBlur={() => setRestoredFocusId(null)} {...interactiveProps}>
                     <div className="transactions-row-main"><div className="transactions-row-title">{title}</div><div className="transactions-row-meta">{categoryPath && kind !== "transfer" && kind !== "internalTransfer" && <span className="transactions-category-path">{categoryPath}</span>}{kind === "transfer" && <span>{t("transactions.transfer")}</span>}{kind === "internalTransfer" && <span>{t("transactions.internalTransfer")}</span>}{transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}{transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}</div></div>
                     <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div><div className="transactions-row-date">{getTransactionLocalDate(transaction.created)}</div>
                     <div className="transactions-row-amount"><Num currency={currency} kind={amountKind} signage="signed" size={15} value={transaction.amount} />{baseEquivalent && <span className="transactions-row-amount-equivalent">≈ <Num currency={baseEquivalent.currency} kind={amountKind} signage="signed" size={12} value={baseEquivalent.value} /></span>}</div>
@@ -255,7 +271,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
             })}
         </section>)}
         <div className="transactions-pagination"><div>{t("transactions.paginationSummary", { visible: transactions.length, total, period: periodLabel })}</div>{navigationMode === "progressive" ? <div ref={loadMoreSentinel}><InExButton disabled={!hasNextPage || query.isFetching} kind="default" onClick={loadMore}>{query.isFetching ? t("transactions.loading.refreshing") : t("transactions.loadMore")}</InExButton></div> : <Pagination current={pagination.current} onChange={paginationChangedHandler} pageSize={pagination.size} pageSizeOptions={[20, 50, 100]} showSizeChanger total={total} />}</div>
-        <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>
+        {!readOnly && <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>}
     </>;
 };
 

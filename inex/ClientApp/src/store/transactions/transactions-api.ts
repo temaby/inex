@@ -15,7 +15,13 @@ export interface GetTransactionsArgs {
   pageSize: number;
   page: number;
   filter: TransactionFilterParams;
+  linkedUserId?: number | null;
 }
+
+export type GetTransactionsSummaryArgs = TransactionFilterParams | {
+  filter: TransactionFilterParams;
+  linkedUserId?: number | null;
+};
 
 export interface TransactionsPagedResult {
   data: TransactionResponse[];
@@ -136,9 +142,11 @@ function appendTransactionFilters(
 
 function buildTransactionFilterParams(
   filter: TransactionFilterParams,
+  linkedUserId?: number | null,
 ): URLSearchParams {
   const params = new URLSearchParams();
   params.set("mode", "active");
+  if (linkedUserId != null) params.set("linkedUserId", String(linkedUserId));
   appendTransactionFilters(params, filter);
   return params;
 }
@@ -147,13 +155,21 @@ function buildTransactionParams(
   pageSize: number,
   page: number,
   filter: TransactionFilterParams,
+  linkedUserId?: number | null,
 ): URLSearchParams {
   const params = new URLSearchParams();
   params.set("mode", "active");
   params.set("pageSize", String(pageSize));
   params.set("page", String(page));
+  if (linkedUserId != null) params.set("linkedUserId", String(linkedUserId));
   appendTransactionFilters(params, filter);
   return params;
+}
+
+function normalizeTransactionSummaryArgs(args: GetTransactionsSummaryArgs) {
+  return "filter" in args
+    ? { filter: args.filter, linkedUserId: args.linkedUserId ?? null }
+    : { filter: args, linkedUserId: null };
 }
 
 const invalidateTransactionDependents = async (
@@ -172,8 +188,8 @@ export const transactionsApi = createApi({
   tagTypes: ["Transaction"],
   endpoints: (builder) => ({
     getTransactions: builder.query<TransactionsPagedResult, GetTransactionsArgs>({
-      query: ({ pageSize, page, filter }) => ({
-        url: `/transactions?${buildTransactionParams(pageSize, page, filter).toString()}`,
+      query: ({ pageSize, page, filter, linkedUserId }) => ({
+        url: `/transactions?${buildTransactionParams(pageSize, page, filter, linkedUserId).toString()}`,
       }),
       providesTags: [{ type: "Transaction", id: "LIST" }],
       serializeQueryArgs: ({ endpointName, queryArgs }) => ({
@@ -181,17 +197,25 @@ export const transactionsApi = createApi({
         pageSize: queryArgs.pageSize,
         page: queryArgs.page,
         filter: normalizeTransactionFilterParams(queryArgs.filter),
+        linkedUserId: queryArgs.linkedUserId ?? null,
       }),
     }),
-    getTransactionsSummary: builder.query<TransactionSummaryResult, TransactionFilterParams>({
-      query: (filter) => ({
-        url: `/transactions/summary?${buildTransactionFilterParams(filter).toString()}`,
-      }),
+    getTransactionsSummary: builder.query<TransactionSummaryResult, GetTransactionsSummaryArgs>({
+      query: (args) => {
+        const { filter, linkedUserId } = normalizeTransactionSummaryArgs(args);
+        return {
+          url: `/transactions/summary?${buildTransactionFilterParams(filter, linkedUserId).toString()}`,
+        };
+      },
       providesTags: [{ type: "Transaction", id: "LIST" }],
-      serializeQueryArgs: ({ endpointName, queryArgs }) => ({
-        endpointName,
-        filter: normalizeTransactionFilterParams(queryArgs),
-      }),
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        const { filter, linkedUserId } = normalizeTransactionSummaryArgs(queryArgs);
+        return {
+          endpointName,
+          filter: normalizeTransactionFilterParams(filter),
+          linkedUserId,
+        };
+      },
     }),
     createTransaction: builder.mutation<void, CreateTransactionArgs>({
       query: (body) => ({ url: "/transactions", method: "post", data: body }),
