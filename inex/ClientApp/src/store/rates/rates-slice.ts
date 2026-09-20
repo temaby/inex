@@ -19,6 +19,8 @@ interface CachedRatesState {
 
 interface RatesState {
   items: ExchangeRateItem[];
+  requestKey: string | null;
+  completedKey: string | null;
   error: string | null;
   cached?: CachedRatesState;
 }
@@ -27,21 +29,34 @@ const ratesSlice = createSlice({
   name: "rates",
   initialState: {
     items: [] as ExchangeRateItem[],
+    requestKey: null,
+    completedKey: null,
     error: null as string | null,
   } as RatesState,
   reducers: {
+    beginRates(state, action) {
+      if (state.completedKey !== action.payload.key) {
+        state.items = [];
+      }
+      state.requestKey = action.payload.key;
+      state.error = null;
+    },
     setRates(state, action) {
+      if (state.requestKey !== action.payload.key) return;
       state.items = action.payload.items;
+      state.completedKey = action.payload.key;
       state.error = null;
     },
     setError(state, action) {
-      state.error = action.payload;
+      if (state.requestKey !== action.payload.key) return;
+      state.error = action.payload.error;
     },
     beginCachedRates(state, action) {
+      const previous = state.cached;
       state.cached = {
-        items: state.cached?.items ?? [],
+        items: previous && previous.completedKey === action.payload.key ? previous.items : [],
         requestKey: action.payload.key,
-        completedKey: state.cached?.completedKey ?? null,
+        completedKey: previous?.completedKey ?? null,
         loading: true,
         error: null,
       };

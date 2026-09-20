@@ -10,6 +10,14 @@
     "mainNav": "Main navigation",
     "profile": "Profile"
   },
+  "linkedAccount": {
+    "selectorLabel": "Financial workspace",
+    "myData": "My data",
+    "linkedOption": "{{username}} · {{currency}}",
+    "readOnly": "Viewing {{username}}'s financial workspace in read-only mode.",
+    "unavailable": "The linked account is no longer available. Your own data is shown again.",
+    "dismissError": "Dismiss linked-account warning"
+  },
   "common": {
     "add": "Add",
     "save": "Save",

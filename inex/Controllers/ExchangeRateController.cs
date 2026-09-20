@@ -6,6 +6,7 @@ using inex.Services.Models.Records.Data;
 using inex.Services.Models.Records.ExchangeRate;
 using inex.Services.Exceptions;
 using inex.Services.Services.Base;
+using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -34,10 +35,12 @@ public class ExchangeRateController : ApiControllerBase
 
     public ExchangeRateController(
         IExchangeRateService exchangeService,
-        SynchronizeExchangeRatesCommandHandler synchronizeExchangeRatesCommandHandler)
+        SynchronizeExchangeRatesCommandHandler synchronizeExchangeRatesCommandHandler,
+        ILinkedAccountReadScopeResolver readScopeResolver)
     {
         _exchangeService = exchangeService;
         _synchronizeExchangeRatesCommandHandler = synchronizeExchangeRatesCommandHandler;
+        _readScopeResolver = readScopeResolver;
     }
 
     #endregion Constructors
@@ -60,9 +63,14 @@ public class ExchangeRateController : ApiControllerBase
     [HttpGet]
     [Route(GetCachedRatesRoute)]
     [ProducesResponseType(typeof(IEnumerable<ExchangeRateResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetCached([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, CancellationToken ct)
+    public async Task<ActionResult> GetCached(
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate,
+        int? linkedUserId,
+        CancellationToken ct)
     {
-        ListResponse<ExchangeRateResponse> resultsDTO = await _exchangeService.GetCached(CurrentUserId, startDate, endDate, ct: ct);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        ListResponse<ExchangeRateResponse> resultsDTO = await _exchangeService.GetCached(readableUserId, startDate, endDate, ct: ct);
         return Ok(resultsDTO);
     }
 
@@ -107,6 +115,7 @@ public class ExchangeRateController : ApiControllerBase
 
     private readonly IExchangeRateService _exchangeService;
     private readonly SynchronizeExchangeRatesCommandHandler _synchronizeExchangeRatesCommandHandler;
+    private readonly ILinkedAccountReadScopeResolver _readScopeResolver;
 
     #endregion Private Fields
 }

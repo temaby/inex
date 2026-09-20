@@ -1,6 +1,7 @@
 import axios from "axios";
 import store from "../store";
 import { clearAuth, setCredentials } from "../store/auth/auth-slice";
+import { linkedAccountActions } from "../store/linkedAccount/linked-account-slice";
 
 /**
  * Central axios instance for all API calls.
@@ -37,6 +38,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    if (error.response?.status === 404 && originalRequest?.params?.linkedUserId != null) {
+      store.dispatch(linkedAccountActions.linkedScopeUnavailable(
+        Number(originalRequest.params.linkedUserId),
+      ));
+    }
 
     const is401 = error.response?.status === 401;
     const notAlreadyRetried = !originalRequest._retry;

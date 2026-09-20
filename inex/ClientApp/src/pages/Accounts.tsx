@@ -94,10 +94,18 @@ const Accounts = () => {
     const exchangeRates = useAppSelector((state) => state.rates.items);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
     const userId = useAppSelector((state) => state.auth.user?.id);
-    const [collapsedCurrencies, setCollapsedCurrencies] = useCollapsedTreeNodeIds("accounts", userId);
+    const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
+    const isLinkedMode = selectedLinkedUserId !== null;
+    const dataOwnerId = selectedLinkedUserId ?? userId;
+    const [collapsedCurrencies, setCollapsedCurrencies] = useCollapsedTreeNodeIds("accounts", dataOwnerId);
     const profileCurrency = useMemo(
-        () => currencies.find((currency) => currency.id === userCurrencyId)?.key.trim() || null,
-        [currencies, userCurrencyId],
+        () => selectedLinkedAccount?.baseCurrency
+            ?? currencies.find((currency) => currency.id === userCurrencyId)?.key.trim()
+            ?? null,
+        [currencies, selectedLinkedAccount?.baseCurrency, userCurrencyId],
     );
     const baseCurrency = getBaseCurrency(exchangeRates, profileCurrency);
 
@@ -121,11 +129,25 @@ const Accounts = () => {
         };
     }, []);
 
-    const accountsQuery = useGetAccountsQuery("ALL");
-    const accounts = accountsQuery.data ?? [];
+    const accountsQuery = useGetAccountsQuery(
+        selectedLinkedUserId === null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
+    const accounts = accountsQuery.currentData ?? [];
     const accountIds = useMemo(() => accounts.map((account) => account.id), [accounts]);
-    const summaryQuery = useGetAccountsSummaryQuery(accountIds, { skip: accountIds.length === 0 });
-    const summaries = summaryQuery.data ?? [];
+    const summaryQuery = useGetAccountsSummaryQuery(
+        selectedLinkedUserId === null
+            ? accountIds
+            : { ids: accountIds, linkedUserId: selectedLinkedUserId },
+        { skip: accountIds.length === 0 },
+    );
+    const summaries = summaryQuery.currentData ?? [];
+
+    useEffect(() => {
+        setDrawerOpen(false);
+        setExpandedId(null);
+    }, [selectedLinkedUserId]);
     const summaryIds = useMemo(
         () => new Set(summaries.map((summary) => summary.id)),
         [summaries],
@@ -495,7 +517,7 @@ const Accounts = () => {
                 {expanded && (
                     <div className="accounts-edit-panel">
                         <div className="accounts-edit-panel__grid">
-                            <AccountEditForm record={account} />
+                            {!isLinkedMode ? <AccountEditForm record={account} /> : null}
                             {renderAccountSnapshot(account)}
                         </div>
                     </div>
@@ -631,7 +653,7 @@ const Accounts = () => {
         );
     };
 
-    const drawer = (
+    const drawer = !isLinkedMode ? (
         <InExDrawer
             open={drawerOpen}
             onClose={closeDrawer}
@@ -640,13 +662,13 @@ const Accounts = () => {
         >
             <AccountCreateForm onCancel={() => closeDrawer()} onCreated={() => closeDrawer(true)} />
         </InExDrawer>
-    );
+    ) : null;
 
-    const pageExtra = (
+    const pageExtra = !isLinkedMode ? (
         <InExButton icon={<Plus size={16} />} kind="primary" onClick={openDrawer}>
             {t("accounts.addAccount")}
         </InExButton>
-    );
+    ) : undefined;
 
     if (!isInitialLoading && !hasLoadError && accounts.length === 0) {
         return (
@@ -658,12 +680,14 @@ const Accounts = () => {
                             <EmptyState
                                 iconNode={<Wallet size={28} />}
                                 title={t("accounts.emptyState.title")}
-                                description={t("accounts.emptyState.description")}
-                                actions={(
+                                description={isLinkedMode
+                                    ? t("linkedAccount.readOnly", { username: selectedLinkedAccount?.username ?? "" })
+                                    : t("accounts.emptyState.description")}
+                                actions={!isLinkedMode ? (
                                     <InExButton icon={<Plus size={15} />} kind="primary" onClick={openDrawer}>
                                         {t("accounts.emptyState.primaryAction")}
                                     </InExButton>
-                                )}
+                                ) : undefined}
                             />
                         </div>
                     </div>
@@ -677,6 +701,16 @@ const Accounts = () => {
             {drawer}
             <BasicPage frame="management" title={t("accounts.title")} subtitle={t("accounts.subtitle")} extra={pageExtra}>
                 <div className="accounts-workspace">
+                    {isLinkedMode ? (
+                        <Alert
+                            className="accounts-alert"
+                            message={t("linkedAccount.readOnly", {
+                                username: selectedLinkedAccount?.username ?? "",
+                            })}
+                            showIcon
+                            type="info"
+                        />
+                    ) : null}
                     <section className="accounts-hero" data-qa="hero-card">
                         <div className="accounts-hero__net">
                             <div className="accounts-eyebrow" data-qa="hero-primary-label">{t("accounts.hero.netWorth")}</div>

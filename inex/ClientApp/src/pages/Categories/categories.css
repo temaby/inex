@@ -308,6 +308,10 @@
     width: 100%;
 }
 
+.category-row__edit--readonly {
+    cursor: default;
+}
+
 .category-row:hover,
 .category-row.is-expanded {
     background: var(--bg-stripe);

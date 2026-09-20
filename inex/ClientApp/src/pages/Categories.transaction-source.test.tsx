@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import authSlice from "../store/auth/auth-slice";
 import budgetsSlice from "../store/budgets/budgets-slice";
 import ratesSlice from "../store/rates/rates-slice";
+import linkedAccountSlice from "../store/linkedAccount/linked-account-slice";
 import { budgetsApi } from "../store/budgets/budgets-api";
 import { categoriesApi } from "../store/categories/categories-api";
 import { transactionsApi } from "../store/transactions/transactions-api";
@@ -50,6 +51,7 @@ const makeStore = () =>
         reducer: {
             auth: authSlice.reducer,
             rates: ratesSlice.reducer,
+            linkedAccount: linkedAccountSlice.reducer,
             budgets: budgetsSlice.reducer,
             [budgetsApi.reducerPath]: budgetsApi.reducer,
             [categoriesApi.reducerPath]: categoriesApi.reducer,
@@ -71,7 +73,16 @@ const makeStore = () =>
             },
             rates: {
                 items: [],
+                requestKey: null,
+                completedKey: null,
                 error: null,
+            },
+            linkedAccount: {
+                sessionUserId: 1,
+                linkState: null,
+                selectedLinkedUserId: null,
+                loading: false,
+                unavailable: false,
             },
             budgets: {
                 items: [],

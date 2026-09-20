@@ -5,6 +5,7 @@ import { vi } from "vitest";
 
 import apiClient from "../../../utils/apiClient";
 import { accountsApi, type AccountResponse, type AccountSummary } from "../accounts-api";
+import linkedAccountSlice, { linkedAccountActions } from "../../linkedAccount/linked-account-slice";
 
 vi.mock("../../../utils/apiClient", () => ({
   default: vi.fn(),
@@ -51,6 +52,7 @@ function createTestStore() {
   return configureStore({
     reducer: {
       [accountsApi.reducerPath]: accountsApi.reducer,
+      linkedAccount: linkedAccountSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(accountsApi.middleware),
@@ -205,5 +207,55 @@ describe("accountsApi", () => {
 
     expect(cached.isError).toBe(true);
     expect(cached.error).toMatchObject({ status: 500 });
+  });
+
+  it("getAccounts: revoked linked scope clears the session selection", async () => {
+    const store = createTestStore();
+    store.dispatch(linkedAccountActions.beginLoading(1));
+    store.dispatch(linkedAccountActions.setLinkState({
+      userId: 1,
+      linkState: {
+        state: "master",
+        masterAccount: null,
+        linkedAccounts: [{ id: 2, username: "linked", email: null, baseCurrency: "PLN" }],
+      },
+    }));
+    store.dispatch(linkedAccountActions.selectLinkedUser(2));
+    mockApiClient.mockRejectedValue({
+      response: { status: 404, data: { detail: "Unavailable" } },
+      message: "Unavailable",
+    } as AxiosError);
+
+    await store.dispatch(accountsApi.endpoints.getAccounts.initiate({ mode: "ALL", linkedUserId: 2 }));
+
+    expect(store.getState().linkedAccount.selectedLinkedUserId).toBeNull();
+    expect(store.getState().linkedAccount.unavailable).toBe(true);
+    expect(store.getState().linkedAccount.linkState?.linkedAccounts).toEqual([]);
+  });
+
+  it("getAccounts: stale revoked response does not clear a newer selection", async () => {
+    const store = createTestStore();
+    store.dispatch(linkedAccountActions.beginLoading(1));
+    store.dispatch(linkedAccountActions.setLinkState({
+      userId: 1,
+      linkState: {
+        state: "master",
+        masterAccount: null,
+        linkedAccounts: [
+          { id: 2, username: "first", email: null, baseCurrency: "PLN" },
+          { id: 3, username: "second", email: null, baseCurrency: "EUR" },
+        ],
+      },
+    }));
+    store.dispatch(linkedAccountActions.selectLinkedUser(3));
+    mockApiClient.mockRejectedValue({
+      response: { status: 404, data: { detail: "Unavailable" } },
+      message: "Unavailable",
+    } as AxiosError);
+
+    await store.dispatch(accountsApi.endpoints.getAccounts.initiate({ mode: "ALL", linkedUserId: 2 }));
+
+    expect(store.getState().linkedAccount.selectedLinkedUserId).toBe(3);
+    expect(store.getState().linkedAccount.unavailable).toBe(false);
   });
 });

@@ -35,9 +35,28 @@ interface UpdateAccountArgs extends CreateAccountArgs {
   id: number;
 }
 
-function buildAccountsSummaryUrl(ids: number[]): string {
+export type AccountsQueryArgs = string | {
+  mode: string;
+  linkedUserId?: number | null;
+};
+
+export type AccountsSummaryQueryArgs = number[] | {
+  ids: number[];
+  linkedUserId?: number | null;
+};
+
+function normalizeAccountsQueryArgs(args: AccountsQueryArgs) {
+  return typeof args === "string" ? { mode: args, linkedUserId: null } : args;
+}
+
+function normalizeAccountsSummaryQueryArgs(args: AccountsSummaryQueryArgs) {
+  return Array.isArray(args) ? { ids: args, linkedUserId: null } : args;
+}
+
+function buildAccountsSummaryUrl(ids: number[], linkedUserId?: number | null): string {
   const idsQuery = ids.map((id, i) => `ids[${i}]=${id}`).join("&");
-  return `/accounts/details?mode=active&${idsQuery}`;
+  const linkedUserQuery = linkedUserId == null ? "" : `&linkedUserId=${linkedUserId}`;
+  return `/accounts/details?mode=active&${idsQuery}${linkedUserQuery}`;
 }
 
 export const accountsApi = createApi({
@@ -45,8 +64,12 @@ export const accountsApi = createApi({
   baseQuery: axiosBaseQuery,
   tagTypes: ["Account"],
   endpoints: (builder) => ({
-    getAccounts: builder.query<AccountResponse[], string>({
-      query: (mode) => ({ url: `/accounts?mode=${mode}` }),
+    getAccounts: builder.query<AccountResponse[], AccountsQueryArgs>({
+      query: (args) => {
+        const { mode, linkedUserId } = normalizeAccountsQueryArgs(args);
+        const linkedUserQuery = linkedUserId == null ? "" : `&linkedUserId=${linkedUserId}`;
+        return { url: `/accounts?mode=${mode}${linkedUserQuery}` };
+      },
       transformResponse: (response: ListResponse<AccountResponse>) =>
         response.data ?? [],
       providesTags: (result) =>
@@ -57,8 +80,11 @@ export const accountsApi = createApi({
             ]
           : [{ type: "Account", id: "LIST" }],
     }),
-    getAccountsSummary: builder.query<AccountSummary[], number[]>({
-      query: (ids) => ({ url: buildAccountsSummaryUrl(ids) }),
+    getAccountsSummary: builder.query<AccountSummary[], AccountsSummaryQueryArgs>({
+      query: (args) => {
+        const { ids, linkedUserId } = normalizeAccountsSummaryQueryArgs(args);
+        return { url: buildAccountsSummaryUrl(ids, linkedUserId) };
+      },
       transformResponse: (response: ListResponse<AccountSummary>) =>
         response.data ?? [],
       providesTags: (result) =>

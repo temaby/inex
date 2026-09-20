@@ -33,6 +33,34 @@ const defaultViewportHeight = 900;
 
 const states = [
   {
+    name: "linked-readonly-1440",
+    screenshot: "linked-readonly-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
+    name: "linked-readonly-1024",
+    screenshot: "linked-readonly-1024.png",
+    viewport: { width: 1024, height: defaultViewportHeight },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
+    name: "linked-readonly-390",
+    screenshot: "linked-readonly-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
+    name: "linked-readonly-360",
+    screenshot: "linked-readonly-360.png",
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "linked",
+    interaction: "select-linked-account",
+  },
+  {
     name: "populated-1440",
     screenshot: "populated-1440.png",
     viewport: { width: 1440, height: 1000 },
@@ -139,6 +167,18 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/auth/me" && method === "GET") {
         return jsonResponse(authUser);
       }
+      if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
+        return jsonResponse({
+          state: "master",
+          masterAccount: null,
+          linkedAccounts: [{
+            id: 2,
+            username: "Linked QA",
+            email: "linked@example.test",
+            baseCurrency: "PLN",
+          }],
+        });
+      }
       if (url.pathname === "/api/currencies" && method === "GET") {
         return jsonResponse(fixture.categoriesVisualFixtureCurrencies);
       }
@@ -172,6 +212,25 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 
 async function applyInteraction(client, state) {
   switch (state.interaction) {
+    case "select-linked-account":
+      await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
+      await evaluate(client, `(() => {
+        const selector = document.querySelector('[aria-label="Financial workspace"]');
+        if (!selector) return false;
+        const trigger = selector.closest('.ant-select')?.querySelector('.ant-select-selector') ?? selector;
+        trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+        return true;
+      })()`);
+      await waitFor(client, "Boolean(document.querySelector('.ant-select-item-option'))");
+      await evaluate(client, `(() => {
+        const option = Array.from(document.querySelectorAll('.ant-select-item-option'))
+          .find((item) => item.textContent.includes('Linked QA'));
+        if (!option) return false;
+        option.click();
+        return true;
+      })()`);
+      await waitFor(client, "document.body.innerText.includes(\"Linked QA's financial workspace\")");
+      return;
     case "select-spend-view":
       await evaluate(client, clickButtonByTextExpression("By spend"));
       await waitFor(client, `(() => {
@@ -368,6 +427,10 @@ async function collectMetrics(client, state, apiRequestCount) {
       loadErrorVisible: document.body.innerText.includes("Failed to load categories"),
       filterEmptyVisible: document.body.innerText.includes("No categories match these filters"),
       firstUseEmptyVisible: document.body.innerText.includes("Create your first category"),
+      linkedSelectorVisible: Boolean(document.querySelector('[aria-label="Financial workspace"]')),
+      readOnlyNoticeVisible: document.body.innerText.includes("read-only mode"),
+      addCategoryVisible: document.body.innerText.includes("Add category"),
+      editControlCount: document.querySelectorAll("button.category-row__edit").length,
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
@@ -389,7 +452,9 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: "/categories",
-    initScript: fixedDateInitScript(args.fixture.categoriesVisualFixtureMeta.fixedNow, "en"),
+    initScript: `${fixedDateInitScript(args.fixture.categoriesVisualFixtureMeta.fixedNow, "en")}
+      localStorage.removeItem("inex.tree-expansion.categories.user-1");
+      localStorage.removeItem("inex.tree-expansion.categories.user-2");`,
     waitForReady: waitForCategoriesReady,
     applyInteraction,
     collectMetrics,
@@ -400,6 +465,18 @@ function collectAdditionalFailures(stateResults) {
   const failures = [];
 
   for (const state of stateResults) {
+    if (state.scenario === "linked" && !state.linkedSelectorVisible) {
+      failures.push(`${state.name}: linked-account selector is not visible`);
+    }
+    if (state.scenario === "linked" && !state.readOnlyNoticeVisible) {
+      failures.push(`${state.name}: linked read-only notice is not visible`);
+    }
+    if (state.scenario === "linked" && state.addCategoryVisible) {
+      failures.push(`${state.name}: Add category mutation control is visible in linked mode`);
+    }
+    if (state.scenario === "linked" && state.editControlCount > 0) {
+      failures.push(`${state.name}: category edit controls are visible in linked mode`);
+    }
     const populatedState = state.scenario === "populated";
     if (!populatedState) continue;
 

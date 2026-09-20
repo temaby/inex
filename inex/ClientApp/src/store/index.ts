@@ -6,6 +6,7 @@ import reportSlice from "./report/report-slice";
 import budgetsSlice from "./budgets/budgets-slice";
 import budgetReportSlice from "./budgetReport/budgetReport-slice";
 import authSlice from "./auth/auth-slice";
+import linkedAccountSlice from "./linkedAccount/linked-account-slice";
 import { transactionsApi } from "./transactions/transactions-api";
 import { accountsApi } from "./accounts/accounts-api";
 import { categoriesApi } from "./categories/categories-api";
@@ -16,6 +17,7 @@ import { reportApi } from "./report/report-api";
 const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
+    linkedAccount: linkedAccountSlice.reducer,
     transactions: transactionsSlice.reducer,
     rates: ratesSlice.reducer,
     report: reportSlice.reducer,

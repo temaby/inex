@@ -6,6 +6,7 @@ using inex.Services.Models.Records.Base;
 using inex.Services.Models.Records.Category;
 using inex.Services.Models.Records.Data;
 using inex.Services.Services.Base;
+using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -37,9 +38,12 @@ public class CategoriesController : ApiControllerBase
 
     #region Constructors
 
-    public CategoriesController(ICategoryService categoryService)
+    public CategoriesController(
+        ICategoryService categoryService,
+        ILinkedAccountReadScopeResolver readScopeResolver)
     {
         _categoryService = categoryService;
+        _readScopeResolver = readScopeResolver;
     }
 
     #endregion Constructors
@@ -58,14 +62,16 @@ public class CategoriesController : ApiControllerBase
 
     /// <summary>Get list of categories for a user</summary>
     /// <param name="mode">Activity mode (all, active, inactive)</param>
+    /// <param name="linkedUserId">Optional actively linked user whose categories should be read</param>
     /// <returns>List of categories</returns>
     [HttpGet]
     [Route(GetAllRoute)]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
-    public ActionResult List(string mode)
+    public ActionResult List(string mode, int? linkedUserId)
     {
         ActivityMode activityMode = mode.ToEnum(ActivityMode.ALL);
-        ListResponse<CategoryResponse> resultsDTO = _categoryService.Get(CurrentUserId, activityMode);
+        int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
+        ListResponse<CategoryResponse> resultsDTO = _categoryService.Get(readableUserId, activityMode);
         return Ok(resultsDTO);
     }
 
@@ -117,6 +123,7 @@ public class CategoriesController : ApiControllerBase
     #region Private Fields
 
     private readonly ICategoryService _categoryService;
+    private readonly ILinkedAccountReadScopeResolver _readScopeResolver;
 
     #endregion Private Fields
 }

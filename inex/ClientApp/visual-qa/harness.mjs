@@ -103,7 +103,10 @@ export function createApiFixtureHandler({
       loggedRoute,
       scenario: scenarioRef.current,
     });
-    const response = handledResponse ?? (() => {
+    const defaultResponse = url.pathname === "/api/auth/link-state" && method === "GET"
+      ? jsonResponse({ state: "unlinked", masterAccount: null, linkedAccounts: [] })
+      : null;
+    const response = handledResponse ?? defaultResponse ?? (() => {
       unhandledApiRequests.push(route);
       return problemResponse("Unhandled visual QA API fixture", route, 502);
     })();

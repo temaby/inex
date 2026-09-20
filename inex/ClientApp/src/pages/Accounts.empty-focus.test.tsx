@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 
 import authSlice from "../store/auth/auth-slice";
 import ratesSlice from "../store/rates/rates-slice";
+import linkedAccountSlice from "../store/linkedAccount/linked-account-slice";
 import { accountsApi } from "../store/accounts/accounts-api";
 import Accounts from "./Accounts";
 import { getTreeExpansionStorageKey } from "./tree-expansion-preferences";
@@ -62,11 +63,15 @@ vi.mock("./Accounts/AccountEditForm", () => ({
     default: () => <div>mock-account-edit</div>,
 }));
 
-const makeStore = (rates = [] as typeof accountsVisualFixtureRates) =>
+const makeStore = (
+    rates = [] as typeof accountsVisualFixtureRates,
+    withLinkedAccount = false,
+) =>
     configureStore({
         reducer: {
             auth: authSlice.reducer,
             rates: ratesSlice.reducer,
+            linkedAccount: linkedAccountSlice.reducer,
             [accountsApi.reducerPath]: accountsApi.reducer,
         },
         middleware: (getDefaultMiddleware) =>
@@ -81,7 +86,25 @@ const makeStore = (rates = [] as typeof accountsVisualFixtureRates) =>
             },
             rates: {
                 items: rates,
+                requestKey: null,
+                completedKey: null,
                 error: null,
+            },
+            linkedAccount: {
+                sessionUserId: 1,
+                linkState: withLinkedAccount ? {
+                    state: "master" as const,
+                    masterAccount: null,
+                    linkedAccounts: [{
+                        id: 2,
+                        username: "linked-user",
+                        email: "linked@example.com",
+                        baseCurrency: "USD",
+                    }],
+                } : null,
+                selectedLinkedUserId: withLinkedAccount ? 2 : null,
+                loading: false,
+                unavailable: false,
             },
         },
     });
@@ -325,5 +348,38 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
         expect(screen.getByText("USD operating")).toBeVisible();
         expect(document.querySelectorAll(".accounts-group")).toHaveLength(1);
+    });
+
+    it("uses linked account queries and exposes no mutation controls in linked mode", async () => {
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            if (url === "/accounts?mode=ALL&linkedUserId=2") {
+                return { data: { data: populatedAccounts } };
+            }
+            if (url.startsWith("/accounts/details?mode=active") && url.includes("linkedUserId=2")) {
+                return { data: { data: populatedSummaries } };
+            }
+            return { data: null };
+        });
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        const user = userEvent.setup();
+
+        render(
+            <Provider store={makeStore(accountsVisualFixtureRates, true)}>
+                <MemoryRouter>
+                    <Accounts />
+                </MemoryRouter>
+            </Provider>,
+        );
+
+        const accountRow = await screen.findByRole("button", { name: /Cash wallet/ });
+        expect(screen.queryByRole("button", { name: "accounts.addAccount" })).not.toBeInTheDocument();
+        expect(screen.getByText("linkedAccount.readOnly")).toBeVisible();
+
+        await user.click(accountRow);
+
+        expect(screen.queryByText("mock-account-edit")).not.toBeInTheDocument();
+        expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({
+            url: "/accounts?mode=ALL&linkedUserId=2",
+        }));
     });
 });
