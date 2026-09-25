@@ -145,7 +145,7 @@ describe("AppShell keyboard navigation", () => {
     });
 
     it("hides the workspace selector on pages that do not consume linked context", () => {
-        renderShell(true, "/dashboard");
+        renderShell(true, "/profile");
 
         expect(screen.queryByRole("combobox", { name: "Financial workspace" })).toBeNull();
     });

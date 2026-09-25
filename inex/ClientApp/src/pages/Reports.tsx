@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useMemo, useState } from "react";
-import { DatePicker, message, Modal, Select } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, DatePicker, message, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 import { Download, Printer, Settings2, Share2, ArrowLeft } from "lucide-react";
@@ -9,6 +9,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
 import { InExButton } from "../components/primitives";
 import { useGetAccountsQuery } from "../store/accounts/accounts-api";
+import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
 import "./Reports/reports.css";
 
@@ -40,8 +41,18 @@ const Reports = () => {
     const [selectedAccountIds, setSelectedAccountIds] = useState<number[]>([]);
     const [linkedAccounts, setLinkedAccounts] = useState<UserAccountSummary[]>([]);
     const [selectedLinkedUserIds, setSelectedLinkedUserIds] = useState<number[]>([]);
-    const activeAccountsQuery = useGetAccountsQuery("active");
-    const activeAccounts = activeAccountsQuery.data ?? [];
+    const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
+    const isLinkedMode = selectedLinkedUserId !== null;
+    const selectedLinkedUserIdRef = useRef(selectedLinkedUserId);
+    const activeAccountsQuery = useGetAccountsQuery(
+        selectedLinkedUserId === null
+            ? "active"
+            : { mode: "active", linkedUserId: selectedLinkedUserId },
+    );
+    const activeAccounts = activeAccountsQuery.currentData ?? [];
     const normalizedPath = location.pathname.replace(/\/+$/, "") || "/";
 
     const reportTitles: Record<string, string> = {
@@ -57,6 +68,14 @@ const Reports = () => {
         () => hubPeriod.toDate().toLocaleDateString(i18n.language, { month: "long", year: "numeric" }),
         [hubPeriod, i18n.language],
     );
+
+    useEffect(() => {
+        selectedLinkedUserIdRef.current = selectedLinkedUserId;
+        setIsMonthlyPdfConfigurationOpen(false);
+        setSelectedAccountIds([]);
+        setSelectedLinkedUserIds([]);
+        setLinkedAccounts([]);
+    }, [selectedLinkedUserId]);
 
     const handleShare = async () => {
         const shareUrl = window.location.href;
@@ -85,6 +104,7 @@ const Reports = () => {
     };
 
     const handleMonthlyPdfExport = async (accountIds?: number[], linkedUserIds?: number[]) => {
+        const requestedLinkedUserId = selectedLinkedUserId;
         setIsMonthlyPdfExporting(true);
         try {
             const response = await apiClient.get("/reports/monthly-pdf", {
@@ -92,11 +112,15 @@ const Reports = () => {
                     year: hubPeriod.year(),
                     month: hubPeriod.month() + 1,
                     ...(accountIds ? { accountIds } : {}),
-                    ...(linkedUserIds?.length ? { linkedUserIds } : {}),
+                    ...(requestedLinkedUserId !== null ? { linkedUserId: requestedLinkedUserId } : {}),
+                    ...(requestedLinkedUserId === null && linkedUserIds?.length ? { linkedUserIds } : {}),
                 },
                 paramsSerializer: { indexes: null },
                 responseType: "blob",
             });
+            if (selectedLinkedUserIdRef.current !== requestedLinkedUserId) {
+                return false;
+            }
             const url = URL.createObjectURL(response.data);
             const link = document.createElement("a");
             link.href = url;
@@ -113,17 +137,30 @@ const Reports = () => {
     };
 
     const openMonthlyPdfConfiguration = async () => {
-        if (activeAccountsQuery.isError) {
+        if (activeAccountsQuery.isError || activeAccountsQuery.isFetching) {
             message.error(t("reports.monthlyPdfAccountsLoadError"));
             return;
         }
 
+        const requestedLinkedUserId = selectedLinkedUserId;
         setSelectedAccountIds(activeAccounts.map((account) => account.id));
         setSelectedLinkedUserIds([]);
+        if (isLinkedMode) {
+            setLinkedAccounts([]);
+            setIsMonthlyPdfConfigurationOpen(true);
+            return;
+        }
+
         try {
             const response = await apiClient.get<UserAccountLinkState>("/auth/link-state");
+            if (selectedLinkedUserIdRef.current !== requestedLinkedUserId) {
+                return;
+            }
             setLinkedAccounts(response.data.state === "master" ? response.data.linkedAccounts : []);
         } catch {
+            if (selectedLinkedUserIdRef.current !== requestedLinkedUserId) {
+                return;
+            }
             message.error(t("reports.monthlyPdfLinkedAccountsLoadError"));
             return;
         }
@@ -153,7 +190,7 @@ const Reports = () => {
             <InExButton
                 kind="default"
                 icon={<Settings2 size={16} aria-hidden="true" />}
-                disabled={activeAccountsQuery.isLoading}
+                disabled={activeAccountsQuery.isFetching}
                 onClick={() => void openMonthlyPdfConfiguration()}
             >
                 {t("reports.configure")}
@@ -192,6 +229,16 @@ const Reports = () => {
         <>
             <BasicPage frame="analytics" title={title} subtitle={isHub ? t("reports.subtitleHub") : t("reports.subtitleDrilldown")} extra={extra}>
                 <div className="reports-route">
+                    {isLinkedMode ? (
+                        <Alert
+                            className="reports-linked-alert"
+                            message={t("linkedAccount.readOnly", {
+                                username: selectedLinkedAccount?.username ?? "",
+                            })}
+                            showIcon
+                            type="info"
+                        />
+                    ) : null}
                     <Outlet context={{ period: hubPeriod, periodLabel } satisfies ReportsHubContext} />
                 </div>
             </BasicPage>
@@ -205,7 +252,9 @@ const Reports = () => {
                 onCancel={() => setIsMonthlyPdfConfigurationOpen(false)}
                 onOk={() => void handleConfiguredMonthlyPdfExport()}
             >
-                <p>{t("reports.monthlyPdfConfigureDescription")}</p>
+                <p>{t(isLinkedMode
+                    ? "reports.monthlyPdfConfigureLinkedDescription"
+                    : "reports.monthlyPdfConfigureDescription")}</p>
                 {activeAccounts.length === 0 && linkedAccounts.length === 0 ? <p>{t("reports.monthlyPdfNoActiveAccounts")}</p> : null}
                 {activeAccounts.length > 0 ? (
                     <>

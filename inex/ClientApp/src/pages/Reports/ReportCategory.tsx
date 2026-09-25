@@ -25,6 +25,10 @@ const ReportCategory = () => {
     const location = useLocation();
     const filterData = useAppSelector(state => state.transactions.filter);
     const filter = useAppSelector(state => state.report.filter);
+    const selectedLinkedUserId = useAppSelector(state => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector(state => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
     const queryParams = new URLSearchParams(location.search);
@@ -32,9 +36,19 @@ const ReportCategory = () => {
     const currentDate = useMemo(() => interval ? dayjs(interval, dateFormat) : dayjs(), [interval]);
     const startDate = currentDate.isValid() ? currentDate.startOf("month").format("YYYY-MM-DD") : "";
     const endDate = currentDate.isValid() ? currentDate.endOf("month").format("YYYY-MM-DD") : "";
-    const { data: allCategories = [] } = useGetCategoriesQuery("ALL");
-    const { data: reportResponse, isLoading } = useGetCategoryReportQuery(
-        { startDate, endDate },
+    const requestedCurrency = selectedLinkedAccount?.baseCurrency ?? "USD";
+    const { currentData: allCategories = [] } = useGetCategoriesQuery(
+        selectedLinkedUserId === null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
+    const { currentData: reportResponse, isFetching: isLoading } = useGetCategoryReportQuery(
+        {
+            startDate,
+            endDate,
+            currency: requestedCurrency,
+            linkedUserId: selectedLinkedUserId,
+        },
         { skip: !currentDate.isValid() },
     );
     const reportData = reportResponse?.data ?? [];
@@ -67,17 +81,17 @@ const ReportCategory = () => {
 
     useEffect(() => {
         setExpandedRows([]);
-    }, [startDate, endDate]);
+    }, [startDate, endDate, selectedLinkedUserId]);
 
     useEffect(() => {
-        if (!reportResponse) return;
+        if (!reportResponse || selectedLinkedUserId !== null) return;
 
         dispatch(reportActions.setDetails({
             title: reportResponse.metadata.name,
             items: reportResponse.data,
             currency: reportResponse.metadata.currency,
         }));
-    }, [dispatch, reportResponse]);
+    }, [dispatch, reportResponse, selectedLinkedUserId]);
 
     const setIntervalHandler = (date: Dayjs | null) => {
         if (date) navigate(`${location.pathname}?interval=${date.format(dateFormat)}`, { replace: false });

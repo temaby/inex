@@ -31,6 +31,29 @@ const authUser = {
 const defaultViewportHeight = 900;
 
 const states = [
+  ...[
+    ["hub", "/reports"],
+    ["category", "/reports/category?interval=2026-04"],
+    ["budget", "/reports/budget?interval=2026-04"],
+    ["history", "/reports/history?year=2026"],
+  ].flatMap(([report, routePath]) => [
+    {
+      name: `linked-${report}-1440`,
+      screenshot: `linked-${report}-1440.png`,
+      viewport: { width: 1440, height: 1000 },
+      scenario: "linked",
+      routePath,
+      interaction: "select-linked-account",
+    },
+    {
+      name: `linked-${report}-390`,
+      screenshot: `linked-${report}-390.png`,
+      viewport: { width: 390, height: defaultViewportHeight },
+      scenario: "linked",
+      routePath,
+      interaction: "select-linked-account",
+    },
+  ]),
   {
     name: "hub-populated-1440",
     screenshot: "hub-populated-1440.png",
@@ -132,6 +155,22 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       if (url.pathname === "/api/auth/me" && method === "GET") {
         return jsonResponse(authUser);
       }
+      if (url.pathname === "/api/auth/link-state" && method === "GET") {
+        return jsonResponse(scenario === "linked" ? {
+          state: "master",
+          masterAccount: null,
+          linkedAccounts: [{
+            id: 2,
+            username: "Linked QA",
+            email: "linked@example.test",
+            baseCurrency: "PLN",
+          }],
+        } : {
+          state: "unlinked",
+          masterAccount: null,
+          linkedAccounts: [],
+        });
+      }
       if (url.pathname === "/api/currencies" && method === "GET") {
         return jsonResponse(fixture.reportsVisualFixtureCurrencies);
       }
@@ -148,13 +187,20 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({
           ...fixture.reportsVisualFixtureCategoryReport,
           data: scenario === "empty" ? [] : fixture.reportsVisualFixtureCategoryReport.data,
+          metadata: {
+            ...fixture.reportsVisualFixtureCategoryReport.metadata,
+            currency: scenario === "linked" ? "PLN" : fixture.reportsVisualFixtureCategoryReport.metadata.currency,
+          },
         });
       }
       if (url.pathname === "/api/reports/budget/comparison" && method === "GET") {
         if (scenario === "budget-error") {
           return problemResponse("Budget report fixture failure", "Controlled Reports budget failure.", 500);
         }
-        return jsonResponse(fixture.reportsVisualFixtureBudgetReport);
+        return jsonResponse(scenario === "linked" ? {
+          ...fixture.reportsVisualFixtureBudgetReport,
+          metadata: { ...fixture.reportsVisualFixtureBudgetReport.metadata, currency: "PLN" },
+        } : fixture.reportsVisualFixtureBudgetReport);
       }
       if (url.pathname.startsWith("/api/reports/history/") && method === "GET") {
         return jsonResponse(fixture.reportsVisualFixtureHistoryReport);
@@ -168,6 +214,27 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "select-linked-account") {
+    await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
+    await evaluate(client, `(() => {
+      const selector = document.querySelector('[aria-label="Financial workspace"]');
+      if (!selector) return false;
+      const trigger = selector.closest('.ant-select')?.querySelector('.ant-select-selector') ?? selector;
+      trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+      return true;
+    })()`);
+    await waitFor(client, "Boolean(document.querySelector('.ant-select-item-option'))");
+    await evaluate(client, `(() => {
+      const option = Array.from(document.querySelectorAll('.ant-select-item-option'))
+        .find((item) => item.textContent.includes('Linked QA'));
+      if (!option) return false;
+      option.click();
+      return true;
+    })()`);
+    await waitFor(client, "document.body.innerText.includes(\"Linked QA's financial workspace\") && document.body.innerText.includes('read-only mode')");
+    return;
+  }
+
   if (state.interaction !== "open-monthly-pdf-configuration" && state.interaction !== "export-single-configured-account") {
     return;
   }
@@ -279,6 +346,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       historyReportVisible: document.body.innerText.includes("Cash flow chart data summary"),
       reportErrorVisible: document.body.innerText.includes("reports.budgetReportError"),
       emptyReportVisible: document.body.innerText.includes("No data"),
+      linkedSelectorVisible: Boolean(document.querySelector('[aria-label="Financial workspace"]')),
+      readOnlyNoticeVisible: document.body.innerText.includes("read-only mode"),
       dataModeLabel: ${JSON.stringify("fixture")},
       apiRequestCount: ${apiRequestCount},
       textSample: document.body.innerText.replace(/\\s+/g, " ").trim().slice(0, 1400),
@@ -309,15 +378,40 @@ function runState(args) {
 }
 
 function collectAdditionalFailures(stateResults) {
+  const failures = [];
+  for (const state of stateResults.filter((candidate) => candidate.scenario === "linked")) {
+    if (!state.linkedSelectorVisible) failures.push(`${state.name}: linked-account selector is not visible`);
+    if (!state.readOnlyNoticeVisible) failures.push(`${state.name}: linked read-only notice is not visible`);
+
+    const expectedRequests = ["GET /accounts?mode=active&linkedUserId=2"];
+    if (state.routePath.startsWith("/reports/category")) {
+      expectedRequests.push(
+        "GET /categories?mode=ALL&linkedUserId=2",
+        "GET /reports/category?filter=Start:2026-04-01;End:2026-04-30;&currency=PLN&linkedUserId=2",
+      );
+    } else if (state.routePath.startsWith("/reports/budget")) {
+      expectedRequests.push("GET /reports/budget/comparison?year=2026&month=4&currency=PLN&linkedUserId=2");
+    } else if (state.routePath.startsWith("/reports/history")) {
+      expectedRequests.push("GET /reports/history/2026?currency=PLN&linkedUserId=2");
+    }
+
+    for (const expectedRequest of expectedRequests) {
+      if (!state.requestLog.includes(expectedRequest)) {
+        failures.push(`${state.name}: missing linked-scoped request ${expectedRequest}`);
+      }
+    }
+  }
+
   const configuredExport = stateResults.find((state) => state.name === "hub-configure-single-account-export-1440");
   if (!configuredExport) {
-    return ["Configured account export visual QA state is missing"];
+    return [...failures, "Configured account export visual QA state is missing"];
   }
 
   const expectedRequest = "GET /reports/monthly-pdf?year=2026&month=4&accountIds=101";
-  return configuredExport.requestLog.includes(expectedRequest)
-    ? []
-    : [`Configured account export did not request exactly ${expectedRequest}`];
+  if (!configuredExport.requestLog.includes(expectedRequest)) {
+    failures.push(`Configured account export did not request exactly ${expectedRequest}`);
+  }
+  return failures;
 }
 
 function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures, clientRoot: root }) {

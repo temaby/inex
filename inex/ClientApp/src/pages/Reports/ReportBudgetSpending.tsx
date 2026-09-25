@@ -19,17 +19,23 @@ const ReportBudgetSpending: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    const currency = useAppSelector(state => state.report.currency) || "USD";
+    const reportCurrency = useAppSelector(state => state.report.currency) || "USD";
+    const selectedLinkedUserId = useAppSelector(state => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector(state => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
+    const currency = selectedLinkedAccount?.baseCurrency ?? reportCurrency;
     const { selectedYear, selectedMonth } = useAppSelector(state => state.budgetReport);
     const interval = new URLSearchParams(location.search).get("interval");
     const requestedDate = interval ? dayjs(interval, "YYYY-MM") : null;
     const [localDate, setLocalDate] = useState(
         requestedDate?.isValid() ? requestedDate : dayjs(`${selectedYear}-${selectedMonth}`, "YYYY-M"),
     );
-    const { data, isError, isLoading } = useGetBudgetReportQuery({
+    const { currentData: data, isError, isFetching: isLoading } = useGetBudgetReportQuery({
         year: localDate.year(),
         month: localDate.month() + 1,
         currency,
+        linkedUserId: selectedLinkedUserId,
     });
     const items = data?.data ?? [];
     const metadata = data?.metadata;

@@ -77,9 +77,11 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
     );
     const currentPage = location.pathname.slice(1).split("/", 1)[0];
     const supportsLinkedContext = currentPage === "transactions"
+        || currentPage === "dashboard"
         || currentPage === "accounts"
         || currentPage === "categories"
-        || currentPage === "budgets";
+        || currentPage === "budgets"
+        || currentPage === "reports";
     const initials = getInitials(username);
 
     const handleNavigate = (path: string) => {
