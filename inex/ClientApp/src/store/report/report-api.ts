@@ -6,6 +6,8 @@ import axiosBaseQuery from "../axiosBaseQuery";
 export interface CategoryReportParams {
   startDate: string;
   endDate: string;
+  currency: string;
+  linkedUserId?: number | null;
 }
 
 export interface InternalTransferSummary {
@@ -27,6 +29,7 @@ export interface CategoryReportResponse {
 export interface HistoryReportParams {
   year: number;
   currency: string;
+  linkedUserId?: number | null;
 }
 
 export interface HistoryReportItem {
@@ -47,20 +50,21 @@ export const reportApi = createApi({
   tagTypes: ["CategoryReport", "HistoryReport"],
   endpoints: (builder) => ({
     getCategoryReport: builder.query<CategoryReportResponse, CategoryReportParams>({
-      query: ({ startDate, endDate }) => ({
+      query: ({ startDate, endDate, currency, linkedUserId }) => ({
         url: `/reports/category?filter=Start:${startDate};End:${endDate};`,
+        params: { currency, linkedUserId: linkedUserId ?? undefined },
       }),
-      providesTags: (result, error, { startDate, endDate }) => [
-        { type: "CategoryReport", id: `${startDate}_${endDate}` },
+      providesTags: (result, error, { startDate, endDate, currency, linkedUserId }) => [
+        { type: "CategoryReport", id: `${linkedUserId ?? "self"}:${startDate}_${endDate}-${currency}` },
       ],
     }),
     getHistoryReport: builder.query<HistoryReportResponse, HistoryReportParams>({
-      query: ({ year, currency }) => ({
+      query: ({ year, currency, linkedUserId }) => ({
         url: `/reports/history/${year}`,
-        params: { currency },
+        params: { currency, linkedUserId: linkedUserId ?? undefined },
       }),
-      providesTags: (result, error, { year, currency }) => [
-        { type: "HistoryReport", id: `${year}-${currency}` },
+      providesTags: (result, error, { year, currency, linkedUserId }) => [
+        { type: "HistoryReport", id: `${linkedUserId ?? "self"}:${year}-${currency}` },
       ],
     }),
   }),

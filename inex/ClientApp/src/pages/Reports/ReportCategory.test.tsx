@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import reportSlice from "../../store/report/report-slice";
 import { reportApi } from "../../store/report/report-api";
 import transactionsSlice from "../../store/transactions/transactions-slice";
+import linkedAccountSlice from "../../store/linkedAccount/linked-account-slice";
 import { categoriesApi } from "../../store/categories/categories-api";
 import {
     reportsVisualFixtureCategories,
@@ -30,6 +31,7 @@ const makeStore = () => configureStore({
     reducer: {
         report: reportSlice.reducer,
         transactions: transactionsSlice.reducer,
+        linkedAccount: linkedAccountSlice.reducer,
         [reportApi.reducerPath]: reportApi.reducer,
         [categoriesApi.reducerPath]: categoriesApi.reducer,
     },

@@ -3,6 +3,7 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { vi } from "vitest";
 
 import apiClient from "../../../utils/apiClient";
+import linkedAccountSlice, { linkedAccountActions } from "../../linkedAccount/linked-account-slice";
 import {
   reportApi,
   type HistoryReportParams,
@@ -67,6 +68,7 @@ function createTestStore() {
   return configureStore({
     reducer: {
       [reportApi.reducerPath]: reportApi.reducer,
+      linkedAccount: linkedAccountSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(reportApi.middleware),
@@ -86,7 +88,7 @@ describe("reportApi", () => {
     const store = createTestStore();
     mockApiClient.mockResolvedValue(axiosResponse(categoryReport));
 
-    const params = { startDate: "2026-05-01", endDate: "2026-05-31" };
+    const params = { startDate: "2026-05-01", endDate: "2026-05-31", currency: "USD" };
     await store.dispatch(reportApi.endpoints.getCategoryReport.initiate(params));
 
     expect(reportApi.endpoints.getCategoryReport.select(params)(store.getState()).data).toEqual(categoryReport);
@@ -94,7 +96,7 @@ describe("reportApi", () => {
       url: "/reports/category?filter=Start:2026-05-01;End:2026-05-31;",
       method: "get",
       data: undefined,
-      params: undefined,
+      params: { currency: "USD", linkedUserId: undefined },
       signal: expect.any(AbortSignal),
     });
   });
@@ -119,7 +121,7 @@ describe("reportApi", () => {
       url: "/reports/history/2025",
       method: "get",
       data: undefined,
-      params: { currency: "USD" },
+      params: { currency: "USD", linkedUserId: undefined },
       signal: expect.any(AbortSignal),
     });
   });
@@ -132,7 +134,7 @@ describe("reportApi", () => {
     } as AxiosError;
     mockApiClient.mockRejectedValue(error);
 
-    const params = { startDate: "2026-05-01", endDate: "2026-05-31" };
+    const params = { startDate: "2026-05-01", endDate: "2026-05-31", currency: "USD" };
     await store.dispatch(reportApi.endpoints.getCategoryReport.initiate(params));
     const cached = reportApi.endpoints.getCategoryReport.select(params)(store.getState());
 
@@ -154,5 +156,36 @@ describe("reportApi", () => {
 
     expect(cached.isError).toBe(true);
     expect(cached.error).toMatchObject({ status: 500 });
+  });
+
+  it("linked report requests use isolated cache keys and clear revoked scope", async () => {
+    const store = createTestStore();
+    store.dispatch(linkedAccountActions.beginLoading(1));
+    store.dispatch(linkedAccountActions.setLinkState({
+      userId: 1,
+      linkState: {
+        state: "master",
+        masterAccount: null,
+        linkedAccounts: [{ id: 2, username: "linked", email: null, baseCurrency: "PLN" }],
+      },
+    }));
+    store.dispatch(linkedAccountActions.selectLinkedUser(2));
+    mockApiClient.mockRejectedValue({
+      response: { status: 404, data: { detail: "Unavailable" } },
+      message: "Unavailable",
+    } as AxiosError);
+
+    const linkedParams: HistoryReportParams = { year: 2026, currency: "PLN", linkedUserId: 2 };
+    await store.dispatch(reportApi.endpoints.getHistoryReport.initiate(linkedParams));
+
+    expect(mockApiClient).toHaveBeenCalledWith({
+      url: "/reports/history/2026",
+      method: "get",
+      data: undefined,
+      params: { currency: "PLN", linkedUserId: 2 },
+      signal: expect.any(AbortSignal),
+    });
+    expect(store.getState().linkedAccount.selectedLinkedUserId).toBeNull();
+    expect(store.getState().linkedAccount.unavailable).toBe(true);
   });
 });

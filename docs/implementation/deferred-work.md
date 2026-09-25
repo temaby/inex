@@ -95,3 +95,9 @@ Items surfaced during review but out of scope for the originating story. Each en
 ## From: One-shot Accounts table header typography (2026-09-13)
 
 - **Accounts and Categories visual-QA scripts can leave tracked evidence incomplete on a fixture timeout** — the harness clears its output directory before running all states, so a later timeout leaves only partial screenshots and removed summaries. Make evidence writes atomic or preserve the prior output until a complete run succeeds.
+
+---
+
+## Deferred from: code review of GitHub issue #401 (2026-09-25)
+
+- **Configured monthly PDF can silently include all master accounts when only linked aggregation participants remain selected** — the self-mode dialog permits deselecting every master account while retaining `linkedUserIds`, but an empty `accountIds` array is omitted by Axios serialization and the backend interprets omission as all active master accounts. This predates linked view-as mode; define explicit linked-only aggregation semantics in a separate report-export change.

@@ -812,6 +812,7 @@
     "monthlyPdfLinkedAccountsLoadError": "The linked accounts could not be loaded. Please try again.",
     "monthlyPdfConfigureTitle": "Configure monthly PDF",
     "monthlyPdfConfigureDescription": "All active accounts are selected by default. Linked accounts are optional and apply only to this download.",
+    "monthlyPdfConfigureLinkedDescription": "All active accounts in this read-only workspace are selected by default. This download contains only the selected linked user's data.",
     "monthlyPdfAccountsLabel": "Accounts to include",
     "monthlyPdfLinkedUsersLabel": "Linked accounts to include",
     "monthlyPdfNoActiveAccounts": "There are no active accounts to include.",

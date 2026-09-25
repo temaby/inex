@@ -21,6 +21,7 @@ import { ArrowDown, ArrowUp, Banknote } from "lucide-react";
 import { Num } from "../../components/primitives";
 import { useGetHistoryReportQuery } from "../../store/report/report-api";
 import type { HistoryReportItem } from "../../store/report/report-api";
+import { useAppSelector } from "../../store/hooks";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
 import "./reports.css";
 
@@ -34,10 +35,18 @@ const ReportMonthlyHistory = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
+  const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
+    (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+  ));
   const requestedYear = Number(new URLSearchParams(location.search).get("year"));
   const [year, setYear] = useState(Number.isFinite(requestedYear) && requestedYear > 0 ? requestedYear : dayjs().year());
-  const currency = "USD";
-  const { data: historyResponse, isLoading } = useGetHistoryReportQuery({ year, currency });
+  const currency = selectedLinkedAccount?.baseCurrency ?? "USD";
+  const { currentData: historyResponse, isFetching: isLoading } = useGetHistoryReportQuery({
+    year,
+    currency,
+    linkedUserId: selectedLinkedUserId,
+  });
   const history = historyResponse?.data ?? [];
 
   const handleYearChange = (date: Dayjs | null) => {

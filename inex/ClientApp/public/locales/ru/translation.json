@@ -845,6 +845,7 @@
     "monthlyPdfLinkedAccountsLoadError": "Не удалось загрузить связанные аккаунты. Повторите попытку.",
     "monthlyPdfConfigureTitle": "Настройка PDF за месяц",
     "monthlyPdfConfigureDescription": "Все активные счета выбраны по умолчанию. Связанные аккаунты необязательны, а выбор действует только для этой загрузки.",
+    "monthlyPdfConfigureLinkedDescription": "Все активные счета в этом пространстве только для чтения выбраны по умолчанию. В загрузку попадут только данные выбранного связанного пользователя.",
     "monthlyPdfAccountsLabel": "Счета для включения",
     "monthlyPdfLinkedUsersLabel": "Связанные аккаунты для включения",
     "monthlyPdfNoActiveAccounts": "Нет активных счетов для включения.",

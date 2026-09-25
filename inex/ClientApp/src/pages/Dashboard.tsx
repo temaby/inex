@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { Spin } from "antd";
+import { Alert, Spin } from "antd";
 import { ArrowDown, ArrowUp, Banknote, Landmark, TrendingUp } from "lucide-react";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
@@ -124,6 +124,10 @@ const getNetWorthDomain = (points: NetWorthHistoryPoint[]): [number, number] | u
 const Dashboard = () => {
     const { t } = useTranslation();
     const user = useAppSelector((state) => state.auth.user);
+    const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
+    const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
+        (account) => account.id === state.linkedAccount.selectedLinkedUserId,
+    ));
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [summary, setSummary] = useState<SummaryState>({ current: emptyTotals, previous: null });
     const [currentBudgetReport, setCurrentBudgetReport] = useState<BudgetReportResponse | null>(null);
@@ -135,9 +139,12 @@ const Dashboard = () => {
     const [netWorthError, setNetWorthError] = useState<string | null>(null);
 
     const currency = useMemo(() => {
+        if (selectedLinkedUserId !== null) {
+            return selectedLinkedAccount?.baseCurrency ?? null;
+        }
         if (!user) return null;
         return currencies.find((item) => item.id === user.currencyId)?.key ?? null;
-    }, [currencies, user]);
+    }, [currencies, selectedLinkedAccount?.baseCurrency, selectedLinkedUserId, user]);
 
     useEffect(() => {
         let isMounted = true;
@@ -171,22 +178,25 @@ const Dashboard = () => {
         let isMounted = true;
         const currentMonth = dayjs();
         const previousMonth = currentMonth.subtract(1, "month");
-        const getReportUrl = (month: dayjs.Dayjs) => {
-            const params = new URLSearchParams({
+        const getReportParams = (month: dayjs.Dayjs) => ({
                 year: String(month.year()),
                 month: String(month.month() + 1),
                 currency,
+                linkedUserId: selectedLinkedUserId ?? undefined,
             });
 
-            return `/reports/budget/comparison?${params.toString()}`;
-        };
-
         setIsLoadingSummary(true);
+        setSummary({ current: emptyTotals, previous: null });
+        setCurrentBudgetReport(null);
         setError(null);
 
         Promise.all([
-            apiClient.get<BudgetReportResponse>(getReportUrl(currentMonth)),
-            apiClient.get<BudgetReportResponse>(getReportUrl(previousMonth)),
+            apiClient.get<BudgetReportResponse>("/reports/budget/comparison", {
+                params: getReportParams(currentMonth),
+            }),
+            apiClient.get<BudgetReportResponse>("/reports/budget/comparison", {
+                params: getReportParams(previousMonth),
+            }),
         ])
             .then(([currentResponse, previousResponse]) => {
                 if (!isMounted) return;
@@ -211,18 +221,23 @@ const Dashboard = () => {
         return () => {
             isMounted = false;
         };
-    }, [currency, t]);
+    }, [currency, selectedLinkedUserId, t]);
 
     useEffect(() => {
         if (!currency) return;
 
         let isMounted = true;
-        const params = new URLSearchParams({ months: "12" });
-
         setIsLoadingNetWorth(true);
+        setNetWorthHistory([]);
         setNetWorthError(null);
 
-        apiClient.get<NetWorthHistoryResponse>(`/reports/net-worth?${params.toString()}`)
+        apiClient.get<NetWorthHistoryResponse>("/reports/net-worth", {
+            params: {
+                months: 12,
+                currency,
+                linkedUserId: selectedLinkedUserId ?? undefined,
+            },
+        })
             .then(({ data }) => {
                 if (!isMounted) return;
                 setNetWorthHistory(data.data);
@@ -239,7 +254,7 @@ const Dashboard = () => {
         return () => {
             isMounted = false;
         };
-    }, [currency, t]);
+    }, [currency, selectedLinkedUserId, t]);
 
     const isLoading = isLoadingCurrency || isLoadingSummary;
     const hasNoCurrentMonthActivity = summary.current.income === 0 && summary.current.expenses === 0;
@@ -333,6 +348,15 @@ const Dashboard = () => {
     return (
         <BasicPage frame="analytics" title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
             <div className="dashboard-workspace">
+                {selectedLinkedUserId !== null ? (
+                    <Alert
+                        message={t("linkedAccount.readOnly", {
+                            username: selectedLinkedAccount?.username ?? "",
+                        })}
+                        showIcon
+                        type="info"
+                    />
+                ) : null}
                 {error && (
                     <div className="dashboard-alert" role="alert">{error}</div>
                 )}
