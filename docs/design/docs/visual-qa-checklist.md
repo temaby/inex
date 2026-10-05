@@ -49,7 +49,7 @@ npm run lint
 - Viewports captured: 1440px, 1024px, 390px, 360px.
 - Screenshot output folder: docs/implementation/visual-qa/{area}/.
 - Harness isolation: each current `qa-summary.json` reports `checks.hasFailures=false`, `harness.realBackendCalled=false`, and `unhandledApiRequests=[]`.
-- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared hero/top-card selectors, metric sizing and weight, blocks retired copy from returning, rejects repeated Budgets rollup currency before `/`, and requires the Categories previous-period `Change from ...` row with no standalone `MoM` label.
+- Cross-page top-section check: `visual-qa:hero-consistency` captures Transactions, Accounts, Categories, Budgets, and Dashboard at 1440px and 390px, verifies shared hero selectors and the Dashboard position panel, blocks retired copy from returning, rejects repeated Budgets rollup currency before `/`, and requires the Categories previous-period `Change from ...` row with no standalone `MoM` label.
 - Accounts grouped-list check: `visual-qa:accounts` rejects currency-group share bars outside the hero distribution section while preserving the hero distribution bar and legend.
 - Notes for Windows/macOS/Linux differences: Vite/esbuild and the CDP harness may need permission to spawn child processes and a Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH`.
 
@@ -61,8 +61,8 @@ npm run lint
 | Accounts | 2026-09-13T15:00:18.479Z | 18 | PASS: fixture, no failures, no backend calls |
 | Categories | 2026-09-11T14:44:18.564Z | 11 | PASS: fixture, no failures, no backend calls |
 | Budgets | 2026-06-14T08:44:57.420Z | 11 | PASS: fixture, no failures, no backend calls |
-| Hero consistency | 2026-06-14T12:13:01.274Z | 10 | PASS: fixture, no failures, no backend calls; one documented page-specific legend exception |
-| Dashboard | 2026-06-14T12:12:34.614Z | 8 | PASS: fixture, no failures, no backend calls |
+| Hero consistency | 2026-10-05T12:59:30.747Z | 10 | PASS: fixture, current Dashboard position-panel contract, no failures, no backend calls; one documented page-specific legend exception |
+| Dashboard | 2026-10-05T12:55:06.296Z | 15 | PASS: fixture, four-area geometry and responsive order verified, no failures, no backend calls |
 | Reports | 2026-06-14T08:45:48.855Z | 11 | PASS: fixture, no failures, no backend calls |
 | Profile | 2026-09-09T20:59:18.859Z | 8 | PASS: fixture, no failures, no backend calls; linked-account status covered |
 | Auth | 2026-06-14T08:46:45.410Z | 12 | PASS: fixture, no failures, no backend calls |
@@ -104,6 +104,14 @@ npm run lint
 - The refreshed 18 screenshots cover plain currency branch titles, shared branch/leaf color markers, depth-one leaf connectors, aggregate metadata, expanded and collapsed branches at desktop and mobile widths.
 - Result: PASS. `qa-summary.json` reports no horizontal overflow or mobile bottom-navigation occlusion. The repository-wide freshness verifier remains red only for seven unrelated stale page summaries.
 
+### 2026-10-05 Dashboard Four-Area Layout
+
+- Data mode: fixture; all `/api` requests were intercepted, with no unhandled requests or real backend calls.
+- Fifteen screenshots cover the populated 1440px, 1024px, 390px, and 360px layouts plus category drill-down, empty, one-sided, missing-rate, panel-error, and linked-account states.
+- Result: PASS. At 1440px the cash-flow/position and expense/income pairs have matching bounds; below 1200px the visual and DOM order is position, cash flow, expenses, income. Expense and income charts share no exact palette color.
+- Manual inspection of the four populated viewport captures found no overlap, clipping, blank charts, page-level horizontal overflow, or bottom-navigation occlusion.
+- The refreshed hero-consistency harness also passes at 1440px and 390px using the current four-panel Dashboard and combined position-panel selectors.
+
 ## Desktop QA Results
 
 | Route | State | 1440px | 1024px | Screenshot | Notes |
@@ -123,7 +131,7 @@ npm run lint
 | `/budgets` | populated | PASS | PASS | `budgets/populated-1440.png`; `budgets/populated-amount-1024.png` | dataMode: fixture; long amount stress covered by 1024 screenshot. |
 | `/budgets` | empty | PASS | N/A | `budgets/first-use-empty-390.png` | dataMode: fixture; empty-state layout inspected. |
 | `/budgets` | drawer-open | PASS | PASS | `budgets/drawer-open-390.png`; `budgets/drawer-open-360.png` | dataMode: fixture; drawer content remains within viewport. |
-| `/dashboard` | populated | PASS | PASS | `dashboard/populated-1440.png`; `dashboard/populated-1024.png` | dataMode: fixture; chart-bearing cards render with nonblank chart areas. |
+| `/dashboard` | populated | PASS | PASS | `dashboard/populated-1440.png`; `dashboard/populated-1024.png` | dataMode: fixture; 1440px renders four aligned 2x2 areas; 1024px stacks in the accessible source order; charts remain nonblank. |
 | `/reports` (hub) | populated | PASS | PASS | `reports/hub-populated-1440.png`; `reports/hub-populated-1024.png` | dataMode: fixture; report cards and actions inspected. |
 | `/reports` (drill-down) | report drill-down | PASS | PASS | `reports/category-report-1440.png`; `reports/history-report-1440.png`; `reports/budget-report-390.png`; `reports/heatmap-report-390.png` | dataMode: fixture; drill-down chrome, actions, and chart/table areas inspected. |
 | `/profile` | populated | PASS | PASS | `profile/populated-1440.png`; `profile/populated-1024.png` | dataMode: fixture; settings forms inspected. |
@@ -147,7 +155,7 @@ npm run lint
 | `/categories` | expanded-row | PASS | PASS | `categories/expanded-row-390.png`; `categories/populated-360.png` | dataMode: fixture; expanded detail fits mobile row layout. |
 | `/budgets` | populated | PASS | PASS | `budgets/populated-390.png`; `budgets/populated-360.png` | dataMode: fixture; required 360px route passes. |
 | `/budgets` | empty | PASS | PASS | `budgets/first-use-empty-390.png`; `budgets/populated-360.png` | dataMode: fixture; empty-state screenshot at 390 and route baseline at 360 show no blocking mobile failures. |
-| `/dashboard` | populated | PASS | N/A | `dashboard/populated-390.png`; `dashboard/populated-360.png` | dataMode: fixture; chart cards render and bottom nav is clear. |
+| `/dashboard` | populated | PASS | PASS | `dashboard/populated-390.png`; `dashboard/populated-360.png` | dataMode: fixture; position, cash flow, expenses, and income stack in order; chart cards render and bottom nav is clear. |
 | `/reports` (hub) | populated | PASS | N/A | `reports/hub-populated-390.png`; `reports/hub-populated-360.png` | dataMode: fixture; report cards remain scannable. |
 | `/reports` (drill-down) | drill-down | PASS | N/A | `reports/budget-report-390.png`; `reports/heatmap-report-390.png`; `reports/category-empty-390.png` | dataMode: fixture; drill-down actions and chart/table areas inspected. |
 | `/profile` | populated | PASS | N/A | `profile/populated-390.png`; `profile/populated-360.png`; `profile/profile-form-edit-390.png`; `profile/security-form-filled-390.png` | dataMode: fixture; forms wrap without clipped submit buttons. |
@@ -169,7 +177,7 @@ npm run lint
 
 ## Summary
 
-- Total fixture screenshots inspected: 95.
+- Total fixture screenshots inspected: 102.
 - Required route groups covered: 10.
 - Passes: 42 checklist rows.
 - Failures fixed: 0.

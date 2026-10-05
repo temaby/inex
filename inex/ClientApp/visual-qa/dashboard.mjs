@@ -246,7 +246,35 @@ async function collectMetrics(client, state, apiRequestCount) {
     const bottomNavRect = bottomNavVisible ? bottomNav.getBoundingClientRect() : null;
     const content = document.querySelector('.dashboard-workspace');
     const contentRect = content ? content.getBoundingClientRect() : null;
-    const panelCount = document.querySelectorAll('.dashboard-panel').length;
+    const panels = Array.from(document.querySelectorAll('.dashboard-panel'));
+    const panelCount = panels.length;
+    const panelOrder = panels.map((panel) => panel.getAttribute('data-qa'));
+    const getPanelRect = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
+    };
+    const positionRect = getPanelRect('[data-qa="dashboard-position"]');
+    const cashFlowRect = getPanelRect('[data-qa="dashboard-cash-flow"]');
+    const expenseRect = getPanelRect('[data-qa="dashboard-expense-categories"]');
+    const incomeRect = getPanelRect('[data-qa="dashboard-income-categories"]');
+    const aligned = (first, second) => Boolean(first && second
+      && Math.abs(first.top - second.top) <= 1
+      && Math.abs(first.height - second.height) <= 1);
+    const topPairAligned = aligned(cashFlowRect, positionRect)
+      && cashFlowRect.left < positionRect.left;
+    const bottomPairAligned = aligned(expenseRect, incomeRect)
+      && expenseRect.left < incomeRect.left;
+    const stackedPanelOrder = Boolean(positionRect && cashFlowRect && expenseRect && incomeRect
+      && positionRect.top < cashFlowRect.top
+      && cashFlowRect.top < expenseRect.top
+      && expenseRect.top < incomeRect.top);
+    const expensePalette = Array.from(document.querySelectorAll('[data-qa="dashboard-expense-categories"] .dashboard-chart-legend__swatch'))
+      .map((swatch) => window.getComputedStyle(swatch).backgroundColor);
+    const incomePalette = Array.from(document.querySelectorAll('[data-qa="dashboard-income-categories"] .dashboard-chart-legend__swatch'))
+      .map((swatch) => window.getComputedStyle(swatch).backgroundColor);
+    const paletteOverlap = [...new Set(expensePalette)].filter((color) => new Set(incomePalette).has(color));
     const chartCount = document.querySelectorAll('.recharts-surface').length;
     const accountRows = Array.from(document.querySelectorAll('.dashboard-account-list > li'));
     const visibleAccountCount = accountRows.filter((row) => window.getComputedStyle(row).display !== 'none').length;
@@ -266,11 +294,22 @@ async function collectMetrics(client, state, apiRequestCount) {
       lastContentBottom: contentRect ? contentRect.bottom : null,
       drawerOpen: false,
       panelCount,
+      panelOrder,
+      topPairAligned,
+      bottomPairAligned,
+      stackedPanelOrder,
+      expensePalette,
+      incomePalette,
+      paletteOverlap,
       chartCount,
       visibleAccountCount,
       accountRowCount,
       legendItemCount,
+      positionPanelVisible: Boolean(document.querySelector('[data-qa="dashboard-position"]')),
       balancePanelVisible: Boolean(document.querySelector('[data-qa="dashboard-balance"]')),
+      accountsPanelVisible: Boolean(document.querySelector('[data-qa="dashboard-accounts"]')),
+      positionPanelCombined: Boolean(document.querySelector('[data-qa="dashboard-position"] [data-qa="dashboard-balance"]')
+        && document.querySelector('[data-qa="dashboard-position"] [data-qa="dashboard-accounts"]')),
       cashFlowPanelVisible: Boolean(document.querySelector('[data-qa="dashboard-cash-flow"]')),
       expensePanelVisible: Boolean(document.querySelector('[data-qa="dashboard-expense-categories"]')),
       incomePanelVisible: Boolean(document.querySelector('[data-qa="dashboard-income-categories"]')),
@@ -327,12 +366,25 @@ function collectAdditionalFailures(stateResults) {
     if (state.chartCount < fixture.dashboardVisualFixtureMeta.expectedChartCount) {
       failures.push(`${state.name}: expected at least ${fixture.dashboardVisualFixtureMeta.expectedChartCount} charts, found ${state.chartCount}`);
     }
+    if (JSON.stringify(state.panelOrder) !== JSON.stringify(fixture.dashboardVisualFixtureMeta.expectedPanelOrder)) {
+      failures.push(`${state.name}: panel DOM order does not match the mobile reading contract`);
+    }
     const expectedDisplayedAccounts = state.viewport.width <= 768 ? 3 : fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount;
     if (state.accountRowCount !== fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount || state.visibleAccountCount !== expectedDisplayedAccounts) {
       failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount} account rows and ${expectedDisplayedAccounts} displayed, found ${state.accountRowCount}/${state.visibleAccountCount}`);
     }
-    if (!state.balancePanelVisible || !state.cashFlowPanelVisible || !state.expensePanelVisible || !state.incomePanelVisible) {
+    if (!state.positionPanelVisible || !state.positionPanelCombined || !state.balancePanelVisible || !state.accountsPanelVisible
+      || !state.cashFlowPanelVisible || !state.expensePanelVisible || !state.incomePanelVisible) {
       failures.push(`${state.name}: a required current-status panel is missing`);
+    }
+    if (state.viewport.width >= 1200 && (!state.topPairAligned || !state.bottomPairAligned)) {
+      failures.push(`${state.name}: desktop panel pairs are not aligned to equal-height rows`);
+    }
+    if (state.viewport.width < 1200 && !state.stackedPanelOrder) {
+      failures.push(`${state.name}: responsive panels do not follow the balance, cash flow, expense, income order`);
+    }
+    if (state.expensePalette.length === 0 || state.incomePalette.length === 0 || state.paletteOverlap.length > 0) {
+      failures.push(`${state.name}: category palettes are missing or share an exact color`);
     }
     if (state.budgetContentVisible || state.netWorthContentVisible) {
       failures.push(`${state.name}: deferred budget or net-worth content is visible`);
@@ -385,6 +437,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       baseline: fixture.dashboardVisualFixtureMeta.baseline,
       expectedBaseCurrency: fixture.dashboardVisualFixtureMeta.expectedBaseCurrency,
       expectedPanelCount: fixture.dashboardVisualFixtureMeta.expectedPanelCount,
+      expectedPanelOrder: fixture.dashboardVisualFixtureMeta.expectedPanelOrder,
       expectedVisibleAccountCount: fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount,
       expectedChartCount: fixture.dashboardVisualFixtureMeta.expectedChartCount,
       nonApplicableStates: fixture.dashboardVisualFixtureMeta.nonApplicableStates,
