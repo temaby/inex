@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>InEx Dashboard — Design Directions</title>
+  <style>
+    :root {
+      --ink: #0f1e2e;
+      --muted: #64748b;
+      --canvas: #f5f7fa;
+      --surface: #ffffff;
+      --line: #e5eaf1;
+      --green: #2f8f82;
+      --green-soft: #eaf5f2;
+      --red: #c35a4a;
+      --red-soft: #fbeeea;
+      --amber: #c4872b;
+      --amber-soft: #fff6e7;
+      --blue: #4f6f92;
+      --blue-soft: #edf3f8;
+      --radius: 14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); }
+    button { font: inherit; }
+    .toolbar {
+      position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.96);
+      backdrop-filter: blur(12px);
+    }
+    .toolbar__brand { font-weight: 800; margin-right: 8px; white-space: nowrap; }
+    .toolbar__brand span { color: var(--green); }
+    .directions { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; flex: 1; }
+    .tab, .viewport, .seg button, .action {
+      border: 1px solid var(--line); color: var(--ink); background: white; border-radius: 8px;
+      padding: 8px 11px; cursor: pointer; white-space: nowrap;
+    }
+    .tab[aria-selected="true"], .viewport.is-active, .seg button.is-active {
+      border-color: var(--green); background: var(--green-soft); color: #176b61;
+    }
+    .viewport-switch { display: flex; gap: 6px; }
+    .stage { padding: 24px; }
+    .device { width: min(1440px, 100%); margin: 0 auto; transition: width .2s ease; }
+    .device.is-mobile { width: 390px; max-width: 100%; }
+    .direction { display: none; }
+    .direction.is-active { display: block; }
+    .note {
+      margin: 0 0 16px; padding: 14px 16px; border: 1px solid #cfd9e4; border-radius: 12px;
+      background: #fff; color: #334155; line-height: 1.45;
+    }
+    .note strong { color: var(--ink); }
+    .app { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--canvas); box-shadow: 0 18px 48px rgba(15,30,46,.10); }
+    .nav { height: 60px; display: flex; align-items: center; gap: 28px; padding: 0 28px; background: white; border-bottom: 1px solid var(--line); }
+    .logo { font-weight: 900; font-size: 19px; }
+    .logo::before { content: "∞"; margin-right: 8px; color: var(--green); }
+    .nav__links { display: flex; gap: 24px; color: #41546a; font-size: 14px; }
+    .nav__links b { color: var(--ink); border-bottom: 2px solid var(--green); height: 60px; display: grid; place-items: center; }
+    .user { margin-left: auto; padding: 8px 11px; border-radius: 999px; background: var(--blue-soft); font-size: 13px; }
+    .page { padding: 26px 28px 34px; }
+    .pagehead { display: flex; gap: 16px; justify-content: space-between; align-items: end; margin-bottom: 18px; }
+    .eyebrow { color: #52677f; letter-spacing: .09em; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    h1 { margin: 5px 0 0; font-size: 28px; letter-spacing: -.03em; }
+    h2 { font-size: 17px; margin: 3px 0 0; }
+    h3 { font-size: 14px; margin: 0; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 5px; }
+    .head-actions { display: flex; gap: 8px; align-items: center; }
+    .action.primary { background: var(--green); border-color: var(--green); color: white; }
+    .grid { display: grid; gap: 16px; }
+    .cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .layout-8-4 { grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); }
+    .layout-7-5 { grid-template-columns: minmax(0, 1.4fr) minmax(330px, 1fr); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+    .card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .link { color: var(--green); font-size: 12px; font-weight: 700; }
+    .kpi { min-height: 124px; }
+    .kpi__label { color: #52677f; font-size: 11px; letter-spacing: .08em; font-weight: 800; text-transform: uppercase; }
+    .money { margin-top: 18px; font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 24px; font-weight: 650; letter-spacing: -.04em; }
+    .money small { font: 700 12px Inter, sans-serif; margin-left: 4px; }
+    .income { color: #177468; }
+    .expense { color: #ad4435; }
+    .hint { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .good { color: #177468; } .bad { color: #ad4435; } .warn { color: #a66b16; }
+    .metric-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .metric-row + .metric-row { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .account { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 18px; align-items: center; padding: 12px 0; }
+    .account + .account { border-top: 1px solid var(--line); }
+    .account__name { font-weight: 750; }
+    .account__meta { color: var(--muted); font-size: 12px; }
+    .account__value { grid-row: span 2; text-align: right; font-size: 15px; }
+    .total-band { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 18px; background: #10283d; color: white; border-radius: 12px; }
+    .total-band .money { margin: 0; color: white; }
+    .seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 9px; background: #eef2f6; }
+    .seg button { border: 0; background: transparent; padding: 6px 9px; font-size: 12px; }
+    .donut-wrap { display: grid; grid-template-columns: 172px minmax(0,1fr); gap: 22px; align-items: center; }
+    .donut { width: 168px; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(#c35a4a 0 31%, #e78668 31% 51%, #d8a84a 51% 65%, #638fac 65% 74%, #88a69f 74% 82%, #8f79a8 82% 89%, #6f9d74 89% 94%, #b58b6a 94% 98%, #c7ced6 98%); position: relative; }
+    .donut::after { content: "2 105\A USD"; white-space: pre; position: absolute; inset: 28%; display: grid; place-items: center; border-radius: 50%; background: white; font: 700 15px/1.35 "JetBrains Mono", monospace; text-align: center; }
+    .donut--income { background: conic-gradient(#2f8f82 0 69%, #5ba99f 69% 80%, #7cb8a6 80% 86%, #6f9d74 86% 90%, #638fac 90% 94%, #8f79a8 94% 97%, #c7ced6 97%); }
+    .donut--income::after { content: "4 500\A USD"; }
+    .legend { display: grid; gap: 10px; }
+    .legend__row { display: grid; grid-template-columns: 10px minmax(0,1fr) auto; gap: 9px; align-items: center; font-size: 13px; }
+    .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--red); }
+    .dot:nth-child(1) { background: var(--red); }
+    .bar { height: 7px; border-radius: 999px; background: #edf1f5; overflow: hidden; }
+    .bar > span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
+    .bar.is-expense > span { background: #d97563; }
+    .category-row { display: grid; grid-template-columns: minmax(110px,1fr) 2fr auto; gap: 12px; align-items: center; padding: 10px 0; }
+    .category-row + .category-row { border-top: 1px solid var(--line); }
+    .category-row__name { font-size: 13px; font-weight: 700; }
+    .category-row__value { font-size: 12px; text-align: right; }
+    .trend { height: 160px; display: flex; align-items: end; gap: 9px; padding: 22px 5px 5px; border-bottom: 1px solid var(--line); }
+    .trend i { flex: 1; min-width: 8px; background: #7dbbb3; border-radius: 5px 5px 0 0; position: relative; }
+    .trend i.today { background: var(--green); }
+    .trend i::after { content: attr(data-day); position: absolute; left: 50%; top: calc(100% + 7px); transform: translateX(-50%); color: var(--muted); font: normal 10px Inter; }
+    .pace { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: var(--green-soft); font-size: 13px; }
+    .pace strong { font-size: 18px; }
+    .cashflow-columns { height: 230px; display: flex; align-items: stretch; justify-content: center; gap: min(10vw, 90px); padding: 8px 24px 0; border-bottom: 1px solid var(--line); }
+    .cashflow-column { width: min(180px, 32%); display: grid; grid-template-rows: 28px 1fr 42px; align-items: end; text-align: center; }
+    .cashflow-column__value { color: var(--muted); font: 700 12px "JetBrains Mono", monospace; }
+    .cashflow-column__track { height: 100%; display: flex; align-items: end; justify-content: center; border-bottom: 1px solid #cfd8e3; }
+    .cashflow-column__bar { width: 72%; min-width: 56px; height: var(--height); border-radius: 8px 8px 0 0; background: var(--green); }
+    .cashflow-column.is-expense .cashflow-column__bar { background: #d97563; }
+    .cashflow-column__label { padding-top: 10px; font-size: 13px; font-weight: 750; }
+    .warning-list { display: grid; gap: 10px; }
+    .warning-item { padding: 12px; border-radius: 10px; background: var(--amber-soft); border-left: 3px solid var(--amber); }
+    .warning-item strong { display: block; font-size: 13px; }
+    .warning-item span { color: #755526; font-size: 12px; }
+    .quick-list { display: grid; gap: 8px; }
+    .quick { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .template-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; cursor: pointer; background: white; }
+    .template-card.is-active { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); background: var(--green-soft); }
+    .template-card p { color: var(--muted); font-size: 12px; margin: 5px 0 0; }
+    .dense-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .dense-table th { text-align: left; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+    .dense-table td { padding: 11px 8px; border-bottom: 1px solid var(--line); }
+    .dense-table th:last-child, .dense-table td:last-child { text-align: right; }
+    .hero-state { padding: 22px; border-radius: var(--radius); color: white; background: linear-gradient(125deg, #10283d, #185c5a); }
+    .hero-state .money { font-size: 34px; margin: 8px 0; color: white; }
+    .hero-state__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 18px; }
+    .hero-state__stat { padding-top: 12px; border-top: 1px solid rgba(255,255,255,.24); }
+    .hero-state__stat span { display: block; opacity: .72; font-size: 11px; margin-bottom: 5px; }
+    .mobile-nav { display: none; }
+    .hidden { display: none !important; }
+
+    .device.is-mobile .app { border-radius: 14px; }
+    .device.is-mobile .nav { height: 56px; padding: 0 16px; }
+    .device.is-mobile .nav__links { display: none; }
+    .device.is-mobile .page { padding: 18px 16px 88px; }
+    .device.is-mobile .pagehead { align-items: flex-start; flex-direction: column; }
+    .device.is-mobile .head-actions { width: 100%; }
+    .device.is-mobile .head-actions .action { flex: 1; }
+    .device.is-mobile h1 { font-size: 23px; }
+    .device.is-mobile .grid, .device.is-mobile .cols-4, .device.is-mobile .cols-3,
+    .device.is-mobile .cols-2, .device.is-mobile .layout-8-4, .device.is-mobile .layout-7-5 { grid-template-columns: 1fr; }
+    .device.is-mobile .donut-wrap { grid-template-columns: 1fr; justify-items: center; }
+    .device.is-mobile .legend { width: 100%; }
+    .device.is-mobile .hero-state__grid { grid-template-columns: 1fr; }
+    .device.is-mobile .category-row { grid-template-columns: 1fr auto; }
+    .device.is-mobile .category-row .bar { grid-column: 1 / -1; }
+    .device.is-mobile .dense-table th:nth-child(2), .device.is-mobile .dense-table td:nth-child(2) { display: none; }
+    .device.is-mobile .mobile-nav { position: absolute; display: grid; grid-template-columns: repeat(5,1fr); left: 0; right: 0; bottom: 0; background: white; border-top: 1px solid var(--line); padding: 10px 6px; font-size: 10px; text-align: center; }
+    .device.is-mobile .app { position: relative; }
+    .device.is-mobile .mobile-nav b { color: var(--green); }
+    @media (max-width: 760px) {
+      .toolbar { align-items: flex-start; flex-wrap: wrap; padding: 10px; }
+      .directions { order: 3; flex-basis: 100%; }
+      .stage { padding: 12px; }
+      .viewport-switch { margin-left: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar__brand"><span>InEx</span> Dashboard Lab</div>
+    <div class="directions" role="tablist" aria-label="Направления дизайна">
+      <button class="tab" role="tab" aria-selected="true" data-target="d1">1 · Текущий статус</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="d2">2 · Счета прежде всего</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="d3">3 · Темп расходов</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="d4">4 · Настраиваемые блоки</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="d5">5 · Финансовая консоль</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="d6">6 · Спокойный минимум</button>
+    </div>
+    <div class="viewport-switch" aria-label="Размер просмотра">
+      <button class="viewport is-active" data-mode="desktop">Desktop</button>
+      <button class="viewport" data-mode="mobile">390px</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="device" id="device">
+      <section class="direction is-active" id="d1">
+        <p class="note"><strong>Рекомендуемое направление.</strong> Первый экран отвечает на три вопроса: сколько денег доступно сейчас, где они лежат и куда ушли в текущем месяце. История капитала уходит в Reports.</p>
+        <div class="app">
+          <div class="nav"><div class="logo">InEx</div><div class="nav__links"><b>Dashboard</b><span>Transactions</span><span>Accounts</span><span>Categories</span><span>Budgets</span><span>Reports</span></div><div class="user">Анна · USD</div></div>
+          <div class="page">
+            <div class="pagehead"><div><div class="eyebrow">Сегодня · 30 сентября</div><h1>Финансовое состояние</h1><div class="sub">Только видимые счета · сентябрь 2026</div></div><div class="head-actions"><button class="action">Настроить</button><button class="action primary">+ Операция</button></div></div>
+            <div class="grid layout-8-4">
+              <div class="grid">
+                <div class="total-band"><div><div class="eyebrow" style="color:#b9cbd8">Доступно на видимых счетах</div><div class="money">12 840.00 <small>USD</small></div></div><div><b>4 счета</b><div class="hint" style="color:#c4d6df">обновлено сегодня</div></div></div>
+                <article class="card">
+                  <div class="card__head"><div><div class="eyebrow">Денежный поток</div><h2>Доходы и расходы месяца</h2></div><span class="link">Открыть операции →</span></div>
+                  <div class="cashflow-columns" role="img" aria-label="Доходы 4 500 USD, расходы 2 105 USD">
+                    <div class="cashflow-column"><div class="cashflow-column__value">4 500 USD</div><div class="cashflow-column__track"><div class="cashflow-column__bar" style="--height:92%"></div></div><div class="cashflow-column__label">Доходы</div></div>
+                    <div class="cashflow-column is-expense"><div class="cashflow-column__value">2 105 USD</div><div class="cashflow-column__track"><div class="cashflow-column__bar" style="--height:43%"></div></div><div class="cashflow-column__label">Расходы</div></div>
+                  </div>
+                  <div class="hint">Столбец открывает операции соответствующего типа за текущий месяц.</div>
+                </article>
+                <div class="grid cols-2">
+                <article class="card composition-card" data-flow="expense">
+                  <div class="card__head"><div><div class="eyebrow">Расходы по категориям</div><h2>Структура месяца</h2></div><div class="seg"><button class="is-active donut-toggle" data-level="parent">Родители</button><button class="donut-toggle" data-level="child">Подкатегории</button></div></div>
+                  <div class="donut-wrap">
+                    <div class="donut" role="img" aria-label="Расходы по родительским категориям"></div>
+                    <div class="legend" data-parent>
+                      <div class="legend__row"><i class="dot" style="background:#c35a4a"></i><span>Дом</span><b class="mono">31% · 650</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#e78668"></i><span>Еда</span><b class="mono">20% · 430</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#d8a84a"></i><span>Транспорт</span><b class="mono">14% · 290</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#638fac"></i><span>Здоровье</span><b class="mono">9% · 200</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#88a69f"></i><span>Покупки</span><b class="mono">8% · 170</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#8f79a8"></i><span>Развлечения</span><b class="mono">7% · 140</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#6f9d74"></i><span>Подписки</span><b class="mono">5% · 115</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#b58b6a"></i><span>Подарки</span><b class="mono">3% · 60</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#c7ced6"></i><span>Остальное</span><b class="mono">2% · 50</b></div>
+                    </div>
+                    <div class="legend hidden" data-child>
+                      <div class="legend__row"><i class="dot" style="background:#c35a4a"></i><span>Дом · Аренда</span><b class="mono">29% · 610</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#e78668"></i><span>Еда · Продукты</span><b class="mono">17% · 365</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#d8a84a"></i><span>Транспорт · Такси</span><b class="mono">11% · 240</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#638fac"></i><span>Здоровье · Аптека</span><b class="mono">8% · 175</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#88a69f"></i><span>Покупки · Одежда</span><b class="mono">7% · 155</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#8f79a8"></i><span>Развлечения · Кино</span><b class="mono">6% · 125</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#6f9d74"></i><span>Подписки · Сервисы</span><b class="mono">5% · 105</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#b58b6a"></i><span>Дом · Коммунальные</span><b class="mono">4% · 90</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#c7ced6"></i><span>Остальные</span><b class="mono">11% · 240</b></div>
+                    </div>
+                  </div>
+                  <div class="hint">Режим Родители/Подкатегории запоминается. Выбор сектора открывает детализацию и транзакции, сохраняя месяц и видимые счета.</div>
+                </article>
+                <article class="card composition-card" data-flow="income">
+                  <div class="card__head"><div><div class="eyebrow">Доходы по категориям</div><h2>Источники месяца</h2></div><div class="seg"><button class="is-active donut-toggle" data-level="parent">Родители</button><button class="donut-toggle" data-level="child">Подкатегории</button></div></div>
+                  <div class="donut-wrap">
+                    <div class="donut donut--income" role="img" aria-label="Доходы по родительским категориям"></div>
+                    <div class="legend" data-parent>
+                      <div class="legend__row"><i class="dot" style="background:#2f8f82"></i><span>Зарплата</span><b class="mono">69% · 3100</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#5ba99f"></i><span>Подработка</span><b class="mono">11% · 500</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#7cb8a6"></i><span>Возвраты</span><b class="mono">6% · 260</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#6f9d74"></i><span>Проценты</span><b class="mono">4% · 190</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#638fac"></i><span>Подарки</span><b class="mono">4% · 180</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#8f79a8"></i><span>Кэшбэк</span><b class="mono">3% · 120</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#c7ced6"></i><span>Остальное</span><b class="mono">3% · 150</b></div>
+                    </div>
+                    <div class="legend hidden" data-child>
+                      <div class="legend__row"><i class="dot" style="background:#2f8f82"></i><span>Зарплата · Основная</span><b class="mono">62% · 2800</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#5ba99f"></i><span>Подработка · Проекты</span><b class="mono">11% · 500</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#7cb8a6"></i><span>Зарплата · Премия</span><b class="mono">7% · 300</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#6f9d74"></i><span>Возвраты · Покупки</span><b class="mono">6% · 260</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#638fac"></i><span>Инвестиции · Проценты</span><b class="mono">4% · 190</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#8f79a8"></i><span>Подарки · Семья</span><b class="mono">4% · 180</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#b58b6a"></i><span>Кэшбэк · Карта</span><b class="mono">3% · 120</b></div>
+                      <div class="legend__row"><i class="dot" style="background:#c7ced6"></i><span>Остальные</span><b class="mono">3% · 150</b></div>
+                    </div>
+                  </div>
+                  <div class="hint">Структура доходов использует те же уровни и переход к отфильтрованным операциям.</div>
+                </article>
+                </div>
+              </div>
+              <aside class="grid">
+                <article class="card"><div class="card__head"><div><div class="eyebrow">Счета</div><h2>Видимые сейчас</h2></div><span class="link">Все счета →</span></div>
+                  <div class="account"><div class="account__name">Основная карта</div><div class="account__value mono">3 420 USD</div><div class="account__meta">USD · активный</div></div>
+                  <div class="account"><div class="account__name">Наличные</div><div class="account__value mono">640 USD</div><div class="account__meta">USD · активный</div></div>
+                  <div class="account"><div class="account__name">Сбережения</div><div class="account__value mono">8 120 USD</div><div class="account__meta">EUR · ≈ 8 120 USD</div></div>
+                  <div class="account"><div class="account__name">Совместные расходы</div><div class="account__value mono">660 USD</div><div class="account__meta">PLN · ≈ 660 USD</div></div>
+                  <div class="metric-row"><b>Итого</b><b class="mono">12 840 USD</b></div>
+                </article>
+                <article class="card"><div class="card__head"><div><div class="eyebrow">Требует внимания</div><h2>2 сигнала</h2></div></div><div class="warning-list"><div class="warning-item"><strong>3 операции без категории</strong><span>Последняя — сегодня</span></div><div class="warning-item"><strong>Не обновлён курс BYN</strong><span>Итог по затронутому блоку недоступен</span></div></div></article>
+              </aside>
+            </div>
+          </div>
+          <div class="mobile-nav"><b>Главная</b><span>Операции</span><span>Счета</span><span>Бюджеты</span><span>Отчёты</span></div>
+        </div>
+      </section>
+
+      <section class="direction" id="d2">
+        <p class="note"><strong>Счета прежде всего.</strong> Подходит пользователю, который открывает приложение главным образом ради ответа «сколько у меня сейчас на каждой карте и в каждой валюте».</p>
+        <div class="app"><div class="nav"><div class="logo">InEx</div><div class="nav__links"><b>Dashboard</b><span>Transactions</span><span>Accounts</span><span>Categories</span><span>Budgets</span><span>Reports</span></div><div class="user">Анна · USD</div></div><div class="page">
+          <div class="pagehead"><div><div class="eyebrow">Текущий баланс</div><h1>Мои деньги сегодня</h1><div class="sub">Скрытые счета не входят в сумму</div></div><div class="head-actions"><button class="action">Видимость счетов</button><button class="action primary">+ Операция</button></div></div>
+          <div class="grid layout-7-5">
+            <article class="card"><div class="card__head"><div><div class="eyebrow">Доступные средства</div><h2>4 видимых счёта</h2></div><div class="money income" style="margin:0">12 840 <small>USD</small></div></div>
+              <div class="account"><div class="account__name">Основная карта</div><div class="account__value mono">3 420.00 USD</div><div class="account__meta">26.6% от доступных средств</div></div>
+              <div class="account"><div class="account__name">Сбережения</div><div class="account__value mono">7 450.00 EUR</div><div class="account__meta">≈ 8 120 USD · курс 30 сен.</div></div>
+              <div class="account"><div class="account__name">Наличные</div><div class="account__value mono">640.00 USD</div><div class="account__meta">5.0% от доступных средств</div></div>
+              <div class="account"><div class="account__name">Совместные расходы</div><div class="account__value mono">2 580.00 PLN</div><div class="account__meta">≈ 660 USD · курс 30 сен.</div></div>
+            </article>
+            <div class="grid">
+              <div class="grid cols-2"><article class="card kpi"><div class="kpi__label">Расходы месяца</div><div class="money expense">−2 105 <small>USD</small></div><div class="hint good">−17% к августу</div></article><article class="card kpi"><div class="kpi__label">Свободно по бюджетам</div><div class="money income">285 <small>USD</small></div><div class="hint">12% осталось</div></article></div>
+              <article class="card"><div class="card__head"><div><div class="eyebrow">Валюта</div><h2>Состав доступных средств</h2></div></div><div class="category-row"><span class="category-row__name">USD</span><div class="bar"><span style="width:53%"></span></div><b class="mono">53%</b></div><div class="category-row"><span class="category-row__name">EUR</span><div class="bar"><span style="width:42%"></span></div><b class="mono">42%</b></div><div class="category-row"><span class="category-row__name">PLN</span><div class="bar"><span style="width:5%"></span></div><b class="mono">5%</b></div></article>
+              <article class="card"><div class="card__head"><div><div class="eyebrow">Последние изменения</div><h2>Сегодня</h2></div><span class="link">Все →</span></div><div class="quick-list"><div class="quick"><span>Супермаркет · Основная карта</span><b class="mono expense">−42 USD</b></div><div class="quick"><span>Такси · Основная карта</span><b class="mono expense">−18 USD</b></div></div></article>
+            </div>
+          </div>
+        </div><div class="mobile-nav"><b>Главная</b><span>Операции</span><span>Счета</span><span>Бюджеты</span><span>Отчёты</span></div></div>
+      </section>
+
+      <section class="direction" id="d3">
+        <p class="note"><strong>Темп расходов.</strong> Dashboard становится инструментом принятия решения: можно ли сегодня тратить, какие категории выбиваются и укладывается ли месяц в план.</p>
+        <div class="app"><div class="nav"><div class="logo">InEx</div><div class="nav__links"><b>Dashboard</b><span>Transactions</span><span>Accounts</span><span>Categories</span><span>Budgets</span><span>Reports</span></div><div class="user">Анна · USD</div></div><div class="page">
+          <div class="pagehead"><div><div class="eyebrow">Сентябрь · день 30 из 30</div><h1>Темп расходов</h1></div><div class="head-actions"><button class="action">Период</button><button class="action primary">+ Расход</button></div></div>
+          <div class="hero-state"><div class="eyebrow" style="color:#c9dddd">Можно потратить до конца месяца</div><div class="money">285.00 <small>USD</small></div><div class="sub" style="color:#d6e7e5">Фактический темп ниже плана на 6%</div><div class="hero-state__grid"><div class="hero-state__stat"><span>Потрачено</span><b class="mono">2 105 USD</b></div><div class="hero-state__stat"><span>План</span><b class="mono">2 390 USD</b></div><div class="hero-state__stat"><span>Среднее в день</span><b class="mono">70 USD</b></div></div></div>
+          <div class="grid layout-8-4" style="margin-top:16px"><div class="grid">
+            <article class="card"><div class="card__head"><div><div class="eyebrow">Динамика</div><h2>Расходы по дням</h2></div><div class="seg"><button class="is-active">Месяц</button><button>Неделя</button></div></div><div class="trend"><i style="height:34%" data-day="1"></i><i style="height:48%"></i><i style="height:27%"></i><i style="height:72%" data-day="10"></i><i style="height:42%"></i><i style="height:56%"></i><i style="height:35%" data-day="20"></i><i style="height:79%"></i><i style="height:43%"></i><i class="today" style="height:62%" data-day="30"></i></div><div class="pace"><strong>✓</strong><span><b>Месяц под контролем.</b> Для сохранения плана можно тратить до 285 USD.</span></div></article>
+            <article class="card"><div class="card__head"><div><div class="eyebrow">Категории</div><h2>Где темп выше нормы</h2></div><span class="link">Все категории →</span></div><div class="category-row"><span class="category-row__name">Еда</span><div class="bar is-expense"><span style="width:92%"></span></div><b class="mono warn">92%</b></div><div class="category-row"><span class="category-row__name">Транспорт</span><div class="bar"><span style="width:64%"></span></div><b class="mono">64%</b></div><div class="category-row"><span class="category-row__name">Дом</span><div class="bar"><span style="width:58%"></span></div><b class="mono">58%</b></div></article>
+          </div><aside class="grid"><article class="card"><div class="card__head"><div><div class="eyebrow">Сегодня</div><h2>Операции</h2></div><span class="link">Все →</span></div><div class="quick-list"><div class="quick"><span>Супермаркет</span><b class="mono expense">−42</b></div><div class="quick"><span>Такси</span><b class="mono expense">−18</b></div><div class="quick"><span>Возврат</span><b class="mono income">+25</b></div></div></article><article class="card"><div class="card__head"><div><div class="eyebrow">Баланс</div><h2>Видимые счета</h2></div></div><div class="metric-row"><span>4 счета</span><b class="mono">12 840 USD</b></div><div class="hint">Нажмите, чтобы раскрыть список</div></article></aside></div>
+        </div><div class="mobile-nav"><b>Главная</b><span>Операции</span><span>Счета</span><span>Бюджеты</span><span>Отчёты</span></div></div>
+      </section>
+
+      <section class="direction" id="d4">
+        <p class="note"><strong>Настраиваемые блоки.</strong> Максимальная персонализация. Хорошо для двух разных пользователей, но требует режима настройки и правил, чтобы Dashboard не превратился в хаотичную сетку.</p>
+        <div class="app"><div class="nav"><div class="logo">InEx</div><div class="nav__links"><b>Dashboard</b><span>Transactions</span><span>Accounts</span><span>Categories</span><span>Budgets</span><span>Reports</span></div><div class="user">Анна · USD</div></div><div class="page">
+          <div class="pagehead"><div><div class="eyebrow">Мой Dashboard</div><h1>Текущая картина</h1><div class="sub">Шаблон: Ежедневный контроль</div></div><div class="head-actions"><button class="action">Изменить блоки</button><button class="action primary">+ Операция</button></div></div>
+          <div class="grid cols-3" style="margin-bottom:16px"><div class="template-card is-active"><b>Ежедневный контроль</b><p>Счета, доступно, категории, сигналы</p></div><div class="template-card"><b>Бюджет месяца</b><p>Темп, остатки, превышения, план</p></div><div class="template-card"><b>Обзор капитала</b><p>Net worth, валюты, история и тренды</p></div></div>
+          <div class="grid cols-4"><article class="card kpi"><div class="kpi__label">Видимые счета</div><div class="money">12 840 <small>USD</small></div><div class="hint">4 счета</div></article><article class="card kpi"><div class="kpi__label">Расходы месяца</div><div class="money expense">−2 105 <small>USD</small></div><div class="hint good">−17% к августу</div></article><article class="card kpi"><div class="kpi__label">Можно потратить</div><div class="money income">1 380 <small>USD</small></div><div class="hint">с учётом плана</div></article><article class="card kpi"><div class="kpi__label">Требует внимания</div><div class="money warn">2</div><div class="hint">категория и операции</div></article></div>
+          <div class="grid layout-8-4" style="margin-top:16px"><article class="card"><div class="card__head"><div><div class="eyebrow">Блок 1</div><h2>Расходы по категориям</h2></div><span class="link">Переместить ⋮⋮</span></div><div class="donut-wrap"><div class="donut"></div><div class="legend"><div class="legend__row"><i class="dot"></i><span>Дом</span><b>37%</b></div><div class="legend__row"><i class="dot" style="background:#e78668"></i><span>Еда</span><b>24%</b></div><div class="legend__row"><i class="dot" style="background:#d8a84a"></i><span>Транспорт</span><b>15%</b></div></div></div></article><aside class="card"><div class="card__head"><div><div class="eyebrow">Блок 2</div><h2>Счета</h2></div><span class="link">Переместить ⋮⋮</span></div><div class="account"><div class="account__name">Основная карта</div><div class="account__value mono">3 420</div><div class="account__meta">USD</div></div><div class="account"><div class="account__name">Сбережения</div><div class="account__value mono">8 120</div><div class="account__meta">≈ USD</div></div><div class="account"><div class="account__name">Другие</div><div class="account__value mono">1 300</div><div class="account__meta">≈ USD</div></div></aside></div>
+        </div><div class="mobile-nav"><b>Главная</b><span>Операции</span><span>Счета</span><span>Бюджеты</span><span>Отчёты</span></div></div>
+      </section>
+
+      <section class="direction" id="d5">
+        <p class="note"><strong>Финансовая консоль.</strong> Самая плотная версия: почти всё видно без прокрутки. Подходит опытному пользователю на desktop, но тяжелее для мобильного и для редкого использования.</p>
+        <div class="app"><div class="nav"><div class="logo">InEx</div><div class="nav__links"><b>Dashboard</b><span>Transactions</span><span>Accounts</span><span>Categories</span><span>Budgets</span><span>Reports</span></div><div class="user">Анна · USD</div></div><div class="page">
+          <div class="pagehead"><div><div class="eyebrow">Оперативная сводка</div><h1>Финансовая консоль</h1></div><div class="head-actions"><button class="action">Сентябрь 2026</button><button class="action primary">+ Операция</button></div></div>
+          <div class="grid cols-4" style="margin-bottom:16px"><article class="card kpi"><div class="kpi__label">Баланс счетов</div><div class="money">12 840 <small>USD</small></div><div class="hint">4 видимых</div></article><article class="card kpi"><div class="kpi__label">Доходы</div><div class="money income">+3 200</div><div class="hint">+3% MoM</div></article><article class="card kpi"><div class="kpi__label">Расходы</div><div class="money expense">−2 105</div><div class="hint">−17% MoM</div></article><article class="card kpi"><div class="kpi__label">Бюджет</div><div class="money">88%</div><div class="hint warn">2 сигнала</div></article></div>
+          <div class="grid cols-2"><article class="card"><div class="card__head"><div><div class="eyebrow">Счета</div><h2>Остатки</h2></div><span class="link">Управление →</span></div><table class="dense-table"><thead><tr><th>Счёт</th><th>Валюта</th><th>Баланс</th></tr></thead><tbody><tr><td>Основная карта</td><td>USD</td><td class="mono">3 420.00</td></tr><tr><td>Сбережения</td><td>EUR</td><td class="mono">7 450.00</td></tr><tr><td>Наличные</td><td>USD</td><td class="mono">640.00</td></tr><tr><td>Совместные расходы</td><td>PLN</td><td class="mono">2 580.00</td></tr></tbody></table></article><article class="card"><div class="card__head"><div><div class="eyebrow">Категории</div><h2>Расходы и план</h2></div><span class="link">Отчёт →</span></div><table class="dense-table"><thead><tr><th>Категория</th><th>Потрачено</th><th>План</th></tr></thead><tbody><tr><td>Дом</td><td class="mono">780</td><td class="mono">900</td></tr><tr><td>Еда</td><td class="mono">505</td><td class="mono warn">550</td></tr><tr><td>Транспорт</td><td class="mono">320</td><td class="mono">500</td></tr><tr><td>Здоровье</td><td class="mono">275</td><td class="mono">400</td></tr></tbody></table></article></div>
+          <div class="grid cols-2" style="margin-top:16px"><article class="card"><div class="card__head"><div><div class="eyebrow">День</div><h2>Последние операции</h2></div></div><div class="quick-list"><div class="quick"><span>Супермаркет · Еда</span><b class="mono expense">−42 USD</b></div><div class="quick"><span>Такси · Транспорт</span><b class="mono expense">−18 USD</b></div></div></article><article class="card"><div class="card__head"><div><div class="eyebrow">Контроль</div><h2>Сигналы</h2></div></div><div class="pace"><strong>2</strong><span>Еда близка к лимиту; 3 операции без категории.</span></div></article></div>
+        </div><div class="mobile-nav"><b>Главная</b><span>Операции</span><span>Счета</span><span>Бюджеты</span><span>Отчёты</span></div></div>
+      </section>
+
+      <section class="direction" id="d6">
+        <p class="note"><strong>Спокойный минимум.</strong> Минимум блоков и максимум воздуха. Отлично для быстрого мобильного просмотра, но часть текущего состояния раскрывается по нажатию.</p>
+        <div class="app"><div class="nav"><div class="logo">InEx</div><div class="nav__links"><b>Dashboard</b><span>Transactions</span><span>Accounts</span><span>Categories</span><span>Budgets</span><span>Reports</span></div><div class="user">Анна · USD</div></div><div class="page">
+          <div class="pagehead"><div><div class="eyebrow">Сегодня</div><h1>Всё под контролем</h1><div class="sub">30 сентября · 4 видимых счёта</div></div><div class="head-actions"><button class="action primary">+ Операция</button></div></div>
+          <div class="grid layout-8-4"><div class="grid"><div class="hero-state"><div class="eyebrow" style="color:#c9dddd">Доступно сейчас</div><div class="money">12 840.00 <small>USD</small></div><div class="sub" style="color:#d6e7e5">Включены Основная карта, Наличные, Сбережения и Совместные расходы</div></div>
+            <article class="card"><div class="card__head"><div><div class="eyebrow">Этот месяц</div><h2>Расходы</h2></div><div class="money expense" style="margin:0">−2 105 <small>USD</small></div></div><div class="category-row"><span class="category-row__name">Дом</span><div class="bar is-expense"><span style="width:100%"></span></div><b class="mono">780</b></div><div class="category-row"><span class="category-row__name">Еда</span><div class="bar is-expense"><span style="width:65%"></span></div><b class="mono">505</b></div><div class="category-row"><span class="category-row__name">Транспорт</span><div class="bar is-expense"><span style="width:41%"></span></div><b class="mono">320</b></div><div class="link" style="margin-top:12px">Подробнее по категориям →</div></article>
+          </div><aside class="grid"><article class="card"><div class="card__head"><div><div class="eyebrow">Остаток месяца</div><h2>Можно потратить</h2></div></div><div class="money income">285 <small>USD</small></div><div class="bar" style="margin-top:18px"><span style="width:88%"></span></div><div class="hint">Использовано 88% бюджета</div></article><article class="card"><div class="card__head"><div><div class="eyebrow">Сигнал</div><h2>Еда близка к лимиту</h2></div></div><p class="sub">Осталось 40 USD. Посмотреть операции категории.</p><span class="link">Открыть →</span></article></aside></div>
+        </div><div class="mobile-nav"><b>Главная</b><span>Операции</span><span>Счета</span><span>Бюджеты</span><span>Отчёты</span></div></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const tabs = [...document.querySelectorAll('.tab')];
+    const directions = [...document.querySelectorAll('.direction')];
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+      tabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+      directions.forEach((item) => item.classList.toggle('is-active', item.id === tab.dataset.target));
+    }));
+
+    const device = document.getElementById('device');
+    document.querySelectorAll('.viewport').forEach((button) => button.addEventListener('click', () => {
+      document.querySelectorAll('.viewport').forEach((item) => item.classList.toggle('is-active', item === button));
+      device.classList.toggle('is-mobile', button.dataset.mode === 'mobile');
+    }));
+
+    document.querySelectorAll('.donut-toggle').forEach((button) => button.addEventListener('click', () => {
+      const card = button.closest('.composition-card');
+      if (!card) return;
+      card.querySelectorAll('.donut-toggle').forEach((item) => item.classList.toggle('is-active', item === button));
+      card.querySelector('[data-parent]').classList.toggle('hidden', button.dataset.level !== 'parent');
+      card.querySelector('[data-child]').classList.toggle('hidden', button.dataset.level !== 'child');
+      const flowLabel = card.dataset.flow === 'income' ? 'Доходы' : 'Расходы';
+      card.querySelector('.donut').setAttribute('aria-label', button.dataset.level === 'parent' ? `${flowLabel} по родительским категориям` : `${flowLabel} по подкатегориям`);
+    }));
+  </script>
+</body>
+</html>

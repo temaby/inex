@@ -192,13 +192,15 @@ export const transactionsApi = createApi({
         url: `/transactions?${buildTransactionParams(pageSize, page, filter, linkedUserId).toString()}`,
       }),
       providesTags: [{ type: "Transaction", id: "LIST" }],
-      serializeQueryArgs: ({ endpointName, queryArgs }) => ({
-        endpointName,
-        pageSize: queryArgs.pageSize,
-        page: queryArgs.page,
-        filter: normalizeTransactionFilterParams(queryArgs.filter),
-        linkedUserId: queryArgs.linkedUserId ?? null,
-      }),
+      serializeQueryArgs: ({ endpointName, queryArgs }) => typeof queryArgs === "object" && queryArgs !== null
+        ? {
+            endpointName,
+            pageSize: queryArgs.pageSize,
+            page: queryArgs.page,
+            filter: normalizeTransactionFilterParams(queryArgs.filter),
+            linkedUserId: queryArgs.linkedUserId ?? null,
+          }
+        : { endpointName },
     }),
     getTransactionsSummary: builder.query<TransactionSummaryResult, GetTransactionsSummaryArgs>({
       query: (args) => {
@@ -209,6 +211,7 @@ export const transactionsApi = createApi({
       },
       providesTags: [{ type: "Transaction", id: "LIST" }],
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        if (typeof queryArgs !== "object" || queryArgs === null) return { endpointName };
         const { filter, linkedUserId } = normalizeTransactionSummaryArgs(queryArgs);
         return {
           endpointName,

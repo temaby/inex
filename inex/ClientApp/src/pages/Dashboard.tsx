@@ -1,513 +1,743 @@
 import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Spin } from "antd";
-import { ArrowDown, ArrowUp, Banknote, Landmark, TrendingUp } from "lucide-react";
 import dayjs from "dayjs";
+import { ArrowDown, ArrowUp, ChevronLeft, Landmark, Layers3, WalletCards } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
 import {
+    Bar,
+    BarChart,
     CartesianGrid,
-    Line,
-    LineChart,
+    Cell,
+    Pie,
+    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
+
+import { InExButton, Num, SegmentedControl } from "../components/primitives";
 import BasicPage from "../layouts/BasicPage";
-import { Num, type MoneyKind } from "../components/primitives";
-import type { BudgetComparisonDTO, BudgetReportResponse, ReportMetadataDTO } from "../model/Report/BudgetReport";
-import type { NetWorthHistoryPoint, NetWorthHistoryResponse } from "../model/Report/NetWorthHistory";
-import { useAppSelector } from "../store/hooks";
-import apiClient from "../utils/apiClient";
+import { fetchCachedRatesForRange } from "../store/rates/rates-action";
+import { useGetAccountsQuery, useGetAccountsSummaryQuery } from "../store/accounts/accounts-api";
+import { useGetCategoriesQuery } from "../store/categories/categories-api";
+import { useGetTransactionsQuery, useGetTransactionsSummaryQuery } from "../store/transactions/transactions-api";
+import { transactionsDefaultFilter } from "../store/transactions/transactions-slice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+    getAccountBalanceConversionResult,
+    getBaseCurrencyEquivalent,
+    getCashFlowConversionResult,
+    getCurrentTransactionMonthRange,
+} from "./Transactions/transaction-ledger-utils";
+import {
+    buildDashboardCategorySlices,
+    buildDashboardTransactionFilter,
+    type DashboardCategoryMode,
+    type DashboardCategorySlice,
+    type DashboardFlow,
+} from "./Dashboard/dashboard-utils";
 import "./Dashboard/dashboard.css";
 
-interface Currency {
-    id: number;
-    key: string;
-    name: string;
+const INCOME_COLORS = [
+    "var(--income-700)",
+    "var(--income-600)",
+    "var(--income-500)",
+    "var(--income-400)",
+    "var(--income-200)",
+    "var(--transfer-500)",
+    "var(--warn-500)",
+    "var(--brand-ink)",
+    "var(--border-2)",
+];
+
+const EXPENSE_COLORS = [
+    "var(--expense-700)",
+    "var(--expense-600)",
+    "var(--expense-500)",
+    "var(--expense-400)",
+    "var(--expense-200)",
+    "var(--warn-500)",
+    "var(--transfer-500)",
+    "var(--brand-ink)",
+    "var(--border-2)",
+];
+
+interface CategoryPanelProps {
+    currency: string;
+    flow: DashboardFlow;
+    isError: boolean;
+    isLoading: boolean;
+    isUnavailable: boolean;
+    locale: string;
+    missingRates: string[];
+    mode: DashboardCategoryMode;
+    selectedParentName?: string;
+    slices: DashboardCategorySlice[];
+    onBack: () => void;
+    onRetry: () => void;
+    onSelect: (slice: DashboardCategorySlice) => void;
 }
 
-interface MonthTotals {
-    income: number;
-    expenses: number;
-    savings: number;
-}
+const CategoryPanel = ({
+    currency,
+    flow,
+    isError,
+    isLoading,
+    isUnavailable,
+    locale,
+    missingRates,
+    mode,
+    selectedParentName,
+    slices,
+    onBack,
+    onRetry,
+    onSelect,
+}: CategoryPanelProps) => {
+    const { t } = useTranslation();
+    const [otherExpanded, setOtherExpanded] = useState(false);
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    const lastParentButtonRef = useRef<HTMLButtonElement | null>(null);
+    const total = slices.reduce((sum, slice) => sum + slice.amount, 0);
+    const colors = flow === "income" ? INCOME_COLORS : EXPENSE_COLORS;
 
-interface SummaryState {
-    current: MonthTotals;
-    previous: MonthTotals | null;
-}
+    useEffect(() => {
+        setOtherExpanded(false);
+    }, [mode, selectedParentName, slices]);
 
-interface BudgetMetrics {
-    budgeted: number;
-    spent: number;
-    remaining: number;
-    percentageUsed: number;
-}
+    useEffect(() => {
+        if (selectedParentName) headingRef.current?.focus();
+    }, [selectedParentName]);
 
-type TrendMode = "higherIsBetter" | "lowerIsBetter";
-
-interface SummaryCard {
-    key: string;
-    title: string;
-    value: number;
-    previous?: number;
-    icon: React.ReactNode;
-    kind: MoneyKind;
-    trendMode: TrendMode;
-    customDelta?: string;
-}
-
-const emptyTotals: MonthTotals = {
-    income: 0,
-    expenses: 0,
-    savings: 0,
-};
-
-const totalsFromMetadata = (metadata?: ReportMetadataDTO | null): MonthTotals => {
-    const income = metadata?.totalIncome ?? 0;
-    const expenses = metadata?.totalOutcome ?? 0;
-    const savings = income - expenses;
-
-    return {
-        income,
-        expenses,
-        savings: Math.abs(savings) < 0.01 ? 0 : savings,
+    const returnToParents = () => {
+        onBack();
+        window.requestAnimationFrame(() => lastParentButtonRef.current?.focus());
     };
-};
 
-const budgetMetricsFromReport = (report?: BudgetReportResponse | null): BudgetMetrics => {
-    const totals = (report?.data ?? []).reduce(
-        (accumulator, item) => ({
-            budgeted: accumulator.budgeted + item.budgetedAmount,
-            spent: accumulator.spent + item.spentAmount,
-            remaining: accumulator.remaining + item.remainingAmount,
-        }),
-        { budgeted: 0, spent: 0, remaining: 0 },
+    return (
+        <section
+            className="dashboard-panel dashboard-category-panel"
+            data-qa={`dashboard-${flow}-categories`}
+            onKeyDown={(event) => {
+                if (event.key === "Escape" && selectedParentName) {
+                    event.preventDefault();
+                    returnToParents();
+                }
+            }}
+        >
+            <div className="dashboard-panel__header">
+                <div>
+                    <span className="dashboard-panel__eyebrow">{t("dashboard.categories.eyebrow")}</span>
+                    <h2 className="dashboard-panel__title" ref={headingRef} tabIndex={-1}>{t(`dashboard.categories.${flow}Title`)}</h2>
+                    <p className="dashboard-panel__context">
+                        {selectedParentName
+                            ? t("dashboard.categories.childrenOf", { category: selectedParentName })
+                            : t(`dashboard.categories.${mode}Context`)}
+                    </p>
+                </div>
+                <Layers3 size={18} aria-hidden="true" />
+            </div>
+
+            {selectedParentName && (
+                <InExButton icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
+                    {t("dashboard.categories.backToParents")}
+                </InExButton>
+            )}
+
+            <Spin spinning={isLoading} tip={t("dashboard.categories.loading")}>
+                {isError ? (
+                    <div className="dashboard-panel-state dashboard-panel-state--error" role="alert">
+                        {t("dashboard.categories.error")}
+                    </div>
+                ) : isUnavailable ? (
+                    <div className="dashboard-panel-state" role="status">
+                        <strong>{t("dashboard.unavailable.title")}</strong>
+                        <span>{t("dashboard.unavailable.rates", { currencies: missingRates.join(", ") })}</span>
+                        <InExButton kind="ghost" onClick={onRetry} size="sm">{t("dashboard.unavailable.retry")}</InExButton>
+                    </div>
+                ) : slices.length === 0 ? (
+                    <div className="dashboard-panel-state" role="status">
+                        {t(`dashboard.categories.${flow}Empty`)}
+                    </div>
+                ) : (
+                    <div className="dashboard-donut-layout">
+                        <div className="dashboard-donut" aria-hidden="true">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={slices}
+                                        dataKey="amount"
+                                        innerRadius="58%"
+                                        nameKey="label"
+                                        outerRadius="84%"
+                                        paddingAngle={2}
+                                        stroke="var(--bg-surface)"
+                                        strokeWidth={2}
+                                    >
+                                        {slices.map((slice, index) => (
+                                            <Cell fill={colors[index % colors.length]} key={slice.key} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        formatter={(value) => [
+                                            new Intl.NumberFormat(locale, {
+                                                style: "currency",
+                                                currency: currency || "USD",
+                                                maximumFractionDigits: 2,
+                                            }).format(Number(value)),
+                                            t("dashboard.categories.amount"),
+                                        ]}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="dashboard-donut__total">
+                                <strong>{slices.length}</strong>
+                                <span>{t("dashboard.categories.visible")}</span>
+                            </div>
+                        </div>
+
+                        <ol className="dashboard-chart-legend" aria-label={t(`dashboard.categories.${flow}Summary`)}>
+                            {slices.map((slice, index) => {
+                                const percentage = total > 0 ? (slice.amount / total) * 100 : 0;
+                                const action = slice.isOther
+                                    ? () => setOtherExpanded((value) => !value)
+                                    : () => onSelect(slice);
+                                return (
+                                    <li key={slice.key}>
+                                        <button
+                                            aria-expanded={slice.isOther ? otherExpanded : undefined}
+                                            className="dashboard-chart-legend__button"
+                                            onClick={(event) => {
+                                                if (!slice.isOther && mode === "parent" && !selectedParentName) {
+                                                    lastParentButtonRef.current = event.currentTarget;
+                                                }
+                                                action();
+                                            }}
+                                            type="button"
+                                        >
+                                            <span
+                                                aria-hidden="true"
+                                                className="dashboard-chart-legend__swatch"
+                                                style={{ background: colors[index % colors.length] }}
+                                            />
+                                            <span className="dashboard-chart-legend__label">{slice.label}</span>
+                                            <span className="dashboard-chart-legend__percentage">{percentage.toFixed(0)}%</span>
+                                            <Num
+                                                currency={currency}
+                                                currencySize="sm"
+                                                kind={flow}
+                                                value={flow === "expense" ? -slice.amount : slice.amount}
+                                            />
+                                        </button>
+                                        {slice.isOther && otherExpanded && slice.members && (
+                                            <ol className="dashboard-other-list">
+                                                {slice.members.map((member) => (
+                                                    <li key={member.key}>
+                                                        <button onClick={() => onSelect(member)} type="button">
+                                                            <span>{member.label}</span>
+                                                            <Num
+                                                                currency={currency}
+                                                                currencySize="sm"
+                                                                kind={flow}
+                                                                value={flow === "expense" ? -member.amount : member.amount}
+                                                            />
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ol>
+                    </div>
+                )}
+            </Spin>
+        </section>
     );
-
-    return {
-        ...totals,
-        percentageUsed: totals.budgeted > 0 ? (totals.spent / totals.budgeted) * 100 : 0,
-    };
-};
-
-const getDeltaPercent = (current: number, previous: number | null | undefined) => {
-    if (previous === null || previous === undefined || Math.abs(previous) < 0.01) return null;
-
-    return ((current - previous) / Math.abs(previous)) * 100;
-};
-
-const getDeltaColor = (delta: number | null, mode: TrendMode) => {
-    if (delta === null || Math.abs(delta) < 0.01) return undefined;
-
-    const isPositiveTrend = mode === "higherIsBetter" ? delta > 0 : delta < 0;
-    return isPositiveTrend ? "good" : "bad";
-};
-
-const getNetWorthDomain = (points: NetWorthHistoryPoint[]): [number, number] | undefined => {
-    if (points.length === 0) return undefined;
-
-    const values = points.map((point) => point.netWorth);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min;
-    const padding = range > 0
-        ? Math.max(range * 0.12, 1)
-        : Math.max(Math.abs(max) * 0.02, 1);
-    const lower = min >= 0 ? Math.max(0, min - padding) : min - padding;
-    const upper = max + padding;
-
-    return lower === upper ? [lower - 1, upper + 1] : [lower, upper];
 };
 
 const Dashboard = () => {
-    const { t } = useTranslation();
-    const user = useAppSelector((state) => state.auth.user);
+    const { t, i18n } = useTranslation();
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
     const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
     const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
         (account) => account.id === state.linkedAccount.selectedLinkedUserId,
     ));
-    const [currencies, setCurrencies] = useState<Currency[]>([]);
-    const [summary, setSummary] = useState<SummaryState>({ current: emptyTotals, previous: null });
-    const [currentBudgetReport, setCurrentBudgetReport] = useState<BudgetReportResponse | null>(null);
-    const [netWorthHistory, setNetWorthHistory] = useState<NetWorthHistoryPoint[]>([]);
-    const [isLoadingCurrency, setIsLoadingCurrency] = useState(false);
-    const [isLoadingSummary, setIsLoadingSummary] = useState(false);
-    const [isLoadingNetWorth, setIsLoadingNetWorth] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [netWorthError, setNetWorthError] = useState<string | null>(null);
+    const dailyRates = useAppSelector((state) => state.rates.items);
+    const cachedRates = useAppSelector((state) => state.rates.cached);
+    const [categoryMode, setCategoryMode] = useState<DashboardCategoryMode>("parent");
+    const [expenseParentId, setExpenseParentId] = useState<number | null>(null);
+    const [incomeParentId, setIncomeParentId] = useState<number | null>(null);
+    const [accountsExpanded, setAccountsExpanded] = useState(false);
 
-    const currency = useMemo(() => {
-        if (selectedLinkedUserId !== null) {
-            return selectedLinkedAccount?.baseCurrency ?? null;
-        }
-        if (!user) return null;
-        return currencies.find((item) => item.id === user.currencyId)?.key ?? null;
-    }, [currencies, selectedLinkedAccount?.baseCurrency, selectedLinkedUserId, user]);
+    const [monthRange, setMonthRange] = useState(() => getCurrentTransactionMonthRange());
 
     useEffect(() => {
-        let isMounted = true;
-
-        setIsLoadingCurrency(true);
-        apiClient.get<Currency[]>("/currencies")
-            .then(({ data }) => {
-                if (isMounted) setCurrencies(data);
-            })
-            .catch(() => {
-                if (isMounted) setError(t("dashboard.summary.error"));
-            })
-            .finally(() => {
-                if (isMounted) setIsLoadingCurrency(false);
-            });
-
-        return () => {
-            isMounted = false;
+        let timeoutId: number;
+        const scheduleMonthRefresh = () => {
+            const nextMonth = dayjs().add(1, "month").startOf("month");
+            const delayUntilNextCheck = Math.min(
+                Math.max(nextMonth.diff(dayjs()) + 1_000, 1_000),
+                24 * 60 * 60 * 1_000,
+            );
+            timeoutId = window.setTimeout(() => {
+                const nextRange = getCurrentTransactionMonthRange();
+                setMonthRange((currentRange) => (
+                    currentRange[0] === nextRange[0] && currentRange[1] === nextRange[1]
+                        ? currentRange
+                        : nextRange
+                ));
+                scheduleMonthRefresh();
+            }, delayUntilNextCheck);
         };
-    }, [t]);
+
+        scheduleMonthRefresh();
+
+        return () => window.clearTimeout(timeoutId);
+    }, []);
+    const startDate = dayjs.unix(monthRange[0]).format("YYYY-MM-DD");
+    const endDate = dayjs.unix(monthRange[1]).format("YYYY-MM-DD");
+    const accountsQuery = useGetAccountsQuery(
+        selectedLinkedUserId == null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
+    const categoriesQuery = useGetCategoriesQuery(
+        selectedLinkedUserId == null
+            ? "ALL"
+            : { mode: "ALL", linkedUserId: selectedLinkedUserId },
+    );
+    const visibleAccounts = useMemo(
+        () => (accountsQuery.currentData ?? []).filter((account) => account.isEnabled && account.isFavourite !== false),
+        [accountsQuery.currentData],
+    );
+    const visibleAccountIds = useMemo(() => visibleAccounts.map((account) => account.id), [visibleAccounts]);
+    const summaryFilter = useMemo(() => ({
+        ...transactionsDefaultFilter,
+        accountIds: visibleAccountIds,
+        range: monthRange,
+    }), [monthRange, visibleAccountIds]);
+    const hasVisibleAccounts = visibleAccountIds.length > 0;
+    const summaryQuery = useGetTransactionsSummaryQuery({
+        filter: summaryFilter,
+        linkedUserId: selectedLinkedUserId,
+    }, { skip: !hasVisibleAccounts });
+    const categoryTransactionsQuery = useGetTransactionsQuery({
+        pageSize: 0,
+        page: 0,
+        filter: summaryFilter,
+        linkedUserId: selectedLinkedUserId,
+    }, { skip: !hasVisibleAccounts });
+    const accountBalancesQuery = useGetAccountsSummaryQuery({
+        ids: visibleAccountIds,
+        linkedUserId: selectedLinkedUserId,
+    }, { skip: visibleAccountIds.length === 0 });
+    const visibleAccountIdSet = useMemo(() => new Set(visibleAccountIds), [visibleAccountIds]);
+    const accountBalances = useMemo(
+        () => (accountBalancesQuery.currentData ?? []).filter((account) => visibleAccountIdSet.has(account.id)),
+        [accountBalancesQuery.currentData, visibleAccountIdSet],
+    );
+    const baseCurrency = selectedLinkedAccount?.baseCurrency
+        ?? summaryQuery.currentData?.baseCurrency
+        ?? dailyRates[0]?.currencyFrom
+        ?? "";
+
+    const accountNeedsRate = accountBalances.some(
+        (account) => account.value !== 0 && account.currency !== baseCurrency,
+    );
+    const cashFlowNeedsRate = (summaryQuery.currentData?.currentScope.cashFlowBuckets ?? []).some(
+        (bucket) => (bucket.income !== 0 || bucket.expense !== 0) && bucket.currency !== baseCurrency,
+    );
+    const categoryNeedsRate = (categoryTransactionsQuery.currentData?.data ?? []).some(
+        (transaction) => transaction.amount !== 0 && transaction.accountCurrency !== baseCurrency,
+    );
+    const needsCachedRates = accountNeedsRate || cashFlowNeedsRate || categoryNeedsRate;
+    const cachedRateKey = `${selectedLinkedUserId ?? "self"}:${startDate}:${endDate}`;
 
     useEffect(() => {
-        if (user && !isLoadingCurrency && currencies.length > 0 && !currency) {
-            setError(t("dashboard.summary.currencyUnavailable"));
-        }
-    }, [currencies.length, currency, isLoadingCurrency, t, user]);
+        if (!needsCachedRates || cachedRates?.completedKey === cachedRateKey || cachedRates?.requestKey === cachedRateKey) return;
+        void dispatch(fetchCachedRatesForRange(startDate, endDate, selectedLinkedUserId));
+    }, [cachedRateKey, cachedRates?.completedKey, cachedRates?.requestKey, dispatch, endDate, needsCachedRates, selectedLinkedUserId, startDate]);
 
     useEffect(() => {
-        if (!currency) return;
+        setExpenseParentId(null);
+        setIncomeParentId(null);
+        setAccountsExpanded(false);
+    }, [categoryMode, selectedLinkedUserId]);
 
-        let isMounted = true;
-        const currentMonth = dayjs();
-        const previousMonth = currentMonth.subtract(1, "month");
-        const getReportParams = (month: dayjs.Dayjs) => ({
-                year: String(month.year()),
-                month: String(month.month() + 1),
-                currency,
-                linkedUserId: selectedLinkedUserId ?? undefined,
-            });
-
-        setIsLoadingSummary(true);
-        setSummary({ current: emptyTotals, previous: null });
-        setCurrentBudgetReport(null);
-        setError(null);
-
-        Promise.all([
-            apiClient.get<BudgetReportResponse>("/reports/budget/comparison", {
-                params: getReportParams(currentMonth),
-            }),
-            apiClient.get<BudgetReportResponse>("/reports/budget/comparison", {
-                params: getReportParams(previousMonth),
-            }),
-        ])
-            .then(([currentResponse, previousResponse]) => {
-                if (!isMounted) return;
-
-                setSummary({
-                    current: totalsFromMetadata(currentResponse.data.metadata),
-                    previous: totalsFromMetadata(previousResponse.data.metadata),
-                });
-                setCurrentBudgetReport(currentResponse.data);
-            })
-            .catch(() => {
-                if (!isMounted) return;
-
-                setSummary({ current: emptyTotals, previous: null });
-                setCurrentBudgetReport(null);
-                setError(t("dashboard.summary.error"));
-            })
-            .finally(() => {
-                if (isMounted) setIsLoadingSummary(false);
-            });
-
-        return () => {
-            isMounted = false;
-        };
-    }, [currency, selectedLinkedUserId, t]);
-
-    useEffect(() => {
-        if (!currency) return;
-
-        let isMounted = true;
-        setIsLoadingNetWorth(true);
-        setNetWorthHistory([]);
-        setNetWorthError(null);
-
-        apiClient.get<NetWorthHistoryResponse>("/reports/net-worth", {
-            params: {
-                months: 12,
-                currency,
-                linkedUserId: selectedLinkedUserId ?? undefined,
-            },
-        })
-            .then(({ data }) => {
-                if (!isMounted) return;
-                setNetWorthHistory(data.data);
-            })
-            .catch(() => {
-                if (!isMounted) return;
-                setNetWorthHistory([]);
-                setNetWorthError(t("dashboard.netWorth.error"));
-            })
-            .finally(() => {
-                if (isMounted) setIsLoadingNetWorth(false);
-            });
-
-        return () => {
-            isMounted = false;
-        };
-    }, [currency, selectedLinkedUserId, t]);
-
-    const isLoading = isLoadingCurrency || isLoadingSummary;
-    const hasNoCurrentMonthActivity = summary.current.income === 0 && summary.current.expenses === 0;
-    const chartCurrency = netWorthHistory[0]?.currency ?? currency ?? "";
-    const locale = user?.languageCode || undefined;
-
-    const formatMoney = (value: number, maximumFractionDigits = 0) => (
-        new Intl.NumberFormat(locale, {
-            style: "currency",
-            currency: chartCurrency || "USD",
-            maximumFractionDigits,
-        }).format(value)
+    const exchangeRates = cachedRates?.completedKey === cachedRateKey ? cachedRates.items : [];
+    const ratesLoading = needsCachedRates && (
+        cachedRates?.completedKey !== cachedRateKey
+        || (cachedRates?.requestKey === cachedRateKey && cachedRates.loading)
+    );
+    const retryRates = () => {
+        void dispatch(fetchCachedRatesForRange(startDate, endDate, selectedLinkedUserId));
+    };
+    const accountConversion = useMemo(
+        () => baseCurrency
+            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, exchangeRates)
+            : { value: 0, isComplete: false, unavailableCurrencies: [] },
+        [accountBalances, baseCurrency, exchangeRates],
+    );
+    const cashFlowConversion = useMemo(
+        () => summaryQuery.currentData && baseCurrency
+            ? getCashFlowConversionResult(summaryQuery.currentData.currentScope, baseCurrency, exchangeRates)
+            : null,
+        [baseCurrency, exchangeRates, summaryQuery.currentData],
     );
 
-    const formatMonth = (month: string) => {
-        const date = dayjs(`${month}-01`);
-        return date.isValid()
-            ? date.toDate().toLocaleDateString(locale, { month: "short", year: "numeric" })
-            : month;
-    };
+    const categorySource = categoriesQuery.currentData ?? [];
+    const categoryConversion = useMemo(() => {
+        const rows: Array<{ id: number; value: number }> = [];
+        const missing: Record<DashboardFlow, string[]> = { income: [], expense: [] };
 
-    const netWorthChartData = netWorthHistory.map((point) => ({
-        ...point,
-        monthLabel: formatMonth(point.month),
-    }));
-    const netWorthYAxisDomain = useMemo(() => getNetWorthDomain(netWorthHistory), [netWorthHistory]);
-    const budgetMetrics = useMemo(() => budgetMetricsFromReport(currentBudgetReport), [currentBudgetReport]);
-    const topCategories = useMemo(() => {
-        const rows = currentBudgetReport?.data ?? [];
-        const rankedRows = rows
-            .filter((row) => row.spentAmount > 0)
-            .slice()
-            .sort((left, right) => right.spentAmount - left.spentAmount)
-            .slice(0, 5);
-        const maxSpent = Math.max(...rankedRows.map((row) => row.spentAmount), 0);
+        for (const transaction of categoryTransactionsQuery.currentData?.data ?? []) {
+            const flow: DashboardFlow = transaction.amount >= 0 ? "income" : "expense";
+            let value = transaction.amount;
+            if (transaction.accountCurrency !== baseCurrency) {
+                const converted = getBaseCurrencyEquivalent(
+                    transaction.amount,
+                    transaction.accountCurrency,
+                    transaction.created,
+                    baseCurrency,
+                    exchangeRates,
+                );
+                if (!converted) {
+                    missing[flow].push(`${transaction.accountCurrency} (${dayjs(transaction.created).format("YYYY-MM-DD")})`);
+                    continue;
+                }
+                value = converted.value;
+            }
+            rows.push({ id: transaction.categoryId, value });
+        }
 
         return {
-            rows: rankedRows,
-            maxSpent,
+            rows,
+            incomeMissingRates: Array.from(new Set(missing.income)),
+            expenseMissingRates: Array.from(new Set(missing.expense)),
         };
-    }, [currentBudgetReport]);
+    }, [baseCurrency, categoryTransactionsQuery.currentData, exchangeRates]);
+    const expenseSlices = useMemo(() => buildDashboardCategorySlices({
+        categories: categorySource,
+        reportData: categoryConversion.rows,
+        flow: "expense",
+        mode: categoryMode,
+        selectedParentId: categoryMode === "parent" ? expenseParentId : null,
+        otherLabel: t("dashboard.categories.other"),
+    }), [categoryConversion.rows, categoryMode, categorySource, expenseParentId, t]);
+    const incomeSlices = useMemo(() => buildDashboardCategorySlices({
+        categories: categorySource,
+        reportData: categoryConversion.rows,
+        flow: "income",
+        mode: categoryMode,
+        selectedParentId: categoryMode === "parent" ? incomeParentId : null,
+        otherLabel: t("dashboard.categories.other"),
+    }), [categoryConversion.rows, categoryMode, categorySource, incomeParentId, t]);
 
-    const cards: SummaryCard[] = [
+    const expenseParentName = categorySource.find((category) => category.id === expenseParentId)?.name;
+    const incomeParentName = categorySource.find((category) => category.id === incomeParentId)?.name;
+    useEffect(() => {
+        if (expenseParentId != null && !expenseParentName) setExpenseParentId(null);
+        if (incomeParentId != null && !incomeParentName) setIncomeParentId(null);
+    }, [expenseParentId, expenseParentName, incomeParentId, incomeParentName]);
+    const cashFlowWarnings = cashFlowConversion?.warnings ?? [];
+    const missingCashFlowRates = Array.from(new Set(cashFlowWarnings.map(
+        (warning) => `${warning.currency} (${warning.date})`,
+    )));
+    const cashFlowChartData = [
         {
             key: "income",
-            title: t("dashboard.summary.totalIncome"),
-            value: summary.current.income,
-            previous: summary.previous?.income,
-            icon: <ArrowUp size={18} />,
-            kind: "income" as const,
-            trendMode: "higherIsBetter" as const,
+            label: t("dashboard.cashFlow.income"),
+            value: cashFlowConversion?.isComplete ? cashFlowConversion.income : 0,
+            fill: "var(--income-500)",
         },
         {
-            key: "expenses",
-            title: t("dashboard.summary.totalExpenses"),
-            value: summary.current.expenses,
-            previous: summary.previous?.expenses,
-            icon: <ArrowDown size={18} />,
-            kind: "expense" as const,
-            trendMode: "lowerIsBetter" as const,
-        },
-        {
-            key: "savings",
-            title: t("dashboard.summary.netSavings"),
-            value: summary.current.savings,
-            previous: summary.previous?.savings,
-            icon: <Banknote size={18} />,
-            kind: summary.current.savings >= 0 ? "income" as const : "expense" as const,
-            trendMode: "higherIsBetter" as const,
-        },
-        {
-            key: "budgetRemaining",
-            title: t("dashboard.summary.budgetRemaining"),
-            value: budgetMetrics.remaining,
-            previous: undefined,
-            icon: <Landmark size={18} />,
-            kind: budgetMetrics.remaining < 0 ? "expense" as const : "income" as const,
-            trendMode: "higherIsBetter" as const,
-            customDelta: budgetMetrics.budgeted > 0
-                ? budgetMetrics.remaining < 0
-                    ? t("dashboard.summary.budgetOver", {
-                        value: formatMoney(Math.abs(budgetMetrics.remaining), 2),
-                    })
-                    : t("dashboard.summary.budgetUsed", {
-                        value: `${budgetMetrics.percentageUsed.toFixed(0)}%`,
-                    })
-                : t("dashboard.summary.noBudgetData"),
+            key: "expense",
+            label: t("dashboard.cashFlow.expenses"),
+            value: cashFlowConversion?.isComplete ? Math.abs(cashFlowConversion.expense) : 0,
+            fill: "var(--expense-500)",
         },
     ];
 
+    const formatMoney = (value: number) => new Intl.NumberFormat(i18n.language, {
+        style: "currency",
+        currency: baseCurrency || "USD",
+        maximumFractionDigits: 0,
+    }).format(value);
+
+    const openFlow = (flow: DashboardFlow) => {
+        navigate(`/transactions?filter=accountIds:${visibleAccountIds.join(",")};start:${startDate};end:${endDate};type:${flow};`);
+    };
+
+    const selectCategory = (flow: DashboardFlow, slice: DashboardCategorySlice) => {
+        if (slice.id == null) return;
+        const hasChildren = categorySource.some((category) => category.parentId === slice.id);
+        const selectedParentId = flow === "expense" ? expenseParentId : incomeParentId;
+        if (categoryMode === "parent" && selectedParentId == null && hasChildren) {
+            if (flow === "expense") setExpenseParentId(slice.id);
+            else setIncomeParentId(slice.id);
+            return;
+        }
+
+        navigate(`/transactions?filter=${buildDashboardTransactionFilter({
+            accountIds: visibleAccountIds,
+            categoryIds: slice.categoryIds.length > 0 ? slice.categoryIds : [slice.id],
+            flow,
+            startDate,
+            endDate,
+        })}`);
+    };
+
+    const accountSummaryComplete = visibleAccountIds.every((id) => visibleAccountIdSet.has(id)
+        && accountBalances.some((account) => account.id === id));
+    const accountDataLoading = accountsQuery.isLoading || accountBalancesQuery.isLoading;
+    const accountDataError = accountsQuery.isError
+        || accountBalancesQuery.isError
+        || (hasVisibleAccounts && !accountBalancesQuery.isLoading && !accountSummaryComplete);
+    const balancePanelLoading = accountDataLoading
+        || (!baseCurrency && summaryQuery.isLoading)
+        || (accountNeedsRate && ratesLoading);
+    const balancePanelError = accountDataError || (!baseCurrency && summaryQuery.isError);
+    const categoryPanelLoading = categoriesQuery.isLoading
+        || categoryTransactionsQuery.isLoading
+        || (!baseCurrency && summaryQuery.isLoading)
+        || (categoryNeedsRate && ratesLoading);
+    const hasCashFlow = Boolean(cashFlowConversion?.isComplete
+        && (cashFlowConversion.income !== 0 || cashFlowConversion.expense !== 0));
+    const oneSidedCashFlow = cashFlowConversion?.isComplete && hasCashFlow
+        ? cashFlowConversion.income === 0
+            ? t("dashboard.cashFlow.expenseOnly")
+            : cashFlowConversion.expense === 0
+                ? t("dashboard.cashFlow.incomeOnly")
+                : null
+        : null;
+    const currentPeriodLabel = new Intl.DateTimeFormat(i18n.language, {
+        month: "long",
+        year: "numeric",
+    }).format(dayjs(startDate).toDate());
+    const effectiveDate = new Intl.DateTimeFormat(i18n.language, {
+        dateStyle: "medium",
+    }).format(new Date());
+
     return (
-        <BasicPage frame="analytics" title={t("dashboard.title")} subtitle={t("dashboard.subtitle")}>
+        <BasicPage
+            extra={<InExButton kind="primary" onClick={() => navigate("/transactions?create=true")}>{t("dashboard.addTransaction")}</InExButton>}
+            frame="analytics"
+            title={t("dashboard.title")}
+            subtitle={t("dashboard.subtitle")}
+        >
             <div className="dashboard-workspace">
                 {selectedLinkedUserId !== null ? (
                     <Alert
-                        message={t("linkedAccount.readOnly", {
-                            username: selectedLinkedAccount?.username ?? "",
-                        })}
+                        message={t("linkedAccount.readOnly", { username: selectedLinkedAccount?.username ?? "" })}
                         showIcon
                         type="info"
                     />
                 ) : null}
-                {error && (
-                    <div className="dashboard-alert" role="alert">{error}</div>
-                )}
 
-                <Spin spinning={isLoading} tip={t("dashboard.summary.loading")}>
-                    <div className="dashboard-summary-grid" data-qa="dashboard-top-cards">
-                        {cards.map((card) => {
-                            const delta = getDeltaPercent(card.value, card.previous);
-                            const isExtremeDelta = delta !== null && Math.abs(delta) > 999;
-                            const deltaColor = hasNoCurrentMonthActivity || isExtremeDelta
-                                ? undefined
-                                : getDeltaColor(delta, card.trendMode);
-                            const deltaText = card.customDelta ?? (hasNoCurrentMonthActivity
-                                ? t("dashboard.summary.noCurrentMonthData")
-                                : delta === null
-                                ? t("dashboard.summary.noPreviousMonth")
-                                : isExtremeDelta
-                                ? t("dashboard.summary.baselineTooSmall")
-                                : t("dashboard.summary.vsLastMonth", {
-                                    value: `${delta > 0 ? "+" : ""}${delta.toFixed(0)}%`,
-                                }));
-
-                            return (
-                                <article className="dashboard-card" data-qa="dashboard-top-card" key={card.key}>
-                                    <div className="dashboard-card__top">
-                                        <span className="dashboard-card__label" data-qa="dashboard-card-title">{card.title}</span>
-                                        <span className="dashboard-card__icon" aria-hidden="true">{card.icon}</span>
-                                    </div>
-                                    <div className="dashboard-card__value" data-qa="dashboard-card-value">
-                                        <Num
-                                            value={card.value}
-                                            currency={currency ?? ""}
-                                            kind={card.kind}
-                                            currencyDataQa="dashboard-card-currency"
-                                        />
-                                    </div>
-                                    <span
-                                        className={`dashboard-card__delta${deltaColor ? ` is-${deltaColor}` : ""}`}
-                                        data-qa="dashboard-card-delta"
-                                    >
-                                        {deltaText}
-                                    </span>
-                                </article>
-                            );
-                        })}
-                    </div>
-                </Spin>
-
-                <div className="dashboard-panel-grid">
-                    <section className="dashboard-panel">
+                <div className="dashboard-overview-grid">
+                    <section className="dashboard-panel dashboard-balance-panel" data-qa="dashboard-balance">
                         <div className="dashboard-panel__header">
                             <div>
-                                <span className="dashboard-panel__eyebrow">{t("dashboard.analyticsLabel")}</span>
-                                <h2 className="dashboard-panel__title">{t("dashboard.topCategories.title")}</h2>
+                                <span className="dashboard-panel__eyebrow">{t("dashboard.balance.eyebrow")}</span>
+                                <h2 className="dashboard-panel__title">{t("dashboard.balance.title")}</h2>
                             </div>
-                            <Banknote size={18} aria-hidden="true" />
+                            <WalletCards size={19} aria-hidden="true" />
                         </div>
-                        <Spin spinning={isLoadingSummary} tip={t("dashboard.topCategories.loading")}>
-                            {topCategories.rows.length === 0 ? (
-                                <p className="dashboard-intro">{t("dashboard.topCategories.empty")}</p>
+                        <Spin spinning={balancePanelLoading} tip={t("dashboard.balance.loading")}>
+                            {balancePanelError ? (
+                                <div className="dashboard-panel-state dashboard-panel-state--error" role="alert">
+                                    {t("dashboard.balance.error")}
+                                </div>
+                            ) : visibleAccounts.length === 0 ? (
+                                <div className="dashboard-panel-state" role="status">
+                                    <span>{t("dashboard.balance.empty")}</span>
+                                    <Link to="/accounts">{t("dashboard.balance.manageAccounts")}</Link>
+                                </div>
+                            ) : accountConversion.isComplete ? (
+                                <div className="dashboard-balance-total">
+                                    <Num currency={baseCurrency} kind="neutral" signage="signed" value={accountConversion.value} />
+                                    <span>{t("dashboard.balance.accountCount", { count: visibleAccounts.length })}</span>
+                                    <span>{t("dashboard.balance.effectiveDate", { date: effectiveDate })}</span>
+                                </div>
                             ) : (
-                                <ol className="dashboard-category-list" aria-label={t("dashboard.topCategories.summaryTitle")}>
-                                    {topCategories.rows.map((category: BudgetComparisonDTO) => {
-                                        const share = topCategories.maxSpent > 0
-                                            ? Math.max((category.spentAmount / topCategories.maxSpent) * 100, 4)
-                                            : 0;
-
-                                        return (
-                                            <li className="dashboard-category-row" key={category.categoryName}>
-                                                <div className="dashboard-category-row__main">
-                                                    <span className="dashboard-category-row__name">{category.categoryName}</span>
-                                                    <Num
-                                                        value={category.spentAmount}
-                                                        currency={currency ?? ""}
-                                                        kind="expense"
-                                                        currencySize="sm"
-                                                    />
-                                                </div>
-                                                <div className="dashboard-category-row__track" aria-hidden="true">
-                                                    <span
-                                                        className="dashboard-category-row__bar"
-                                                        style={{ width: `${share}%` }}
-                                                    />
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ol>
-                            )}
-                        </Spin>
-                    </section>
-                    <section className="dashboard-panel">
-                        <div className="dashboard-panel__header">
-                            <div>
-                                <span className="dashboard-panel__eyebrow">{t("dashboard.analyticsLabel")}</span>
-                                <h2 className="dashboard-panel__title">{t("dashboard.netWorth.title")}</h2>
-                            </div>
-                            <TrendingUp size={18} aria-hidden="true" />
-                        </div>
-                        {netWorthError && (
-                            <div className="dashboard-alert" role="alert">{netWorthError}</div>
-                        )}
-                        <Spin spinning={isLoadingNetWorth} tip={t("dashboard.netWorth.loading")}>
-                            {!isLoadingNetWorth && netWorthChartData.length === 0 && !netWorthError ? (
-                                <p className="dashboard-intro">{t("dashboard.netWorth.empty")}</p>
-                            ) : (
-                                <div className="dashboard-chart">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart
-                                            data={netWorthChartData}
-                                            margin={{ top: 12, right: 16, bottom: 12, left: 16 }}
-                                        >
-                                            <CartesianGrid stroke="var(--border-1)" />
-                                            <XAxis
-                                                dataKey="monthLabel"
-                                                tickLine={false}
-                                                axisLine={false}
-                                                minTickGap={16}
-                                            />
-                                            <YAxis
-                                                tickFormatter={(value) => formatMoney(Number(value))}
-                                                tickLine={false}
-                                                axisLine={false}
-                                                domain={netWorthYAxisDomain}
-                                                width={88}
-                                            />
-                                            <Tooltip
-                                                labelFormatter={(_, payload) => {
-                                                    const point = payload?.[0]?.payload as NetWorthHistoryPoint | undefined;
-                                                    return point ? formatMonth(point.month) : "";
-                                                }}
-                                                formatter={(value) => [
-                                                    formatMoney(Number(value), 2),
-                                                    t("dashboard.netWorth.valueLabel"),
-                                                ]}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="netWorth"
-                                                name={t("dashboard.netWorth.valueLabel")}
-                                                stroke="var(--income-500)"
-                                                strokeWidth={2}
-                                                dot={{ r: 3 }}
-                                                activeDot={{ r: 5 }}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
+                                <div className="dashboard-balance-total dashboard-balance-total--unavailable" role="status">
+                                    <strong>{t("dashboard.unavailable.short")}</strong>
+                                    <span>{t("dashboard.unavailable.rates", {
+                                        currencies: accountConversion.unavailableCurrencies
+                                            .map((currency) => `${currency} (${dayjs().format("YYYY-MM-DD")})`)
+                                            .join(", "),
+                                    })}</span>
+                                    <InExButton kind="ghost" onClick={retryRates} size="sm">{t("dashboard.unavailable.retry")}</InExButton>
                                 </div>
                             )}
                         </Spin>
                     </section>
+
+                    <section className="dashboard-panel dashboard-accounts-panel" data-qa="dashboard-accounts">
+                        <div className="dashboard-panel__header">
+                            <div>
+                                <span className="dashboard-panel__eyebrow">{t("dashboard.accounts.eyebrow")}</span>
+                                <h2 className="dashboard-panel__title">{t("dashboard.accounts.title")}</h2>
+                            </div>
+                            <Link to="/accounts">{t("dashboard.accounts.open")}</Link>
+                        </div>
+                        <Spin spinning={accountDataLoading} tip={t("dashboard.balance.loading")}>
+                            {accountDataError ? (
+                                <div className="dashboard-panel-state dashboard-panel-state--error" role="alert">
+                                    {t("dashboard.balance.error")}
+                                </div>
+                            ) : accountBalances.length === 0 ? (
+                                <div className="dashboard-panel-state" role="status">{t("dashboard.balance.empty")}</div>
+                            ) : (
+                                <>
+                                <ul className={`dashboard-account-list${accountsExpanded ? " dashboard-account-list--expanded" : ""}`}>
+                                    {accountBalances.map((account) => (
+                                        <li key={account.id}>
+                                            <Link to="/accounts">
+                                                <span>{account.name}</span>
+                                                <Num currency={account.currency} kind="neutral" signage="signed" value={account.value} />
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                                {accountBalances.length > 3 ? (
+                                    <InExButton
+                                        aria-expanded={accountsExpanded}
+                                        className="dashboard-account-list__toggle"
+                                        kind="ghost"
+                                        onClick={() => setAccountsExpanded((value) => !value)}
+                                        size="sm"
+                                    >
+                                        {accountsExpanded ? t("dashboard.accounts.showLess") : t("dashboard.accounts.showAll", { count: accountBalances.length })}
+                                    </InExButton>
+                                ) : null}
+                                </>
+                            )}
+                        </Spin>
+                    </section>
+                </div>
+
+                <section className="dashboard-panel dashboard-cash-flow-panel" data-qa="dashboard-cash-flow">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <span className="dashboard-panel__eyebrow">{t("dashboard.cashFlow.eyebrow")}</span>
+                            <h2 className="dashboard-panel__title">{t("dashboard.cashFlow.title")}</h2>
+                            <p className="dashboard-panel__context">{t("dashboard.cashFlow.period", { period: currentPeriodLabel })}</p>
+                        </div>
+                        <Landmark size={18} aria-hidden="true" />
+                    </div>
+                    <Spin spinning={summaryQuery.isLoading || ratesLoading} tip={t("dashboard.cashFlow.loading")}>
+                        {summaryQuery.isError ? (
+                            <div className="dashboard-panel-state dashboard-panel-state--error" role="alert">
+                                {t("dashboard.cashFlow.error")}
+                            </div>
+                        ) : cashFlowConversion && !cashFlowConversion.isComplete && !ratesLoading ? (
+                            <div className="dashboard-panel-state" role="status">
+                                <strong>{t("dashboard.unavailable.title")}</strong>
+                                <span>{t("dashboard.unavailable.rates", { currencies: missingCashFlowRates.join(", ") })}</span>
+                                <InExButton kind="ghost" onClick={retryRates} size="sm">{t("dashboard.unavailable.retry")}</InExButton>
+                            </div>
+                        ) : !hasCashFlow ? (
+                            <div className="dashboard-panel-state" role="status">
+                                <strong>{t("dashboard.cashFlow.noActivity")}</strong>
+                                <span>{t("dashboard.cashFlow.noActivityHint")}</span>
+                                {selectedLinkedUserId === null ? (
+                                    <InExButton kind="primary" onClick={() => navigate("/transactions?create=true")} size="sm">
+                                        {t("dashboard.addTransaction")}
+                                    </InExButton>
+                                ) : null}
+                            </div>
+                        ) : (
+                            <div className="dashboard-cash-flow-layout">
+                                <div className="dashboard-cash-flow-chart" aria-hidden="true">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={cashFlowChartData} margin={{ top: 16, right: 12, bottom: 8, left: 12 }}>
+                                            <CartesianGrid stroke="var(--border-1)" vertical={false} />
+                                            <XAxis axisLine={false} dataKey="label" tickLine={false} />
+                                            <YAxis axisLine={false} tickFormatter={(value) => formatMoney(Number(value))} tickLine={false} width={86} />
+                                            <Tooltip formatter={(value) => [formatMoney(Number(value)), t("dashboard.categories.amount")]} />
+                                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                                                {cashFlowChartData.map((item) => <Cell fill={item.fill} key={item.key} />)}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="dashboard-cash-flow-summary" aria-label={t("dashboard.cashFlow.summaryTitle")}>
+                                    {oneSidedCashFlow ? <p className="dashboard-cash-flow-note">{oneSidedCashFlow}</p> : null}
+                                    {cashFlowChartData.map((item) => (
+                                        <button key={item.key} onClick={() => openFlow(item.key as DashboardFlow)} type="button">
+                                            <span>
+                                                {item.key === "income" ? <ArrowUp size={16} aria-hidden="true" /> : <ArrowDown size={16} aria-hidden="true" />}
+                                                {item.label}
+                                            </span>
+                                            <span>
+                                                <Num
+                                                    currency={baseCurrency}
+                                                    kind={item.key as DashboardFlow}
+                                                    value={item.key === "expense" ? -item.value : item.value}
+                                                />
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </Spin>
+                </section>
+
+                <div className="dashboard-category-toolbar">
+                    <div>
+                        <span className="dashboard-panel__eyebrow">{t("dashboard.categories.sectionEyebrow")}</span>
+                        <h2>{t("dashboard.categories.sectionTitle")}</h2>
+                    </div>
+                    <SegmentedControl
+                        label={t("dashboard.categories.level")}
+                        onChange={(value) => setCategoryMode(value as DashboardCategoryMode)}
+                        options={[
+                            { key: "parent", label: t("dashboard.categories.parent") },
+                            { key: "child", label: t("dashboard.categories.child") },
+                        ]}
+                        size="compact"
+                        value={categoryMode}
+                    />
+                </div>
+
+                <div className="dashboard-category-grid">
+                    <CategoryPanel
+                        currency={baseCurrency}
+                        flow="expense"
+                        isError={categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError)}
+                        isLoading={categoryPanelLoading}
+                        isUnavailable={categoryConversion.expenseMissingRates.length > 0 && !ratesLoading}
+                        locale={i18n.language}
+                        missingRates={categoryConversion.expenseMissingRates}
+                        mode={categoryMode}
+                        onBack={() => setExpenseParentId(null)}
+                        onRetry={retryRates}
+                        onSelect={(slice) => selectCategory("expense", slice)}
+                        selectedParentName={expenseParentName}
+                        slices={expenseSlices}
+                    />
+                    <CategoryPanel
+                        currency={baseCurrency}
+                        flow="income"
+                        isError={categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError)}
+                        isLoading={categoryPanelLoading}
+                        isUnavailable={categoryConversion.incomeMissingRates.length > 0 && !ratesLoading}
+                        locale={i18n.language}
+                        missingRates={categoryConversion.incomeMissingRates}
+                        mode={categoryMode}
+                        onBack={() => setIncomeParentId(null)}
+                        onRetry={retryRates}
+                        onSelect={(slice) => selectCategory("income", slice)}
+                        selectedParentName={incomeParentName}
+                        slices={incomeSlices}
+                    />
                 </div>
             </div>
         </BasicPage>

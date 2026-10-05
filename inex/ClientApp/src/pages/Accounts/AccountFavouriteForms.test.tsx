@@ -36,9 +36,9 @@ vi.mock("react-i18next", () => ({
             "accounts.formErrors.nameRequired": "Name is required",
             "accounts.name": "Name",
             "accounts.namePlaceholder": "Account name",
-            "accounts.notFavourite": "Not favourite",
-            "accounts.favouriteSetting": "Favourite",
-            "accounts.favourite": "Favourite",
+            "accounts.notFavourite": "Hidden",
+            "accounts.favouriteSetting": "Show in overviews",
+            "accounts.favourite": "Shown",
             "accounts.update": "Update",
         }[key] ?? key),
     }),
@@ -70,8 +70,8 @@ describe("account favourite setting", () => {
     it("defaults new accounts to favourite and submits a chosen non-favourite setting", async () => {
         render(<AccountCreateForm onCancel={vi.fn()} onCreated={vi.fn()} />);
 
-        expect(screen.getByRole("radio", { name: "Favourite" })).toBeChecked();
-        fireEvent.click(screen.getByRole("radio", { name: "Not favourite" }));
+        expect(screen.getByRole("radio", { name: "Shown" })).toBeChecked();
+        fireEvent.click(screen.getByRole("radio", { name: "Hidden" }));
         fireEvent.change(screen.getByRole("textbox", { name: "Name" }), { target: { value: "Travel cash" } });
         await selectCurrency();
         fireEvent.click(screen.getByRole("button", { name: "Create account" }));
@@ -94,8 +94,8 @@ describe("account favourite setting", () => {
             currency: "USD",
         }} />);
 
-        expect(screen.getByRole("radio", { name: "Not favourite" })).toBeChecked();
-        fireEvent.click(screen.getByRole("radio", { name: "Favourite" }));
+        expect(screen.getByRole("radio", { name: "Hidden" })).toBeChecked();
+        fireEvent.click(screen.getByRole("radio", { name: "Shown" }));
         fireEvent.click(screen.getByRole("button", { name: "Update" }));
 
         await waitFor(() => expect(mutationState.updateAccount).toHaveBeenCalledWith(expect.objectContaining({

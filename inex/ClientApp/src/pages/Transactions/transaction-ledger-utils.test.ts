@@ -113,6 +113,15 @@ describe("transaction ledger helpers", () => {
     ], "USD", [])).toEqual({ value: 10, isComplete: false, unavailableCurrencies: ["EUR"] });
   });
 
+  it("uses the latest cached rate for a current account balance", () => {
+    expect(getAccountBalanceConversionResult([
+      { currency: "PLN", value: 420 },
+    ], "USD", [
+      { currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-01", rate: 4 },
+      { currencyFrom: "USD", currencyTo: "PLN", date: "2026-06-30", rate: 4.2 },
+    ])).toEqual({ value: 100, isComplete: true, unavailableCurrencies: [] });
+  });
+
   it("uses the same local calendar day for cached rates and ledger grouping", () => {
     const created = "2026-06-05T23:30:00Z";
     const localDate = dayjs(created).format("YYYY-MM-DD");

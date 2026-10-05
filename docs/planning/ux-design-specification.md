@@ -1,5 +1,8 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+lastStep: 14
+status: complete
+completedAt: '2026-09-30T18:17:49+02:00'
 inputDocuments:
   - docs/design/docs/design-implementation-guide.md
   - docs/planning/design-update-plan.md
@@ -314,3 +317,342 @@ Keep the existing InEx semantic tokens and calm finance palette. The width-patte
 | Responsive reflow | Screenshots at 1440px, 1920px, 1024px, 390px, and 360px contain no overlap, clipping, page-level horizontal overflow, or bottom-nav occlusion. |
 | Content stress | Run populated, empty, filter-empty, drawer-open, expanded-row where available, long EN/RU label, and long-amount states for each affected route. |
 | Regression scope | Build, lint, and relevant visual-QA harnesses pass. Update the visual-QA checklist with screenshot evidence and a `dataMode` value. |
+
+## Design Direction Decision
+
+### Design Directions Explored
+
+Six Dashboard directions were explored in `ux-design-directions.html`: Current Status, Accounts First, Spending Pace, Configurable Modules, Financial Console, and Calm Minimum. The alternatives varied information hierarchy, density, account prominence, spending analysis, customization, and mobile behavior while retaining the existing InEx visual foundation.
+
+### Chosen Direction
+
+Use **Current Status** as the default Dashboard template. Its primary purpose is to answer, in order:
+
+1. How much money is available now across the user's visible accounts?
+2. Which accounts hold that money?
+3. How do current-month income and expenses compare?
+4. Which parent and child categories compose current spending?
+5. Which parent and child categories compose current income?
+6. Which transaction or data-quality conditions require attention?
+
+The default template includes:
+
+- A dominant visible-accounts total in the user's base currency, with included-account count, effective date, and conversion-completeness state.
+- A compact list of visible accounts showing native balance and base-currency equivalent where available.
+- A current-month income-versus-expense column visualization. Exact totals remain available in chart labels, tooltips, and the accessible summary but are not presented as competing headline-number cards.
+- Separate income and expense category-composition donuts, each with a persistent Parent categories / Child categories starting-view switch. Parent mode drills into the selected parent's children; child mode begins with child categories across parents.
+- A short actionable-attention list rather than another historical chart.
+
+Historical net worth is not part of the default Current Status template. It remains available through Reports and an optional wealth-oriented Dashboard template.
+
+### Design Rationale
+
+The second user's primary need is an operational current-state overview rather than a historical or report-oriented overview. The present Dashboard gives equal visual weight to several monthly KPIs and dedicates a large panel to historical net worth, but it does not expose the accounts behind the current position or make the scope of its totals clear.
+
+Current Status makes the Dashboard a concise answer surface rather than a second Reports page. Aggregates and supporting lists use the same visible-account scope. Selecting an account, category, warning, or chart element leads to the relevant filtered workspace without moving edit and management workflows onto the Dashboard itself.
+
+The category hierarchy supports both overview and direct-detail entry. The chart may show up to eight explicit category sectors plus Other. In Parent categories mode, selecting a parent reveals only that parent's children. In Child categories mode, the initial chart shows the highest-spend child categories across parents and includes parent context in every label. The user's last selected mode is restored on later visits. Both modes preserve the current period and account scope when the user drills into transactions.
+
+### Implementation Approach
+
+**Current delivery scope (2026-09-30):** implement one shared Current Status Dashboard first. Dashboard templates, Profile-based Dashboard settings, server-persisted category-level preferences, and the separate Dashboard Attention List remain future options and are not part of Story 10.4a. The page-level Add transaction action and Parent/Child control remain in scope, but category-level selection is not persisted in this increment. Missing-rate and panel-failure attention stays local to the affected panel until a dedicated attention list is implemented.
+
+Provide three curated, per-user Dashboard templates:
+
+1. **Current Status** — the default; visible accounts, available total, current-month income-versus-expense columns, separate expense and income composition, and actionable warnings.
+2. **Cash Flow** — current and comparable-period income and expenses, net flow, and category contribution without budget widgets.
+3. **Wealth Overview** — net worth, currency distribution, and historical trends.
+
+Budget widgets are excluded from Dashboard templates. Budget planning, remaining amounts, burn rate, and actual-versus-plan analysis remain in the dedicated Budgets workspace.
+
+Template selection belongs in Profile and Settings, not on the Dashboard. The Dashboard may expose a low-emphasis link to its settings only when discoverability testing shows it is necessary; it must not reserve permanent header or card space for template selection.
+
+Dashboard template choice and account visibility are stored separately for each authenticated user. One user's configuration cannot affect another user's Dashboard. Version one uses curated templates rather than free-form widget placement. Later customization may add per-template block visibility and ordering, with desktop and mobile ordering handled deliberately rather than assumed to be identical.
+
+Every converted aggregate must disclose its base currency and effective date. If any required exchange rate is unavailable, the Dashboard shows `N/A` and named-currency evidence instead of a partial total. Charts provide accessible textual or tabular summaries, keyboard-operable drill-downs, and localized English and Russian labels.
+
+## User Journey Flows
+
+### Review the Current Financial Position
+
+The default Dashboard delivers value without interaction. It loads the current user's active overview-visible accounts and current-month aggregates, then presents the available total, account composition, income-versus-expense columns, separate income and expense category composition, and actionable warnings.
+
+```mermaid
+flowchart TD
+    A[User opens Dashboard] --> B[Load active overview-visible accounts and current-month data]
+    B --> C{Data state}
+    C -->|Complete| D[Show available total, accounts, income and expense columns, and category composition]
+    C -->|Missing exchange rate| E[Show N/A for the affected aggregate]
+    E --> F[Name the affected currency and effective date]
+    C -->|No overview-visible accounts| G[Show scoped empty state]
+    G --> H[Open account visibility management]
+    D --> I{Actionable condition}
+    I -->|Uncategorized activity| J[Open filtered transactions]
+    I -->|Uncategorized transactions| K[Open filtered transactions]
+    I -->|No issue| L[Show calm neutral status]
+```
+
+Incomplete currency conversion produces `N/A` with named-currency and effective-date evidence rather than a partial aggregate. Individual panel failures do not replace otherwise usable Dashboard content.
+
+### Explore Spending from Category Composition to Transactions
+
+The chart provides a persistent starting-level switch. Parent categories mode supports hierarchical drill-down; Child categories mode exposes detailed spending immediately. The chart may render up to eight explicit sectors plus Other.
+
+```mermaid
+flowchart TD
+    A[Category composition panel] --> B{Saved starting level}
+    B -->|Parent categories| C[Show up to 8 parents plus Other]
+    B -->|Child categories| D[Show up to 8 children plus Other]
+    C --> E[User selects a parent]
+    E --> F[Show that parent's children with Back to parents]
+    D --> G[Label every child with parent context]
+    F --> H[User selects a child]
+    G --> H
+    C --> I[User selects Parent or Child mode]
+    D --> I
+    I --> J[Persist the selected starting level for this user]
+    H --> K[Open Transactions with period, category, and account scope]
+    K --> L[Back restores the prior Dashboard chart state]
+```
+
+Other opens a ranked accessible list rather than becoming a dead-end sector. Every legend entry includes amount and percentage. Selecting a category preserves the current period and relevant account scope in URL-backed transaction filters.
+
+### Select a Dashboard Template
+
+Dashboard template selection lives under Profile and Settings, not on the Dashboard surface.
+
+```mermaid
+flowchart TD
+    A[Profile and Settings] --> B[Dashboard section]
+    B --> C[Show three template cards and compact previews]
+    C --> D{Select template}
+    D --> E[Current Status - default]
+    D --> F[Cash Flow]
+    D --> G[Wealth Overview]
+    E --> H[Save]
+    F --> H
+    G --> H
+    H --> I{Save result}
+    I -->|Success| J[Confirm and offer Open Dashboard]
+    I -->|Failure| K[Keep selection and show Retry]
+```
+
+The template choice belongs to the authenticated user, takes effect on the next Dashboard render, does not alter Reports access, and never changes another user's configuration.
+
+### Control Accounts Included in Operational Overviews
+
+The existing favourite-account preference becomes the consistent operational visibility rule for Dashboard and Transactions. Its user-facing label should describe behavior, such as Show in overviews, rather than the abstract Favourite label.
+
+```mermaid
+flowchart TD
+    A[Dashboard account list] --> B[Open Accounts]
+    B --> C[Open account settings]
+    C --> D[Change Show in overviews]
+    D --> E[Save account]
+    E --> F{Save result}
+    F -->|Success| G[Invalidate account-dependent aggregates]
+    G --> H[Dashboard and Transactions use the updated set]
+    F -->|Failure| I[Keep form open with localized Retry]
+```
+
+`IsEnabled` continues to represent whether an account is active. `IsFavourite` represents whether an active account participates in operational overview surfaces. Dashboard account lists and totals use only active accounts with `IsFavourite = true`; native balances remain visible, while cross-account totals follow the complete-or-`N/A` conversion rule.
+
+### Journey Patterns
+
+- Dashboard surfaces state; domain pages own editing and management.
+- Aggregates drill down to their source accounts, categories, or transactions.
+- Period, account scope, category level, and filter context survive cross-route navigation.
+- Panel-local loading and errors preserve unaffected information.
+- Explicit settings changes provide confirmation and predictable recovery.
+- Template, category-level, and account-visibility preferences remain scoped to the authenticated user.
+
+### Flow Optimization Principles
+
+- Deliver the primary answer without requiring a click.
+- Use progressive disclosure for account lists and parent-category hierarchy without forcing it on users who prefer child-category detail first.
+- Permit up to eight explicit donut sectors plus Other; use the adjacent legend and accessible summary for exact comparison.
+- Make Other actionable through a ranked detail list.
+- Use columns for income-versus-expense comparison and donuts for composition; each visualization answers a distinct question.
+- Never present partial multi-currency totals as complete.
+- Preserve mobile priority order: available total, accounts, spending position, category composition, and warnings.
+
+## Component Strategy
+
+### Design System Components
+
+The Dashboard continues to use the existing InEx token and primitive layer over Ant Design. `BasicPage` supplies the analytics frame. `Num`, `SegmentedControl`, `InExButton`, `IconBtn`, `EmptyState`, `ErrorBanner`, Ant Design `Alert`, `Spin`, and `Skeleton` cover formatting, controls, feedback, and loading states. Recharts supplies bar and donut rendering without a new dependency.
+
+`ReportAccessibleSummary` should be promoted to a shared `ChartAccessibleSummary` because Dashboard and Reports require the same accessible chart companion. The existing account-balance companion provides the source pattern for reusable balance rows.
+
+### Custom Components
+
+#### AvailableBalanceHero
+
+Displays the complete available balance across active overview-visible accounts, the account count, base currency, effective date, and conversion status. It supports loading, complete, zero, no-account, unavailable-conversion, and error states. It never displays a partial multi-currency aggregate.
+
+#### OverviewAccountList
+
+Displays reusable account-balance rows with native balance and optional base equivalent. It shares row behavior with the Transactions account-balance companion. Mobile initially shows three accounts with accessible expansion. Account rows remain independently usable when the aggregate conversion is unavailable.
+
+#### CashFlowColumnChart
+
+Compares current-month income and expenses as two clearly labelled columns. Column height is the primary visual encoding; exact values remain available in labels, tooltips, and `ChartAccessibleSummary`. Income and expense direction use labels and icons in addition to semantic color. Zero, equal-value, extreme-ratio, no-activity, incomplete-conversion, loading, and error states are explicit. Selecting a column opens Transactions with the corresponding type and current-month filters.
+
+#### CategoryCompositionDonut
+
+Renders either income or expense composition using the same typed component with an explicit `flowType` variant. It supports a persistent Parent categories / Child categories starting mode, up to eight explicit sectors plus Other, parent-to-child drill-down, parent context in child labels, keyboard activation, and URL-backed navigation to Transactions.
+
+The donut legend includes category name, percentage, and amount. `Other` opens a ranked accessible detail list. The adjacent `ChartAccessibleSummary` is the source for screen-reader and export-oriented review.
+
+#### DashboardAttentionList
+
+Shows only actionable transaction or data-quality conditions, such as uncategorized activity, incomplete exchange-rate coverage, or a failed panel refresh. Each item links to a specific recovery action or filtered domain view. Budget thresholds are not part of this component.
+
+#### DashboardTemplatePicker
+
+Lives in Profile and Settings. It provides Current Status, Cash Flow, and Wealth Overview radio cards, compact previews, the preferred category starting level, Save, and Reset to default. Preferences are persisted for the current authenticated user rather than only in browser-local storage.
+
+#### ConvertedAggregate State
+
+All cross-currency Dashboard aggregates consume a shared complete-or-unavailable result rather than a bare number:
+
+```ts
+type ConvertedAggregate =
+  | {
+      status: "complete";
+      value: number;
+      currency: string;
+      effectiveDate: string;
+    }
+  | {
+      status: "unavailable";
+      missingRates: Array<{ currency: string; date: string }>;
+    };
+```
+
+### Component Implementation Strategy
+
+Use explicit finance-domain components instead of a generic configurable widget with many variants. Templates compose typed components but do not change their financial semantics.
+
+Shared primitives own formatting and interaction behavior. Shared financial components own balance rows, complete-or-unavailable aggregates, and accessible chart summaries. Dashboard-specific components own current-status composition, cash-flow comparison, category drill-down, and attention signals.
+
+All authenticated requests continue through `apiClient`. Backend queries and aggregates derive the current user from the authenticated principal; no Dashboard preference or aggregate accepts a client-supplied owner identifier.
+
+### Implementation Roadmap
+
+1. Define server-backed `DashboardTemplate` and `DashboardCategoryLevel` user preferences with Current Status and Parent defaults.
+2. Establish `ConvertedAggregate` and overview-account data contracts with ownership-scoped queries and complete conversion semantics.
+3. Extract `ChartAccessibleSummary` and reusable account-balance rows.
+4. Build `AvailableBalanceHero` and `OverviewAccountList`.
+5. Build `CashFlowColumnChart` with transaction drill-down and complete state coverage.
+6. Build `CategoryCompositionDonut` for expense and income variants, including Parent/Child modes, Other detail, keyboard behavior, and URL-backed navigation.
+7. Build `DashboardAttentionList` without budget-specific conditions.
+8. Build `DashboardTemplatePicker` in Profile and Settings.
+9. Compose Current Status, Cash Flow, and Wealth Overview templates.
+10. Add component tests and fixture-backed visual QA at 1440px, 1024px, 390px, and 360px.
+
+## UX Consistency Patterns
+
+### Button Hierarchy
+
+Dashboard has one page-level primary action: Add transaction. Links to Accounts, Transactions, and Reports use secondary or text-link treatment. Parent/Child controls are local segmented controls. Template selection remains exclusively in Profile and Settings.
+
+Interactive chart elements expose hover, focus, selected, Enter, and Space behavior without competing visually with the primary action.
+
+### Feedback Patterns
+
+Each Dashboard panel owns its loading, refreshing, empty, unavailable, and error states. Refresh retains the last successful content. A panel failure never replaces otherwise usable Dashboard information.
+
+Cross-currency aggregates use complete-or-`N/A` semantics. `N/A` identifies every missing currency and effective date. Partial totals are never presented as complete.
+
+No-activity states retain labelled zero axes or purposeful empty treatment rather than blank chart containers.
+
+### Form Patterns
+
+Dashboard preferences use explicit Save and Reset to default actions in Profile and Settings. Template and category-starting-level values remain intact after a failed save. Success feedback includes an optional Open Dashboard action.
+
+The account preference currently labelled Favourite becomes Show in overviews because it controls operational visibility in Dashboard and Transactions.
+
+### Navigation Patterns
+
+Selecting an income or expense column opens Transactions with current month and transaction type preserved. Selecting a donut sector additionally preserves the category and relevant account scope.
+
+URL-backed filter state supports refresh and sharing. Back navigation restores Dashboard scroll position, chart mode, selected parent, and focused element.
+
+Chart drill-down occurs inline. It does not open a modal or drawer merely to show the next category level.
+
+### Chart Interaction Patterns
+
+Income and expense columns share one scale. Exact values remain available through labels, tooltips, and `ChartAccessibleSummary`.
+
+Income and expense donuts share one interaction contract. Each supports Parent and Child starting modes, up to eight explicit sectors plus Other, parent context for child labels, and keyboard activation.
+
+Other opens a ranked accessible list of remaining categories. It is never a non-interactive terminal sector.
+
+Color is supplemented by labels, icons, patterns, selection outlines, and accessible text.
+
+### Empty and Loading Patterns
+
+No overview-visible accounts provides an explanation and an Accounts action. No monthly activity retains zero income and expense columns with Add transaction. No income or no expense produces an explicit one-sided state. No category data offers category setup guidance.
+
+Skeletons preserve final component dimensions. Mobile skeletons follow the mobile order rather than shrinking the desktop grid.
+
+### Additional Patterns
+
+Dashboard always exposes its scope: current period, base currency, visible-account count, and effective date.
+
+The attention panel contains only actionable transaction or data-quality conditions. Budget warnings and planning metrics remain in the Budgets workspace.
+
+All preferences and financial data are scoped to the authenticated user.
+
+## Responsive Design & Accessibility
+
+### Responsive Strategy
+
+At 1200px and wider, Current Status uses a primary content area for available balance, cash-flow columns, and category composition plus a bounded side column for accounts and actionable attention. The analytics frame remains capped at 1440px.
+
+From 769px through 1199px, the outer layout becomes one column. Income and expense donuts remain side by side only while each panel retains readable chart, legend, and value widths. Below 900px they stack.
+
+At 768px and below, content order is page context, available balance, collapsed account list, income-versus-expense columns, expense composition, income composition, and attention. Bottom navigation remains fixed with safe content padding.
+
+### Breakpoint Strategy
+
+- 1200px and wider: primary area plus side column.
+- 900px through 1199px: one outer column with two composition panels where viable.
+- 769px through 899px: single-column panels.
+- 768px and below: mobile shell and bottom navigation.
+- 390px: primary mobile visual-QA width.
+- 360px: narrow production regression width.
+- 320 CSS px: WCAG reflow and 200% zoom verification target.
+
+Layout changes respond to available component width, not device identity. Page-level horizontal scrolling is prohibited.
+
+### Accessibility Strategy
+
+Target WCAG 2.2 Level AA.
+
+Every chart has a heading, scope description, visual rendering, interactive legend, drill-down status, and `ChartAccessibleSummary`. Legend rows are the primary accessible controls and provide at least 44x44 CSS pixel targets.
+
+Hover and focus expose the same state. Enter and Space activate a category or cash-flow type. Escape leaves child-category drill-down. Focus moves to the updated chart heading and returns to the triggering control when navigating back.
+
+Tooltips contain no unique information. Parent/Child mode changes produce one concise polite status update; pointer exploration does not generate live-region noise.
+
+Text meets 4.5:1 contrast, large text and meaningful non-text UI meet 3:1. Income and expense, active sectors, unavailable data, and selected states never rely on color alone. Forced-colors and reduced-motion modes remain usable.
+
+### Testing Strategy
+
+Fixture-backed visual QA covers 1440, 1024, 390, and 360 pixels with populated, income-only, expense-only, no-activity, eight-plus-Other, parent, child, long-label, long-amount, missing-rate, panel-error, refresh, and multi-account states.
+
+Accessibility verification covers keyboard-only operation, logical focus order, visible and unobscured focus, NVDA with Chrome or Edge, available VoiceOver coverage, Windows High Contrast, reduced motion, EN/RU content, 200% zoom, and 320 CSS pixel reflow.
+
+Automated checks supplement but do not replace manual chart, focus, and screen reader verification.
+
+### Implementation Guidelines
+
+Use semantic headings and figures. Do not make Recharts SVG sectors the only operable controls; connect visual selection to native legend buttons and an accessible table.
+
+Use `ResizeObserver` or responsive containers without fixed chart widths. Reserve stable chart height during loading. Prevent labels and values from defining an unshrinkable grid column.
+
+Keep DOM order identical to mobile reading order, using CSS Grid placement for desktop composition rather than DOM reordering.
+
+Use shared focus tokens, at least 44px operational touch targets, safe bottom padding, tabular numerics, non-breaking numeric groups, and wrapping currency labels. Disable non-essential chart animation under `prefers-reduced-motion`.

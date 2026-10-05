@@ -247,12 +247,14 @@ export const getAccountBalanceConversionResult = (
       continue;
     }
 
-    const rate = exchangeRates.find((item) =>
-      sameCurrency(item.currencyFrom, baseCurrency)
-      && sameCurrency(item.currencyTo, account.currency)
-      && Number.isFinite(item.rate)
-      && item.rate > 0,
-    );
+    const rate = exchangeRates
+      .filter((item) =>
+        sameCurrency(item.currencyFrom, baseCurrency)
+        && sameCurrency(item.currencyTo, account.currency)
+        && Number.isFinite(item.rate)
+        && item.rate > 0,
+      )
+      .sort((left, right) => (right.date ?? "").localeCompare(left.date ?? ""))[0];
     if (!rate) {
       unavailableCurrencies.add(account.currency);
       continue;
