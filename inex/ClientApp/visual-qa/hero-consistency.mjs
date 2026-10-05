@@ -243,7 +243,7 @@ async function waitForHeroReady(client, state) {
   await waitFor(client, `document.body.innerText.includes(${JSON.stringify(pageTitle)})`);
   if (state.page === "dashboard") {
     await waitFor(client, "document.querySelectorAll('.dashboard-panel').length === 4");
-    await waitFor(client, "document.querySelectorAll('.dashboard-account-list > li').length === 5");
+    await waitFor(client, `document.querySelectorAll('.dashboard-account-list > li').length === ${fixtures.dashboard.dashboardVisualFixtureMeta.expectedVisibleAccountCount}`);
     return;
   }
   await waitFor(client, "Boolean(document.querySelector('[data-qa=\"hero-card\"]'))");

@@ -112,6 +112,15 @@ npm run lint
 - Manual inspection of the four populated viewport captures found no overlap, clipping, blank charts, page-level horizontal overflow, or bottom-navigation occlusion.
 - The refreshed hero-consistency harness also passes at 1440px and 390px using the current four-panel Dashboard and combined position-panel selectors.
 
+### 2026-10-05 Dashboard Compact Top Cards
+
+- Data mode: fixture; all `/api` requests were intercepted, with no unhandled requests or real backend calls.
+- Seventeen screenshots cover collapsed and expanded account lists plus populated, linked, empty, one-sided, missing-rate, panel-error, and category drill-down states at 1440px, 1024px, 390px, and 360px.
+- Result: PASS. At 1440px the compact cash-flow and position cards retain matching bounds; the cash-flow chart consumes the available body height with no excessive trailing gap. Desktop initially shows five of seven accounts and mobile initially shows three, with an accessible expansion control.
+- Positive account balances have no leading plus. The negative fixture remains visible, uses the expense color, and retains a minus sign; explicit Russian locale formatting is covered by the `Num` primitive test.
+- Manual inspection of collapsed/expanded 1440px and populated 390px/360px captures found no overlap, clipping, blank charts, page-level horizontal overflow, or bottom-navigation occlusion.
+- The refreshed hero-consistency harness passes. Repository-wide `visual-qa:verify` remains red only because seven unrelated page summaries are older than the 24-hour freshness limit.
+
 ## Desktop QA Results
 
 | Route | State | 1440px | 1024px | Screenshot | Notes |
@@ -131,7 +140,7 @@ npm run lint
 | `/budgets` | populated | PASS | PASS | `budgets/populated-1440.png`; `budgets/populated-amount-1024.png` | dataMode: fixture; long amount stress covered by 1024 screenshot. |
 | `/budgets` | empty | PASS | N/A | `budgets/first-use-empty-390.png` | dataMode: fixture; empty-state layout inspected. |
 | `/budgets` | drawer-open | PASS | PASS | `budgets/drawer-open-390.png`; `budgets/drawer-open-360.png` | dataMode: fixture; drawer content remains within viewport. |
-| `/dashboard` | populated | PASS | PASS | `dashboard/populated-1440.png`; `dashboard/populated-1024.png` | dataMode: fixture; 1440px renders four aligned 2x2 areas; 1024px stacks in the accessible source order; charts remain nonblank. |
+| `/dashboard` | populated | PASS | PASS | `dashboard/populated-1440.png`; `dashboard/populated-expanded-1440.png`; `dashboard/populated-1024.png` | dataMode: fixture; compact top cards align at 1440px, account expansion grows both desktop cards without overlap, and 1024px stacks in the accessible source order. |
 | `/reports` (hub) | populated | PASS | PASS | `reports/hub-populated-1440.png`; `reports/hub-populated-1024.png` | dataMode: fixture; report cards and actions inspected. |
 | `/reports` (drill-down) | report drill-down | PASS | PASS | `reports/category-report-1440.png`; `reports/history-report-1440.png`; `reports/budget-report-390.png`; `reports/heatmap-report-390.png` | dataMode: fixture; drill-down chrome, actions, and chart/table areas inspected. |
 | `/profile` | populated | PASS | PASS | `profile/populated-1440.png`; `profile/populated-1024.png` | dataMode: fixture; settings forms inspected. |
@@ -155,7 +164,7 @@ npm run lint
 | `/categories` | expanded-row | PASS | PASS | `categories/expanded-row-390.png`; `categories/populated-360.png` | dataMode: fixture; expanded detail fits mobile row layout. |
 | `/budgets` | populated | PASS | PASS | `budgets/populated-390.png`; `budgets/populated-360.png` | dataMode: fixture; required 360px route passes. |
 | `/budgets` | empty | PASS | PASS | `budgets/first-use-empty-390.png`; `budgets/populated-360.png` | dataMode: fixture; empty-state screenshot at 390 and route baseline at 360 show no blocking mobile failures. |
-| `/dashboard` | populated | PASS | PASS | `dashboard/populated-390.png`; `dashboard/populated-360.png` | dataMode: fixture; position, cash flow, expenses, and income stack in order; chart cards render and bottom nav is clear. |
+| `/dashboard` | populated | PASS | PASS | `dashboard/populated-390.png`; `dashboard/populated-expanded-390.png`; `dashboard/populated-360.png` | dataMode: fixture; three accounts show initially, expansion remains usable, cards stack in order, charts render, and bottom nav is clear. |
 | `/reports` (hub) | populated | PASS | N/A | `reports/hub-populated-390.png`; `reports/hub-populated-360.png` | dataMode: fixture; report cards remain scannable. |
 | `/reports` (drill-down) | drill-down | PASS | N/A | `reports/budget-report-390.png`; `reports/heatmap-report-390.png`; `reports/category-empty-390.png` | dataMode: fixture; drill-down actions and chart/table areas inspected. |
 | `/profile` | populated | PASS | N/A | `profile/populated-390.png`; `profile/populated-360.png`; `profile/profile-form-edit-390.png`; `profile/security-form-filled-390.png` | dataMode: fixture; forms wrap without clipped submit buttons. |

@@ -97,6 +97,33 @@ describe("mockup-alignment primitive contracts", () => {
         expect(screen.getByText("PLN")).toHaveStyle({ fontSize: "0.72em" });
     });
 
+    it("formats with an explicit locale and can show only a negative sign", () => {
+        const { container, rerender } = render(
+            <Num value={1234.56} currency="USD" kind="neutral" locale="ru-RU" signage="negative-only" />,
+        );
+
+        const visibleValue = () => container.querySelector<HTMLElement>('[aria-hidden="true"]')?.textContent ?? "";
+        expect(visibleValue()).not.toContain("+");
+        expect(visibleValue()).toContain("1 234,56");
+
+        rerender(
+            <Num
+                accessibleLabel="Balance"
+                value={-1234.56}
+                currency="USD"
+                kind="expense"
+                locale="ru-RU"
+                signage="negative-only"
+            />,
+        );
+
+        expect(visibleValue()).toContain("-1 234,56");
+        expect(container.querySelector('[role="text"]')).toHaveAttribute(
+            "aria-label",
+            expect.stringContaining("Balance"),
+        );
+    });
+
     it("composes continuous list panels with desktop headers and simple no-match rows", () => {
         render(
             <ListPanel ariaLabel="Transactions">

@@ -1,23 +1,24 @@
 import * as React from 'react';
 
-export type Signage = "color-only" | "signed" | "arrows";
+export type UserSignage = "color-only" | "signed" | "arrows";
+export type Signage = UserSignage | "negative-only";
 
 interface SignageContextValue {
-    signage: Signage;
-    setSignage: (signage: Signage) => void;
+    signage: UserSignage;
+    setSignage: (signage: UserSignage) => void;
 }
 
 const storageKey = "inex_signage";
-const validSignage = new Set<Signage>(["color-only", "signed", "arrows"]);
+const validSignage = new Set<UserSignage>(["color-only", "signed", "arrows"]);
 
-const readStoredSignage = (): Signage => {
+const readStoredSignage = (): UserSignage => {
     if (typeof window === "undefined") {
         return "color-only";
     }
 
     try {
         const stored = window.localStorage.getItem(storageKey);
-        return validSignage.has(stored as Signage) ? (stored as Signage) : "color-only";
+        return validSignage.has(stored as UserSignage) ? (stored as UserSignage) : "color-only";
     } catch {
         return "color-only";
     }
@@ -29,9 +30,9 @@ export const SignageContext = React.createContext<SignageContextValue>({
 });
 
 export const SignageProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-    const [signage, setSignageState] = React.useState<Signage>(readStoredSignage);
+    const [signage, setSignageState] = React.useState<UserSignage>(readStoredSignage);
 
-    const setSignage = React.useCallback((nextSignage: Signage) => {
+    const setSignage = React.useCallback((nextSignage: UserSignage) => {
         try {
             window.localStorage.setItem(storageKey, nextSignage);
         } catch {

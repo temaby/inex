@@ -8,7 +8,7 @@ import type { TransactionResponse } from "../../model/Transaction/TransactionRes
 export const dashboardVisualFixtureMeta = {
   dataMode: "fixture",
   locale: "en",
-  baseline: "Dashboard four-area layout",
+  baseline: "Dashboard compact aligned top cards",
   fixedNow: "2026-04-30T12:00:00.000Z",
   expectedBaseCurrency: "USD",
   expectedPanelCount: 4,
@@ -18,7 +18,9 @@ export const dashboardVisualFixtureMeta = {
     "dashboard-expense-categories",
     "dashboard-income-categories",
   ],
-  expectedVisibleAccountCount: 5,
+  expectedVisibleAccountCount: 7,
+  expectedCollapsedDesktopAccountCount: 5,
+  expectedCollapsedMobileAccountCount: 3,
   expectedChartCount: 3,
   nonApplicableStates: ["drawer-open", "expanded-row", "budget-summary", "net-worth-history"],
 } as const;
@@ -31,15 +33,19 @@ export const dashboardVisualFixtureAccounts: AccountResponse[] = [
   { id: 15, key: "closed", name: "Closed account", description: null, isEnabled: false, isFavourite: true, currencyId: 1, currency: "USD" },
   { id: 16, key: "family", name: "Family everyday account with a deliberately long label", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "USD" },
   { id: 17, key: "cash", name: "Cash", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "USD" },
+  { id: 18, key: "emergency", name: "Emergency fund", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "USD" },
+  { id: 19, key: "brokerage", name: "Brokerage", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "USD" },
 ];
 
 export const dashboardVisualFixtureAccountSummaries: AccountSummary[] = [
   { ...dashboardVisualFixtureAccounts[0], value: 2380, thisMonthNet: 420 },
   { ...dashboardVisualFixtureAccounts[1], value: 12400, thisMonthNet: 700 },
-  { ...dashboardVisualFixtureAccounts[2], value: 3200, thisMonthNet: -480 },
+  { ...dashboardVisualFixtureAccounts[2], value: -3200, thisMonthNet: -480 },
   { ...dashboardVisualFixtureAccounts[3], value: 9600, thisMonthNet: 0 },
   { ...dashboardVisualFixtureAccounts[5], value: 875, thisMonthNet: -125 },
   { ...dashboardVisualFixtureAccounts[6], value: 210, thisMonthNet: 10 },
+  { ...dashboardVisualFixtureAccounts[7], value: 5400, thisMonthNet: 250 },
+  { ...dashboardVisualFixtureAccounts[8], value: 1800, thisMonthNet: 90 },
 ];
 
 const parent = (id: number, name: string): CategoryResponse => ({
