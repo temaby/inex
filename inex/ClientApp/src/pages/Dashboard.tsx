@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Spin } from "antd";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowUp, ChevronLeft, Landmark, Layers3, WalletCards } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, Layers3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -228,6 +228,7 @@ const CategoryPanel = ({
                                                 currency={currency}
                                                 currencySize="sm"
                                                 kind={flow}
+                                                locale={locale}
                                                 value={flow === "expense" ? -slice.amount : slice.amount}
                                             />
                                         </button>
@@ -241,6 +242,7 @@ const CategoryPanel = ({
                                                                 currency={currency}
                                                                 currencySize="sm"
                                                                 kind={flow}
+                                                                locale={locale}
                                                                 value={flow === "expense" ? -member.amount : member.amount}
                                                             />
                                                         </button>
@@ -273,6 +275,7 @@ const Dashboard = () => {
     const [expenseParentId, setExpenseParentId] = useState<number | null>(null);
     const [incomeParentId, setIncomeParentId] = useState<number | null>(null);
     const [accountsExpanded, setAccountsExpanded] = useState(false);
+    const accountListId = React.useId();
 
     const [monthRange, setMonthRange] = useState(() => getCurrentTransactionMonthRange());
 
@@ -522,6 +525,8 @@ const Dashboard = () => {
     const effectiveDate = new Intl.DateTimeFormat(i18n.language, {
         dateStyle: "medium",
     }).format(new Date());
+    const hasCollapsibleAccounts = accountBalances.some((account, index) => index >= 3 && account.value >= 0);
+    const hasDesktopCollapsibleAccounts = accountBalances.some((account, index) => index >= 5 && account.value >= 0);
 
     return (
         <BasicPage
@@ -543,11 +548,7 @@ const Dashboard = () => {
                     <section className="dashboard-panel dashboard-position-panel" data-qa="dashboard-position">
                     <div className="dashboard-position-panel__balance" data-qa="dashboard-balance">
                         <div className="dashboard-panel__header">
-                            <div>
-                                <span className="dashboard-panel__eyebrow">{t("dashboard.balance.eyebrow")}</span>
-                                <h2 className="dashboard-panel__title">{t("dashboard.balance.title")}</h2>
-                            </div>
-                            <WalletCards size={19} aria-hidden="true" />
+                            <h2 className="dashboard-panel__title">{t("dashboard.balance.title")}</h2>
                         </div>
                         <Spin spinning={balancePanelLoading} tip={t("dashboard.balance.loading")}>
                             {balancePanelError ? (
@@ -561,9 +562,15 @@ const Dashboard = () => {
                                 </div>
                             ) : accountConversion.isComplete ? (
                                 <div className="dashboard-balance-total">
-                                    <Num currency={baseCurrency} kind="neutral" signage="signed" value={accountConversion.value} />
-                                    <span>{t("dashboard.balance.accountCount", { count: visibleAccounts.length })}</span>
-                                    <span>{t("dashboard.balance.effectiveDate", { date: effectiveDate })}</span>
+                                    <Num
+                                        accessibleLabel={t("dashboard.balance.amountLabel")}
+                                        currency={baseCurrency}
+                                        kind={accountConversion.value < 0 ? "expense" : "neutral"}
+                                        locale={i18n.language}
+                                        signage="negative-only"
+                                        value={accountConversion.value}
+                                    />
+                                    <span>{t("dashboard.balance.metadata", { count: visibleAccounts.length, date: effectiveDate })}</span>
                                 </div>
                             ) : (
                                 <div className="dashboard-balance-total dashboard-balance-total--unavailable" role="status">
@@ -581,10 +588,7 @@ const Dashboard = () => {
 
                     <div className="dashboard-position-panel__accounts" data-qa="dashboard-accounts">
                         <div className="dashboard-panel__header">
-                            <div>
-                                <span className="dashboard-panel__eyebrow">{t("dashboard.accounts.eyebrow")}</span>
-                                <h2 className="dashboard-panel__title">{t("dashboard.accounts.title")}</h2>
-                            </div>
+                            <h3 className="dashboard-position-panel__accounts-title">{t("dashboard.accounts.title")}</h3>
                             <Link to="/accounts">{t("dashboard.accounts.open")}</Link>
                         </div>
                         <Spin spinning={accountDataLoading} tip={t("dashboard.balance.loading")}>
@@ -596,20 +600,38 @@ const Dashboard = () => {
                                 <div className="dashboard-panel-state" role="status">{t("dashboard.balance.empty")}</div>
                             ) : (
                                 <>
-                                <ul className={`dashboard-account-list${accountsExpanded ? " dashboard-account-list--expanded" : ""}`}>
-                                    {accountBalances.map((account) => (
-                                        <li key={account.id}>
+                                <ul
+                                    className={`dashboard-account-list${accountsExpanded ? " dashboard-account-list--expanded" : ""}`}
+                                    id={accountListId}
+                                >
+                                    {accountBalances.map((account, index) => (
+                                        <li
+                                            className={[
+                                                "dashboard-account-list__item",
+                                                index >= 3 && account.value >= 0 ? "dashboard-account-list__item--mobile-collapsible" : "",
+                                                index >= 5 && account.value >= 0 ? "dashboard-account-list__item--desktop-collapsible" : "",
+                                            ].filter(Boolean).join(" ")}
+                                            key={account.id}
+                                        >
                                             <Link to="/accounts">
                                                 <span>{account.name}</span>
-                                                <Num currency={account.currency} kind="neutral" signage="signed" value={account.value} />
+                                                <Num
+                                                    accessibleLabel={t("dashboard.balance.amountLabel")}
+                                                    currency={account.currency}
+                                                    kind={account.value < 0 ? "expense" : "neutral"}
+                                                    locale={i18n.language}
+                                                    signage="negative-only"
+                                                    value={account.value}
+                                                />
                                             </Link>
                                         </li>
                                     ))}
                                 </ul>
-                                {accountBalances.length > 3 ? (
+                                {hasCollapsibleAccounts ? (
                                     <InExButton
+                                        aria-controls={accountListId}
                                         aria-expanded={accountsExpanded}
-                                        className="dashboard-account-list__toggle"
+                                        className={`dashboard-account-list__toggle${hasDesktopCollapsibleAccounts ? " dashboard-account-list__toggle--desktop" : ""}`}
                                         kind="ghost"
                                         onClick={() => setAccountsExpanded((value) => !value)}
                                         size="sm"
@@ -624,13 +646,9 @@ const Dashboard = () => {
                     </section>
 
                     <section className="dashboard-panel dashboard-cash-flow-panel" data-qa="dashboard-cash-flow">
-                    <div className="dashboard-panel__header">
-                        <div>
-                            <span className="dashboard-panel__eyebrow">{t("dashboard.cashFlow.eyebrow")}</span>
-                            <h2 className="dashboard-panel__title">{t("dashboard.cashFlow.title")}</h2>
-                            <p className="dashboard-panel__context">{t("dashboard.cashFlow.period", { period: currentPeriodLabel })}</p>
-                        </div>
-                        <Landmark size={18} aria-hidden="true" />
+                    <div className="dashboard-panel__header dashboard-panel__header--compact">
+                        <h2 className="dashboard-panel__title">{t("dashboard.cashFlow.title")}</h2>
+                        <p className="dashboard-panel__context">{t("dashboard.cashFlow.period", { period: currentPeriodLabel })}</p>
                     </div>
                     <Spin spinning={summaryQuery.isLoading || ratesLoading} tip={t("dashboard.cashFlow.loading")}>
                         {summaryQuery.isError ? (
@@ -655,6 +673,25 @@ const Dashboard = () => {
                             </div>
                         ) : (
                             <div className="dashboard-cash-flow-layout">
+                                <div className="dashboard-cash-flow-summary" aria-label={t("dashboard.cashFlow.summaryTitle")}>
+                                    {cashFlowChartData.map((item) => (
+                                        <button key={item.key} onClick={() => openFlow(item.key as DashboardFlow)} type="button">
+                                            <span>
+                                                {item.key === "income" ? <ArrowUp size={16} aria-hidden="true" /> : <ArrowDown size={16} aria-hidden="true" />}
+                                                {item.label}
+                                            </span>
+                                            <span>
+                                                <Num
+                                                    currency={baseCurrency}
+                                                    kind={item.key as DashboardFlow}
+                                                    locale={i18n.language}
+                                                    value={item.key === "expense" ? -item.value : item.value}
+                                                />
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                                {oneSidedCashFlow ? <p className="dashboard-cash-flow-note">{oneSidedCashFlow}</p> : null}
                                 <div className="dashboard-cash-flow-chart" aria-hidden="true">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={cashFlowChartData} margin={{ top: 16, right: 12, bottom: 8, left: 12 }}>
@@ -667,24 +704,6 @@ const Dashboard = () => {
                                             </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
-                                </div>
-                                <div className="dashboard-cash-flow-summary" aria-label={t("dashboard.cashFlow.summaryTitle")}>
-                                    {oneSidedCashFlow ? <p className="dashboard-cash-flow-note">{oneSidedCashFlow}</p> : null}
-                                    {cashFlowChartData.map((item) => (
-                                        <button key={item.key} onClick={() => openFlow(item.key as DashboardFlow)} type="button">
-                                            <span>
-                                                {item.key === "income" ? <ArrowUp size={16} aria-hidden="true" /> : <ArrowDown size={16} aria-hidden="true" />}
-                                                {item.label}
-                                            </span>
-                                            <span>
-                                                <Num
-                                                    currency={baseCurrency}
-                                                    kind={item.key as DashboardFlow}
-                                                    value={item.key === "expense" ? -item.value : item.value}
-                                                />
-                                            </span>
-                                        </button>
-                                    ))}
                                 </div>
                             </div>
                         )}

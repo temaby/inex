@@ -191,27 +191,24 @@
     "subtitle": "Ваше текущее финансовое положение",
     "addTransaction": "Добавить транзакцию",
     "balance": {
-      "eyebrow": "Доступно сейчас",
-      "title": "Баланс видимых счетов",
+      "title": "Доступно",
+      "amountLabel": "Баланс",
       "loading": "Загружаем балансы счетов",
       "error": "Не удалось загрузить балансы счетов",
       "empty": "Для обзора не выбрано ни одного счёта.",
       "manageAccounts": "Выбрать счета",
-      "effectiveDate": "Пересчитано на {{date}}",
-      "accountCount_one": "На {{count}} видимом счёте",
-      "accountCount_few": "На {{count}} видимых счетах",
-      "accountCount_many": "На {{count}} видимых счетах",
-      "accountCount_other": "На {{count}} видимого счёта"
+      "metadata_one": "{{count}} счёт · курсы на {{date}}",
+      "metadata_few": "{{count}} счёта · курсы на {{date}}",
+      "metadata_many": "{{count}} счетов · курсы на {{date}}",
+      "metadata_other": "{{count}} счёта · курсы на {{date}}"
     },
     "accounts": {
-      "eyebrow": "Включены в сумму",
-      "title": "Видимые счета",
-      "open": "Настроить",
+      "title": "Счета",
+      "open": "Изменить",
       "showAll": "Показать все счета ({{count}})",
       "showLess": "Показать меньше счетов"
     },
     "cashFlow": {
-      "eyebrow": "Этот месяц",
       "title": "Доходы и расходы",
       "period": "{{period}}",
       "loading": "Загружаем движение денег",

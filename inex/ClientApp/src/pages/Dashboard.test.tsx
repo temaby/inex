@@ -1,5 +1,5 @@
 import * as React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Dashboard, { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard";
@@ -44,10 +44,26 @@ vi.mock("../layouts/BasicPage", () => ({
 }));
 
 vi.mock("../components/primitives", () => ({
-  InExButton: ({ children, onClick }: { children: React.ReactNode; onClick: () => void }) => (
-    <button onClick={onClick} type="button">{children}</button>
+  InExButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    <button {...props} type="button">{children}</button>
   ),
-  Num: ({ currency, value }: { currency: string; value: number }) => <span>{currency} {value}</span>,
+  Num: ({ accessibleLabel, currency, kind, locale, signage, value }: {
+    accessibleLabel?: string;
+    currency: string;
+    kind: string;
+    locale?: string;
+    signage?: string;
+    value: number;
+  }) => (
+    <span
+      data-accessible-label={accessibleLabel}
+      data-kind={kind}
+      data-locale={locale}
+      data-signage={signage}
+    >
+      {currency} {value}
+    </span>
+  ),
   SegmentedControl: () => <div>segmented-control</div>,
 }));
 
@@ -167,5 +183,69 @@ describe("Dashboard", () => {
     expect(DASHBOARD_EXPENSE_COLORS.some((color) => ["#D97706", "#F59E0B"].includes(color))).toBe(true);
     expect(DASHBOARD_INCOME_COLORS.some((color) => ["#2478D0", "#6D5BD0"].includes(color))).toBe(true);
     expect(DASHBOARD_EXPENSE_COLORS.filter((color) => DASHBOARD_INCOME_COLORS.includes(color))).toEqual([]);
+  });
+
+  it("keeps compact account limits while pinning negative balances to explicit sign and color semantics", () => {
+    const accounts = Array.from({ length: 7 }, (_, index) => ({
+      id: index + 1,
+      name: `Account ${index + 1}`,
+      isEnabled: true,
+      isFavourite: true,
+      currency: "USD",
+    }));
+    apiMocks.accounts.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
+    apiMocks.accountSummaries.mockReturnValue({
+      currentData: accounts.map((account, index) => ({
+        ...account,
+        value: index === 5 ? -10000 : (index + 1) * 100,
+      })),
+      isLoading: false,
+      isError: false,
+    });
+
+    const { container } = render(<Dashboard />);
+    const rows = Array.from(container.querySelectorAll<HTMLElement>(".dashboard-account-list__item"));
+    const aggregate = container.querySelector<HTMLElement>(".dashboard-balance-total [data-kind]");
+
+    expect(rows).toHaveLength(7);
+    expect(rows[5]).not.toHaveClass("dashboard-account-list__item--mobile-collapsible");
+    expect(rows[5]).not.toHaveClass("dashboard-account-list__item--desktop-collapsible");
+    expect(rows[6]).toHaveClass("dashboard-account-list__item--desktop-collapsible");
+    expect(rows[5].querySelector("[data-signage]"))
+      .toHaveAttribute("data-signage", "negative-only");
+    expect(rows[5].querySelector("[data-kind]"))
+      .toHaveAttribute("data-kind", "expense");
+    expect(rows[5].querySelector("[data-accessible-label]"))
+      .toHaveAttribute("data-accessible-label", "dashboard.balance.amountLabel");
+    expect(rows[0].querySelector("[data-kind]"))
+      .toHaveAttribute("data-kind", "neutral");
+    expect(rows[0].querySelector("[data-locale]"))
+      .toHaveAttribute("data-locale", "en");
+    expect(aggregate).toHaveAttribute("data-kind", "expense");
+    expect(aggregate).toHaveAttribute("data-signage", "negative-only");
+    expect(aggregate).toHaveAttribute("data-accessible-label", "dashboard.balance.amountLabel");
+
+    const accountList = container.querySelector<HTMLElement>(".dashboard-account-list");
+    const toggle = container.querySelector<HTMLButtonElement>(".dashboard-account-list__toggle");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveAttribute("aria-controls", accountList?.id);
+    fireEvent.click(toggle!);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(container.querySelector(".dashboard-account-list"))
+      .toHaveClass("dashboard-account-list--expanded");
+  });
+
+  it("renders concise top-card headers and places cash-flow totals before the chart", () => {
+    const { container } = render(<Dashboard />);
+    const position = container.querySelector<HTMLElement>('[data-qa="dashboard-position"]');
+    const cashFlow = container.querySelector<HTMLElement>('[data-qa="dashboard-cash-flow"]');
+    const summary = cashFlow?.querySelector(".dashboard-cash-flow-summary");
+    const chart = cashFlow?.querySelector(".dashboard-cash-flow-chart");
+
+    expect(position?.querySelectorAll(".dashboard-panel__eyebrow")).toHaveLength(0);
+    expect(cashFlow?.querySelectorAll(".dashboard-panel__eyebrow")).toHaveLength(0);
+    expect(position?.querySelector(".dashboard-panel__header svg")).toBeNull();
+    expect(cashFlow?.querySelector(".dashboard-panel__header svg")).toBeNull();
+    expect(summary?.compareDocumentPosition(chart!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 });

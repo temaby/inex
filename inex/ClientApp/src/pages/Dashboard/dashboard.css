@@ -35,7 +35,7 @@
 .dashboard-position-panel__accounts {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -85,6 +85,16 @@
   white-space: nowrap;
 }
 
+.dashboard-panel__header--compact {
+  align-items: baseline;
+}
+
+.dashboard-panel__header--compact .dashboard-panel__context {
+  flex: 0 0 auto;
+  margin: 0;
+  text-align: right;
+}
+
 .dashboard-panel__eyebrow {
   color: var(--fg-3);
   font-size: var(--fs-11);
@@ -94,11 +104,16 @@
 }
 
 .dashboard-panel__title,
+.dashboard-position-panel__accounts-title,
 .dashboard-category-toolbar h2 {
   color: var(--fg-1);
   font-size: var(--fs-18);
   font-weight: var(--fw-semibold);
   margin: 0;
+}
+
+.dashboard-position-panel__accounts-title {
+  font-size: var(--fs-16);
 }
 
 .dashboard-panel__context {
@@ -111,7 +126,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  min-height: 104px;
+  min-height: 84px;
   justify-content: center;
 }
 
@@ -175,28 +190,41 @@
   width: 100%;
 }
 
+.dashboard-account-list:not(.dashboard-account-list--expanded) .dashboard-account-list__item--desktop-collapsible {
+  display: none;
+}
+
+.dashboard-account-list__toggle--desktop {
+  display: inline-flex !important;
+}
+
+.dashboard-cash-flow-panel > .ant-spin-nested-loading,
+.dashboard-cash-flow-panel > .ant-spin-nested-loading > .ant-spin-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
 .dashboard-cash-flow-layout {
-  align-items: stretch;
-  display: grid;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: var(--space-4);
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.55fr);
   min-width: 0;
+  width: 100%;
 }
 
 .dashboard-cash-flow-chart {
-  height: 260px;
-  min-height: 260px;
+  flex: 1;
+  min-height: 240px;
   min-width: 0;
 }
 
 .dashboard-cash-flow-summary {
-  align-self: center;
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-2);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-width: 0;
-  overflow: hidden;
 }
 
 .dashboard-cash-flow-summary button {
@@ -208,13 +236,13 @@
   display: flex;
   gap: var(--space-3);
   justify-content: space-between;
-  min-height: 72px;
-  padding: var(--space-4);
+  min-height: 56px;
+  padding: var(--space-3);
   text-align: left;
 }
 
 .dashboard-cash-flow-summary button + button {
-  border-top: 1px solid var(--border-1);
+  border-left: 1px solid var(--border-1);
 }
 
 .dashboard-cash-flow-summary button:hover,
@@ -238,7 +266,6 @@
   color: var(--fg-3);
   font-size: var(--fs-13);
   margin: 0;
-  padding: var(--space-3) var(--space-4);
 }
 
 .dashboard-category-toolbar {
@@ -376,7 +403,6 @@
 }
 
 @media (max-width: 899px) {
-  .dashboard-cash-flow-layout,
   .dashboard-donut-layout {
     grid-template-columns: 1fr;
   }
@@ -391,7 +417,7 @@
     padding: var(--space-4);
   }
 
-  .dashboard-account-list:not(.dashboard-account-list--expanded) li:nth-child(n + 4) {
+  .dashboard-account-list:not(.dashboard-account-list--expanded) .dashboard-account-list__item--mobile-collapsible {
     display: none;
   }
 
@@ -409,8 +435,26 @@
   }
 
   .dashboard-cash-flow-chart {
-    height: 230px;
     min-height: 230px;
+  }
+
+  .dashboard-panel__header--compact {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .dashboard-panel__header--compact .dashboard-panel__context {
+    text-align: left;
+  }
+
+  .dashboard-cash-flow-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-cash-flow-summary button + button {
+    border-left: 0;
+    border-top: 1px solid var(--border-1);
   }
 
   .dashboard-chart-legend__button {

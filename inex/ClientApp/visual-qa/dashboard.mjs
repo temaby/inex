@@ -31,11 +31,13 @@ const authUser = {
 
 const states = [
   { name: "populated-1440", screenshot: "populated-1440.png", viewport: { width: 1440, height: 1000 }, scenario: "populated" },
+  { name: "populated-expanded-1440", screenshot: "populated-expanded-1440.png", viewport: { width: 1440, height: 1000 }, scenario: "populated", interaction: "expand-accounts" },
   { name: "populated-1024", screenshot: "populated-1024.png", viewport: { width: 1024, height: 900 }, scenario: "populated" },
   { name: "child-view-1024", screenshot: "child-view-1024.png", viewport: { width: 1024, height: 900 }, scenario: "populated", interaction: "select-child-view" },
   { name: "parent-drilldown-1024", screenshot: "parent-drilldown-1024.png", viewport: { width: 1024, height: 900 }, scenario: "populated", interaction: "drill-into-home" },
   { name: "keyboard-drilldown-1024", screenshot: "keyboard-drilldown-1024.png", viewport: { width: 1024, height: 900 }, scenario: "populated", interaction: "keyboard-drill-into-home" },
   { name: "populated-390", screenshot: "populated-390.png", viewport: { width: 390, height: 900 }, scenario: "populated" },
+  { name: "populated-expanded-390", screenshot: "populated-expanded-390.png", viewport: { width: 390, height: 900 }, scenario: "populated", interaction: "expand-accounts" },
   { name: "populated-360", screenshot: "populated-360.png", viewport: { width: 360, height: 900 }, scenario: "populated" },
   { name: "first-use-empty-390", screenshot: "first-use-empty-390.png", viewport: { width: 390, height: 900 }, scenario: "empty" },
   { name: "no-activity-390", screenshot: "no-activity-390.png", viewport: { width: 390, height: 900 }, scenario: "no-activity" },
@@ -140,6 +142,12 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "expand-accounts") {
+    await evaluate(client, `document.querySelector('.dashboard-account-list__toggle')?.click()`);
+    await waitFor(client, "document.querySelector('.dashboard-account-list__toggle')?.getAttribute('aria-expanded') === 'true'");
+    return;
+  }
+
   if (state.interaction === "select-child-view") {
     await evaluate(client, clickButtonByTextExpression("Children"));
     await waitFor(client, "document.body.innerText.includes('Home / Rent')");
@@ -205,7 +213,7 @@ async function waitForDashboardReady(client, state) {
     return;
   }
   if (state.scenario === "summary-error") {
-    await waitFor(client, "document.body.innerText.includes('Could not load cash flow') && document.body.innerText.includes('Visible account balance') && document.body.innerText.includes('Salary')");
+    await waitFor(client, "document.body.innerText.includes('Could not load cash flow') && document.body.innerText.includes('Available') && document.body.innerText.includes('Salary')");
     return;
   }
   if (state.scenario === "missing-rate") {
@@ -230,7 +238,7 @@ async function waitForDashboardReady(client, state) {
     return;
   }
 
-  await waitFor(client, "document.querySelectorAll('.dashboard-account-list > li').length === 5 && document.querySelectorAll('.recharts-surface').length >= 3");
+  await waitFor(client, `document.querySelectorAll('.dashboard-account-list > li').length === ${fixtureExports.dashboardVisualFixtureMeta.expectedVisibleAccountCount} && document.querySelectorAll('.recharts-surface').length >= 3`);
 }
 
 async function collectMetrics(client, state, apiRequestCount) {
@@ -279,6 +287,17 @@ async function collectMetrics(client, state, apiRequestCount) {
     const accountRows = Array.from(document.querySelectorAll('.dashboard-account-list > li'));
     const visibleAccountCount = accountRows.filter((row) => window.getComputedStyle(row).display !== 'none').length;
     const accountRowCount = accountRows.length;
+    const accountToggle = document.querySelector('.dashboard-account-list__toggle');
+    const accountToggleStyle = accountToggle ? window.getComputedStyle(accountToggle) : null;
+    const amountText = (row) => row?.querySelector('[role="text"] [aria-hidden="true"]')?.textContent?.trim() ?? '';
+    const amountColorToken = (row) => {
+      const amount = row?.querySelector('[role="text"] [aria-hidden="true"]');
+      return amount?.style.color ?? null;
+    };
+    const negativeAccountRow = accountRows.find((row) => row.textContent.includes('Travel card'));
+    const positiveAccountRow = accountRows.find((row) => row.textContent.includes('Daily account'));
+    const cashFlowChartRect = document.querySelector('.dashboard-cash-flow-chart')?.getBoundingClientRect() ?? null;
+    const cashFlowTrailingSpace = cashFlowRect && cashFlowChartRect ? cashFlowRect.top + cashFlowRect.height - cashFlowChartRect.bottom : null;
     const legendItemCount = document.querySelectorAll('.dashboard-chart-legend > li').length;
     const text = body.innerText.replace(/\\s+/g, ' ').trim();
 
@@ -304,6 +323,12 @@ async function collectMetrics(client, state, apiRequestCount) {
       chartCount,
       visibleAccountCount,
       accountRowCount,
+      accountToggleVisible: Boolean(accountToggle && accountToggleStyle && accountToggleStyle.display !== 'none'),
+      accountToggleExpanded: accountToggle?.getAttribute('aria-expanded') === 'true',
+      positiveAccountHasPlus: amountText(positiveAccountRow).startsWith('+'),
+      negativeAccountHasMinus: amountText(negativeAccountRow).startsWith('-'),
+      negativeAccountHasSemanticColor: amountColorToken(negativeAccountRow) === 'var(--expense-600)',
+      cashFlowTrailingSpace,
       legendItemCount,
       positionPanelVisible: Boolean(document.querySelector('[data-qa="dashboard-position"]')),
       balancePanelVisible: Boolean(document.querySelector('[data-qa="dashboard-balance"]')),
@@ -369,9 +394,19 @@ function collectAdditionalFailures(stateResults) {
     if (JSON.stringify(state.panelOrder) !== JSON.stringify(fixture.dashboardVisualFixtureMeta.expectedPanelOrder)) {
       failures.push(`${state.name}: panel DOM order does not match the mobile reading contract`);
     }
-    const expectedDisplayedAccounts = state.viewport.width <= 768 ? 3 : fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount;
+    const expectedDisplayedAccounts = state.interaction === "expand-accounts"
+      ? fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount
+      : state.viewport.width <= 768
+        ? fixture.dashboardVisualFixtureMeta.expectedCollapsedMobileAccountCount
+        : fixture.dashboardVisualFixtureMeta.expectedCollapsedDesktopAccountCount;
     if (state.accountRowCount !== fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount || state.visibleAccountCount !== expectedDisplayedAccounts) {
       failures.push(`${state.name}: expected ${fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount} account rows and ${expectedDisplayedAccounts} displayed, found ${state.accountRowCount}/${state.visibleAccountCount}`);
+    }
+    if (!state.accountToggleVisible || state.accountToggleExpanded !== (state.interaction === "expand-accounts")) {
+      failures.push(`${state.name}: account expansion control does not match the collapsed/expanded state`);
+    }
+    if (state.positiveAccountHasPlus || !state.negativeAccountHasMinus || !state.negativeAccountHasSemanticColor) {
+      failures.push(`${state.name}: account balance sign or negative semantic color is incorrect`);
     }
     if (!state.positionPanelVisible || !state.positionPanelCombined || !state.balancePanelVisible || !state.accountsPanelVisible
       || !state.cashFlowPanelVisible || !state.expensePanelVisible || !state.incomePanelVisible) {
@@ -379,6 +414,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.viewport.width >= 1200 && (!state.topPairAligned || !state.bottomPairAligned)) {
       failures.push(`${state.name}: desktop panel pairs are not aligned to equal-height rows`);
+    }
+    if (state.viewport.width >= 1200 && (state.cashFlowTrailingSpace === null || state.cashFlowTrailingSpace > 32)) {
+      failures.push(`${state.name}: cash-flow chart leaves excessive unused space at the bottom of its card`);
     }
     if (state.viewport.width < 1200 && !state.stackedPanelOrder) {
       failures.push(`${state.name}: responsive panels do not follow the balance, cash flow, expense, income order`);
@@ -439,6 +477,8 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       expectedPanelCount: fixture.dashboardVisualFixtureMeta.expectedPanelCount,
       expectedPanelOrder: fixture.dashboardVisualFixtureMeta.expectedPanelOrder,
       expectedVisibleAccountCount: fixture.dashboardVisualFixtureMeta.expectedVisibleAccountCount,
+      expectedCollapsedDesktopAccountCount: fixture.dashboardVisualFixtureMeta.expectedCollapsedDesktopAccountCount,
+      expectedCollapsedMobileAccountCount: fixture.dashboardVisualFixtureMeta.expectedCollapsedMobileAccountCount,
       expectedChartCount: fixture.dashboardVisualFixtureMeta.expectedChartCount,
       nonApplicableStates: fixture.dashboardVisualFixtureMeta.nonApplicableStates,
     },

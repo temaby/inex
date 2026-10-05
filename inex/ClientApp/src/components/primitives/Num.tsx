@@ -14,12 +14,14 @@ export interface NumProps {
     compact?: boolean;
     fractionDigits?: 0 | 1 | 2;
     signage?: Signage;
+    locale?: string;
     size?: string | number;
     currencySize?: "same" | "sm";
     dataQa?: string;
     valueDataQa?: string;
     currencyDataQa?: string;
     accessibleCurrency?: string;
+    accessibleLabel?: string;
 }
 
 const colorMap: Record<MoneyKind, string> = {
@@ -36,28 +38,35 @@ const inferKind = (value: number): MoneyKind => {
     return "neutral";
 };
 
-const formatAmount = (value: number, compact: boolean, fractionDigits: 0 | 1 | 2): string => {
+const formatAmount = (value: number, compact: boolean, fractionDigits: 0 | 1 | 2, locale?: string): string => {
     const absoluteValue = Math.abs(value);
 
     if (compact && absoluteValue >= 1_000_000) {
-        return `${(absoluteValue / 1_000_000).toFixed(1)}M`;
+        return `${(absoluteValue / 1_000_000).toLocaleString(locale, {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+        })}M`;
     }
 
     if (compact && absoluteValue >= 100_000) {
-        return Math.round(absoluteValue).toLocaleString(undefined, { maximumFractionDigits: 0 });
+        return Math.round(absoluteValue).toLocaleString(locale, { maximumFractionDigits: 0 });
     }
 
-    return absoluteValue.toLocaleString(undefined, {
+    return absoluteValue.toLocaleString(locale, {
         minimumFractionDigits: fractionDigits,
         maximumFractionDigits: fractionDigits,
     });
 };
 
-const getPrefix = (value: number, kind: MoneyKind, signage: ReturnType<typeof useSignage>["signage"]) => {
+const getPrefix = (value: number, kind: MoneyKind, signage: Signage) => {
     if (value === 0) return "";
 
     if (signage === "signed") {
         return value > 0 ? "+" : "-";
+    }
+
+    if (signage === "negative-only") {
+        return value < 0 ? "-" : "";
     }
 
     if (signage === "arrows" && (kind === "transfer" || kind === "neutral")) {
@@ -79,21 +88,23 @@ export const Num: React.FC<NumProps> = ({
     compact = false,
     fractionDigits = 2,
     signage,
+    locale,
     size,
     currencySize = "same",
     dataQa,
     valueDataQa,
     currencyDataQa,
     accessibleCurrency,
+    accessibleLabel,
 }) => {
     const { t } = useTranslation();
     const { signage: contextSignage } = useSignage();
     const resolvedKind = kind ?? inferKind(value);
     const resolvedSignage = signage ?? contextSignage;
-    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact, fractionDigits)}`;
+    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact, fractionDigits, locale)}`;
     const visibleValue = bare || !currency ? formattedValue : `${formattedValue} ${currency}`;
     const accessibleValue = accessibleCurrency ? `${formattedValue} ${accessibleCurrency}` : visibleValue;
-    const kindLabel = t(`primitives.kindLabel.${resolvedKind}`);
+    const kindLabel = accessibleLabel ?? t(`primitives.kindLabel.${resolvedKind}`);
 
     const visibleStyle: React.CSSProperties = {
         color: colorMap[resolvedKind],

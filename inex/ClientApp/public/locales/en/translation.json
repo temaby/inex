@@ -191,25 +191,22 @@
     "subtitle": "Your current financial position",
     "addTransaction": "Add transaction",
     "balance": {
-      "eyebrow": "Available now",
-      "title": "Visible account balance",
+      "title": "Available",
+      "amountLabel": "Balance",
       "loading": "Loading account balances",
       "error": "Could not load account balances",
       "empty": "No accounts are selected for the overview.",
       "manageAccounts": "Choose accounts",
-      "effectiveDate": "Converted as of {{date}}",
-      "accountCount_one": "Across {{count}} visible account",
-      "accountCount_other": "Across {{count}} visible accounts"
+      "metadata_one": "{{count}} account · rates as of {{date}}",
+      "metadata_other": "{{count}} accounts · rates as of {{date}}"
     },
     "accounts": {
-      "eyebrow": "Included in total",
-      "title": "Visible accounts",
-      "open": "Manage",
+      "title": "Accounts",
+      "open": "Choose accounts",
       "showAll": "Show all {{count}} accounts",
       "showLess": "Show fewer accounts"
     },
     "cashFlow": {
-      "eyebrow": "This month",
       "title": "Income and expenses",
       "period": "{{period}}",
       "loading": "Loading cash flow",
