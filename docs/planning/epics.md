@@ -274,7 +274,7 @@ The production React app implements the `docs/design` visual system: custom shel
 - Epic 7 Story 7.2 may be scheduled with this epic, but route lazy-loading remains Epic 7 ownership
 
 **Execution order:**
-10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.6.
+10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.4a -> 10.6.
 
 Stories grouped with slashes may run in parallel only after their prerequisite foundation stories are done and when shared ownership hotspots are actively coordinated: `App.tsx`, EN/RU locale files, `package.json`/`package-lock.json`, shared primitives, and route/redirect ownership. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Stories 10.1d and 10.1e are post-audit shared policy and primitive gates derived from `docs/ui-audit/implementation-roadmap.md`; they must complete before page-local mockup-alignment deltas and before Story 10.6. Stories 10.2b, 10.3g, 10.3h, and 10.3i are post-audit page-local mockup-alignment delta stories and must complete before Story 10.6 unless explicitly waived as accepted deviations. Story 10.6 is the final visual QA gate and starts only after Stories 10.1a through 10.5b plus Stories 10.1d, 10.1e, 10.2a, 10.2b, and 10.3d through 10.3i are done.
 
@@ -1307,7 +1307,7 @@ So that production is updated without manual intervention.
 
 The production React app implements the `docs/design` visual system: custom shell, tokenized primitives, finance-first page layouts, accessible drawers and controls, mobile bottom navigation, and verified responsive behavior.
 
-Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.6. The grouped management, page-delta, and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.1d is the policy gate for shell IA, authenticated landing route, account controls, locale baseline, fixture/live-data QA mode, and accepted mockup deviations. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Stories 10.1d and 10.1e are post-audit shared policy and primitive gates derived from `docs/ui-audit/implementation-roadmap.md`; they must complete before page-local mockup-alignment deltas and before Story 10.6. Stories 10.2b, 10.3g, 10.3h, and 10.3i are post-audit page-local mockup-alignment delta stories derived from the tracked page audits and must complete before Story 10.6 unless explicitly waived as accepted deviations. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.1d, 10.1e, 10.2a, 10.2b, and 10.3d through 10.3i are done.
+Execution order is fixed for foundation and final gate work: 10.1a -> 10.1b -> 10.1c -> 10.4 -> 10.1d -> 10.1e -> 10.2b -> 10.3g/10.3h/10.3i -> 10.5a/10.5b -> 10.4a -> 10.6. The grouped management, page-delta, and settings/auth stories may run in parallel only after their prerequisites are done and shared ownership hotspots are coordinated. Story 10.1d is the policy gate for shell IA, authenticated landing route, account controls, locale baseline, fixture/live-data QA mode, and accepted mockup deviations. Story 10.2a is a BMad design-gap remediation story derived from the created Transactions gap review file; it must complete before Story 10.6. Stories 10.3d, 10.3e, and 10.3f are BMad design-gap remediation gates derived from the Accounts, Categories, and Budgets gap review files; they may run after Stories 10.3a, 10.3b, and 10.3c are done and must complete before Story 10.6. Stories 10.1d and 10.1e are post-audit shared policy and primitive gates derived from `docs/ui-audit/implementation-roadmap.md`; they must complete before page-local mockup-alignment deltas and before Story 10.6. Stories 10.2b, 10.3g, 10.3h, and 10.3i are post-audit page-local mockup-alignment delta stories derived from the tracked page audits and must complete before Story 10.6 unless explicitly waived as accepted deviations. Story 10.4a is the high-priority real-user correction for one Current Status Dashboard and must complete before Story 10.6. Story 10.6 is the final Epic 10 visual QA gate and starts only after 10.1a through 10.5b plus Stories 10.1d, 10.1e, 10.2a, 10.2b, 10.3d through 10.3i, and 10.4a are done.
 
 ### Story 10.1a: Frontend UX - Design Tokens And Theme Bridge
 
@@ -1654,6 +1654,46 @@ So that quick financial status and deeper analysis are separated but connected.
 **Given** 1440px and 390px viewports
 **When** dashboard, reports hub, and one drill-down report are opened
 **Then** page chrome, cards, charts, and action bars fit without overlap or horizontal overflow
+
+### Story 10.4a: Frontend UX - Current Status Dashboard
+
+As an invited account holder,
+I want one clear Dashboard focused on my current financial position,
+So that I can understand account balances, income, expenses, and category composition without visiting several pages.
+
+**Acceptance Criteria:**
+
+**Given** the authenticated user opens `/dashboard`
+**When** active account and current-month data load
+**Then** the page shows only active accounts with `isFavourite !== false`, their native balances, and a complete base-currency total or an explicit unavailable state with missing-currency evidence
+
+**Given** current-month income and expenses
+**When** the cash-flow visualization renders
+**Then** income and expenses appear as two directly comparable columns with exact localized values and an accessible summary, not as standalone numeric KPI cards
+
+**Given** current-month non-system category activity
+**When** category composition renders
+**Then** separate expense and income donuts each show up to eight explicit categories plus Other
+
+**Given** the category-level control
+**When** Parent is selected
+**Then** the donut begins with parent categories and a selected parent drills into its children; when Child is selected, the donut begins with ranked child categories and every child label includes parent context
+
+**Given** an account, cash-flow column, or category interaction
+**When** it is activated by pointer or keyboard
+**Then** the user reaches the relevant Accounts or filtered Transactions context while the Dashboard remains a read-only overview
+
+**Given** the existing Dashboard content
+**When** this story is complete
+**Then** budget remaining, budget-derived top categories, and historical net worth no longer appear on `/dashboard`; Reports and Budgets remain available on their dedicated routes
+
+**Given** linked-account view mode
+**When** the Dashboard reads a linked user's data
+**Then** every request uses the existing authorized linked-user scope and the page remains read-only
+
+**Given** desktop and mobile viewports
+**When** fixture-backed visual QA runs at 1440px, 1024px, 390px, and 360px
+**Then** the Dashboard has localized EN/RU content, keyboard-operable controls, chart summaries, and no overlap, page-level horizontal overflow, or mobile-navigation occlusion
 
 ### Story 10.5a: Frontend UX - Profile And Settings Redesign
 
