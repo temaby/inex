@@ -2,7 +2,7 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Dashboard from "./Dashboard";
+import Dashboard, { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard";
 
 const apiMocks = vi.hoisted(() => ({
   accounts: vi.fn(),
@@ -140,5 +140,32 @@ describe("Dashboard", () => {
     expect(screen.getByText("linkedAccount.readOnly:Linked QA")).toBeInTheDocument();
     expect(screen.queryByText(/budget/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/net worth/i)).not.toBeInTheDocument();
+  });
+
+  it("renders four panels in the mobile reading order and combines balance with accounts", () => {
+    const { container } = render(<Dashboard />);
+
+    const panels = Array.from(container.querySelectorAll<HTMLElement>(".dashboard-panel"));
+    expect(panels).toHaveLength(4);
+    expect(panels.map((panel) => panel.dataset.qa)).toEqual([
+      "dashboard-position",
+      "dashboard-cash-flow",
+      "dashboard-expense-categories",
+      "dashboard-income-categories",
+    ]);
+
+    const positionPanel = container.querySelector<HTMLElement>('[data-qa="dashboard-position"]');
+    expect(positionPanel).not.toBeNull();
+    expect(positionPanel?.querySelector('[data-qa="dashboard-balance"]')).not.toBeNull();
+    expect(positionPanel?.querySelector('[data-qa="dashboard-accounts"]')).not.toBeNull();
+    expect(positionPanel).toHaveTextContent("Visible USD");
+  });
+
+  it("uses distinct varied palettes for income and expense composition", () => {
+    expect(new Set(DASHBOARD_EXPENSE_COLORS).size).toBe(DASHBOARD_EXPENSE_COLORS.length);
+    expect(new Set(DASHBOARD_INCOME_COLORS).size).toBe(DASHBOARD_INCOME_COLORS.length);
+    expect(DASHBOARD_EXPENSE_COLORS.some((color) => ["#D97706", "#F59E0B"].includes(color))).toBe(true);
+    expect(DASHBOARD_INCOME_COLORS.some((color) => ["#2478D0", "#6D5BD0"].includes(color))).toBe(true);
+    expect(DASHBOARD_EXPENSE_COLORS.filter((color) => DASHBOARD_INCOME_COLORS.includes(color))).toEqual([]);
   });
 });

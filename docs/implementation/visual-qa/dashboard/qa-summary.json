@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-05T09:43:39.368Z",
+  "generatedAt": "2026-10-05T12:55:06.296Z",
   "page": "dashboard",
   "dataMode": "fixture",
   "harness": {
@@ -12,9 +12,15 @@
   },
   "fixture": {
     "source": "inex/ClientApp/src/test/fixtures/dashboardVisualFixture.ts",
-    "baseline": "Current status dashboard",
+    "baseline": "Dashboard four-area layout",
     "expectedBaseCurrency": "USD",
-    "expectedPanelCount": 5,
+    "expectedPanelCount": 4,
+    "expectedPanelOrder": [
+      "dashboard-position",
+      "dashboard-cash-flow",
+      "dashboard-expense-categories",
+      "dashboard-income-categories"
+    ],
     "expectedVisibleAccountCount": 5,
     "expectedChartCount": 3,
     "nonApplicableStates": [
@@ -216,14 +222,47 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 968.171875,
+      "lastContentBottom": 967.671875,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": true,
+      "bottomPairAligned": true,
+      "stackedPanelOrder": false,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 5,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -243,7 +282,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1425,
-        "height": 1554,
+        "height": 1318,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -286,12 +325,45 @@
       "bottomNavTop": null,
       "lastContentBottom": 867.859375,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 5,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -311,7 +383,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1009,
-        "height": 2229,
+        "height": 2172,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -354,12 +426,45 @@
       "bottomNavTop": null,
       "lastContentBottom": 867.859375,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 5,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -379,7 +484,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1009,
-        "height": 2229,
+        "height": 2172,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -422,12 +527,38 @@
       "bottomNavTop": null,
       "lastContentBottom": 868.453125,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 5,
       "accountRowCount": 5,
       "legendItemCount": 9,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -447,7 +578,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1009,
-        "height": 2100,
+        "height": 2043,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -490,12 +621,45 @@
       "bottomNavTop": null,
       "lastContentBottom": 867.859375,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 5,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -515,7 +679,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1009,
-        "height": 2229,
+        "height": 2172,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -558,12 +722,45 @@
       "bottomNavTop": 839,
       "lastContentBottom": 771.640625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -583,7 +780,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 3325,
+        "height": 3292,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -626,12 +823,45 @@
       "bottomNavTop": 839,
       "lastContentBottom": 771.640625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -651,7 +881,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 345,
-        "height": 3325,
+        "height": 3292,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -694,12 +924,27 @@
       "bottomNavTop": 839,
       "lastContentBottom": 771.640625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [],
+      "incomePalette": [],
+      "paletteOverlap": [],
       "chartCount": 0,
       "visibleAccountCount": 0,
       "accountRowCount": 0,
       "legendItemCount": 0,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -719,7 +964,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1588,
+        "height": 1559,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -758,12 +1003,27 @@
       "bottomNavTop": 839,
       "lastContentBottom": 772.234375,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [],
+      "incomePalette": [],
+      "paletteOverlap": [],
       "chartCount": 0,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 0,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -783,7 +1043,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1659,
+        "height": 1630,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -826,12 +1086,35 @@
       "bottomNavTop": 839,
       "lastContentBottom": 772.140625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 2,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 7,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -851,7 +1134,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2615,
+        "height": 2582,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -894,12 +1177,37 @@
       "bottomNavTop": 839,
       "lastContentBottom": 772.140625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [],
+      "paletteOverlap": [],
       "chartCount": 2,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 9,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -919,7 +1227,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2731,
+        "height": 2698,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -962,12 +1270,35 @@
       "bottomNavTop": 839,
       "lastContentBottom": 772.421875,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 1,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 7,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -987,7 +1318,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2361,
+        "height": 2332,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1030,12 +1361,27 @@
       "bottomNavTop": 839,
       "lastContentBottom": 771.640625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [],
+      "incomePalette": [],
+      "paletteOverlap": [],
       "chartCount": 1,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 0,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -1055,7 +1401,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1915,
+        "height": 1882,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1098,12 +1444,45 @@
       "bottomNavTop": 839,
       "lastContentBottom": 771.640625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 2,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -1123,7 +1502,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 3033,
+        "height": 3004,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1166,12 +1545,45 @@
       "bottomNavTop": 839,
       "lastContentBottom": 771.640625,
       "drawerOpen": false,
-      "panelCount": 5,
+      "panelCount": 4,
+      "panelOrder": [
+        "dashboard-position",
+        "dashboard-cash-flow",
+        "dashboard-expense-categories",
+        "dashboard-income-categories"
+      ],
+      "topPairAligned": false,
+      "bottomPairAligned": false,
+      "stackedPanelOrder": true,
+      "expensePalette": [
+        "rgb(197, 61, 67)",
+        "rgb(231, 111, 81)",
+        "rgb(217, 119, 6)",
+        "rgb(192, 38, 109)",
+        "rgb(166, 58, 80)",
+        "rgb(245, 158, 11)",
+        "rgb(228, 87, 46)",
+        "rgb(159, 43, 104)",
+        "rgb(180, 83, 9)"
+      ],
+      "incomePalette": [
+        "rgb(20, 125, 100)",
+        "rgb(36, 120, 208)",
+        "rgb(0, 166, 166)",
+        "rgb(109, 91, 208)",
+        "rgb(46, 155, 70)",
+        "rgb(63, 81, 181)",
+        "rgb(0, 136, 204)"
+      ],
+      "paletteOverlap": [],
       "chartCount": 3,
       "visibleAccountCount": 3,
       "accountRowCount": 5,
       "legendItemCount": 16,
+      "positionPanelVisible": true,
       "balancePanelVisible": true,
+      "accountsPanelVisible": true,
+      "positionPanelCombined": true,
       "cashFlowPanelVisible": true,
       "expensePanelVisible": true,
       "incomePanelVisible": true,
@@ -1191,7 +1603,7 @@
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 3407,
+        "height": 3374,
         "mode": "fullPage"
       },
       "requestLog": [

@@ -41,28 +41,28 @@ import {
 } from "./Dashboard/dashboard-utils";
 import "./Dashboard/dashboard.css";
 
-const INCOME_COLORS = [
-    "var(--income-700)",
-    "var(--income-600)",
-    "var(--income-500)",
-    "var(--income-400)",
-    "var(--income-200)",
-    "var(--transfer-500)",
-    "var(--warn-500)",
-    "var(--brand-ink)",
-    "var(--border-2)",
+export const DASHBOARD_INCOME_COLORS = [
+    "#147D64",
+    "#2478D0",
+    "#00A6A6",
+    "#6D5BD0",
+    "#2E9B46",
+    "#3F51B5",
+    "#0088CC",
+    "#5B8C00",
+    "#546E7A",
 ];
 
-const EXPENSE_COLORS = [
-    "var(--expense-700)",
-    "var(--expense-600)",
-    "var(--expense-500)",
-    "var(--expense-400)",
-    "var(--expense-200)",
-    "var(--warn-500)",
-    "var(--transfer-500)",
-    "var(--brand-ink)",
-    "var(--border-2)",
+export const DASHBOARD_EXPENSE_COLORS = [
+    "#C53D43",
+    "#E76F51",
+    "#D97706",
+    "#C0266D",
+    "#A63A50",
+    "#F59E0B",
+    "#E4572E",
+    "#9F2B68",
+    "#B45309",
 ];
 
 interface CategoryPanelProps {
@@ -101,7 +101,7 @@ const CategoryPanel = ({
     const headingRef = useRef<HTMLHeadingElement>(null);
     const lastParentButtonRef = useRef<HTMLButtonElement | null>(null);
     const total = slices.reduce((sum, slice) => sum + slice.amount, 0);
-    const colors = flow === "income" ? INCOME_COLORS : EXPENSE_COLORS;
+    const colors = flow === "income" ? DASHBOARD_INCOME_COLORS : DASHBOARD_EXPENSE_COLORS;
 
     useEffect(() => {
         setOtherExpanded(false);
@@ -118,7 +118,7 @@ const CategoryPanel = ({
 
     return (
         <section
-            className="dashboard-panel dashboard-category-panel"
+            className={`dashboard-panel dashboard-category-panel dashboard-category-panel--${flow}`}
             data-qa={`dashboard-${flow}-categories`}
             onKeyDown={(event) => {
                 if (event.key === "Escape" && selectedParentName) {
@@ -539,8 +539,9 @@ const Dashboard = () => {
                     />
                 ) : null}
 
-                <div className="dashboard-overview-grid">
-                    <section className="dashboard-panel dashboard-balance-panel" data-qa="dashboard-balance">
+                <div className="dashboard-grid">
+                    <section className="dashboard-panel dashboard-position-panel" data-qa="dashboard-position">
+                    <div className="dashboard-position-panel__balance" data-qa="dashboard-balance">
                         <div className="dashboard-panel__header">
                             <div>
                                 <span className="dashboard-panel__eyebrow">{t("dashboard.balance.eyebrow")}</span>
@@ -576,9 +577,9 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </Spin>
-                    </section>
+                    </div>
 
-                    <section className="dashboard-panel dashboard-accounts-panel" data-qa="dashboard-accounts">
+                    <div className="dashboard-position-panel__accounts" data-qa="dashboard-accounts">
                         <div className="dashboard-panel__header">
                             <div>
                                 <span className="dashboard-panel__eyebrow">{t("dashboard.accounts.eyebrow")}</span>
@@ -619,10 +620,10 @@ const Dashboard = () => {
                                 </>
                             )}
                         </Spin>
+                    </div>
                     </section>
-                </div>
 
-                <section className="dashboard-panel dashboard-cash-flow-panel" data-qa="dashboard-cash-flow">
+                    <section className="dashboard-panel dashboard-cash-flow-panel" data-qa="dashboard-cash-flow">
                     <div className="dashboard-panel__header">
                         <div>
                             <span className="dashboard-panel__eyebrow">{t("dashboard.cashFlow.eyebrow")}</span>
@@ -688,9 +689,9 @@ const Dashboard = () => {
                             </div>
                         )}
                     </Spin>
-                </section>
+                    </section>
 
-                <div className="dashboard-category-toolbar">
+                    <div className="dashboard-category-toolbar">
                     <div>
                         <span className="dashboard-panel__eyebrow">{t("dashboard.categories.sectionEyebrow")}</span>
                         <h2>{t("dashboard.categories.sectionTitle")}</h2>
@@ -705,38 +706,37 @@ const Dashboard = () => {
                         size="compact"
                         value={categoryMode}
                     />
-                </div>
+                    </div>
 
-                <div className="dashboard-category-grid">
                     <CategoryPanel
-                        currency={baseCurrency}
-                        flow="expense"
-                        isError={categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError)}
-                        isLoading={categoryPanelLoading}
-                        isUnavailable={categoryConversion.expenseMissingRates.length > 0 && !ratesLoading}
-                        locale={i18n.language}
-                        missingRates={categoryConversion.expenseMissingRates}
-                        mode={categoryMode}
-                        onBack={() => setExpenseParentId(null)}
-                        onRetry={retryRates}
-                        onSelect={(slice) => selectCategory("expense", slice)}
-                        selectedParentName={expenseParentName}
-                        slices={expenseSlices}
+                    currency={baseCurrency}
+                    flow="expense"
+                    isError={categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError)}
+                    isLoading={categoryPanelLoading}
+                    isUnavailable={categoryConversion.expenseMissingRates.length > 0 && !ratesLoading}
+                    locale={i18n.language}
+                    missingRates={categoryConversion.expenseMissingRates}
+                    mode={categoryMode}
+                    onBack={() => setExpenseParentId(null)}
+                    onRetry={retryRates}
+                    onSelect={(slice) => selectCategory("expense", slice)}
+                    selectedParentName={expenseParentName}
+                    slices={expenseSlices}
                     />
                     <CategoryPanel
-                        currency={baseCurrency}
-                        flow="income"
-                        isError={categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError)}
-                        isLoading={categoryPanelLoading}
-                        isUnavailable={categoryConversion.incomeMissingRates.length > 0 && !ratesLoading}
-                        locale={i18n.language}
-                        missingRates={categoryConversion.incomeMissingRates}
-                        mode={categoryMode}
-                        onBack={() => setIncomeParentId(null)}
-                        onRetry={retryRates}
-                        onSelect={(slice) => selectCategory("income", slice)}
-                        selectedParentName={incomeParentName}
-                        slices={incomeSlices}
+                    currency={baseCurrency}
+                    flow="income"
+                    isError={categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError)}
+                    isLoading={categoryPanelLoading}
+                    isUnavailable={categoryConversion.incomeMissingRates.length > 0 && !ratesLoading}
+                    locale={i18n.language}
+                    missingRates={categoryConversion.incomeMissingRates}
+                    mode={categoryMode}
+                    onBack={() => setIncomeParentId(null)}
+                    onRetry={retryRates}
+                    onSelect={(slice) => selectCategory("income", slice)}
+                    selectedParentName={incomeParentName}
+                    slices={incomeSlices}
                     />
                 </div>
             </div>

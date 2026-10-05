@@ -7,17 +7,52 @@
   min-width: 0;
 }
 
-.dashboard-overview-grid,
-.dashboard-category-grid {
+.dashboard-grid {
   align-items: stretch;
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-areas:
+    "cash-flow position"
+    "category-toolbar category-toolbar"
+    "expenses income";
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-width: 0;
 }
 
-.dashboard-category-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.dashboard-position-panel {
+  background:
+    linear-gradient(135deg, var(--income-50), transparent 42%),
+    var(--bg-surface);
+  grid-area: position;
+}
+
+.dashboard-position-panel__accounts {
+  border-top: 1px solid var(--border-1);
+  padding-top: var(--space-4);
+}
+
+.dashboard-position-panel__balance,
+.dashboard-position-panel__accounts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.dashboard-cash-flow-panel {
+  grid-area: cash-flow;
+}
+
+.dashboard-category-toolbar {
+  grid-area: category-toolbar;
+}
+
+.dashboard-category-panel--expense {
+  grid-area: expenses;
+}
+
+.dashboard-category-panel--income {
+  grid-area: income;
 }
 
 .dashboard-panel {
@@ -70,12 +105,6 @@
   color: var(--fg-3);
   font-size: var(--fs-13);
   margin: var(--space-1) 0 0;
-}
-
-.dashboard-balance-panel {
-  background:
-    linear-gradient(135deg, var(--income-50), transparent 52%),
-    var(--bg-surface);
 }
 
 .dashboard-balance-total {
@@ -149,14 +178,14 @@
 .dashboard-cash-flow-layout {
   align-items: stretch;
   display: grid;
-  gap: var(--space-5);
-  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 0.65fr);
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.55fr);
   min-width: 0;
 }
 
 .dashboard-cash-flow-chart {
-  height: 280px;
-  min-height: 280px;
+  height: 260px;
+  min-height: 260px;
   min-width: 0;
 }
 
@@ -331,8 +360,13 @@
 }
 
 @media (max-width: 1199px) {
-  .dashboard-overview-grid,
-  .dashboard-category-grid {
+  .dashboard-grid {
+    grid-template-areas:
+      "position"
+      "cash-flow"
+      "category-toolbar"
+      "expenses"
+      "income";
     grid-template-columns: 1fr;
   }
 

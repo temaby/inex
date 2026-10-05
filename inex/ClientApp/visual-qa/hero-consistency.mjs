@@ -72,13 +72,6 @@ function fixtureFor(page) {
   return fixtures[page];
 }
 
-function dashboardBudgetReportForMonth(fixture, month) {
-  if (month === "3") {
-    return fixture.dashboardVisualFixturePreviousBudgetReport;
-  }
-  return fixture.dashboardVisualFixtureCurrentBudgetReport;
-}
-
 function createTransactionsSummary(fixture) {
   const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
@@ -163,7 +156,6 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
         if (page === "accounts") return jsonResponse(withCurrencyNames(fixture.accountsVisualFixtureCurrencies));
         if (page === "categories") return jsonResponse(fixture.categoriesVisualFixtureCurrencies);
         if (page === "budgets") return jsonResponse(fixture.budgetsVisualFixtureCurrencies);
-        if (page === "dashboard") return jsonResponse(fixture.dashboardVisualFixtureCurrencies);
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
         if (page === "transactions") return jsonResponse({ data: fixture.transactionsVisualFixtureRates });
@@ -175,14 +167,24 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
       if (url.pathname === "/api/accounts" && method === "GET") {
         if (page === "transactions") return jsonResponse({ data: fixture.transactionsVisualFixtureAccounts });
         if (page === "accounts") return jsonResponse({ data: fixture.accountsVisualFixtureAccounts });
+        if (page === "dashboard") return jsonResponse({ data: fixture.dashboardVisualFixtureAccounts });
       }
-      if (url.pathname === "/api/accounts/details" && method === "GET" && page === "accounts") {
-        return jsonResponse({ data: fixture.accountsVisualFixtureSummaries });
+      if (url.pathname === "/api/accounts/details" && method === "GET") {
+        if (page === "accounts") return jsonResponse({ data: fixture.accountsVisualFixtureSummaries });
+        if (page === "dashboard") {
+          const requestedIds = [...url.searchParams.entries()]
+            .filter(([key]) => /^ids\[\d+\]$/.test(key))
+            .map(([, value]) => Number(value));
+          return jsonResponse({
+            data: fixture.dashboardVisualFixtureAccountSummaries.filter((account) => requestedIds.includes(account.id)),
+          });
+        }
       }
       if (url.pathname === "/api/categories" && method === "GET") {
         if (page === "transactions") return jsonResponse({ data: fixture.transactionsVisualFixtureCategories });
         if (page === "categories") return jsonResponse({ data: fixture.categoriesVisualFixtureCategories });
         if (page === "budgets") return jsonResponse({ data: fixture.budgetsVisualFixtureCategories });
+        if (page === "dashboard") return jsonResponse({ data: fixture.dashboardVisualFixtureCategories });
       }
       if (url.pathname === "/api/transactions" && method === "GET") {
         if (page === "transactions") {
@@ -197,11 +199,18 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
             metadata: { totalItems: fixture.categoriesVisualFixtureTransactions.length },
           });
         }
+        if (page === "dashboard") {
+          return jsonResponse({
+            data: fixture.dashboardVisualFixtureTransactions,
+            metadata: { totalItems: fixture.dashboardVisualFixtureTransactions.length },
+          });
+        }
       }
       if (url.pathname === "/api/transactions/summary" && method === "GET") {
         if (page === "transactions") {
           return jsonResponse(createTransactionsSummary(fixture));
         }
+        if (page === "dashboard") return jsonResponse(fixture.dashboardVisualFixtureTransactionSummary);
         return jsonResponse({
           totalCount: 0,
           typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
@@ -215,13 +224,6 @@ function createApiHandler(_fixture, requestLog, unhandledApiRequests, scenarioRe
       if (url.pathname === "/api/reports/budget/comparison" && method === "GET" && page === "budgets") {
         return jsonResponse(fixture.budgetsVisualFixtureReport);
       }
-      if (url.pathname === "/api/reports/budget/comparison" && method === "GET" && page === "dashboard") {
-        return jsonResponse(dashboardBudgetReportForMonth(fixture, url.searchParams.get("month")));
-      }
-      if (url.pathname === "/api/reports/net-worth" && method === "GET" && page === "dashboard") {
-        return jsonResponse(fixture.dashboardVisualFixtureNetWorthHistory);
-      }
-
       return null;
     },
   });
@@ -240,8 +242,8 @@ async function waitForHeroReady(client, state) {
 
   await waitFor(client, `document.body.innerText.includes(${JSON.stringify(pageTitle)})`);
   if (state.page === "dashboard") {
-    await waitFor(client, "document.querySelectorAll('[data-qa=\"dashboard-top-card\"]').length === 4");
-    await waitFor(client, "document.querySelectorAll('[data-qa=\"dashboard-card-currency\"]').length >= 3");
+    await waitFor(client, "document.querySelectorAll('.dashboard-panel').length === 4");
+    await waitFor(client, "document.querySelectorAll('.dashboard-account-list > li').length === 5");
     return;
   }
   await waitFor(client, "Boolean(document.querySelector('[data-qa=\"hero-card\"]'))");
@@ -347,11 +349,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const legendLabel = first('[data-qa="hero-distribution-legend"] strong');
     const legendAmount = first('[data-qa="hero-distribution-legend"] small, [data-qa="hero-distribution-legend"] .accounts-distribution__amount');
     const legendShare = first('[data-qa="hero-distribution-legend"] .accounts-distribution__share, [data-qa="hero-distribution-legend"] .categories-hero__legend-share');
-    const dashboardTopCards = Array.from(document.querySelectorAll('[data-qa="dashboard-top-card"]'));
-    const dashboardCardValues = dashboardTopCards.map((card) => {
-      const value = card.querySelector('[data-qa="dashboard-card-value"]');
-      return styleSample(value?.querySelector('[role="text"] > span') ?? value?.querySelector('span') ?? value);
-    });
+    const dashboardTopCards = Array.from(document.querySelectorAll('.dashboard-panel'));
+    const dashboardPosition = first('[data-qa="dashboard-position"]');
+    const dashboardPrimaryValue = first('.dashboard-balance-total [role="text"] > span')
+      ?? first('.dashboard-balance-total [role="text"]');
     const dashboardTopText = dashboardTopCards.map((card) => card.textContent.trim().replace(/\\s+/g, " ")).join(" | ");
     return {
       pageTitle: styleSample(first('[data-qa="page-title"]')),
@@ -383,10 +384,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       budgetsSortRightOffset: budgetsHeaderContentRight !== null && budgetsSortGroup ? Math.round(budgetsHeaderContentRight - budgetsSortGroup.getBoundingClientRect().right) : null,
       budgetsSortAboveSearch: Boolean(budgetsSortGroup && searchControl && budgetsSortGroup.getBoundingClientRect().bottom <= searchControl.getBoundingClientRect().top),
       dashboardTopCards: dashboardTopCards.map(styleSample),
-      dashboardCardTitles: all('[data-qa="dashboard-card-title"]'),
-      dashboardCardValues,
-      dashboardCardCurrencies: all('[data-qa="dashboard-card-currency"]'),
-      dashboardCardDeltas: all('[data-qa="dashboard-card-delta"]'),
+      dashboardCardTitles: dashboardTopCards.map((card) => styleSample(card.querySelector('.dashboard-panel__title'))),
+      dashboardPrimaryValue: styleSample(dashboardPrimaryValue),
+      dashboardPositionCombined: Boolean(dashboardPosition
+        && dashboardPosition.querySelector('[data-qa="dashboard-balance"]')
+        && dashboardPosition.querySelector('[data-qa="dashboard-accounts"]')),
       dashboardTopText,
       heroText,
       bodyText: document.body.innerText.replace(/\\s+/g, " ").trim(),
@@ -471,27 +473,20 @@ function collectAdditionalFailures(stateResults) {
   for (const state of stateResults) {
     if (!state.pageTitle) failures.push(`${state.name}: missing page title selector`);
     if (!state.pageEyebrow) failures.push(`${state.name}: missing page eyebrow selector`);
-    if (state.page !== "dashboard" && !state.pagePrimaryAction) failures.push(`${state.name}: missing page primary action selector`);
+    if (!state.pagePrimaryAction) failures.push(`${state.name}: missing page primary action selector`);
 
     if (state.page === "dashboard") {
-      if (state.dashboardTopCards.length !== 4) failures.push(`${state.name}: expected 4 Dashboard top card selectors, found ${state.dashboardTopCards.length}`);
-      if (state.dashboardCardTitles.length !== 4) failures.push(`${state.name}: expected 4 Dashboard card title selectors, found ${state.dashboardCardTitles.length}`);
-      if (state.dashboardCardValues.length !== 4 || state.dashboardCardValues.some((value) => !value)) {
-        failures.push(`${state.name}: expected 4 Dashboard card value selectors`);
+      if (state.dashboardTopCards.length !== 4) failures.push(`${state.name}: expected 4 Dashboard panels, found ${state.dashboardTopCards.length}`);
+      if (state.dashboardCardTitles.length !== 4 || state.dashboardCardTitles.some((title) => !title)) {
+        failures.push(`${state.name}: expected a title in each Dashboard panel`);
       }
-      if (state.dashboardCardCurrencies.length < 3) failures.push(`${state.name}: expected Dashboard currency selectors on the money cards`);
-      if (state.dashboardCardDeltas.length !== 4) failures.push(`${state.name}: expected 4 Dashboard secondary delta selectors, found ${state.dashboardCardDeltas.length}`);
+      if (!state.dashboardPrimaryValue) failures.push(`${state.name}: Dashboard position metric is missing`);
+      if (!state.dashboardPositionCombined) failures.push(`${state.name}: Dashboard balance and accounts are not combined`);
       if (/Quick month status lives here\. Use Reports when you need deeper analysis and drill-downs\./.test(state.bodyText)) {
         failures.push(`${state.name}: removed Dashboard subtitle copy is still visible`);
       }
-      if (/Current month/.test(state.dashboardTopText)) {
-        failures.push(`${state.name}: Dashboard top card still contains Current month`);
-      }
-      if (/MoM Delta/.test(state.dashboardTopText)) {
-        failures.push(`${state.name}: Dashboard top card still contains standalone MoM Delta`);
-      }
-      if (!/Budget Remaining/.test(state.dashboardTopText)) {
-        failures.push(`${state.name}: Dashboard top cards do not include Budget Remaining`);
+      if (/Budget Remaining|Net worth/i.test(state.dashboardTopText)) {
+        failures.push(`${state.name}: retired budget or net-worth Dashboard content is visible`);
       }
     } else {
       if (!state.heroCard) failures.push(`${state.name}: missing hero card selector`);
@@ -602,8 +597,7 @@ function collectAdditionalFailures(stateResults) {
     }
 
     const referenceState = widthStates.find((state) => state.page !== "dashboard" && state.heroPrimaryValue && state.heroPrimaryCurrencies.length > 0);
-    const referenceWeight = widthStates.find((state) => state.page === "transactions")?.heroPrimaryValue?.fontWeight
-      ?? widthStates.find((state) => state.page === "dashboard")?.dashboardCardValues.find(Boolean)?.fontWeight;
+    const referenceWeight = widthStates.find((state) => state.page === "transactions")?.heroPrimaryValue?.fontWeight;
     if (referenceWeight) {
       for (const page of ["accounts", "categories", "budgets"]) {
         const state = widthStates.find((candidate) => candidate.page === page);
@@ -612,48 +606,10 @@ function collectAdditionalFailures(stateResults) {
         }
       }
     }
-    const dashboardStates = widthStates.filter((state) => state.page === "dashboard");
-    for (const dashboard of dashboardStates) {
-      if (!referenceState) continue;
-
-      for (const [index, title] of dashboard.dashboardCardTitles.entries()) {
-        if (!near(numberFromPx(referenceState.heroPrimaryLabel?.fontSize), numberFromPx(title?.fontSize), 1)) {
-          failures.push(`${dashboard.name}: Dashboard card title ${index + 1} font size differs from ${referenceState.name}`);
-        }
-        if (referenceState.heroPrimaryLabel?.fontWeight !== title?.fontWeight) {
-          failures.push(`${dashboard.name}: Dashboard card title ${index + 1} font weight differs from ${referenceState.name}`);
-        }
-        if (referenceState.heroPrimaryLabel?.letterSpacing !== title?.letterSpacing) {
-          failures.push(`${dashboard.name}: Dashboard card title ${index + 1} letter spacing differs from ${referenceState.name}`);
-        }
-      }
-
-      for (const [index, value] of dashboard.dashboardCardValues.entries()) {
-        if (!near(numberFromPx(referenceState.heroPrimaryValue?.fontSize), numberFromPx(value?.fontSize), width === 390 ? 4 : 3)) {
-          failures.push(`${dashboard.name}: Dashboard card value ${index + 1} font size differs from ${referenceState.name}`);
-        }
-        if (!near(numberFromPx(referenceState.heroPrimaryValue?.lineHeight), numberFromPx(value?.lineHeight), width === 390 ? 6 : 4)) {
-          failures.push(`${dashboard.name}: Dashboard card value ${index + 1} line height differs from ${referenceState.name}`);
-        }
-        if (referenceState.heroPrimaryValue?.fontWeight !== value?.fontWeight) {
-          failures.push(`${dashboard.name}: Dashboard card value ${index + 1} font weight differs from ${referenceState.name}`);
-        }
-        if (referenceState.heroPrimaryValue?.fontFamily !== value?.fontFamily) {
-          failures.push(`${dashboard.name}: Dashboard card value ${index + 1} font family differs from ${referenceState.name}`);
-        }
-      }
-
-      const referenceCurrency = referenceState.heroPrimaryCurrencies[0];
-      for (const [index, currency] of dashboard.dashboardCardCurrencies.entries()) {
-        if (!near(numberFromPx(referenceCurrency?.fontSize), numberFromPx(currency?.fontSize), width === 390 ? 3 : 2)) {
-          failures.push(`${dashboard.name}: Dashboard USD text ${index + 1} font size differs from ${referenceState.name}`);
-        }
-        if (referenceCurrency?.fontFamily !== currency?.fontFamily) {
-          failures.push(`${dashboard.name}: Dashboard USD text ${index + 1} font family differs from ${referenceState.name}`);
-        }
-        if (referenceCurrency?.fontWeight !== currency?.fontWeight) {
-          failures.push(`${dashboard.name}: Dashboard USD text ${index + 1} font weight differs from ${referenceState.name}`);
-        }
+    const dashboard = widthStates.find((state) => state.page === "dashboard");
+    if (referenceState && dashboard?.dashboardPrimaryValue) {
+      if (referenceState.heroPrimaryValue?.fontFamily !== dashboard.dashboardPrimaryValue.fontFamily) {
+        failures.push(`${dashboard.name}: Dashboard position metric font differs from ${referenceState.name}`);
       }
     }
 
@@ -748,7 +704,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     harness: {
       runner: "Node CDP headless browser",
       playwrightInstalled: playwrightInstalled(root),
-      note: "Compares top-section selectors, typography including main metric weight, distribution treatment, accepted Budgets burn-rate legend placement, Dashboard summary-card treatment, Budgets rollup currency repetition, Categories previous-period copy, text removals, overflow, and bottom-nav clearance across Transactions, Accounts, Categories, Budgets, and Dashboard.",
+      note: "Compares top-section selectors, typography including main metric weight, distribution treatment, accepted Budgets burn-rate legend placement, the Dashboard position panel, Budgets rollup currency repetition, Categories previous-period copy, text removals, overflow, and bottom-nav clearance across Transactions, Accounts, Categories, Budgets, and Dashboard.",
       viteMode: "test",
       apiIsolation: "All /api requests are fulfilled by the harness; unhandled /api requests fail with status 502.",
       realBackendCalled: false,
@@ -778,6 +734,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "Accounts hero does not show MoM, visible USD equivalent distribution label, or visible By current balance label",
       "Categories hero does not show visible USD equivalent distribution label",
       "Accounts hero shows from May 2026 for the fixed visual QA date",
+      "Dashboard uses four panels and combines its balance metric with the visible-account list",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

@@ -8,10 +8,16 @@ import type { TransactionResponse } from "../../model/Transaction/TransactionRes
 export const dashboardVisualFixtureMeta = {
   dataMode: "fixture",
   locale: "en",
-  baseline: "Current status dashboard",
+  baseline: "Dashboard four-area layout",
   fixedNow: "2026-04-30T12:00:00.000Z",
   expectedBaseCurrency: "USD",
-  expectedPanelCount: 5,
+  expectedPanelCount: 4,
+  expectedPanelOrder: [
+    "dashboard-position",
+    "dashboard-cash-flow",
+    "dashboard-expense-categories",
+    "dashboard-income-categories",
+  ],
   expectedVisibleAccountCount: 5,
   expectedChartCount: 3,
   nonApplicableStates: ["drawer-open", "expanded-row", "budget-summary", "net-worth-history"],
