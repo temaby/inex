@@ -12,7 +12,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery, useGetAccountsSummaryQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
 import { useGetTransactionsSummaryQuery } from "../store/transactions/transactions-api";
-import { fetchCachedRatesForRange } from "../store/rates/rates-action";
+import { fetchRatesForRange } from "../store/rates/rates-action";
 import { normalizeTransactionFilter, transactionsActions, transactionsDefaultFilter, type TransactionFilter } from "../store/transactions/transactions-slice";
 import {
     InExButton,
@@ -126,9 +126,9 @@ const Transactions = () => {
             : { mode: "ALL", linkedUserId: selectedLinkedUserId },
     );
     const formError = useAppSelector(state => state.transactions.error);
-    const cachedExchangeRateItems = useAppSelector(state => state.rates.cached?.items ?? []);
-    const cachedRatesLoading = useAppSelector(state => state.rates.cached?.loading ?? false);
-    const cachedRatesCompletedKey = useAppSelector(state => state.rates.cached?.completedKey ?? null);
+    const cachedExchangeRateItems = useAppSelector(state => state.rates.range?.items ?? []);
+    const cachedRatesLoading = useAppSelector(state => state.rates.range?.loading ?? false);
+    const cachedRatesCompletedKey = useAppSelector(state => state.rates.range?.completedKey ?? null);
 
     const [addDrawerOpen, setAddDrawerOpen] = useState(false);
     const [accountBalancesPinned, setAccountBalancesPinned] = useState(readAccountBalancesPinnedPreference);
@@ -291,7 +291,7 @@ const Transactions = () => {
 
     useEffect(() => {
         if (!cachedRateRangeKey || !cachedRateStartDate || !cachedRateEndDate) return;
-        dispatch(fetchCachedRatesForRange(cachedRateStartDate, cachedRateEndDate, selectedLinkedUserId));
+        dispatch(fetchRatesForRange(cachedRateStartDate, cachedRateEndDate, selectedLinkedUserId));
     }, [cachedRateEndDate, cachedRateRangeKey, cachedRateStartDate, dispatch, selectedLinkedUserId]);
 
     const applyServerFilter = useCallback((nextFilter: TransactionFilter, replace = true) => {

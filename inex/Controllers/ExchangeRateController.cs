@@ -9,6 +9,7 @@ using inex.Services.Services.Base;
 using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ public class ExchangeRateController : ApiControllerBase
     public const string RoutePrefix = "api/exchange";
 
     public const string GetDateRatesRoute = "rates/{date}";
+    public const string GetRangeRatesRoute = "rates/range";
     public const string GetCachedRatesRoute = "rates/cached";
     public const string SynchronizeRatesRoute = "rates/synchronize";
 
@@ -57,6 +59,20 @@ public class ExchangeRateController : ApiControllerBase
     {
         ListResponse<ExchangeRateResponse> resultsDTO = await _exchangeService.Get(CurrentUserId, date, ct: ct);
         return Ok(resultsDTO);
+    }
+
+    /// <summary>Get exchange rates for a range, loading missing rates for the authenticated user.</summary>
+    [HttpGet]
+    [Route(GetRangeRatesRoute)]
+    [ProducesResponseType(typeof(ListResponse<ExchangeRateResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult> GetRange(
+        [FromQuery, BindRequired] DateTime startDate,
+        [FromQuery, BindRequired] DateTime endDate,
+        CancellationToken ct)
+    {
+        await _exchangeService.Get(CurrentUserId, startDate, endDate, ct: ct);
+        ListResponse<ExchangeRateResponse> result = await _exchangeService.GetCached(CurrentUserId, startDate, endDate, ct: ct);
+        return Ok(result);
     }
 
     /// <summary>Get already-cached exchange rates without contacting an external provider.</summary>

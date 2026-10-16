@@ -2,6 +2,8 @@ import * as React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { fetchRatesForRange } from "../store/rates/rates-action";
+import type { ExchangeRateItem } from "../store/rates/rates-slice";
 import Dashboard, { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard";
 
 const apiMocks = vi.hoisted(() => ({
@@ -15,12 +17,14 @@ const apiMocks = vi.hoisted(() => ({
 
 const linkedState = {
   linkedAccount: {
-    selectedLinkedUserId: 2,
+    selectedLinkedUserId: 2 as number | null,
     linkState: {
       linkedAccounts: [{ id: 2, username: "Linked QA", baseCurrency: "USD" }],
     },
   },
-  rates: { items: [], cached: undefined },
+  rates: { items: [], cached: undefined, range: undefined as undefined | {
+    items: ExchangeRateItem[]; requestKey: string; completedKey: string; loading: boolean; error: string | null;
+  } },
 };
 
 vi.mock("react-i18next", () => ({
@@ -86,7 +90,7 @@ vi.mock("../store/hooks", () => ({
 }));
 
 vi.mock("../store/rates/rates-action", () => ({
-  fetchCachedRatesForRange: vi.fn(),
+  fetchRatesForRange: vi.fn(),
 }));
 
 vi.mock("../store/accounts/accounts-api", () => ({
@@ -106,6 +110,9 @@ vi.mock("../store/transactions/transactions-api", () => ({
 describe("Dashboard", () => {
   beforeEach(() => {
     apiMocks.dispatch.mockReset();
+    vi.mocked(fetchRatesForRange).mockClear();
+    linkedState.rates.range = undefined;
+    linkedState.linkedAccount.selectedLinkedUserId = 2;
     apiMocks.accounts.mockReturnValue({
       currentData: [
         { id: 1, name: "Visible USD", isEnabled: true, isFavourite: true, currency: "USD" },
@@ -156,6 +163,30 @@ describe("Dashboard", () => {
     expect(screen.getByText("linkedAccount.readOnly:Linked QA")).toBeInTheDocument();
     expect(screen.queryByText(/budget/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/net worth/i)).not.toBeInTheDocument();
+  });
+
+  it("automatically requests own rates when opening with foreign account balances", () => {
+    linkedState.linkedAccount.selectedLinkedUserId = null;
+    apiMocks.accountSummaries.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", value: 10 }], isLoading: false, isError: false });
+    render(<Dashboard />);
+    expect(fetchRatesForRange).toHaveBeenCalledWith(expect.any(String), expect.any(String), null);
+  });
+
+  it("automatically loads foreign rates after cache completion and again on remount, without render loops", () => {
+    apiMocks.accountSummaries.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", value: 10 }], isLoading: false, isError: false });
+    const first = render(<React.StrictMode><Dashboard /></React.StrictMode>);
+    expect(fetchRatesForRange).toHaveBeenCalledTimes(1);
+    const [start, end] = vi.mocked(fetchRatesForRange).mock.calls[0];
+    expect(fetchRatesForRange).toHaveBeenCalledWith(start, end, 2);
+    const key = `2:${start}:${end}`;
+    linkedState.rates.range = { items: [], requestKey: key, completedKey: key, loading: false, error: null };
+    first.rerender(<React.StrictMode><Dashboard /></React.StrictMode>);
+    expect(fetchRatesForRange).toHaveBeenCalledTimes(1);
+    first.unmount();
+    render(<Dashboard />);
+    expect(fetchRatesForRange).toHaveBeenCalledTimes(2);
+    fireEvent.click(screen.getAllByRole("button", { name: "dashboard.unavailable.retry" })[0]);
+    expect(fetchRatesForRange).toHaveBeenCalledTimes(3);
   });
 
   it("renders four panels in the mobile reading order and combines balance with accounts", () => {

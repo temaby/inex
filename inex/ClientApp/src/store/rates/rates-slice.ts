@@ -23,6 +23,7 @@ interface RatesState {
   completedKey: string | null;
   error: string | null;
   cached?: CachedRatesState;
+  range?: CachedRatesState & { requestId: string };
 }
 
 const ratesSlice = createSlice({
@@ -73,6 +74,34 @@ const ratesSlice = createSlice({
     setCachedRatesError(state, action) {
       const cached = state.cached;
       if (!cached || cached.requestKey !== action.payload.key) return;
+
+      cached.completedKey = action.payload.key;
+      cached.loading = false;
+      cached.error = action.payload.error;
+    },
+    beginRangeRates(state, action) {
+      const previous = state.range;
+      state.range = {
+        items: previous && previous.completedKey === action.payload.key ? previous.items : [],
+        requestKey: action.payload.key,
+        requestId: action.payload.requestId,
+        completedKey: previous?.completedKey ?? null,
+        loading: true,
+        error: null,
+      };
+    },
+    setRangeRates(state, action) {
+      const cached = state.range;
+      if (!cached || cached.requestKey !== action.payload.key || cached.requestId !== action.payload.requestId) return;
+
+      cached.items = action.payload.items;
+      cached.completedKey = action.payload.key;
+      cached.loading = false;
+      cached.error = null;
+    },
+    setRangeRatesError(state, action) {
+      const cached = state.range;
+      if (!cached || cached.requestKey !== action.payload.key || cached.requestId !== action.payload.requestId) return;
 
       cached.completedKey = action.payload.key;
       cached.loading = false;
