@@ -1,4 +1,9 @@
 using System.Net.Http.Json;
+using inex.Services.Services.Base;
+using inex.Services.Models.Records.Data;
+using inex.Services.Models.Records.ExchangeRate;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using inex.Data;
 using inex.Data.Models;
 using inex.Tests.Infrastructure;
@@ -123,6 +128,109 @@ public class ExchangeRateControllerTests : IClassFixture<InExWebApplicationFacto
         Assert.Equal(0.92m, eurRate.GetProperty("rate").GetDecimal());
         Assert.False(eurRate.GetProperty("isTemporary").GetBoolean());
         Assert.Equal(rateDate, eurRate.GetProperty("date").GetDateTime().Date);
+    }
+
+    [Fact]
+    public async Task GetRange_AnonymousRequest_Returns401()
+    {
+        var response = await _factory.CreateClient().GetAsync("/api/exchange/rates/range?startDate=2026-05-01&endDate=2026-05-02");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?startDate=2026-05-01")]
+    [InlineData("?endDate=2026-05-02")]
+    public async Task GetRange_MissingDates_ReturnsValidationProblemDetails(string query)
+    {
+        var client = await _factory.CreateAuthenticatedClientAsync($"{Guid.NewGuid()}@example.com", $"user-{Guid.NewGuid():N}");
+        var response = await client.GetAsync($"/api/exchange/rates/range{query}");
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(body.TryGetProperty("errors", out _));
+    }
+
+    [Fact]
+    public async Task GetRange_ReversedDates_ReturnsValidationProblemDetails()
+    {
+        var client = await _factory.CreateAuthenticatedClientAsync($"{Guid.NewGuid()}@example.com", $"user-{Guid.NewGuid():N}");
+        var response = await client.GetAsync("/api/exchange/rates/range?startDate=2026-05-02&endDate=2026-05-01");
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("/errors/validation-failed", body.GetProperty("type").GetString());
+    }
+
+    [Fact]
+    public async Task GetRange_UsesPrincipalAndRangeServiceIncludingLongFutureRange()
+    {
+        string email = $"{Guid.NewGuid()}@example.com";
+        var authenticated = await _factory.CreateAuthenticatedClientAsync(email, $"user-{Guid.NewGuid():N}");
+        using var scope = _factory.Services.CreateScope();
+        int userId = scope.ServiceProvider.GetRequiredService<InExDbContext>().Set<AppUser>().Single(user => user.Email == email).Id;
+        var service = new RangeServiceStub();
+        var start = new DateTime(2026, 1, 1);
+        var end = DateTime.UtcNow.Date.AddMonths(1);
+
+        using var factory = _factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            services.Replace(ServiceDescriptor.Singleton<IExchangeRateService>(service))));
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = authenticated.DefaultRequestHeaders.Authorization;
+
+        var response = await client.GetAsync($"/api/exchange/rates/range?startDate={start:yyyy-MM-dd}&endDate={end:yyyy-MM-dd}&linkedUserId=999&userId=999");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Empty(body.GetProperty("data").EnumerateArray());
+        Assert.Equal((userId, start, end), service.Request);
+        Assert.Equal((userId, start, end), service.CachedRequest);
+        Assert.True(service.Token.CanBeCanceled);
+    }
+
+    [Fact]
+    public async Task GetRange_ExcludesExpiredTemporaryRatesWithoutEnabledCurrencyAccounts()
+    {
+        var client = await _factory.CreateAuthenticatedClientAsync($"{Guid.NewGuid()}@example.com", $"user-{Guid.NewGuid():N}");
+        var date = new DateTime(2025, 3, 15);
+        await SeedCurrencyAndRateAsync(date);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            db.Set<ExchangeRate>().Single(rate => rate.Created == date && rate.ToCode == "EUR").IsTemporary = true;
+            await db.SaveChangesAsync();
+        }
+
+        var response = await client.GetAsync("/api/exchange/rates/range?startDate=2025-03-15&endDate=2025-03-15");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Empty(body.GetProperty("data").EnumerateArray());
+    }
+
+    private sealed class RangeServiceStub : IExchangeRateService
+    {
+        public (int UserId, DateTime Start, DateTime End)? Request { get; private set; }
+        public CancellationToken Token { get; private set; }
+        public (int UserId, DateTime Start, DateTime End)? CachedRequest { get; private set; }
+
+        public Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
+        {
+            Request = (userId, start, end);
+            Token = ct;
+            return Task.FromResult(new ListResponse<ExchangeRateResponse>());
+        }
+
+        public Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
+            => throw new InvalidOperationException("Single-date retrieval must not be used for ranges.");
+
+        public Task<ListResponse<ExchangeRateResponse>> GetCached(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
+        {
+            Assert.Equal((userId, start, end), Request);
+            Assert.Equal(ct, Token);
+            CachedRequest = (userId, start, end);
+            return Task.FromResult(new ListResponse<ExchangeRateResponse>());
+        }
     }
 
     private async Task SeedCurrencyAndRateAsync(DateTime rateDate)

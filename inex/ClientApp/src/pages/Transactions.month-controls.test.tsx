@@ -5,6 +5,7 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { fetchRatesForRange } from "../store/rates/rates-action";
 import ratesSlice from "../store/rates/rates-slice";
 import transactionsSlice from "../store/transactions/transactions-slice";
 import authSlice from "../store/auth/auth-slice";
@@ -161,7 +162,7 @@ vi.mock("../store/transactions/transactions-api", () => ({
 }));
 
 vi.mock("../store/rates/rates-action", () => ({
-    fetchCachedRatesForRange: vi.fn(),
+    fetchRatesForRange: vi.fn(() => ({ type: "test/rates" })),
 }));
 
 vi.mock("../layouts/BasicPage", () => ({
@@ -239,6 +240,7 @@ describe("Transactions month controls", () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-07-28T12:00:00"));
         navigateMock.mockReset();
+        vi.mocked(fetchRatesForRange).mockClear();
         routerState.search = "";
         summaryQueryState.data = undefined;
         accountsQueryMock.mockReset();
@@ -268,6 +270,30 @@ describe("Transactions month controls", () => {
                 dispatchEvent: vi.fn(),
             })),
         });
+    });
+
+    it("automatically requests the full current and previous period when foreign cash flow needs rates", () => {
+        summaryQueryState.data = {
+            totalCount: 1,
+            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+            currencySummaries: [],
+            baseCurrency: "USD",
+            currentScope: {
+                totalCount: 1,
+                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+                period: { startDate: "2026-07-01", endDate: "2026-07-31" },
+                cashFlowBuckets: [{ date: "2026-07-10", currency: "EUR", income: 10, expense: 0, recordCount: 1 }],
+            },
+            previousScope: {
+                totalCount: 0,
+                typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+                period: { startDate: "2026-06-01", endDate: "2026-06-30" },
+                cashFlowBuckets: [],
+            },
+            viewTypeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+        };
+        renderTransactions();
+        expect(fetchRatesForRange).toHaveBeenCalledWith("2026-06-01", "2026-07-31", null);
     });
 
     afterEach(() => {

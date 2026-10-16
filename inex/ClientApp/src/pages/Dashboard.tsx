@@ -20,7 +20,7 @@ import {
 
 import { InExButton, Num, SegmentedControl } from "../components/primitives";
 import BasicPage from "../layouts/BasicPage";
-import { fetchCachedRatesForRange } from "../store/rates/rates-action";
+import { fetchRatesForRange } from "../store/rates/rates-action";
 import { useGetAccountsQuery, useGetAccountsSummaryQuery } from "../store/accounts/accounts-api";
 import { useGetCategoriesQuery } from "../store/categories/categories-api";
 import { useGetTransactionsQuery, useGetTransactionsSummaryQuery } from "../store/transactions/transactions-api";
@@ -270,7 +270,7 @@ const Dashboard = () => {
         (account) => account.id === state.linkedAccount.selectedLinkedUserId,
     ));
     const dailyRates = useAppSelector((state) => state.rates.items);
-    const cachedRates = useAppSelector((state) => state.rates.cached);
+    const cachedRates = useAppSelector((state) => state.rates.range);
     const [categoryMode, setCategoryMode] = useState<DashboardCategoryMode>("parent");
     const [expenseParentId, setExpenseParentId] = useState<number | null>(null);
     const [incomeParentId, setIncomeParentId] = useState<number | null>(null);
@@ -361,10 +361,16 @@ const Dashboard = () => {
     const needsCachedRates = accountNeedsRate || cashFlowNeedsRate || categoryNeedsRate;
     const cachedRateKey = `${selectedLinkedUserId ?? "self"}:${startDate}:${endDate}`;
 
+    const attemptedRateKey = useRef<string | null>(null);
     useEffect(() => {
-        if (!needsCachedRates || cachedRates?.completedKey === cachedRateKey || cachedRates?.requestKey === cachedRateKey) return;
-        void dispatch(fetchCachedRatesForRange(startDate, endDate, selectedLinkedUserId));
-    }, [cachedRateKey, cachedRates?.completedKey, cachedRates?.requestKey, dispatch, endDate, needsCachedRates, selectedLinkedUserId, startDate]);
+        if (!needsCachedRates) {
+            attemptedRateKey.current = null;
+            return;
+        }
+        if (attemptedRateKey.current === cachedRateKey) return;
+        attemptedRateKey.current = cachedRateKey;
+        void dispatch(fetchRatesForRange(startDate, endDate, selectedLinkedUserId));
+    }, [cachedRateKey, dispatch, endDate, needsCachedRates, selectedLinkedUserId, startDate]);
 
     useEffect(() => {
         setExpenseParentId(null);
@@ -378,7 +384,7 @@ const Dashboard = () => {
         || (cachedRates?.requestKey === cachedRateKey && cachedRates.loading)
     );
     const retryRates = () => {
-        void dispatch(fetchCachedRatesForRange(startDate, endDate, selectedLinkedUserId));
+        void dispatch(fetchRatesForRange(startDate, endDate, selectedLinkedUserId));
     };
     const accountConversion = useMemo(
         () => baseCurrency
