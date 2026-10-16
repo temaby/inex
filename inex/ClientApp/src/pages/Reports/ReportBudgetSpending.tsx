@@ -165,27 +165,27 @@ const ReportBudgetSpending: React.FC = () => {
                 <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
                     <div className="report-stat">
                         <span>{t("reports.totalIncome")}</span>
-                        <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={realIncome} currency={currency} kind="income" /></strong>
+                        <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={realIncome} currency={currency} kind="income" /></strong>
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.totalExpense")}</span>
-                        <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={realOutcome} currency={currency} kind="expense" /></strong>
+                        <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={realOutcome} currency={currency} kind="expense" /></strong>
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.unbudgeted")}</span>
-                        <strong><TriangleAlert size={16} aria-hidden="true" /> <Num value={unbudgetedSpending} currency={currency} kind={unbudgetedSpending > 0 ? "warn" : "neutral"} /></strong>
+                        <strong><TriangleAlert size={16} aria-hidden="true" /> <Num currencySize="sm" value={unbudgetedSpending} currency={currency} kind={unbudgetedSpending > 0 ? "warn" : "neutral"} /></strong>
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.savings")}</span>
-                        <strong><Banknote size={16} aria-hidden="true" /> <Num value={balance} currency={currency} kind={balance >= 0 ? "income" : "expense"} /></strong>
+                        <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={balance} currency={currency} kind={balance >= 0 ? "income" : "expense"} /></strong>
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.totalBudget")}</span>
-                        <strong><Num value={totalBudget} currency={currency} kind="neutral" /></strong>
+                        <strong><Num currencySize="sm" value={totalBudget} currency={currency} kind="neutral" /></strong>
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.budgetSpent")}</span>
-                        <strong><Num value={totalSpent} currency={currency} kind="expense" /></strong>
+                        <strong><Num currencySize="sm" value={totalSpent} currency={currency} kind="expense" /></strong>
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.used")}</span>
@@ -193,7 +193,7 @@ const ReportBudgetSpending: React.FC = () => {
                     </div>
                     <div className="report-stat">
                         <span>{t("reports.budgetRemaining")}</span>
-                        <strong><Num value={totalRemaining} currency={currency} kind={totalRemaining >= 0 ? "income" : "expense"} /></strong>
+                        <strong><Num currencySize="sm" value={totalRemaining} currency={currency} kind={totalRemaining >= 0 ? "income" : "expense"} /></strong>
                     </div>
                 </section>
 

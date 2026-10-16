@@ -31,6 +31,22 @@ const authUser = {
 const defaultViewportHeight = 900;
 
 const states = [
+  ...["category", "budget", "history"].flatMap((report) =>
+    [1440, 1024, 390, 360].map((width) => ({
+      name: `${report}-typography-${width}`,
+      screenshot: `${report}-typography-${width}.png`,
+      viewport: { width, height: defaultViewportHeight },
+      scenario: "populated",
+      routePath: report === "history" ? "/reports/history?year=2026" : `/reports/${report}?interval=2026-04`,
+    }))),
+  ...["hub", "category", "budget", "history"].map((report) => ({
+    name: `${report}-russian-360`,
+    screenshot: `${report}-russian-360.png`,
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "russian",
+    language: "ru",
+    routePath: report === "hub" ? "/reports" : report === "history" ? "/reports/history?year=2026" : `/reports/${report}?interval=2026-04`,
+  })),
   ...[
     ["hub", "/reports"],
     ["category", "/reports/category?interval=2026-04"],
@@ -153,7 +169,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse(authUser);
+        return jsonResponse({ ...authUser, languageCode: scenario === "russian" ? "ru" : "en" });
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET") {
         return jsonResponse(scenario === "linked" ? {
@@ -266,6 +282,12 @@ async function applyInteraction(client, state) {
 }
 
 async function waitForReportsReady(client, state) {
+  if (state.language === "ru") {
+    await waitFor(client, state.routePath === "/reports"
+      ? "document.querySelectorAll('.reports-hub-card').length === 3"
+      : "Boolean(document.querySelector('.report-accessible-summary'))");
+    return;
+  }
   await waitFor(client, "document.body.innerText.includes('Reports') || document.body.innerText.includes('Category Report') || document.body.innerText.includes('Budget Control') || document.body.innerText.includes('Cash Flow')");
 
   if (state.routePath === "/reports") {
@@ -320,6 +342,7 @@ async function collectMetrics(client, state, apiRequestCount) {
 
     return {
       title: document.title,
+      russianLabelsVisible: /отч[её]т/i.test(document.body.innerText),
       scrollWidth: documentElement.scrollWidth,
       clientWidth: documentElement.clientWidth,
       bodyScrollWidth: body.scrollWidth,
@@ -340,6 +363,21 @@ async function collectMetrics(client, state, apiRequestCount) {
       tableRowCount: tableRows.length,
       chartSurfaceCount: chartSurfaces.length,
       accessibleSummaryCount: accessibleSummaries.length,
+      visibleBottomSummaryCount: accessibleSummaries.filter((summary) => summary.getBoundingClientRect().height > 1).length,
+      reportCardHeights: reportCards.map((card) => card.getBoundingClientRect().height),
+      statLabelSizes: statCards.map((card) => getComputedStyle(card.querySelector(':scope > span')).fontSize),
+      statValueSizes: statCards.map((card) => getComputedStyle(card.querySelector('strong [aria-hidden="true"]') ?? card.querySelector('strong')).fontSize),
+      statValueMargins: statCards.map((card) => {
+        const value = card.querySelector('strong [aria-hidden="true"]');
+        return value ? getComputedStyle(value).marginBottom : '0px';
+      }),
+      overflowingStatValues: statCards.filter((card) => {
+        const cardRect = card.getBoundingClientRect();
+        return Array.from(card.querySelectorAll('strong span')).some((value) => {
+          const rect = value.getBoundingClientRect();
+          return rect.left < cardRect.left || rect.right > cardRect.right;
+        });
+      }).length,
       hubVisible: reportCards.length > 0,
       categoryReportVisible: document.body.innerText.includes("Category report data summary"),
       budgetReportVisible: document.body.innerText.includes("Budget report data summary"),
@@ -370,7 +408,7 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: args.state.routePath,
-    initScript: fixedDateInitScript(args.fixture.reportsVisualFixtureMeta.fixedNow, "en"),
+    initScript: fixedDateInitScript(args.fixture.reportsVisualFixtureMeta.fixedNow, args.state.language ?? "en"),
     waitForReady: waitForReportsReady,
     applyInteraction,
     collectMetrics,
@@ -379,6 +417,15 @@ function runState(args) {
 
 function collectAdditionalFailures(stateResults) {
   const failures = [];
+  for (const state of stateResults) {
+    if (state.scenario === "russian" && !state.russianLabelsVisible) failures.push(`${state.name}: Russian labels did not load`);
+    if (state.visibleBottomSummaryCount > 0) failures.push(`${state.name}: duplicate bottom summary is visible`);
+    if (state.overflowingStatValues > 0) failures.push(`${state.name}: summary values overflow their cards`);
+    if (state.statLabelSizes.some((size) => size !== "11px")) failures.push(`${state.name}: summary label size differs from Transactions`);
+    if (state.statValueSizes.some((size) => size !== "30px")) failures.push(`${state.name}: summary value size differs from Transactions`);
+    if (state.statValueMargins.some((margin) => margin !== "0px")) failures.push(`${state.name}: label spacing leaks into summary values`);
+    if (state.reportCardHeights.some((height) => height >= 190)) failures.push(`${state.name}: report list card is not compact`);
+  }
   for (const state of stateResults.filter((candidate) => candidate.scenario === "linked")) {
     if (!state.linkedSelectorVisible) failures.push(`${state.name}: linked-account selector is not visible`);
     if (!state.readOnlyNoticeVisible) failures.push(`${state.name}: linked read-only notice is not visible`);

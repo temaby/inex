@@ -142,15 +142,15 @@ const ReportMonthlyHistory = () => {
       <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
         <div className="report-stat">
           <span>{t("reports.totalIncome")}</span>
-          <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={totals.income} currency={currency} kind="income" /></strong>
+          <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={totals.income} currency={currency} kind="income" /></strong>
         </div>
         <div className="report-stat">
           <span>{t("reports.totalExpense")}</span>
-          <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={Math.abs(totals.expense)} currency={currency} kind="expense" /></strong>
+          <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={Math.abs(totals.expense)} currency={currency} kind="expense" /></strong>
         </div>
         <div className="report-stat">
           <span>{t("reports.savings")}</span>
-          <strong><Banknote size={16} aria-hidden="true" /> <Num value={totals.savings} currency={currency} kind={totals.savings >= 0 ? "income" : "expense"} /></strong>
+          <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={totals.savings} currency={currency} kind={totals.savings >= 0 ? "income" : "expense"} /></strong>
         </div>
       </section>
 
