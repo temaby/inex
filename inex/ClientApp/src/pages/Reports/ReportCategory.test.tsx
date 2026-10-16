@@ -85,9 +85,9 @@ describe("ReportCategory", () => {
         expect(within(summary).getByText("reports.internalTransfersNetChange")).toBeVisible();
         expect(within(summary).getByText("reports.internalTransfersCount")).toBeVisible();
         expect(within(summary).getByText("3")).toBeVisible();
-        expect(within(summary).getByText("740.00 USD")).toBeVisible();
-        expect(within(summary).getByText("-280.00 USD")).toBeVisible();
-        expect(within(summary).getByText("460.00 USD")).toBeVisible();
+        expect(within(summary).getByRole("text", { name: "primitives.kindLabel.transfer: 740.00 USD" })).toBeVisible();
+        expect(within(summary).getByRole("text", { name: "primitives.kindLabel.transfer: -280.00 USD" })).toBeVisible();
+        expect(within(summary).getByRole("text", { name: "primitives.kindLabel.transfer: 460.00 USD" })).toBeVisible();
         expect(screen.queryByRole("button", { name: "Internal transfer" })).not.toBeInTheDocument();
     });
 });

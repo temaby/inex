@@ -180,15 +180,15 @@ const ReportCategory = () => {
             <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
                 <div className="report-stat">
                     <span>{t("reports.totalIncome")}</span>
-                    <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={totals.totalIncome} currency={currency} kind="income" /></strong>
+                    <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={totals.totalIncome} currency={currency} kind="income" /></strong>
                 </div>
                 <div className="report-stat">
                     <span>{t("reports.totalExpense")}</span>
-                    <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={Math.abs(totals.totalExpenses)} currency={currency} kind="expense" /></strong>
+                    <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={Math.abs(totals.totalExpenses)} currency={currency} kind="expense" /></strong>
                 </div>
                 <div className="report-stat">
                     <span>{t("reports.balance")}</span>
-                    <strong><Banknote size={16} aria-hidden="true" /> <Num value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} /></strong>
+                    <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} /></strong>
                 </div>
             </section>
 
@@ -201,15 +201,15 @@ const ReportCategory = () => {
                     <div className="report-stat-grid">
                         <div className="report-stat">
                             <span>{t("reports.internalTransfersReceived")}</span>
-                            <strong><ArrowDown size={16} aria-hidden="true" /> <Num value={internalTransfers.amountReceived} currency={currency} kind="transfer" /></strong>
+                            <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={internalTransfers.amountReceived} currency={currency} kind="transfer" /></strong>
                         </div>
                         <div className="report-stat">
                             <span>{t("reports.internalTransfersSent")}</span>
-                            <strong><ArrowUp size={16} aria-hidden="true" /> <Num value={-internalTransfers.amountSent} currency={currency} kind="transfer" /></strong>
+                            <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={-internalTransfers.amountSent} currency={currency} kind="transfer" /></strong>
                         </div>
                         <div className="report-stat">
                             <span>{t("reports.internalTransfersNetChange")}</span>
-                            <strong><Banknote size={16} aria-hidden="true" /> <Num value={internalTransfers.netChange} currency={currency} kind="transfer" /></strong>
+                            <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={internalTransfers.netChange} currency={currency} kind="transfer" /></strong>
                         </div>
                         <div className="report-stat">
                             <span>{t("reports.internalTransfersCount")}</span>
