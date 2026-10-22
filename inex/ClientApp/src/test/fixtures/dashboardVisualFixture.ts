@@ -136,7 +136,7 @@ export const dashboardVisualFixtureTransactions: TransactionResponse[] = [
   },
 ];
 
-const counts = { all: 34, income: 8, expense: 26, transfer: 0, internalTransfer: 0 };
+const counts = { all: 34, income: 8, expense: 26, transfer: 0, internalTransfer: 0, correction: 0 };
 
 export const dashboardVisualFixtureTransactionSummary: TransactionSummaryResult = {
   totalCount: 34,
@@ -171,13 +171,13 @@ export const dashboardVisualFixtureRates: ExchangeRateItem[] = [
 export const dashboardVisualFixtureEmptyTransactionSummary: TransactionSummaryResult = {
   ...dashboardVisualFixtureTransactionSummary,
   totalCount: 0,
-  typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
-  viewTypeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+  typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
+  viewTypeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
   currencySummaries: [],
   currentScope: {
     ...dashboardVisualFixtureTransactionSummary.currentScope,
     totalCount: 0,
-    typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+    typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
     cashFlowBuckets: [],
   },
 };

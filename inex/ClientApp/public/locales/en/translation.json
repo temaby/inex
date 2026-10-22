@@ -86,7 +86,7 @@
     "featureReportsDescription": "Cashflow, net worth, and trends - without spreadsheet maintenance.",
     "featurePrivacyTitle": "Private invite-only access",
     "featurePrivacyDescription": "Self-hosted access keeps the app limited to invited account holders.",
-    "brandFooter": "\u00a9 InEx 2026 · Self-hosted, single-user · Your data stays yours",
+    "brandFooter": "© InEx 2026 · Self-hosted, single-user · Your data stays yours",
     "errors": {
       "invalidCredentials": "Invalid credentials",
       "loginFailed": "Could not sign in. Check your credentials and try again.",
@@ -408,7 +408,14 @@
       "internalTransferFailure": "Could not create the internal transfer",
       "updateFailure": "Could not update the transaction",
       "filterApplyFailure": "Could not apply filters"
-    }
+    },
+    "correction": "Correction",
+    "saveCorrection": "Save correction",
+    "correctionDecrease": "Decrease balance",
+    "correctionIncrease": "Increase balance",
+    "correctionReason": "Reason for correction",
+    "newCorrectionSubtitle": "Adjust an account balance",
+    "correctionExplanation": "Changes the account balance. Excluded from income, expenses and budget spending."
   },
   "accounts": {
     "subtitle": "Manage",
@@ -960,7 +967,14 @@
     "amount.invalid": "Use a valid amount with at most two decimal places.",
     "comment.too_long": "Comment must contain no more than 255 characters.",
     "internal-transfer-account-unavailable": "This account is unavailable. Choose an active account you own in the original currency.",
-    "internal-transfer-request-unavailable": "This transfer request is unavailable."
+    "internal-transfer-request-unavailable": "This transfer request is unavailable.",
+    "correction.reason_required": "Enter a reason for the correction",
+    "correction.reason_too_long": "Reason must be 255 characters or fewer",
+    "amount.out_of_range": "Amount is too large",
+    "amount.precision": "Use no more than two decimal places",
+    "amount.must_be_positive": "Amount must be greater than zero",
+    "direction.invalid": "Select a valid direction",
+    "correction-category-missing": "The correction category is unavailable. Contact support."
   },
   "transferRequests": {
     "title": "Transfer requests",

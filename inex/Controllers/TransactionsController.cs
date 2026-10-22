@@ -32,6 +32,7 @@ public class TransactionsController : ApiControllerBase
     public const string PostAddRoute = "";
     public const string PostAddTransferRoute = "transfer";
     public const string PostAddInternalTransferRoute = "internal-transfer";
+    public const string PostAddCorrectionRoute = "correction";
 
     public const string PutUpdateRoute = "{id}";
 
@@ -132,6 +133,14 @@ public class TransactionsController : ApiControllerBase
     {
         CreatedResponse resultDTO = await _transactionService.CreateAsync(itemDTO, CurrentUserId, ct);
         return Ok(resultDTO);
+    }
+
+    /// <summary>Adjust the current user's account balance without recording cash flow.</summary>
+    [HttpPost(PostAddCorrectionRoute)]
+    [ProducesResponseType(typeof(CreatedResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CreatedResponse>> AddCorrection(CreateCorrectionRequest request, CancellationToken ct)
+    {
+        return Ok(await _transactionService.CreateAsync(request, CurrentUserId, ct));
     }
 
     /// <summary>Update an existing transaction with new details</summary>

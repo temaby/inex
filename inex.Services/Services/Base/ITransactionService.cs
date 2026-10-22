@@ -9,6 +9,7 @@ namespace inex.Services.Services.Base;
 
 public interface ITransactionService : IInExService
 {
+    Task<CreatedResponse> CreateAsync(CreateCorrectionRequest request, int userId, CancellationToken ct = default);
     Task<TransactionResponse> GetAsync(int id, int userId, CancellationToken ct = default);
     ListResponse<TransactionResponse> Get(int userId, ActivityMode mode, IDictionary<string, string> filters);
     PagedResponse<TransactionResponse, PaginationMetadata> Get(int userId, ActivityMode mode, int pageSize, int pageNumber, IDictionary<string, string> filters);

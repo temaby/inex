@@ -414,7 +414,14 @@
       "internalTransferFailure": "Не удалось создать внутренний перевод",
       "updateFailure": "Не удалось обновить транзакцию",
       "filterApplyFailure": "Не удалось применить фильтры"
-    }
+    },
+    "correction": "Корректировка",
+    "saveCorrection": "Сохранить корректировку",
+    "correctionDecrease": "Уменьшить баланс",
+    "correctionIncrease": "Увеличить баланс",
+    "correctionReason": "Причина корректировки",
+    "newCorrectionSubtitle": "Изменение баланса счёта",
+    "correctionExplanation": "Изменяет баланс счёта. Не учитывается в доходах, расходах и исполнении бюджета."
   },
   "accounts": {
     "subtitle": "Управление",
@@ -968,7 +975,14 @@
     "amount.invalid": "Укажите корректную сумму с точностью до двух знаков.",
     "comment.too_long": "Комментарий должен содержать не более 255 символов.",
     "internal-transfer-account-unavailable": "Счёт недоступен. Выберите свой активный счёт в исходной валюте.",
-    "internal-transfer-request-unavailable": "Запрос перевода недоступен."
+    "internal-transfer-request-unavailable": "Запрос перевода недоступен.",
+    "correction.reason_required": "Укажите причину корректировки",
+    "correction.reason_too_long": "Причина не должна превышать 255 символов",
+    "amount.out_of_range": "Сумма слишком велика",
+    "amount.precision": "Допустимо не более двух знаков после запятой",
+    "amount.must_be_positive": "Сумма должна быть больше нуля",
+    "direction.invalid": "Выберите направление",
+    "correction-category-missing": "Категория корректировки недоступна. Обратитесь в поддержку."
   },
   "transferRequests": {
     "title": "Запросы переводов",

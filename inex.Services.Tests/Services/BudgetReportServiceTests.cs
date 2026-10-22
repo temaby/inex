@@ -16,6 +16,19 @@ public class BudgetReportServiceTests
     private const int UserId = 42;
 
     [Fact]
+    public async Task GetBudgetComparison_ExcludesCorrectionEvenWhenBudgetIncludesItsCategory()
+    {
+        var service = CreateService(
+            [Budget(1, "Balance plan", 100m, [1, 2])],
+            [Category(1, "Correction", isSystem: true) with { SystemCode = "correction" }, Category(2, "Food")],
+            [Transaction(1, 10, 1, -500m), Transaction(2, 10, 1, 300m), Transaction(3, 10, 2, -25m)]);
+        var result = await service.GetBudgetComparison(UserId, 2026, 6, "PLN");
+        Assert.Equal(25m, Assert.Single(result.Data).SpentAmount);
+        Assert.Equal(25m, result.Metadata.TotalOutcome);
+        Assert.Equal(0m, result.Metadata.TotalIncome);
+    }
+
+    [Fact]
     public async Task GetBudgetComparison_IncludesDescendantCategorySpendForParentBudget()
     {
         var service = CreateService(

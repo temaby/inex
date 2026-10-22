@@ -12,6 +12,121 @@ namespace inex.Tests.Transactions;
 [Collection(Infrastructure.IntegrationTestCollection.Name)]
 public class TransactionsControllerTests : IClassFixture<InExWebApplicationFactory>
 {
+    [Theory]
+    [InlineData("increase", 12.34)]
+    [InlineData("decrease", -12.34)]
+    public async Task Correction_CreateEditDelete_PreservesOwnershipAndFinancialClassification(string direction, decimal expected)
+    {
+        var owner = await CreateAuthenticatedClientAsync();
+        var other = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(owner, "correction-account");
+        var create = await owner.PostAsJsonAsync("/api/transactions/correction", new
+        {
+            accountId, created = "2026-10-22", amount = 12.34m, direction, comment = "Cash recount #audit @receipt"
+        });
+        create.EnsureSuccessStatusCode();
+        int id = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+        var transaction = await owner.GetFromJsonAsync<TransactionResponse>($"/api/transactions/{id}");
+        Assert.NotNull(transaction);
+        Assert.Equal(expected, transaction.Amount);
+        var balance = await owner.GetFromJsonAsync<JsonElement>($"/api/accounts/details?ids={accountId}");
+        Assert.Equal(expected, Assert.Single(balance.GetProperty("data").EnumerateArray()).GetProperty("value").GetDecimal());
+        Assert.Contains("audit", transaction.Tags);
+        var categories = await owner.GetFromJsonAsync<JsonElement>("/api/categories?mode=ALL");
+        int categoryId = categories.GetProperty("data").EnumerateArray()
+            .Single(item => item.TryGetProperty("systemCode", out var code) && code.GetString() == "correction").GetProperty("id").GetInt32();
+        Assert.Equal(categoryId, transaction.CategoryId);
+        var summary = await owner.GetFromJsonAsync<TransactionSummaryResponse>("/api/transactions/summary?type=correction");
+        Assert.NotNull(summary);
+        Assert.Equal(1, summary.TotalCount);
+        Assert.Equal(1, summary.TypeCounts.Correction);
+        Assert.Equal(0, summary.TypeCounts.Transfer);
+        Assert.Equal(0, summary.TypeCounts.Income);
+        Assert.Equal(0, summary.TypeCounts.Expense);
+        Assert.Empty(summary.CurrentScope.CashFlowBuckets);
+        Assert.All(summary.CurrencySummaries, item => Assert.Equal(0, item.Net));
+        foreach (string type in new[] { "transfer", "income", "expense", "internalTransfer" })
+        {
+            var filtered = await owner.GetFromJsonAsync<JsonElement>($"/api/transactions?type={type}&pageSize=20&page=1");
+            Assert.Empty(filtered.GetProperty("data").EnumerateArray());
+        }
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await other.GetAsync($"/api/transactions/{id}"));
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await other.PutAsJsonAsync($"/api/transactions/{id}", new
+        {
+            id, accountId, categoryId, created = "2026-10-22", amount = 20m, comment = "attempted"
+        }));
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await other.DeleteAsync($"/api/transactions/{id}"));
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await other.PostAsJsonAsync("/api/transactions/correction", new
+        {
+            accountId, created = "2026-10-22", amount = 1m, direction = "increase", comment = "attempted"
+        }));
+        int ordinaryCategoryId = await CreateCategoryAsync(owner, "ordinary-correction-test");
+        var reassignment = await owner.PutAsJsonAsync($"/api/transactions/{id}", new
+        {
+            id, accountId, categoryId = ordinaryCategoryId, created = "2026-10-22", amount = 20m, comment = "attempted"
+        });
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, reassignment.StatusCode);
+        foreach (decimal amount in new[] { 0m, decimal.MinValue, 0.001m, 10000000000m })
+        {
+            var invalid = await owner.PutAsJsonAsync($"/api/transactions/{id}", new
+            {
+                id, accountId, categoryId, created = "2026-10-22", amount, comment = "recount"
+            });
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, invalid.StatusCode);
+            Assert.Equal("application/problem+json", invalid.Content.Headers.ContentType?.MediaType);
+        }
+        var blank = await owner.PutAsJsonAsync($"/api/transactions/{id}", new
+        {
+            id, accountId, categoryId, created = "2026-10-22", amount = 20m, comment = "   "
+        });
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, blank.StatusCode);
+        var edit = await owner.PutAsJsonAsync($"/api/transactions/{id}", new
+        {
+            id, accountId, categoryId, created = "2026-10-22", amount = -20m, comment = "Recount again #audit"
+        });
+        edit.EnsureSuccessStatusCode();
+        var updated = await owner.GetFromJsonAsync<TransactionResponse>($"/api/transactions/{id}");
+        Assert.Equal(-20m, updated?.Amount);
+        balance = await owner.GetFromJsonAsync<JsonElement>($"/api/accounts/details?ids={accountId}");
+        Assert.Equal(-20m, Assert.Single(balance.GetProperty("data").EnumerateArray()).GetProperty("value").GetDecimal());
+        (await owner.DeleteAsync($"/api/transactions/{id}")).EnsureSuccessStatusCode();
+        var empty = await owner.GetFromJsonAsync<TransactionSummaryResponse>("/api/transactions/summary?type=correction");
+        Assert.Equal(0, empty?.TotalCount);
+        balance = await owner.GetFromJsonAsync<JsonElement>($"/api/accounts/details?ids={accountId}");
+        Assert.Equal(0m, Assert.Single(balance.GetProperty("data").EnumerateArray()).GetProperty("value").GetDecimal());
+    }
+
+    [Theory]
+    [InlineData(0, "increase", "reason")]
+    [InlineData(-1, "decrease", "reason")]
+    [InlineData(1, "sideways", "reason")]
+    [InlineData(1, "increase", "   ")]
+    public async Task Correction_InvalidRequest_ReturnsValidationProblemWithoutPosting(decimal amount, string direction, string comment)
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        int accountId = await CreateAccountAsync(client, "invalid-correction-account");
+        var response = await client.PostAsJsonAsync("/api/transactions/correction", new
+        {
+            accountId, created = "2026-10-22", amount, direction, comment
+        });
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(body.TryGetProperty("errors", out _));
+        var summary = await client.GetFromJsonAsync<TransactionSummaryResponse>("/api/transactions/summary");
+        Assert.Equal(0, summary?.TotalCount);
+    }
+
+    [Fact]
+    public async Task Correction_AnonymousRequest_Returns401()
+    {
+        var response = await _factory.CreateClient().PostAsJsonAsync("/api/transactions/correction", new
+        {
+            accountId = 1, created = "2026-10-22", amount = 1, direction = "increase", comment = "test"
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private readonly InExWebApplicationFactory _factory;
 
     public TransactionsControllerTests(InExWebApplicationFactory factory)

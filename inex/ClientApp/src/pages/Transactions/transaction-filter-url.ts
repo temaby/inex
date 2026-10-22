@@ -86,7 +86,8 @@ export const parseTransactionFilterParam = (filter: string | null): TransactionF
                 break;
             case "type": {
                 const type = decodeFilterValue(values[0] || "").trim().toLowerCase();
-                if (type === "income" || type === "expense" || type === "transfer") {
+                if (type === "internaltransfer") parsedFilter.type = "internalTransfer";
+                if (type === "income" || type === "expense" || type === "transfer" || type === "correction") {
                     parsedFilter.type = type;
                 }
                 break;

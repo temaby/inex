@@ -17,6 +17,10 @@ const emptyFilter = {
 };
 
 describe("transaction filter URL helpers", () => {
+  it.each(["correction", "internalTransfer"] as const)("round trips %s", (type) => {
+    const search = buildTransactionFilterSearch({ ...emptyFilter, type });
+    expect(parseTransactionFilterParam(new URLSearchParams(search).get("filter"))?.type).toBe(type);
+  });
   it("parses date-only ranges as inclusive calendar days", () => {
     const filter = parseTransactionFilterParam("start:2026-06-01;end:2026-06-30;");
 
