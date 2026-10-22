@@ -8,6 +8,7 @@ import apiClient from "../../../utils/apiClient";
 import linkedAccountSlice, { linkedAccountActions } from "../../linkedAccount/linked-account-slice";
 import {
   transactionsApi,
+  refreshObservedInternalTransferPostings,
   normalizeTransactionFilterParams,
   type GetTransactionsArgs,
   type TransactionSummaryResult,
@@ -456,4 +457,40 @@ describe("transactionsApi", () => {
     expect(cached.isError).toBe(true);
     expect(cached.error).toMatchObject({ status: 500 });
   });
+  it("uses additive request endpoints without linked workspace mutation parameters", async () => {
+    const store = createTestStore(); mockApiClient.mockResolvedValue(axiosResponse({}));
+    const body = { accountId: 2, amount: 20, comment: "Original", created: "2026-10-01", direction: "outgoing" as const, linkedUserId: 3, submissionKey: "30337e48-6031-400d-8561-bcfb9f1839b7" };
+    await store.dispatch(transactionsApi.endpoints.createLinkedInternalTransfer.initiate(body));
+    expect(mockApiClient).toHaveBeenLastCalledWith(expect.objectContaining({ url: "/internal-transfer-requests", method: "post", data: body }));
+    await store.dispatch(transactionsApi.endpoints.decideInternalTransfer.initiate({ id: 10, decision: "accept", accountId: 2 }));
+    expect(mockApiClient).toHaveBeenLastCalledWith(expect.objectContaining({ url: "/internal-transfer-requests/10/accept", method: "post", data: { accountId: 2 } }));
+    await store.dispatch(transactionsApi.endpoints.getInternalTransferRequests.initiate({ userId: 1, page: 2 }));
+    expect(mockApiClient).toHaveBeenLastCalledWith(expect.objectContaining({ url: "/internal-transfer-requests?page=2&pageSize=10" }));
+  });
+
+  it("does not expose another authenticated user's cached request page", async () => {
+    const store = createTestStore();
+    const firstArgs = { userId: 1, page: 1 }; const secondArgs = { userId: 2, page: 1 };
+    mockApiClient.mockResolvedValueOnce(axiosResponse({ data: [{ id: 10, comment: "Private original" }], totalItems: 1, totalPending: 1, page: 1, pageSize: 10 }));
+    await store.dispatch(transactionsApi.endpoints.getInternalTransferRequests.initiate(firstArgs));
+    expect(transactionsApi.endpoints.getInternalTransferRequests.select(firstArgs)(store.getState()).data?.data[0].comment).toBe("Private original");
+    let resolveNext: (value: Pick<AxiosResponse, "data">) => void = () => {};
+    mockApiClient.mockImplementationOnce(() => new Promise(resolve => { resolveNext = resolve; }));
+    const next = store.dispatch(transactionsApi.endpoints.getInternalTransferRequests.initiate(secondArgs));
+    expect(transactionsApi.endpoints.getInternalTransferRequests.select(secondArgs)(store.getState()).data).toBeUndefined();
+    resolveNext(axiosResponse({ data: [], totalItems: 0, totalPending: 0, page: 1, pageSize: 10 })); await next;
+    expect(transactionsApi.endpoints.getInternalTransferRequests.select(secondArgs)(store.getState()).data?.data).toEqual([]);
+    expect(mockApiClient.mock.calls.map(call => (call[0] as unknown as AxiosRequestConfig).url)).toEqual(["/internal-transfer-requests?page=1&pageSize=10", "/internal-transfer-requests?page=1&pageSize=10"]);
+  });
+  it("refreshes booked ledger and all dependent caches for an observed remote posting", async () => {
+    const store = createTestStore(); mockApiClient.mockResolvedValueOnce(axiosResponse(fixture));
+    await store.dispatch(transactionsApi.endpoints.getTransactions.initiate(args));
+    mockApiClient.mockResolvedValue(axiosResponse(updatedFixture));
+    const dispatch = vi.spyOn(store, "dispatch"); refreshObservedInternalTransferPostings(store.dispatch);
+    await waitFor(() => expect(transactionsApi.endpoints.getTransactions.select(args)(store.getState()).data).toEqual(updatedFixture));
+    expect(dispatch.mock.calls.map(call => typeof call[0] === "object" && call[0] !== null && "type" in call[0] ? call[0].type : undefined)).toEqual(expect.arrayContaining([
+      "transactionsApi/invalidateTags", "accountsApi/invalidateTags", "budgetReportApi/invalidateTags", "reportApi/invalidateTags",
+    ]));
+  });
+
 });

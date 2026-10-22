@@ -11,6 +11,8 @@ const mutationState = vi.hoisted(() => ({
     createLoading: false,
     transferLoading: false,
     internalTransferLoading: false,
+    linkedUsers: [] as { id: number; username: string }[],
+    createLinked: vi.fn(),
     createTransaction: vi.fn(),
     createTransfer: vi.fn(),
     createInternalTransfer: vi.fn(),
@@ -44,9 +46,11 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("../../store/hooks", () => ({
     useAppDispatch: () => mutationState.dispatch,
+    useAppSelector: () => mutationState.linkedUsers,
 }));
 
 vi.mock("../../store/transactions/transactions-api", () => ({
+    useCreateLinkedInternalTransferMutation: () => [mutationState.createLinked, { isLoading: false }],
     useCreateTransactionMutation: () => [
         mutationState.createTransaction,
         { isLoading: mutationState.createLoading },
@@ -159,6 +163,10 @@ const renderCreateForm = () =>
 
 describe("TransactionCreate", () => {
     beforeEach(() => {
+        window.matchMedia = vi.fn().mockReturnValue({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() });
+        mutationState.linkedUsers = [];
+        mutationState.createLinked.mockReset();
+        mutationState.createLinked.mockReturnValue({ unwrap: () => Promise.resolve() });
         mutationState.createLoading = false;
         mutationState.transferLoading = false;
         mutationState.internalTransferLoading = false;
@@ -248,4 +256,15 @@ describe("TransactionCreate", () => {
             comment: "",
         }));
     });
+    it("sends a selected linked user through the separate idempotent request endpoint", async () => {
+        mutationState.linkedUsers = [{ id: 2, username: "Linked QA" }];
+        const user = userEvent.setup(); renderCreateForm();
+        await user.click(screen.getByRole("button", { name: "Internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
+        await user.click(screen.getByRole("combobox")); await user.click(screen.getByTitle("Linked QA"));
+        await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
+        expect(mutationState.createLinked).toHaveBeenCalledWith(expect.objectContaining({ linkedUserId: 2, accountId: 1, amount: 25, direction: "incoming", submissionKey: expect.any(String) }));
+        expect(mutationState.createInternalTransfer).not.toHaveBeenCalled();
+    });
+
 });

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useMemo, useReducer } from "react";
-import type { MenuProps } from "antd";
+import { Form, Select, Alert, type MenuProps } from "antd";
 import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
@@ -13,8 +13,8 @@ import { TransactionType } from "../../model/Transaction/TransactionType";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
-import { useCreateInternalTransferMutation, useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
-import { useAppDispatch } from "../../store/hooks";
+import { useCreateLinkedInternalTransferMutation, useCreateInternalTransferMutation, useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
@@ -128,6 +128,11 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 }) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
+    const linkedAccounts = useAppSelector(root => root.linkedAccount.linkState?.linkedAccounts);
+    const [linkedUserId, setLinkedUserId] = React.useState<number>();
+    const submissionKey = React.useRef(crypto.randomUUID());
+    const submittedTerms = React.useRef("");
+    const [createLinkedInternalTransfer, { isLoading: isCreatingLinked }] = useCreateLinkedInternalTransferMutation();
     const [state, dispatchTransactionAction] = useReducer(reducer, undefined, createDefaultState);
     const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
@@ -146,6 +151,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const setModeHandler = (mode: string) => {
         dispatchTransactionAction({ type: "SET_MODE", value: mode as TransactionType });
         setValidationErrors({});
+        setLinkedUserId(undefined);
+        submissionKey.current = crypto.randomUUID();
     };
 
     const clearValidationError = (...fields: (keyof TransactionCreateValidationErrors)[]) => {
@@ -282,13 +289,20 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     created,
                 }).unwrap();
             } else if (state.mode === TransactionType.INTERNAL_TRANSFER) {
-                await createInternalTransferMutation({
+                const internalTransfer = {
                     accountId: state.fromAccount.id,
                     amount: state.fromAmount,
                     comment,
                     created,
                     direction: state.internalTransferDirection,
-                }).unwrap();
+                };
+                if (linkedUserId) {
+                    const terms = JSON.stringify({ ...internalTransfer, linkedUserId });
+                    if (submittedTerms.current !== terms) { submissionKey.current = crypto.randomUUID(); submittedTerms.current = terms; }
+                    await createLinkedInternalTransfer({ ...internalTransfer, linkedUserId, submissionKey: submissionKey.current }).unwrap();
+                } else {
+                    await createInternalTransferMutation(internalTransfer).unwrap();
+                }
             }
         } catch (error) {
             dispatch(transactionsActions.setError({
@@ -314,7 +328,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         [TransactionType.TRANSFER]: t("transactions.saveTransfer"),
         [TransactionType.INTERNAL_TRANSFER]: t("transactions.saveInternalTransfer"),
     }[state.mode];
-    const isSaving = isCreating || isCreatingTransfer || isCreatingInternalTransfer;
+    const isSaving = isCreating || isCreatingTransfer || isCreatingInternalTransfer || isCreatingLinked;
 
     return (
         <div className="transactions-create-form">
@@ -386,6 +400,16 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
             )}
 
             {state.mode === TransactionType.INTERNAL_TRANSFER && (
+                <>
+                <Form layout="vertical">
+                    <Form.Item label={t("transferRequests.recipient")}>
+                        <Select allowClear style={{ width: "100%" }} value={linkedUserId}
+                            placeholder={t("transferRequests.manual")}
+                            onChange={(value: number | undefined) => { setLinkedUserId(value); submissionKey.current = crypto.randomUUID(); }}
+                            options={(linkedAccounts ?? []).map(user => ({ value: user.id, label: user.username }))} />
+                    </Form.Item>
+                </Form>
+                {linkedUserId && <Alert type="info" showIcon message={t("transferRequests.creationNotice")} />}
                 <TransactionCreateInternalTransferForm
                     account={state.fromAccount}
                     accounts={accounts}
@@ -400,6 +424,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetDirection={setInternalTransferDirectionHandler}
                     validationErrors={validationErrors}
                 />
+                </>
             )}
 
             <div className="transactions-drawer-actions">

@@ -38,6 +38,12 @@ export function parseAxiosError(
         .join("; ");
       if (fieldErrors) return fieldErrors;
     }
+    const errorCode = typeof problem.rule === "string" ? problem.rule : problem.detail;
+    if (t && typeof errorCode === "string") {
+      const key = `errors.${errorCode}`;
+      const translated = t(key);
+      if (translated !== key) return translated;
+    }
     if (typeof problem.detail === "string") return problem.detail;
     if (typeof problem.title === "string") return problem.title;
   }

@@ -23,6 +23,7 @@ import {
     type MoneyKind,
 } from "../components/primitives";
 import type { Signage } from "../components/primitives";
+import InternalTransferRequests from "./Transactions/InternalTransferRequests";
 import TransactionCreate from "./Transactions/TransactionCreate";
 import AccountBalancesCompanion from "./Transactions/AccountBalancesCompanion";
 import TransactionFilterForm from "./Transactions/TransactionFilterForm";
@@ -612,6 +613,7 @@ const Transactions = () => {
         <>
             <BasicPage frame="management" title={t("transactions.title")} subtitle={t("transactions.subtitle")} extra={headerActions}>
                 <section className="transactions-ledger">
+                    {!isLinkedMode && <InternalTransferRequests accounts={activeAccounts} />}
                     {isLinkedMode ? (
                         <Alert
                             className="transactions-rate-warning"

@@ -105,6 +105,17 @@ export interface CreateInternalTransferArgs {
   direction: "outgoing" | "incoming";
 }
 
+export interface InternalTransferRequestResponse {
+  id: number; masterUserId: number; linkedUserId: number; masterUsername: string; linkedUsername: string;
+  status: "Pending" | "Accepted" | "Rejected" | "Cancelled";
+  masterValue: number; currency: string; operationDate: string; comment: string | null;
+  masterTransactionId: number | null; linkedTransactionId: number | null;
+  requestedAt: string; decidedAt: string | null; decidedBy: number | null; canAccept: boolean;
+}
+export interface InternalTransferRequestPage {
+  data: InternalTransferRequestResponse[]; totalItems: number; totalPending: number; page: number; pageSize: number;
+}
+
 export interface UpdateTransactionArgs {
   id: number;
   accountId: number;
@@ -177,9 +188,18 @@ const invalidateTransactionDependents = async (
   dispatch: ThunkDispatch<unknown, unknown, AnyAction>,
 ) => {
   await queryFulfilled;
+  invalidateTransactionDependentCaches(dispatch);
+};
+
+const invalidateTransactionDependentCaches = (dispatch: ThunkDispatch<unknown, unknown, AnyAction>) => {
   dispatch(accountsApi.util.invalidateTags([{ type: "Account", id: "SUMMARY" }]));
   dispatch(budgetReportApi.util.invalidateTags(["BudgetReport"]));
   dispatch(reportApi.util.invalidateTags(["CategoryReport", "HistoryReport"]));
+};
+
+export const refreshObservedInternalTransferPostings = (dispatch: ThunkDispatch<unknown, unknown, AnyAction>) => {
+  dispatch(transactionsApi.util.invalidateTags([{ type: "Transaction", id: "LIST" }]));
+  invalidateTransactionDependentCaches(dispatch);
 };
 
 export const transactionsApi = createApi({
@@ -187,6 +207,24 @@ export const transactionsApi = createApi({
   baseQuery: axiosBaseQuery,
   tagTypes: ["Transaction"],
   endpoints: (builder) => ({
+    getInternalTransferRequests: builder.query<InternalTransferRequestPage, { userId: number; page: number }>({
+      query: ({ page }) => ({ url: `/internal-transfer-requests?page=${page}&pageSize=10` }),
+      providesTags: [{ type: "Transaction", id: "REQUESTS" }],
+    }),
+    createLinkedInternalTransfer: builder.mutation<InternalTransferRequestResponse, CreateInternalTransferArgs & { linkedUserId: number; submissionKey: string }>({
+      query: (body) => ({ url: "/internal-transfer-requests", method: "post", data: body }),
+      invalidatesTags: [{ type: "Transaction", id: "LIST" }, { type: "Transaction", id: "REQUESTS" }],
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        await invalidateTransactionDependents(queryFulfilled, dispatch);
+      },
+    }),
+    decideInternalTransfer: builder.mutation<InternalTransferRequestResponse, { id: number; decision: "accept" | "reject" | "cancel"; accountId?: number }>({
+      query: ({ id, decision, accountId }) => ({ url: `/internal-transfer-requests/${id}/${decision}`, method: "post", data: accountId ? { accountId } : {} }),
+      invalidatesTags: [{ type: "Transaction", id: "LIST" }, { type: "Transaction", id: "REQUESTS" }],
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        await invalidateTransactionDependents(queryFulfilled, dispatch);
+      },
+    }),
     getTransactions: builder.query<TransactionsPagedResult, GetTransactionsArgs>({
       query: ({ pageSize, page, filter, linkedUserId }) => ({
         url: `/transactions?${buildTransactionParams(pageSize, page, filter, linkedUserId).toString()}`,
@@ -271,6 +309,9 @@ export const transactionsApi = createApi({
 });
 
 export const {
+  useGetInternalTransferRequestsQuery,
+  useCreateLinkedInternalTransferMutation,
+  useDecideInternalTransferMutation,
   useGetTransactionsQuery,
   useGetTransactionsSummaryQuery,
   useCreateTransactionMutation,

@@ -665,6 +665,119 @@ namespace inex.Data.Migrations
                     b.ToTable("exchange_rate");
                 });
 
+            modelBuilder.Entity("inex.Data.Models.InternalTransferRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("created");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("MasterUsername").IsRequired().HasMaxLength(256).HasColumnType("varchar(256)");
+                    b.Property<string>("LinkedUsername").IsRequired().HasMaxLength(256).HasColumnType("varchar(256)");
+                    b.Property<int?>("AcceptedAccountId").HasColumnType("int");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DecidedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LinkId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LinkedTransactionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LinkedUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MasterTransactionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MasterUserId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MasterValue")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<DateTime>("OperationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("OriginalAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OriginalComment")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubmissionKey")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("updated");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("updated_by");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("LinkId");
+
+                    b.HasIndex("LinkedTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("MasterTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("MasterUserId", "SubmissionKey")
+                        .IsUnique();
+
+                    b.HasIndex("LinkedUserId", "Status", "Id");
+
+                    b.HasIndex("MasterUserId", "Status", "Id");
+
+                    b.ToTable("internal_transfer_request", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_transfer_request_participants", "`MasterUserId` <> `LinkedUserId`");
+
+                            t.HasCheckConstraint("CK_transfer_request_value", "`MasterValue` <> 0");
+                        });
+                });
+
             modelBuilder.Entity("inex.Data.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -1066,6 +1179,47 @@ namespace inex.Data.Migrations
                     b.Navigation("ParentCategory");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("inex.Data.Models.InternalTransferRequest", b =>
+                {
+                    b.HasOne("inex.Data.Models.Currency", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("inex.Data.Models.UserAccountLink", null)
+                        .WithMany()
+                        .HasForeignKey("LinkId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("inex.Data.Models.Transaction", "LinkedTransaction")
+                        .WithMany()
+                        .HasForeignKey("LinkedTransactionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("inex.Data.Models.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("LinkedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("inex.Data.Models.Transaction", "MasterTransaction")
+                        .WithMany()
+                        .HasForeignKey("MasterTransactionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("inex.Data.Models.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("MasterUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LinkedTransaction");
+
+                    b.Navigation("MasterTransaction");
                 });
 
             modelBuilder.Entity("inex.Data.Models.RefreshToken", b =>

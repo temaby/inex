@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using inex.Data.Models;
 using inex.Data.Repositories.Base;
 
@@ -17,6 +18,23 @@ public sealed partial class InExUnitOfWork : UnitOfWork, IInExUnitOfWork
     #region Public Interface
 
     #region Properties
+
+    public IEditableRepository<InternalTransferRequest> InternalTransferRequestRepository =>
+        _requests ??= new EditableRepository<InternalTransferRequest>((InExDbContext)_db);
+    private IEditableRepository<InternalTransferRequest>? _requests;
+
+    // Serializable read locks protect original link/account terms and pending guards
+    // against concurrent decisions, revocation, and account deletion.
+    public async Task<IAtomicScope> BeginAtomicAsync(CancellationToken ct) =>
+        new AtomicScope(_db.Database.IsRelational()
+            ? await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct)
+            : null);
+
+    private sealed class AtomicScope(Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? transaction) : IAtomicScope
+    {
+        public Task CommitAsync(CancellationToken ct) => transaction?.CommitAsync(ct) ?? Task.CompletedTask;
+        public ValueTask DisposeAsync() => transaction?.DisposeAsync() ?? ValueTask.CompletedTask;
+    }
 
     public IRepository<Currency> CurrencyRepository => _currencyRepository ?? (_currencyRepository = new Repository<Currency>((InExDbContext)_db));
     public IRepository<AppUser> UserRepository => _userRepository ?? (_userRepository = new Repository<AppUser>((InExDbContext)_db));

@@ -105,11 +105,15 @@ public class AccountService : InExService, IAccountService
             throw new ValidationFailedException($"Request body id ({itemDTO.Id}) does not match route id ({id}).");
         }
 
+        await using var atomic = await DbInEx.BeginAtomicAsync(ct);
         // get item to update
         var source = await DbInEx.AccountRepository
             .Get(false, i => i.Id == id && i.UserId == userId, i => i.Currency)
             .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Account {id} was not found.", "Account", id);
+        if (source.CurrencyId != itemDTO.CurrencyId)
+            await EnsureNoPendingTransferRequestsAsync(new[] { id }, userId, ct);
+
         // update item with new details
         source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
@@ -117,12 +121,14 @@ public class AccountService : InExService, IAccountService
         EntityEntry<Account> dest = DbInEx.AccountRepository.Update(source);
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
+        await atomic.CommitAsync(ct);
 
         return dest.Entity.ToResponse();
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
+        await using var atomic = await DbInEx.BeginAtomicAsync(ct);
         var idList = ids.Distinct().ToList();
         var accounts = await DbInEx.AccountRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
@@ -136,11 +142,22 @@ public class AccountService : InExService, IAccountService
             : new ResourceNotFoundException($"Account {notFoundIds.First()} was not found.", "Account", notFoundIds.First());
         }
 
+        await EnsureNoPendingTransferRequestsAsync(idList, userId, ct);
+
         DbInEx.AccountRepository.Delete(accounts);
         await DbInEx.SaveAsync(ct);
+        await atomic.CommitAsync(ct);
     }
 
     #endregion Public Interface
+
+    private async Task EnsureNoPendingTransferRequestsAsync(IEnumerable<int> ids, int userId, CancellationToken ct)
+    {
+        if (await DbInEx.InternalTransferRequestRepository.Get(true, request => request.MasterUserId == userId &&
+            request.Status == InternalTransferRequestStatus.Pending && request.MasterTransaction != null &&
+            ids.Contains(request.MasterTransaction.AccountId)).AnyAsync(ct))
+            throw new ConflictException("internal-transfer-pending");
+    }
 
     private readonly IClock _clock;
 }
