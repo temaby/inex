@@ -43,6 +43,7 @@ public static class InExServicesExtensions
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddScoped<ITransactionService, TransactionService>();
+        services.AddScoped<IInternalTransferRequestService, InternalTransferRequestService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IBudgetReportService, BudgetReportService>();
 

@@ -26,6 +26,8 @@ public class InExDbContext : IdentityDbContext<AppUser, AppRole, int>
     public DbSet<TransactionTagMap> TransactionTagDetails { get; set; } = null!;
     public DbSet<UserAccountLink> UserAccountLinks { get; set; } = null!;
 
+    public DbSet<InternalTransferRequest> InternalTransferRequests { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder); // обязательно — регистрирует Identity таблицы
@@ -42,5 +44,6 @@ public class InExDbContext : IdentityDbContext<AppUser, AppRole, int>
         builder.ApplyConfiguration(new TransactionTagMapConfiguration());
         builder.ApplyConfiguration(new UserConfiguration());
         builder.ApplyConfiguration(new UserAccountLinkConfiguration());
+        builder.ApplyConfiguration(new InternalTransferRequestConfiguration());
     }
 }

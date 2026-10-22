@@ -18,7 +18,7 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/transactions");
+const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
 const fixturePath = path.join(clientRoot, "src/test/fixtures/transactionsVisualFixture.ts");
 
 const authUser = {
@@ -126,6 +126,12 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
 }
 
 const states = [
+  ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `transfer-requests-pending-${suffix}`, screenshot: `transfer-requests-pending-${suffix}.png`, viewport, scenario: "transfer-requests" })),
+  ...["sent", "no-account", "revoked", "accepted", "rejected", "error", "empty", "ru"].map(kind => ({ name: `transfer-requests-${kind}-360`, screenshot: `transfer-requests-${kind}-360.png`, viewport: { width: 360, height: 900 }, scenario: `transfer-requests-${kind}` })),
+  { name: "transfer-requests-accept-390", screenshot: "transfer-requests-accept-390.png", viewport: { width: 390, height: 900 }, scenario: "transfer-requests", interaction: "request-accept" },
+  { name: "transfer-requests-reject-390", screenshot: "transfer-requests-reject-390.png", viewport: { width: 390, height: 900 }, scenario: "transfer-requests", interaction: "request-reject" },
+  { name: "transfer-requests-create-360", screenshot: "transfer-requests-create-360.png", viewport: { width: 360, height: 900 }, scenario: "transfer-requests-create", interaction: "open-internal-transfer-drawer" },
+
   ...visualQaViewports.map(({ suffix, viewport }) => ({
     name: `linked-readonly-${suffix}`,
     screenshot: `linked-readonly-${suffix}.png`,
@@ -442,9 +448,9 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse(authUser);
+        return jsonResponse({ ...authUser, languageCode: scenario === "transfer-requests-ru" ? "ru" : "en" });
       }
-      if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
+      if (url.pathname === "/api/auth/link-state" && method === "GET" && (scenario === "linked" || scenario === "transfer-requests-create")) {
         return jsonResponse({
           state: "master",
           masterAccount: null,
@@ -455,6 +461,25 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
             baseCurrency: "PLN",
           }],
         });
+      }
+      if (url.pathname.startsWith("/api/internal-transfer-requests")) {
+        const isRequest = scenario.startsWith("transfer-requests");
+        if (scenario === "transfer-requests-error") return problemResponse("Request unavailable", "Fixture error", 503);
+        const request = {
+          id: 41, masterUserId: scenario === "transfer-requests-sent" ? 1 : 2, linkedUserId: scenario === "transfer-requests-sent" ? 2 : 1,
+          masterUsername: "Master QA", linkedUsername: "Linked QA", masterValue: -125.50, currency: scenario === "transfer-requests-no-account" ? "EUR" : "USD",
+          operationDate: "2026-04-28T00:00:00", comment: "Shared household transfer #family", requestedAt: "2026-04-29T12:00:00", masterTransactionId: 91, linkedTransactionId: null,
+          status: scenario === "transfer-requests-accepted" ? "Accepted" : scenario === "transfer-requests-rejected" ? "Rejected" : "Pending",
+          decidedAt: scenario === "transfer-requests-accepted" || scenario === "transfer-requests-rejected" ? "2026-04-30T10:00:00" : null,
+          decidedBy: null, canAccept: scenario !== "transfer-requests-revoked",
+        };
+        if (method === "POST") {
+          scenarioRef.requestCounts.requestDecision = url.pathname.endsWith("/accept") ? "Accepted" : "Rejected";
+          return jsonResponse({ ...request, status: scenarioRef.requestCounts.requestDecision, canAccept: false });
+        }
+        if (scenarioRef.requestCounts.requestDecision) { request.status = scenarioRef.requestCounts.requestDecision; request.canAccept = false; }
+        const data = isRequest && !["transfer-requests-empty", "transfer-requests-create"].includes(scenario) ? [request] : [];
+        return jsonResponse({ data, totalItems: data.length, totalPending: request.status === "Pending" ? data.length : 0, page: 1, pageSize: 10 });
       }
       if (url.pathname === "/api/accounts" && method === "GET") {
         return jsonResponse({ data: fixture.transactionsVisualFixtureAccounts });
@@ -533,6 +558,20 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "request-accept") {
+    await evaluate(client, `document.querySelector('#request-account-41').focus()`);
+    await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "ArrowDown", code: "ArrowDown", windowsVirtualKeyCode: 40 });
+    await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+    await wait(150);
+    await evaluate(client, clickButtonByTextExpression("Confirm operation"));
+    await waitFor(client, "document.querySelector('.transfer-request-card').innerText.includes('Accepted')");
+    return;
+  }
+  if (state.interaction === "request-reject") {
+    await evaluate(client, clickButtonByTextExpression("Reject request"));
+    await waitFor(client, "document.querySelector('.transfer-request-card').innerText.includes('Rejected')");
+    return;
+  }
   switch (state.interaction) {
     case "select-linked-account":
       await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
@@ -723,6 +762,11 @@ async function activateRetryButton(client) {
 }
 
 async function waitForTransactionsReady(client, state) {
+  if (state.scenario.startsWith("transfer-requests")) {
+    await waitFor(client, "Boolean(document.querySelector('.transfer-requests')) && Boolean(document.querySelector('.transactions-ledger-row'))");
+    await wait(250);
+    return;
+  }
   await waitFor(client, "document.body.innerText.includes('Transactions')");
 
   if (state.scenario === "initial-loading") {
@@ -832,6 +876,12 @@ async function collectMetrics(client, state, apiRequestCount) {
           && main.getBoundingClientRect().top <= account.getBoundingClientRect().top
           && account.getBoundingClientRect().top <= date.getBoundingClientRect().top;
       }),
+      requestCardCount: document.querySelectorAll(".transfer-request-card").length,
+      requestAcceptDisabled: document.querySelector(".transfer-request-card__actions button")?.disabled ?? null,
+      requestPanelWithinBounds: Array.from(document.querySelectorAll(".transfer-request-card, .transfer-request-card button, .transfer-request-card .ant-select")).every(element => {
+        const rect = element.getBoundingClientRect(); return rect.left >= 0 && rect.right <= window.innerWidth + 1;
+      }),
+      requestState: document.querySelector(".transfer-request-card .ant-tag")?.textContent ?? null,
       baseEquivalentCount: document.querySelectorAll(".transactions-row-amount-equivalent").length,
       hasTrailingRowChevron: Boolean(document.querySelector(".transactions-ledger-row .transactions-row-chevron")),
       rowContentWithinBounds: rows.every((row) => {
@@ -870,7 +920,7 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: args.state.routePath ?? "/transactions",
-    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, "en")}
+    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, args.state.scenario === "transfer-requests-ru" ? "ru" : "en")}
       localStorage.removeItem("inex.transactions.account-balances-pinned");`,
     waitForReady: waitForTransactionsReady,
     applyInteraction,
@@ -969,6 +1019,12 @@ export const visualQaConfig = {
   buildSummary,
   collectAdditionalFailures: (stateResults) => {
     const failures = [];
+    for (const state of stateResults.filter(item => item.name.startsWith("transfer-requests"))) {
+      if (!state.requestPanelWithinBounds) failures.push(`${state.name}: request controls overflow viewport`);
+      if (state.name.includes("no-account") || state.name.includes("revoked")) {
+        if (!state.requestAcceptDisabled) failures.push(`${state.name}: invalid acceptance remains enabled`);
+      }
+    }
     for (const state of stateResults.filter((item) => item.scenario === "linked")) {
       if (!state.linkedSelectorVisible) failures.push(`${state.name}: linked-account selector is not visible`);
       if (!state.readOnlyNoticeVisible) failures.push(`${state.name}: linked read-only notice is not visible`);

@@ -151,6 +151,7 @@ vi.mock("../store/categories/categories-api", () => ({
 }));
 
 vi.mock("../store/transactions/transactions-api", () => ({
+    useGetInternalTransferRequestsQuery: () => ({ currentData: { data: [], totalItems: 0, totalPending: 0 }, isLoading: false, isError: false }),
     useGetTransactionsSummaryQuery: (...args: unknown[]) => {
         summaryQueryMock(...args);
         return {

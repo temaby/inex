@@ -4,6 +4,8 @@ namespace inex.Data.Repositories.Base;
 
 public interface IInExUnitOfWork : IUnitOfWork
 {
+    IEditableRepository<InternalTransferRequest> InternalTransferRequestRepository { get; }
+    Task<IAtomicScope> BeginAtomicAsync(CancellationToken ct);
     IRepository<Currency> CurrencyRepository { get; }
     IRepository<AppUser> UserRepository { get; }
     IRepository<UserAccountLink> UserAccountLinkRepository { get; }

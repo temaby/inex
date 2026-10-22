@@ -1,5 +1,6 @@
 .transactions-ledger {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 20px;
     min-width: 0;
 }
@@ -894,3 +895,15 @@
         width: 100%;
     }
 }
+
+.transfer-requests { min-width: 0; padding: 20px; border: 1px solid var(--border-1); border-radius: 16px; background: var(--bg-surface); }
+.transfer-requests h2 { font-size: 18px; margin: 0 0 8px; }
+.transfer-requests__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); min-width: 0; gap: 12px; margin-block: 12px; }
+.transfer-request-card { min-width: 0; padding: 16px; border: 1px solid var(--border-1); border-radius: 12px; }
+.transfer-request-card__header, .transfer-request-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 8px; }
+.transfer-request-card__header { justify-content: space-between; }
+.transfer-request-card__comment { overflow-wrap: anywhere; }
+.transfer-request-card p { margin-block: 8px; }
+.transfer-request-card__actions button { white-space: normal; height: auto; min-height: 38px; }
+
+@media (max-width: 600px) { .transfer-requests__list { grid-template-columns: minmax(0, 1fr); } .transfer-requests { padding: 16px; } }

@@ -85,6 +85,11 @@ public class GlobalExceptionsHandler : IExceptionHandler
     /// 1. If exception is IHttpMappable, use its mapping
     /// 2. Otherwise, use default mapping for unknown exception
     /// </summary>
+    private static bool IsConcurrentDatabaseChange(Exception exception) =>
+        exception is Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ||
+        exception is MySqlConnector.MySqlException { Number: 1213 or 1205 } ||
+        (exception.InnerException is not null && IsConcurrentDatabaseChange(exception.InnerException));
+
     private HttpErrorMapping GetErrorMapping(Exception exception)
     {
         // If exception knows how to map itself, use that
@@ -92,6 +97,9 @@ public class GlobalExceptionsHandler : IExceptionHandler
         {
             return mappable.ToHttpErrorMapping(_env.IsDevelopment());
         }
+
+        if (IsConcurrentDatabaseChange(exception))
+            return new inex.Services.Exceptions.ConflictException("internal-transfer-concurrent-change").ToHttpErrorMapping(_env.IsDevelopment());
 
         // Default fallback for unknown exceptions
         return new HttpErrorMapping

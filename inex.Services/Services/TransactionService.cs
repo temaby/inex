@@ -112,7 +112,7 @@ public class TransactionService : InExService, ITransactionService
         transaction.UserId = userId;
         transaction.CreatedBy = userId;
 
-        transaction = ProcessTagsRefs(transaction, userId);
+        transaction = TransactionCommentMarkers.Apply(DbInEx, transaction, userId);
 
         EntityEntry<Transaction> result = await DbInEx.TransactionRepository.CreateAsync(transaction, ct);
 
@@ -176,7 +176,7 @@ public class TransactionService : InExService, ITransactionService
             Comment = itemDTO.Comment
         };
 
-        transaction = ProcessTagsRefs(transaction, userId);
+        transaction = TransactionCommentMarkers.Apply(DbInEx, transaction, userId);
         EntityEntry<Transaction> result = await DbInEx.TransactionRepository.CreateAsync(transaction, ct);
         await DbInEx.SaveAsync(ct);
 
@@ -185,6 +185,7 @@ public class TransactionService : InExService, ITransactionService
 
     public async Task<TransactionResponse> UpdateAsync(int id, UpdateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
     {
+        await using var atomic = await DbInEx.BeginAtomicAsync(ct);
         if (itemDTO.Id != id)
         {
             throw new ValidationFailedException($"Request body id ({itemDTO.Id}) does not match route id ({id}).");
@@ -196,6 +197,8 @@ public class TransactionService : InExService, ITransactionService
             .SingleOrDefaultAsync(ct)
             ?? throw new ResourceNotFoundException($"Transaction {id} was not found.", "Transaction", id);
 
+        await EnsureNoPendingRequestsAsync(new[] { id }, userId, ct);
+
         Category category = await EnsureTransactionRelationsBelongToUserAsync(itemDTO.AccountId, itemDTO.CategoryId, userId, ct);
         if (source.Category.IsSystem != category.IsSystem || (source.Category.IsSystem && source.CategoryId != category.Id))
         {
@@ -206,17 +209,19 @@ public class TransactionService : InExService, ITransactionService
         source = itemDTO.ApplyTo(source);
         source.UpdatedBy = userId;
         // update tags and refs details
-        source = ProcessTagsRefs(source, userId);
+        source = TransactionCommentMarkers.Apply(DbInEx, source, userId);
         // put information about updated item to the database
         EntityEntry<Transaction> dest = DbInEx.TransactionRepository.Update(source);
         // apply changes to the database
         await DbInEx.SaveAsync(ct);
+        await atomic.CommitAsync(ct);
 
         return dest.Entity.ToResponse();
     }
 
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
+        await using var atomic = await DbInEx.BeginAtomicAsync(ct);
         var idList = ids.Distinct().ToList();
         var transactions = await DbInEx.TransactionRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
@@ -230,8 +235,10 @@ public class TransactionService : InExService, ITransactionService
             : new ResourceNotFoundException($"Transaction {notFoundIds.First()} was not found.", "Transaction", notFoundIds.First());
         }
 
+        await EnsureNoPendingRequestsAsync(idList, userId, ct);
         DbInEx.TransactionRepository.Delete(transactions);
         await DbInEx.SaveAsync(ct);
+        await atomic.CommitAsync(ct);
     }
 
     public static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> items, IDictionary<string, string> filters)
@@ -460,63 +467,12 @@ public class TransactionService : InExService, ITransactionService
             _ => throw new ArgumentException($"Unknown ActivityMode: {mode}")
         };
 
-    private Transaction ProcessTagsRefs(Transaction transaction, int userId)
+    private async Task EnsureNoPendingRequestsAsync(IEnumerable<int> ids, int userId, CancellationToken ct)
     {
-        // parse lists of tags and refs from description based on marker
-        IEnumerable<string> tags = (transaction.Comment ?? string.Empty).Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim().ToLower()).Where(i => i.StartsWith("#")).Distinct().Select(i => i.Substring(1));
-        IEnumerable<string> refs = (transaction.Comment ?? string.Empty).Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim().ToLower()).Where(i => i.StartsWith("@")).Distinct().Select(i => i.Substring(1));
-
-        // in case tags were found
-        if (tags.Any())
-        {
-            // update transaction with actual items
-            UpdateTagRefItems(transaction, tags, TagType.TAG, userId);
-        }
-
-        // in case refs were found
-        if (refs.Any())
-        {
-            // update transaction with actual items
-            UpdateTagRefItems(transaction, refs, TagType.REF, userId);
-        }
-
-        return transaction;
-    }
-
-    private void UpdateTagRefItems(Transaction transaction, IEnumerable<string> tags, TagType type, int userId)
-    {
-        // build a list of tags for a user
-        IEnumerable<Tag> tagsUser = DbInEx.TagRepository.Get(true).Where(i => i.UserId == userId && i.Type == type).ToList();
-        // build a list of new tags that were added with the transaction
-        IEnumerable<Tag> tagsToAdd = tags.Except(tagsUser.Select(i => i.Key.ToLower())).Select(i => new Tag() { Key = i, Name = i, Description = i, Type = type, CreatedBy = userId, UserId = userId });
-        // build a full list of tags
-        IEnumerable<Tag> tagsAll = tagsUser.Union(tagsToAdd).ToList();
-
-        // find existing transaction tags — guard against null Tag navigation (set when TagId-only items were added earlier in the same request)
-        IEnumerable<string> tagsCurrent = transaction.TransactionTagDetails.Select(i => i.Tag).Where(i => i != null && i.Type == type).Select(i => i.Key.ToLower()).ToList();
-        // find tags to add to the transaction
-        IEnumerable<string> tagsAdd = tags.Except(tagsCurrent);
-        // find tags to remove from the transaction
-        IEnumerable<string> tagsRemove = tagsCurrent.Except(tags);
-
-        foreach (string item in tagsAdd)
-        {
-            Tag tag = tagsAll.First(i => i.Key == item);
-            if (tag.Id > 0)
-            {
-                transaction.TransactionTagDetails.Add(new TransactionTagMap() { TagId = tag.Id, CreatedBy = userId });
-            }
-            else
-            {
-                transaction.TransactionTagDetails.Add(new TransactionTagMap() { Tag = tag, CreatedBy = userId });
-            }
-        }
-
-        // remove obsolete tags from the map
-        foreach (string item in tagsRemove)
-        {
-            transaction.TransactionTagDetails.Remove(transaction.TransactionTagDetails.First(i => i.TagId == tagsAll.First(i => i.Key == item).Id));
-        }
+        if (await DbInEx.InternalTransferRequestRepository.Get(true, request => request.MasterUserId == userId &&
+            request.Status == InternalTransferRequestStatus.Pending && request.MasterTransactionId.HasValue &&
+            ids.Contains(request.MasterTransactionId.Value)).AnyAsync(ct))
+            throw new ConflictException("internal-transfer-pending");
     }
 
     private async Task<Category> EnsureTransactionRelationsBelongToUserAsync(int accountId, int categoryId, int userId, CancellationToken ct)
