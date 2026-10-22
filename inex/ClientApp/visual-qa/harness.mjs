@@ -620,6 +620,8 @@ export async function runBrowserState({
     throwEventErrors();
     throw error;
   } finally {
+    // Stop mounted polling before request interception is detached with the CDP socket.
+    if (client) await client.send("Page.navigate", { url: "about:blank" }).catch(() => undefined);
     await client?.close();
   }
 }

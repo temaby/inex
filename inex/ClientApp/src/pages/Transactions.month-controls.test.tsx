@@ -276,22 +276,22 @@ describe("Transactions month controls", () => {
     it("automatically requests the full current and previous period when foreign cash flow needs rates", () => {
         summaryQueryState.data = {
             totalCount: 1,
-            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
             currencySummaries: [],
             baseCurrency: "USD",
             currentScope: {
                 totalCount: 1,
-                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
                 period: { startDate: "2026-07-01", endDate: "2026-07-31" },
                 cashFlowBuckets: [{ date: "2026-07-10", currency: "EUR", income: 10, expense: 0, recordCount: 1 }],
             },
             previousScope: {
                 totalCount: 0,
-                typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+                typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
                 period: { startDate: "2026-06-01", endDate: "2026-06-30" },
                 cashFlowBuckets: [],
             },
-            viewTypeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+            viewTypeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
         };
         renderTransactions();
         expect(fetchRatesForRange).toHaveBeenCalledWith("2026-06-01", "2026-07-31", null);
@@ -352,11 +352,11 @@ describe("Transactions month controls", () => {
     it("requests and totals only enabled accounts visible in Transactions", () => {
         summaryQueryState.data = {
             totalCount: 0,
-            typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
-            viewTypeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+            typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
+            viewTypeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
             currencySummaries: [],
             baseCurrency: "USD",
-            currentScope: { totalCount: 0, typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 }, period: null, cashFlowBuckets: [] },
+            currentScope: { totalCount: 0, typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 }, period: null, cashFlowBuckets: [] },
             previousScope: null,
         };
         accountSummaryQueryMock.mockReturnValue({
@@ -446,13 +446,13 @@ describe("Transactions month controls", () => {
     it("uses untyped server VIEW counts and removes only type when All is selected", () => {
         summaryQueryState.data = {
             totalCount: 1,
-            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
-            viewTypeCounts: { all: 4, income: 1, expense: 1, transfer: 2, internalTransfer: 0 },
+            typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
+            viewTypeCounts: { all: 4, income: 1, expense: 1, transfer: 2, internalTransfer: 0, correction: 0 },
             currencySummaries: [],
             baseCurrency: "USD",
             currentScope: {
                 totalCount: 1,
-                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0 },
+                typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
                 period: null,
                 cashFlowBuckets: [],
             },

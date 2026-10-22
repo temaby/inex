@@ -34,6 +34,7 @@ export interface TransactionTypeCounts {
   expense: number;
   transfer: number;
   internalTransfer: number;
+  correction: number;
 }
 
 export interface TransactionCurrencySummary {
@@ -276,6 +277,13 @@ export const transactionsApi = createApi({
         await invalidateTransactionDependents(queryFulfilled, dispatch);
       },
     }),
+    createCorrection: builder.mutation<void, Omit<CreateInternalTransferArgs, "direction"> & { direction: "increase" | "decrease" }>({
+      query: (body) => ({ url: "/transactions/correction", method: "post", data: body }),
+      invalidatesTags: [{ type: "Transaction", id: "LIST" }],
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        await invalidateTransactionDependents(queryFulfilled, dispatch);
+      },
+    }),
     createInternalTransfer: builder.mutation<void, CreateInternalTransferArgs>({
       query: (body) => ({
         url: "/transactions/internal-transfer",
@@ -317,6 +325,7 @@ export const {
   useCreateTransactionMutation,
   useCreateTransferMutation,
   useCreateInternalTransferMutation,
+  useCreateCorrectionMutation,
   useUpdateTransactionMutation,
   useDeleteTransactionMutation,
 } = transactionsApi;

@@ -96,6 +96,8 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
       dispatchTransactionAction({ type: "INIT", value: currentRecord });
     }, [record, categories, accounts, t]);
 
+    const isCorrection = state.category.isSystem && state.category.systemCode === "correction";
+
     const categoryTree = useMemo(
       () => getActiveCategoriesTree(categories, t("categories.systemGroup")),
       [categories, t],
@@ -167,14 +169,14 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
                 />
             </Form.Item>
             <Form.Item label={t("transactions.category")}>
-                <Dropdown
+                {state.category.isSystem ? <Input readOnly value={isCorrection ? t("transactions.correction") : state.category.name} /> : <Dropdown
                     id="category"
                     items={categoryTree}
                     multiple={false}
                     onChange={setCategoryHandler}
                     placeholder={t("transactions.selectCategory")}
                     selection={getSelectedCategory(state.category)}
-                />
+                />}
             </Form.Item>
             <Row gutter={8}>
                 <Col xs={24} sm={12}>
@@ -200,8 +202,8 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
             </Row>
             <Row gutter={8}>
                 <Col span={24}>
-                    <Form.Item label={t("transactions.comment")}>
-                        <Input key="comment" size="large" onChange={setCommentHandler} value={state.comment} />
+                    <Form.Item required={isCorrection} label={t(isCorrection ? "transactions.correctionReason" : "transactions.comment")}>
+                        <Input maxLength={isCorrection ? 255 : undefined} key="comment" size="large" onChange={setCommentHandler} value={state.comment} />
                     </Form.Item>
                 </Col>
             </Row>
@@ -227,7 +229,7 @@ const TransactionEditForm = (props: TransactionEditFormProps) => {
                 </Col>
                 <Col span={12} style={{textAlign: "right"}}>
                     <Space>
-                        <Button loading={isUpdating} onClick={updateTransactionHandler} disabled={!state.hasActiveChanges} type="primary">
+                        <Button loading={isUpdating} onClick={updateTransactionHandler} disabled={!state.hasActiveChanges || (isCorrection && (!state.comment?.trim() || state.amount === 0))} type="primary">
                             {t("transactions.save")}
                         </Button>
                     </Space>

@@ -4,6 +4,7 @@ namespace inex.Services.Models.Records.Transaction;
 
 public record TransactionTypeCounts
 {
+    public int Correction { get; init; }
     public int All { get; init; }
     public int Income { get; init; }
     public int Expense { get; init; }

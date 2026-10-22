@@ -16,6 +16,7 @@ const mutationState = vi.hoisted(() => ({
     createTransaction: vi.fn(),
     createTransfer: vi.fn(),
     createInternalTransfer: vi.fn(),
+    createCorrection: vi.fn(),
     dispatch: vi.fn(),
 }));
 
@@ -50,6 +51,7 @@ vi.mock("../../store/hooks", () => ({
 }));
 
 vi.mock("../../store/transactions/transactions-api", () => ({
+    useCreateCorrectionMutation: () => [mutationState.createCorrection, { isLoading: false }],
     useCreateLinkedInternalTransferMutation: () => [mutationState.createLinked, { isLoading: false }],
     useCreateTransactionMutation: () => [
         mutationState.createTransaction,
@@ -101,14 +103,17 @@ vi.mock("./TransactionCreateInternalTransferForm", () => ({
         onSetAccount,
         onSetAmount,
         onSetDirection,
+        onSetComment,
     }: {
         validationErrors: Record<string, string | undefined>;
+        onSetComment: React.ChangeEventHandler<HTMLInputElement>;
         onSetAccount: (item: { key: string }) => void;
         onSetAmount: (amount: number) => void;
         onSetDirection: (direction: "incoming" | "outgoing") => void;
     }) {
         return (
             <div data-testid="internal-transfer-form">
+                <input aria-label="Reason" onChange={onSetComment} />
                 <button
                     type="button"
                     onClick={() => {
@@ -162,6 +167,19 @@ const renderCreateForm = () =>
     );
 
 describe("TransactionCreate", () => {
+    it("requires a correction reason and uses its dedicated endpoint without a recipient", async () => {
+        const user = userEvent.setup(); renderCreateForm();
+        await user.click(screen.getByRole("button", { name: "transactions.correction" }));
+        await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "transactions.saveCorrection" }));
+        expect(mutationState.createCorrection).not.toHaveBeenCalled();
+        expect(screen.getByText("errors.correction.reason_required")).toBeInTheDocument();
+        await user.type(screen.getByLabelText("Reason"), "Cash recount #audit");
+        await user.click(screen.getByRole("button", { name: "transactions.saveCorrection" }));
+        expect(mutationState.createCorrection).toHaveBeenCalledWith(expect.objectContaining({ accountId: 1, amount: 25, direction: "increase", comment: "Cash recount #audit" }));
+        expect(mutationState.createLinked).not.toHaveBeenCalled();
+        expect(mutationState.createTransaction).not.toHaveBeenCalled();
+    });
     beforeEach(() => {
         window.matchMedia = vi.fn().mockReturnValue({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() });
         mutationState.linkedUsers = [];
@@ -172,6 +190,8 @@ describe("TransactionCreate", () => {
         mutationState.internalTransferLoading = false;
         mutationState.createTransaction.mockReset();
         mutationState.createTransfer.mockReset();
+        mutationState.createCorrection.mockReset();
+        mutationState.createCorrection.mockReturnValue({ unwrap: () => Promise.resolve() });
         mutationState.createInternalTransfer.mockReset();
         mutationState.createInternalTransfer.mockReturnValue({ unwrap: () => Promise.resolve() });
         mutationState.dispatch.mockReset();

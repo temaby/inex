@@ -74,7 +74,7 @@ public class TransactionService : InExService, ITransactionService
 
         TransactionSummaryScope currentScope = BuildSummaryScope(items, filter.StartDate, filter.EndDate);
         string? type = filter.Type?.Trim().ToLowerInvariant();
-        TransactionTypeCounts viewTypeCounts = type is "income" or "expense" or "transfer" or "internaltransfer"
+        TransactionTypeCounts viewTypeCounts = type is "income" or "expense" or "transfer" or "internaltransfer" or "correction"
             ? BuildTypeCounts(GetTransactions(userId, mode, filter with { Type = "all" }))
             : currentScope.TypeCounts;
         TransactionSummaryScope? previousScope = TryGetComparablePeriod(filter, out DateTime previousStartDate, out DateTime previousEndDate)
@@ -98,6 +98,29 @@ public class TransactionService : InExService, ITransactionService
             CurrentScope = currentScope,
             PreviousScope = previousScope
         };
+    }
+
+    public async Task<CreatedResponse> CreateAsync(CreateCorrectionRequest request, int userId, CancellationToken ct = default)
+    {
+        await GetTransferAccountForUserAsync(request.AccountId, userId, ct);
+        Category category = await DbInEx.CategoryRepository
+            .Get(true, item => item.UserId == userId && item.IsSystem && item.SystemCode == "correction")
+            .SingleOrDefaultAsync(ct)
+            ?? throw new DomainRuleException("correction-category-missing", "The correction category is unavailable for this user.");
+        Transaction transaction = new()
+        {
+            AccountId = request.AccountId,
+            CategoryId = category.Id,
+            UserId = userId,
+            CreatedBy = userId,
+            Created = request.Created,
+            Value = request.Direction == CorrectionDirection.Decrease ? -request.Amount : request.Amount,
+            Comment = request.Comment.Trim()
+        };
+        transaction = TransactionCommentMarkers.Apply(DbInEx, transaction, userId);
+        var result = await DbInEx.TransactionRepository.CreateAsync(transaction, ct);
+        await DbInEx.SaveAsync(ct);
+        return new CreatedResponse(result.Entity.Id);
     }
 
     public async Task<CreatedResponse> CreateAsync(CreateTransactionRequest itemDTO, int userId, CancellationToken ct = default)
@@ -203,6 +226,17 @@ public class TransactionService : InExService, ITransactionService
         if (source.Category.IsSystem != category.IsSystem || (source.Category.IsSystem && source.CategoryId != category.Id))
         {
             throw new DomainRuleException("system-category-transaction-update", "System transactions must retain their system category.");
+        }
+
+        if (source.Category.IsSystem && source.Category.SystemCode == "correction")
+        {
+            var errors = new List<string>();
+            if (itemDTO.Amount == 0) errors.Add("amount.not_zero");
+            if (itemDTO.Amount < -9999999999.99m || itemDTO.Amount > 9999999999.99m) errors.Add("amount.out_of_range");
+            if (decimal.Round(itemDTO.Amount, 2) != itemDTO.Amount) errors.Add("amount.precision");
+            if (string.IsNullOrWhiteSpace(itemDTO.Comment)) errors.Add("correction.reason_required");
+            if (itemDTO.Comment?.Length > 255) errors.Add("correction.reason_too_long");
+            if (errors.Count > 0) throw new ValidationFailedException("Invalid correction.", errors);
         }
 
         // update item with new details
@@ -333,7 +367,10 @@ public class TransactionService : InExService, ITransactionService
                 items = items.Where(i => !i.Category.IsSystem && i.Value < 0);
                 break;
             case "transfer":
-                items = items.Where(i => i.Category.IsSystem && i.Category.SystemCode != "internal-transfer");
+                items = items.Where(i => i.Category.IsSystem && i.Category.SystemCode == "transfer");
+                break;
+            case "correction":
+                items = items.Where(i => i.Category.IsSystem && i.Category.SystemCode == "correction");
                 break;
             case "internaltransfer":
                 items = items.Where(i => i.Category.IsSystem && i.Category.SystemCode == "internal-transfer");
@@ -428,7 +465,8 @@ public class TransactionService : InExService, ITransactionService
         All = items.Count(),
         Income = items.Count(item => !item.Category.IsSystem && item.Value >= 0),
         Expense = items.Count(item => !item.Category.IsSystem && item.Value < 0),
-        Transfer = items.Count(item => item.Category.IsSystem && item.Category.SystemCode != "internal-transfer"),
+        Transfer = items.Count(item => item.Category.IsSystem && item.Category.SystemCode == "transfer"),
+        Correction = items.Count(item => item.Category.IsSystem && item.Category.SystemCode == "correction"),
         InternalTransfer = items.Count(item => item.Category.IsSystem && item.Category.SystemCode == "internal-transfer")
     };
 

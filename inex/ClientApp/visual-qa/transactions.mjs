@@ -18,7 +18,7 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
+const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
 const fixturePath = path.join(clientRoot, "src/test/fixtures/transactionsVisualFixture.ts");
 
 const authUser = {
@@ -42,7 +42,20 @@ const delayedResponse = (response, delayMs = 1400) => new Promise((resolve) => {
   setTimeout(() => resolve(response), delayMs);
 });
 
+function getScenarioCategories(fixture, scenario) {
+  return scenario.startsWith("correction") ? [...fixture.transactionsVisualFixtureCategories, {
+    id: 999, key: "correction", name: "Correction", description: null, parentId: null,
+    isEnabled: true, isSystem: true, systemCode: "correction",
+  }] : fixture.transactionsVisualFixtureCategories;
+}
+
 function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded = false) {
+  if (scenario === "correction-ledger" || scenario === "correction-edit") {
+    return [25, -10].map((amount, index) => ({
+      ...fixture.transactionsVisualFixtureTransactions[0], id: 990 + index, categoryId: 999,
+      amount, comment: index === 0 ? "Cash recount #audit" : "Opening balance adjustment", tags: index === 0 ? ["audit"] : [], refs: [],
+    }));
+  }
   if (scenario === "empty" || hasNoMatch || (scenario === "edit-filtered-out" && mutationSucceeded)) return [];
 
   if (scenario === "progressive-loading" || scenario === "progressive-error" || scenario === "long-range") {
@@ -61,7 +74,7 @@ function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceede
 
 function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded) {
   const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded);
-  const categoriesById = new Map(fixture.transactionsVisualFixtureCategories.map((category) => [category.id, category]));
+  const categoriesById = new Map(getScenarioCategories(fixture, scenario).map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
   const typeCounts = {
     all: transactions.length,
@@ -69,16 +82,17 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
     expense: 0,
     transfer: 0,
     internalTransfer: 0,
+    correction: 0,
   };
 
   for (const transaction of transactions) {
     const category = categoriesById.get(transaction.categoryId);
-    const kind = category?.systemCode === "internal-transfer"
+    const kind = category?.systemCode === "correction" ? "correction" : category?.systemCode === "internal-transfer"
       ? "internalTransfer"
       : category?.isSystem ? "transfer" : transaction.amount >= 0 ? "income" : "expense";
     typeCounts[kind] += 1;
 
-    if (kind === "transfer" || kind === "internalTransfer") {
+    if (kind === "transfer" || kind === "internalTransfer" || kind === "correction") {
       continue;
     }
 
@@ -118,7 +132,7 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
     },
     previousScope: {
       totalCount: 0,
-      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0 },
+      typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
       period: { startDate: "2026-03-01T00:00:00", endDate: "2026-03-31T23:59:59" },
       cashFlowBuckets: [],
     },
@@ -126,6 +140,10 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
 }
 
 const states = [
+  ...visualQaViewports.filter(({suffix}) => ["1440", "360"].includes(suffix)).map(({suffix, viewport}) => ({ name: `correction-ledger-${suffix}`, screenshot: `correction-ledger-${suffix}.png`, viewport, scenario: "correction-ledger" })),
+  { name: "correction-edit-360", screenshot: "correction-edit-360.png", viewport: { width: 360, height: 900 }, scenario: "correction-edit", interaction: "open-row-edit" },
+  ...visualQaViewports.map(({suffix, viewport}) => ({ name: `correction-create-${suffix}`, screenshot: `correction-create-${suffix}.png`, viewport, scenario: "correction", interaction: "open-correction-drawer" })),
+  { name: "correction-create-ru-360", screenshot: "correction-create-ru-360.png", viewport: { width: 360, height: 900 }, scenario: "correction-ru", interaction: "open-correction-drawer" },
   ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `transfer-requests-pending-${suffix}`, screenshot: `transfer-requests-pending-${suffix}.png`, viewport, scenario: "transfer-requests" })),
   ...["sent", "no-account", "revoked", "accepted", "rejected", "error", "empty", "ru"].map(kind => ({ name: `transfer-requests-${kind}-360`, screenshot: `transfer-requests-${kind}-360.png`, viewport: { width: 360, height: 900 }, scenario: `transfer-requests-${kind}` })),
   { name: "transfer-requests-accept-390", screenshot: "transfer-requests-accept-390.png", viewport: { width: 390, height: 900 }, scenario: "transfer-requests", interaction: "request-accept" },
@@ -448,7 +466,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse({ ...authUser, languageCode: scenario === "transfer-requests-ru" ? "ru" : "en" });
+        return jsonResponse({ ...authUser, languageCode: (scenario === "transfer-requests-ru" || scenario === "correction-ru") ? "ru" : "en" });
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET" && (scenario === "linked" || scenario === "transfer-requests-create")) {
         return jsonResponse({
@@ -504,7 +522,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return scenario === "account-balances-loading" ? delayedResponse(response, 2200) : response;
       }
       if (url.pathname === "/api/categories" && method === "GET") {
-        return jsonResponse({ data: fixture.transactionsVisualFixtureCategories });
+        return jsonResponse({ data: getScenarioCategories(fixture, scenario) });
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
         return jsonResponse({ data: scenario === "missing-rate" ? [] : fixture.transactionsVisualFixtureRates });
@@ -625,6 +643,16 @@ async function applyInteraction(client, state) {
         return true;
       })()`);
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments') && !document.body.innerText.includes('Native balance') && !document.querySelector('[data-qa=selected-account-native-balance]')");
+      return;
+    case "open-correction-drawer":
+      await evaluate(client, clickButtonByTextExpression(state.scenario === "correction-ru" ? "Добавить" : "Add transaction"));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
+      await evaluate(client, `(() => {
+        const tab = Array.from(document.querySelectorAll(".transactions-create-form button")).find(button => button.textContent?.trim() === ${JSON.stringify(state.scenario === "correction-ru" ? "Корректировка" : "Correction")});
+        if (!tab) throw new Error("Correction mode button missing");
+        tab.click();
+      })()`);
+      await waitFor(client, "document.body.innerText.includes('Reason for correction') || document.body.innerText.includes('Причина корректировки')");
       return;
     case "open-internal-transfer-drawer":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
@@ -762,6 +790,10 @@ async function activateRetryButton(client) {
 }
 
 async function waitForTransactionsReady(client, state) {
+  if (state.scenario.startsWith("correction")) {
+    await waitFor(client, "Boolean(document.querySelector('.transactions-ledger-row'))", 30000);
+    return;
+  }
   if (state.scenario.startsWith("transfer-requests")) {
     await waitFor(client, "Boolean(document.querySelector('.transfer-requests')) && Boolean(document.querySelector('.transactions-ledger-row'))");
     await wait(250);
@@ -920,7 +952,7 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: args.state.routePath ?? "/transactions",
-    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, args.state.scenario === "transfer-requests-ru" ? "ru" : "en")}
+    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, (args.state.scenario === "transfer-requests-ru" || args.state.scenario === "correction-ru") ? "ru" : "en")}
       localStorage.removeItem("inex.transactions.account-balances-pinned");`,
     waitForReady: waitForTransactionsReady,
     applyInteraction,

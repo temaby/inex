@@ -13,7 +13,7 @@ import { TransactionType } from "../../model/Transaction/TransactionType";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
-import { useCreateLinkedInternalTransferMutation, useCreateInternalTransferMutation, useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
+import { useCreateCorrectionMutation, useCreateLinkedInternalTransferMutation, useCreateInternalTransferMutation, useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
@@ -36,6 +36,7 @@ interface TransactionCreateState extends Omit<TransactionSetState, "date"> {
 }
 
 export interface TransactionCreateValidationErrors {
+    comment?: string;
     category?: string;
     date?: string;
     fromAccount?: string;
@@ -137,6 +138,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
+    const [createCorrectionMutation, { isLoading: isCreatingCorrection }] = useCreateCorrectionMutation();
     const [createInternalTransferMutation, { isLoading: isCreatingInternalTransfer }] = useCreateInternalTransferMutation();
 
     React.useEffect(() => {
@@ -203,6 +205,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     };
 
     const setCommentHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        clearValidationError("comment");
         dispatchTransactionAction({ type: "SET_COMMENT", value: event.target.value });
     };
 
@@ -242,7 +245,11 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
             ) {
                 errors.toAccount = t("errors.account_to_id.same_as_source");
             }
-        } else if (state.mode === TransactionType.INTERNAL_TRANSFER) {
+        } else if (state.mode === TransactionType.INTERNAL_TRANSFER || state.mode === TransactionType.CORRECTION) {
+            if (state.mode === TransactionType.CORRECTION) {
+                if (!state.comment.trim()) errors.comment = t("errors.correction.reason_required");
+                if (state.comment.length > 255) errors.comment = t("errors.correction.reason_too_long");
+            }
             if (!isSelectedEntity(state.fromAccount.id)) errors.fromAccount = t("errors.account_id.invalid");
             if (state.fromAmount <= 0) errors.fromAmount = t("errors.amount.must_be_positive");
         }
@@ -288,6 +295,14 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     comment,
                     created,
                 }).unwrap();
+            } else if (state.mode === TransactionType.CORRECTION) {
+                await createCorrectionMutation({
+                    accountId: state.fromAccount.id,
+                    amount: state.fromAmount,
+                    comment,
+                    created,
+                    direction: state.internalTransferDirection === "incoming" ? "increase" : "decrease",
+                }).unwrap();
             } else if (state.mode === TransactionType.INTERNAL_TRANSFER) {
                 const internalTransfer = {
                     accountId: state.fromAccount.id,
@@ -327,8 +342,9 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         [TransactionType.INCOME]: t("transactions.saveIncome"),
         [TransactionType.TRANSFER]: t("transactions.saveTransfer"),
         [TransactionType.INTERNAL_TRANSFER]: t("transactions.saveInternalTransfer"),
+        [TransactionType.CORRECTION]: t("transactions.saveCorrection"),
     }[state.mode];
-    const isSaving = isCreating || isCreatingTransfer || isCreatingInternalTransfer || isCreatingLinked;
+    const isSaving = isCreatingCorrection || isCreating || isCreatingTransfer || isCreatingInternalTransfer || isCreatingLinked;
 
     return (
         <div className="transactions-create-form">
@@ -339,6 +355,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     { key: TransactionType.INCOME, label: t("transactions.income") },
                     { key: TransactionType.TRANSFER, label: t("transactions.transfer") },
                     { key: TransactionType.INTERNAL_TRANSFER, label: t("transactions.internalTransfer") },
+                    { key: TransactionType.CORRECTION, label: t("transactions.correction") },
                 ]}
                 size="compact"
                 value={state.mode}
@@ -427,6 +444,16 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                 </>
             )}
 
+            {state.mode === TransactionType.CORRECTION && (
+                <TransactionCreateInternalTransferForm
+                    correction
+                    account={state.fromAccount} accounts={accounts} amount={state.fromAmount}
+                    comment={state.comment} date={state.date} direction={state.internalTransferDirection}
+                    onSetAccount={setFromAccountHandler} onSetAmount={setFromAmountHandler}
+                    onSetComment={setCommentHandler} onSetDate={setDateHandler}
+                    onSetDirection={setInternalTransferDirectionHandler} validationErrors={validationErrors}
+                />
+            )}
             <div className="transactions-drawer-actions">
                 <InExButton kind="default" onClick={() => resetAndClose(onCancel)}>
                     {t("transactions.cancel")}

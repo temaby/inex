@@ -64,6 +64,8 @@ public class BudgetReportService : Service, IBudgetReportService
             .Select(c => c.Id)
             .ToHashSet();
         var descendantCategoryIdsByParent = BuildDescendantCategoryIdsByParent(categories);
+        var correctionCategoryIds = categories.Where(c => c.IsSystem && c.SystemCode == "correction")
+            .Select(c => c.Id).ToHashSet();
 
         // 3. Get Exchange Rates
         var ratesResponse = await _exchangeRateService.Get(userId, startDate, endDate, currency, ct);
@@ -128,11 +130,8 @@ public class BudgetReportService : Service, IBudgetReportService
                 }
             }
 
-            // Always track category spending for budget comparison (in case someone budgeted a system category?)
-            // Usually system categories are not budgeted, but if they are, we should probably track them.
-            // However, for "Total Outcome" we definitely want to exclude them.
-            // For "Category Spending" used in budget comparison:
-            if (amountInTargetCurrency < 0)
+            // Balance corrections never represent budget spending.
+            if (amountInTargetCurrency < 0 && !correctionCategoryIds.Contains(transaction.CategoryId))
             {
                 categorySpending[transaction.CategoryId] += Math.Abs(amountInTargetCurrency);
             }

@@ -70,6 +70,11 @@ const transaction = (id: number, categoryId: number, amount: number): Transactio
 });
 
 describe("transaction ledger helpers", () => {
+  it("classifies both correction signs separately from cash flow and transfers", () => {
+    const correction = { ...categories[2], id: 30, systemCode: "correction" };
+    const counts = getLedgerTypeCounts([transaction(1, 30, -25), transaction(2, 30, 25), transaction(3, 20, -10)], new Map([...categoryMap, [30, correction]]));
+    expect(counts).toEqual({ all: 3, correction: 2, transfer: 1, internalTransfer: 0, income: 0, expense: 0 });
+  });
   it("uses localized friendly labels for today and yesterday", () => {
     const labels = { today: "Today", yesterday: "Yesterday" };
     const now = "2026-06-05T12:00:00Z";
@@ -141,7 +146,7 @@ describe("transaction ledger helpers", () => {
       income: 1,
       expense: 1,
       transfer: 1,
-      internalTransfer: 0,
+      internalTransfer: 0, correction: 0,
     });
   });
 
@@ -157,7 +162,7 @@ describe("transaction ledger helpers", () => {
         income: 1,
         expense: 2,
         transfer: 1,
-        internalTransfer: 0,
+        internalTransfer: 0, correction: 0,
       },
       currencySummaries: [
         { currency: "USD", income: 100, expense: -40, net: 60 },
@@ -175,7 +180,7 @@ describe("transaction ledger helpers", () => {
         income: 1,
         expense: 2,
         transfer: 1,
-        internalTransfer: 0,
+        internalTransfer: 0, correction: 0,
       },
     });
   });

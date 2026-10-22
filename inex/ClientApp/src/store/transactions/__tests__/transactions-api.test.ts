@@ -77,14 +77,14 @@ const summaryFixture: TransactionSummaryResult = {
     income: 1,
     expense: 1,
     transfer: 0,
-    internalTransfer: 0,
+    internalTransfer: 0, correction: 0,
   },
   viewTypeCounts: {
     all: 2,
     income: 1,
     expense: 1,
     transfer: 0,
-    internalTransfer: 0,
+    internalTransfer: 0, correction: 0,
   },
   currencySummaries: [
     {
@@ -97,7 +97,7 @@ const summaryFixture: TransactionSummaryResult = {
   baseCurrency: "USD",
   currentScope: {
     totalCount: 2,
-    typeCounts: { all: 2, income: 1, expense: 1, transfer: 0, internalTransfer: 0 },
+    typeCounts: { all: 2, income: 1, expense: 1, transfer: 0, internalTransfer: 0, correction: 0 },
     period: { startDate: "2026-06-01T00:00:00", endDate: "2026-06-30T23:59:59" },
     cashFlowBuckets: [
       { date: "2026-06-05T00:00:00", currency: "USD", income: 100, expense: -42, recordCount: 2 },
@@ -132,6 +132,14 @@ describe("transactionsApi", () => {
       type: "all",
       search: "",
     });
+  });
+
+  it("posts a correction through the authenticated client without a category or recipient", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse(undefined));
+    const body = { accountId: 2, amount: 25, comment: "Cash recount", created: "2026-10-22", direction: "decrease" as const };
+    await store.dispatch(transactionsApi.endpoints.createCorrection.initiate(body));
+    expect(mockApiClient).toHaveBeenCalledWith(expect.objectContaining({ url: "/transactions/correction", method: "post", data: body }));
   });
 
   it("posts an internal transfer with its explicit direction", async () => {

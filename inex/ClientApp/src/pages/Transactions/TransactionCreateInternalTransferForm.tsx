@@ -1,6 +1,6 @@
 import * as React from "react";
 import type { MenuProps } from "antd";
-import { DatePicker, Form, Input } from "antd";
+import { Alert, DatePicker, Form, Input } from "antd";
 import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +15,7 @@ import type { TransactionCreateValidationErrors } from "./TransactionCreate";
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
 interface TransactionCreateInternalTransferFormProps {
+    correction?: boolean;
     account: AccountDetails;
     accounts: AccountResponse[];
     amount: number;
@@ -30,6 +31,7 @@ interface TransactionCreateInternalTransferFormProps {
 }
 
 const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalTransferFormProps> = ({
+    correction = false,
     account,
     accounts,
     amount,
@@ -47,12 +49,13 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
 
     return (
         <Form layout="vertical" hideRequiredMark>
+            {correction && <Alert type="info" showIcon message={t("transactions.correctionExplanation")} />}
             <Form.Item label={t("transactions.internalTransferDirection")}>
                 <SegmentedControl
                     onChange={(value) => onSetDirection(value as InternalTransferDirection)}
                     options={[
-                        { key: "outgoing", label: t("transactions.internalTransferOutgoing") },
-                        { key: "incoming", label: t("transactions.internalTransferIncoming") },
+                        { key: "outgoing", label: t(correction ? "transactions.correctionDecrease" : "transactions.internalTransferOutgoing") },
+                        { key: "incoming", label: t(correction ? "transactions.correctionIncrease" : "transactions.internalTransferIncoming") },
                     ]}
                     size="compact"
                     value={direction}
@@ -94,11 +97,12 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
             >
                 <DatePicker mode="date" onChange={onSetDate} value={date} />
             </Form.Item>
-            <Form.Item label={t("transactions.comment")}>
+            <Form.Item required={correction} help={validationErrors.comment} validateStatus={validationErrors.comment ? "error" : undefined} label={t(correction ? "transactions.correctionReason" : "transactions.comment")}>
                 <Input
+                    maxLength={correction ? 255 : undefined}
                     key="internal_transfer_comment"
                     onChange={onSetComment}
-                    placeholder={t("transactions.commentPlaceholder")}
+                    placeholder={t(correction ? "transactions.correctionReason" : "transactions.commentPlaceholder")}
                     size="large"
                     value={comment}
                 />

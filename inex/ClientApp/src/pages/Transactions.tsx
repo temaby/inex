@@ -571,6 +571,7 @@ const Transactions = () => {
         [TransactionType.INCOME]: t("transactions.newIncomeSubtitle"),
         [TransactionType.TRANSFER]: t("transactions.newTransferSubtitle"),
         [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferSubtitle"),
+        [TransactionType.CORRECTION]: t("transactions.newCorrectionSubtitle"),
     }[createMode];
 
     const accountBalancesOverview = (
@@ -703,6 +704,7 @@ const Transactions = () => {
                                     { key: "expense", label: `${t("transactions.expense")} ${viewTypeCounts.expense}` },
                                     { key: "transfer", label: `${t("transactions.transfer")} ${viewTypeCounts.transfer}` },
                                     { key: "internalTransfer", label: `${t("transactions.internalTransfer")} ${viewTypeCounts.internalTransfer}` },
+                                    { key: "correction", label: `${t("transactions.correction")} ${viewTypeCounts.correction}` },
                                 ]}
                                 size="compact"
                                 value={canonicalFilter.type}

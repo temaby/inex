@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 
-export type LedgerTypeFilter = "all" | "income" | "expense" | "transfer" | "internalTransfer";
+export type LedgerTypeFilter = "all" | "income" | "expense" | "transfer" | "internalTransfer" | "correction";
 export type LedgerTransactionKind = Exclude<LedgerTypeFilter, "all">;
 export type TransactionNavigationMode = "progressive" | "pagination";
 
@@ -19,6 +19,7 @@ export interface LedgerTypeCounts {
   expense: number;
   transfer: number;
   internalTransfer: number;
+  correction: number;
 }
 
 export interface LedgerMetrics extends LedgerSummary {
@@ -100,6 +101,7 @@ export const emptyLedgerMetrics: LedgerMetrics = {
     expense: 0,
     transfer: 0,
     internalTransfer: 0,
+    correction: 0,
   },
 };
 
@@ -274,6 +276,7 @@ export const getTransactionKind = (
   transaction: TransactionResponse,
   category?: CategoryResponse,
 ): LedgerTransactionKind => {
+  if (category?.isSystem && category.systemCode === "correction") return "correction";
   if (category?.systemCode === "internal-transfer") return "internalTransfer";
   if (category?.isSystem) return "transfer";
   return transaction.amount >= 0 ? "income" : "expense";
@@ -289,6 +292,7 @@ export const getLedgerTypeCounts = (
     expense: 0,
     transfer: 0,
     internalTransfer: 0,
+    correction: 0,
   };
 
   for (const transaction of transactions) {
