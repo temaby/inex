@@ -169,7 +169,8 @@ const renderCreateForm = () =>
 describe("TransactionCreate", () => {
     it("requires a correction reason and uses its dedicated endpoint without a recipient", async () => {
         const user = userEvent.setup(); renderCreateForm();
-        await user.click(screen.getByRole("button", { name: "transactions.correction" }));
+        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
+        await user.click(screen.getByText("transactions.correction", { selector: ".ant-select-item-option-content" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
         await user.click(screen.getByRole("button", { name: "transactions.saveCorrection" }));
         expect(mutationState.createCorrection).not.toHaveBeenCalled();
@@ -238,7 +239,8 @@ describe("TransactionCreate", () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("button", { name: "Transfer" }));
+        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
+        await user.click(screen.getByText("Transfer", { selector: ".ant-select-item-option-content" }));
         await user.click(screen.getByRole("button", { name: "Save transfer" }));
 
         expect(mutationState.createTransfer).not.toHaveBeenCalled();
@@ -252,7 +254,8 @@ describe("TransactionCreate", () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("button", { name: "Internal transfer" }));
+        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
+        await user.click(screen.getByText("Internal transfer", { selector: ".ant-select-item-option-content" }));
         await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
 
         expect(screen.getByTestId("internal-transfer-form")).toBeInTheDocument();
@@ -265,7 +268,8 @@ describe("TransactionCreate", () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("button", { name: "Internal transfer" }));
+        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
+        await user.click(screen.getByText("Internal transfer", { selector: ".ant-select-item-option-content" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
 
@@ -279,9 +283,10 @@ describe("TransactionCreate", () => {
     it("sends a selected linked user through the separate idempotent request endpoint", async () => {
         mutationState.linkedUsers = [{ id: 2, username: "Linked QA" }];
         const user = userEvent.setup(); renderCreateForm();
-        await user.click(screen.getByRole("button", { name: "Internal transfer" }));
+        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
+        await user.click(screen.getByText("Internal transfer", { selector: ".ant-select-item-option-content" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
-        await user.click(screen.getByRole("combobox")); await user.click(screen.getByTitle("Linked QA"));
+        await user.click(screen.getByRole("combobox", { name: "" })); await user.click(screen.getByTitle("Linked QA"));
         await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
         expect(mutationState.createLinked).toHaveBeenCalledWith(expect.objectContaining({ linkedUserId: 2, accountId: 1, amount: 25, direction: "incoming", submissionKey: expect.any(String) }));
         expect(mutationState.createInternalTransfer).not.toHaveBeenCalled();

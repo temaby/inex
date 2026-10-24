@@ -4,7 +4,7 @@ import { Form, Select, Alert, type MenuProps } from "antd";
 import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
-import { InExButton, SegmentedControl } from "../../components/primitives";
+import { InExButton } from "../../components/primitives";
 import { AccountDetails } from "../../model/Account/AccountDetails";
 import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionSetState } from "../../model/Transaction/TransactionSetState";
@@ -150,8 +150,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         [categories, t],
     );
 
-    const setModeHandler = (mode: string) => {
-        dispatchTransactionAction({ type: "SET_MODE", value: mode as TransactionType });
+    const setModeHandler = (mode: TransactionType) => {
+        dispatchTransactionAction({ type: "SET_MODE", value: mode });
         setValidationErrors({});
         setLinkedUserId(undefined);
         submissionKey.current = crypto.randomUUID();
@@ -348,18 +348,23 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 
     return (
         <div className="transactions-create-form">
-            <SegmentedControl
-                onChange={setModeHandler}
-                options={[
-                    { key: TransactionType.EXPENSE, label: t("transactions.expense") },
-                    { key: TransactionType.INCOME, label: t("transactions.income") },
-                    { key: TransactionType.TRANSFER, label: t("transactions.transfer") },
-                    { key: TransactionType.INTERNAL_TRANSFER, label: t("transactions.internalTransfer") },
-                    { key: TransactionType.CORRECTION, label: t("transactions.correction") },
-                ]}
-                size="compact"
-                value={state.mode}
-            />
+            <Form layout="vertical">
+                <Form.Item label={t("transactions.type")} htmlFor="transaction-create-type">
+                    <Select<TransactionType>
+                        id="transaction-create-type"
+                        onChange={setModeHandler}
+                        options={[
+                            { value: TransactionType.EXPENSE, label: t("transactions.expense") },
+                            { value: TransactionType.INCOME, label: t("transactions.income") },
+                            { value: TransactionType.TRANSFER, label: t("transactions.transfer") },
+                            { value: TransactionType.INTERNAL_TRANSFER, label: t("transactions.internalTransfer") },
+                            { value: TransactionType.CORRECTION, label: t("transactions.correction") },
+                        ]}
+                        style={{ width: "100%" }}
+                        value={state.mode}
+                    />
+                </Form.Item>
+            </Form>
 
             {state.mode === TransactionType.EXPENSE && (
                 <TransactionCreateExpenseForm
