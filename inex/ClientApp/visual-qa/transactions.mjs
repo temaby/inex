@@ -18,7 +18,7 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
+const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transaction-type-dropdown") ? "docs/implementation/visual-qa/transaction-type-dropdown" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
 const fixturePath = path.join(clientRoot, "src/test/fixtures/transactionsVisualFixture.ts");
 
 const authUser = {
@@ -140,6 +140,9 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
 }
 
 const states = [
+  ...visualQaViewports.map(({suffix, viewport}) => ({ name: `transaction-type-dropdown-${suffix}`, screenshot: `transaction-type-dropdown-${suffix}.png`, viewport, scenario: "correction", interaction: "open-type-dropdown" })),
+  { name: "transaction-type-dropdown-ru-360", screenshot: "transaction-type-dropdown-ru-360.png", viewport: { width: 360, height: 900 }, scenario: "correction-ru", interaction: "open-type-dropdown" },
+
   ...visualQaViewports.filter(({suffix}) => ["1440", "360"].includes(suffix)).map(({suffix, viewport}) => ({ name: `correction-ledger-${suffix}`, screenshot: `correction-ledger-${suffix}.png`, viewport, scenario: "correction-ledger" })),
   { name: "correction-edit-360", screenshot: "correction-edit-360.png", viewport: { width: 360, height: 900 }, scenario: "correction-edit", interaction: "open-row-edit" },
   ...visualQaViewports.map(({suffix, viewport}) => ({ name: `correction-create-${suffix}`, screenshot: `correction-create-${suffix}.png`, viewport, scenario: "correction", interaction: "open-correction-drawer" })),
@@ -591,6 +594,19 @@ async function applyInteraction(client, state) {
     return;
   }
   switch (state.interaction) {
+    case "open-type-dropdown": {
+      const russian = state.scenario === "correction-ru";
+      await evaluate(client, clickButtonByTextExpression(russian ? "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c" : "Add transaction"));
+      await waitFor(client, "Boolean(document.querySelector('#transaction-create-type'))");
+      const labels = russian ? ["\u0414\u043e\u0445\u043e\u0434", "\u041f\u0435\u0440\u0435\u0432\u043e\u0434", "\u0412\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0438\u0439 \u043f\u0435\u0440\u0435\u0432\u043e\u0434", "\u041a\u043e\u0440\u0440\u0435\u043a\u0442\u0438\u0440\u043e\u0432\u043a\u0430", "\u0420\u0430\u0441\u0445\u043e\u0434"] : ["Income", "Transfer", "Internal transfer", "Correction", "Expense"];
+      for (const label of labels) {
+        await selectTransactionType(client, label);
+        await waitFor(client, `document.querySelector('.transactions-create-form .ant-select-selection-item')?.textContent === ${JSON.stringify(label)}`);
+      }
+      await evaluate(client, "document.querySelector('#transaction-create-type').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))");
+      await waitFor(client, "document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option').length === 5");
+      return;
+    }
     case "select-linked-account":
       await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
       await evaluate(client, `(() => {
@@ -647,22 +663,13 @@ async function applyInteraction(client, state) {
     case "open-correction-drawer":
       await evaluate(client, clickButtonByTextExpression(state.scenario === "correction-ru" ? "Добавить" : "Add transaction"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
-      await evaluate(client, `(() => {
-        const tab = Array.from(document.querySelectorAll(".transactions-create-form button")).find(button => button.textContent?.trim() === ${JSON.stringify(state.scenario === "correction-ru" ? "Корректировка" : "Correction")});
-        if (!tab) throw new Error("Correction mode button missing");
-        tab.click();
-      })()`);
+      await selectTransactionType(client, state.scenario === "correction-ru" ? "\u041a\u043e\u0440\u0440\u0435\u043a\u0442\u0438\u0440\u043e\u0432\u043a\u0430" : "Correction");
       await waitFor(client, "document.body.innerText.includes('Reason for correction') || document.body.innerText.includes('Причина корректировки')");
       return;
     case "open-internal-transfer-drawer":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
-      await evaluate(client, `(() => {
-        const tab = Array.from(document.querySelectorAll(".transactions-create-form button")).find((item) => item.textContent?.trim() === "Internal transfer");
-        if (!tab) return false;
-        tab.click();
-        return true;
-      })()`);
+      await selectTransactionType(client, "Internal transfer");
       await waitFor(client, "document.body.innerText.includes('Direction') && document.body.innerText.includes('Sent') && document.body.innerText.includes('Received')");
       return;
     case "open-filter-drawer":
@@ -747,6 +754,20 @@ async function applyInteraction(client, state) {
     default:
       throw new Error(`Unknown interaction: ${state.interaction}`);
   }
+}
+
+async function selectTransactionType(client, label) {
+  await evaluate(client, `(() => {
+    const input = document.querySelector('#transaction-create-type');
+    if (!input) throw new Error("Transaction type select missing");
+    input.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+  })()`);
+  await waitFor(client, "Boolean(document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'))");
+  await evaluate(client, `(() => {
+    const option = Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')).find(item => item.textContent?.trim() === ${JSON.stringify(label)});
+    if (!option) throw new Error("Transaction type option missing");
+    option.click();
+  })()`);
 }
 
 async function openRowEdit(client) {
