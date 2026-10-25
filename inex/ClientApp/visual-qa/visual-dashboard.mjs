@@ -10,6 +10,9 @@ const states = [
   ...[1440, 1024, 390, 360].map((width) => ({ name: `populated-${width}`, scenario: "populated", width })),
   { name: "russian-390", scenario: "russian", width: 390 },
   { name: "long-amounts-russian-360", scenario: "long-amounts", width: 360 },
+  ...["income-two", "income-four", "income-tiny", "income-single-parent"].map((scenario) => ({ name: `${scenario}-390`, scenario, width: 390 })),
+  { name: "income-children-1440", scenario: "income-single-parent", width: 1440, interaction: "income-drilldown" },
+  { name: "income-other-390", scenario: "populated", width: 390, interaction: "income-other" },
   { name: "negative-wallet-390", scenario: "negative", width: 390 },
   { name: "negative-late-wallet-390", scenario: "negative-late", width: 390 },
   ...["single-category", "empty", "no-activity", "income-only", "expense-only", "missing-rate", "category-error", "summary-error", "accounts-error"].map((scenario) => ({ name: `${scenario}-390`, scenario, width: 390 })),
@@ -34,10 +37,18 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     get dashboardVisualFixtureCategories() {
       return fixture.dashboardVisualFixtureCategories.map((category) => ({
         ...category,
+        parentId: scenarioRef.current === "income-single-parent" && category.id === 211 ? 200 : category.parentId,
         name: scenarioRef.current === "long-amounts" ? `${category.name} — Очень длинное название категории для проверки переноса текста` : category.name,
       }));
     },
     get dashboardVisualFixtureTransactions() {
+      const scenario = scenarioRef.current;
+      if (["income-two", "income-four", "income-single-parent", "income-tiny"].includes(scenario)) {
+        const ids = scenario === "income-four" ? [201, 211, 221, 231] : scenario === "income-tiny" ? [201, 251] : [201, 211];
+        return fixture.dashboardVisualFixtureTransactions
+          .filter((transaction) => transaction.amount < 0 || ids.includes(transaction.categoryId))
+          .map((transaction) => scenario === "income-tiny" && transaction.categoryId === 251 ? { ...transaction, amount: 0.01 } : transaction);
+      }
       return scenarioRef.current === "single-category"
         ? fixture.dashboardVisualFixtureTransactions.filter((transaction) => [101, 201].includes(transaction.categoryId))
         : fixture.dashboardVisualFixtureTransactions;
@@ -64,6 +75,14 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "income-drilldown") {
+    await evaluate(client, "document.querySelector('[data-income-key=\"200\"]').click()");
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-income-chart]')) && document.querySelectorAll('[data-income-key]').length === 2");
+  }
+  if (state.interaction === "income-other") {
+    await evaluate(client, "document.querySelector('[data-income-key=other]').click()");
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-income] [aria-expanded=true]'))");
+  }
   if (state.interaction === "settings") {
     await waitFor(client, "Boolean(document.querySelector('[role=switch][aria-labelledby=profile-dashboard-heading]'))");
     await evaluate(client, "document.querySelector('[role=switch][aria-labelledby=profile-dashboard-heading]').click()");
@@ -71,6 +90,8 @@ async function applyInteraction(client, state) {
     process.stdout.write("Visual dashboard QA: Settings preference saved\n");
     await evaluate(client, clickButtonByTextExpression("Dashboard"));
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-dashboard]'))");
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-income-total]')) && !document.querySelector('.ant-spin-spinning')");
+    await wait(150);
     const dashboardUrl = await evaluate(client, "location.href");
     await client.send("Page.navigate", { url: dashboardUrl });
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-dashboard]')) && document.querySelector('[data-qa=visual-money]').innerText.includes('Daily account')");
@@ -102,7 +123,7 @@ async function collectMetrics(client, state) {
     const nav = document.querySelector('.r-bottom-nav');
     const bottomNavVisible = Boolean(nav && getComputedStyle(nav).display !== 'none');
     const content = document.querySelector('[data-qa=visual-dashboard]') ?? document.querySelector('.dashboard-workspace');
-    const cards = ['visual-expenses','visual-money','visual-flow'].map(key => document.querySelector('[data-qa='+key+']'));
+    const cards = ['visual-expenses','visual-money','visual-income','visual-flow'].map(key => document.querySelector('[data-qa='+key+']'));
     const bounds = cards.map(el => { const r = el?.getBoundingClientRect(); return r ? { x:r.x, y:r.y, width:r.width, height:r.height } : null; });
     const charts = [...document.querySelectorAll('.recharts-surface')];
     return {
@@ -118,6 +139,11 @@ async function collectMetrics(client, state) {
       accountBar: Boolean(document.querySelector('[data-qa=visual-account-bar]')),
       balance: document.querySelector('[data-qa=visual-balance-total]')?.textContent,
       expenseTotal: document.querySelector('[data-qa=visual-expense-total]')?.textContent,
+      incomeTotal: document.querySelector('[data-qa=visual-income-total]')?.textContent,
+      incomeChart: Boolean(document.querySelector('[data-qa=visual-income-chart] .recharts-pie-sector')),
+      incomeLegendCount: document.querySelectorAll('[data-income-key]').length,
+      incomeOtherMembers: document.querySelectorAll('[data-qa=visual-income] .visual-dashboard-legend__members button').length,
+      tinyIncomeShare: document.querySelector('[data-income-key="250"] .visual-dashboard-legend__percentage')?.textContent,
       flowResult: document.querySelector('[data-qa=visual-flow-result]')?.textContent,
       flowRows: document.querySelectorAll('[data-flow]').length,
       flowRowsDisabled: [...document.querySelectorAll('[data-flow]')].every(el => el.disabled),
@@ -156,7 +182,7 @@ function runState(args) {
         else if (state.scenario === "category-error") await waitFor(client, "document.body.innerText.includes('Could not load category breakdown')");
         else if (["summary-error", "accounts-error"].includes(state.scenario)) await waitFor(client, "document.body.innerText.includes('Could not load cash flow')");
         else if (["empty", "no-activity", "income-only"].includes(state.scenario)) await waitFor(client, "document.body.innerText.includes('No categorized expenses this month')");
-        else await waitFor(client, "document.querySelectorAll('.recharts-surface').length === 1 && !document.querySelector('.ant-spin-spinning')");
+        else await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-expenses] .recharts-surface')) && !document.querySelector('.ant-spin-spinning')");
       }
     },
     applyInteraction,
@@ -173,18 +199,28 @@ function collectAdditionalFailures(results) {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
       continue;
     }
-    if (!state.visual || state.cardCount !== 3 || state.chartBlank) failures.push(`${state.name}: missing cards or blank chart`);
+    if (!state.visual || state.cardCount !== 4 || state.chartBlank) failures.push(`${state.name}: missing cards or blank chart`);
     if (["populated", "russian", "long-amounts", "single-category", "linked", "settings"].includes(state.scenario) && !state.accountBar) failures.push(`${state.name}: account shares absent`);
     if (["negative", "negative-late", "missing-rate", "empty"].includes(state.scenario) && state.accountBar) failures.push(`${state.name}: misleading account shares`);
     if (state.scenario === "empty" && !state.flowRowsDisabled) failures.push(`${state.name}: empty scope navigation enabled`);
     if (state.scenario === "accounts-error" && (state.flowRows || state.flowResult)) failures.push(`${state.name}: failed scope shown as complete zeros`);
     if (state.scenario === "negative-late" && !state.negativeWarningLinked) failures.push(`${state.name}: missing link to negative wallet details`);
     if (state.width >= 1200 && state.interaction !== "settings") {
-      const [expense, money, flow] = state.bounds;
-      if (Math.abs(expense.y - money.y) > 1 || expense.width <= money.width || flow.y <= expense.y) failures.push(`${state.name}: desktop hierarchy incorrect`);
+      const [expense, money, income, flow] = state.bounds;
+      if (Math.abs(expense.y - money.y) > 1 || expense.width <= money.width || income.y < money.y + money.height || flow.y < Math.max(expense.y + expense.height, income.y + income.height)) failures.push(`${state.name}: desktop hierarchy incorrect`);
     }
     if (state.scenario === "populated" && !state.interaction && !state.flowResult?.includes('2,000')) failures.push(`${state.name}: financial result incorrect`);
+    if (state.width <= 600 && state.bounds.some((card) => Math.abs(card.width - state.bounds[0].width) > 1)) failures.push(`${state.name}: mobile cards do not fill the column`);
     if (state.scenario === "single-category" && state.chartCount !== 1) failures.push(`${state.name}: single-category chart missing`);
+    const singleIncome = state.scenario === "single-category" || (state.scenario === "income-single-parent" && !state.interaction);
+    if (singleIncome && (state.incomeChart || state.incomeLegendCount !== 1)) failures.push(`${state.name}: single income should use a summary`);
+    const multiIncome = ["populated", "russian", "long-amounts", "income-only", "income-two", "income-four", "income-tiny"].includes(state.scenario) || state.interaction === "income-drilldown";
+    if (multiIncome && !state.incomeChart) failures.push(`${state.name}: income donut missing`);
+    if (state.scenario === "income-two" && state.incomeLegendCount !== 2) failures.push(`${state.name}: two-source legend incomplete`);
+    if (state.scenario === "income-four" && state.incomeLegendCount !== 4) failures.push(`${state.name}: four-source legend incomplete`);
+    if (state.scenario === "income-tiny" && state.tinyIncomeShare !== '<0.1%') failures.push(`${state.name}: small positive share rounded to zero`);
+    if (state.interaction === "income-other" && state.incomeOtherMembers !== 3) failures.push(`${state.name}: grouped income values unavailable`);
+    if (["empty", "no-activity", "expense-only", "category-error", "accounts-error"].includes(state.scenario) && state.incomeTotal) failures.push(`${state.name}: unavailable income shown as complete`);
   }
   return failures;
 }

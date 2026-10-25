@@ -253,6 +253,11 @@
       "retry": "Retry rates"
     },
     "visual": {
+      "incomeTitle": "Where it came from",
+      "incomeHint": "Your income, by category",
+      "incomeTotal": "Earned this month",
+      "viewBreakdown": "View breakdown",
+      "smallShare": "<{{percentage}}",
       "expensesTitle": "My spending",
       "expenseHint": "Where my money goes",
       "expenseTotal": "Spent this month",

@@ -255,6 +255,11 @@
       "retry": "Повторить загрузку курсов"
     },
     "visual": {
+      "incomeTitle": "Откуда пришли деньги",
+      "incomeHint": "Доходы по категориям",
+      "incomeTotal": "Доходы за месяц",
+      "viewBreakdown": "Посмотреть состав",
+      "smallShare": "<{{percentage}}",
       "expensesTitle": "Мои расходы",
       "expenseHint": "Куда уходят мои деньги",
       "expenseTotal": "Расходы за месяц",

@@ -56,6 +56,20 @@ npm run lint
 
 ## Evidence Summary
 
+### Visual dashboard income distribution — 2026-10-25
+
+The current visual composition has four cards: expenses on the left, compact wallets and income stacked on the right, and the monthly comparison below. The smaller cards sit side by side at tablet widths and fill one column on phones. Data mode: **fixture**; no real backend or provider calls.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| Desktop, tablet, mobile, narrow mobile | [1440px](../../implementation/visual-qa/visual-dashboard/populated-1440.png), [1024px](../../implementation/visual-qa/visual-dashboard/populated-1024.png), [390px](../../implementation/visual-qa/visual-dashboard/populated-390.png), [360px](../../implementation/visual-qa/visual-dashboard/populated-360.png) | Full-width phone cards, compact readable legends, proportional charts, one period label |
+| Income adaptations | [Two](../../implementation/visual-qa/visual-dashboard/income-two-390.png), [four](../../implementation/visual-qa/visual-dashboard/income-four-390.png), [single parent](../../implementation/visual-qa/visual-dashboard/income-single-parent-390.png), [children](../../implementation/visual-qa/visual-dashboard/income-children-1440.png), [Other expanded](../../implementation/visual-qa/visual-dashboard/income-other-390.png), [tiny segment](../../implementation/visual-qa/visual-dashboard/income-tiny-390.png) | Single category uses a summary; child drill-down and underlying Other values remain accessible; tiny positive shares use <0.1% and exact segment geometry |
+| Russian and long amounts | [Russian](../../implementation/visual-qa/visual-dashboard/russian-390.png), [long amounts](../../implementation/visual-qa/visual-dashboard/long-amounts-russian-360.png) | Localized text and amounts wrap within cards |
+
+Result: **PASS**, all 28 visual states and all 17 Classic Dashboard states. Build/typecheck, lint, and all 294 frontend tests pass. No page overflow, blank charts, hidden-account disclosure, unhandled API requests, or final-content navigation occlusion. The canonical verifier fails only on seven unrelated stale summaries; both dashboard summaries pass.
+
+The earlier three-card evidence below is historical. Financial inputs, the Classic Dashboard, and the feature flag are unchanged. The existing fixture's independently authored category rows and summary values differ; see [implementation notes](../../implementation/spec-visual-dashboard-income-distribution.md) for the preserved inputs and validation details.
+
 ### Alternative visual dashboard — 2026-10-25
 
 Follow-up: personalized headings (“Мои расходы”, “Мои деньги”; EN equivalents) and replaced expense donut/legend greens with coral, amber, rose and lavender/blue. Account colors retain their existing mapping. Re-ran all 22 visual-dashboard fixture states and inspected desktop and Russian mobile captures: PASS. Settings persistence capture now reloads through full navigation to the current URL to avoid a recurring CDP `Page.reload` stall.

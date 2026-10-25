@@ -329,8 +329,118 @@ describe("Dashboard", () => {
     const widths = [...flow.querySelectorAll<HTMLElement>('[data-qa="visual-flow-bar"]')].map(el => parseFloat(el.style.width));
     expect(widths[0]).toBeCloseTo(parseFloat(incomeWidth));
     expect(widths[1]).toBeCloseTo(parseFloat(expenseWidth));
-    expect(container.querySelectorAll(".visual-dashboard-card")).toHaveLength(3);
+    expect(container.querySelectorAll(".visual-dashboard-card")).toHaveLength(4);
     expect(screen.queryByText("dashboard.categories.incomeTitle")).not.toBeInTheDocument();
+  });
+
+  it.each([0, 1, 2, 4, 5, 10])("adapts visual income to %s categories without losing amounts", (count) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    const categories = Array.from({ length: count }, (_, index) => ({ id: 200 + index, name: `Income ${index}`, parentId: null }));
+    apiMocks.categories.mockReturnValue({ currentData: categories, isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: categories.map((category, index) => ({
+      categoryId: category.id, accountCurrency: "USD", amount: (count - index) * 100, created: "2026-09-01",
+    })) }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const income = container.querySelector<HTMLElement>('[data-qa="visual-income"]')!;
+    expect(income.querySelector('[data-qa="visual-income-chart"]') !== null).toBe(count > 1);
+    expect(income.querySelectorAll('[data-income-key]')).toHaveLength(Math.min(count, 5));
+    if (count === 0) {
+      expect(income).toHaveTextContent("dashboard.categories.incomeEmpty");
+    } else {
+      expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent(`USD ${count * (count + 1) * 50}`);
+      const first = income.querySelector('[data-income-key="200"]')!;
+      fireEvent.focus(first);
+      expect(first).toHaveClass("is-highlighted");
+      fireEvent.click(first);
+      expect(apiMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/accountIds:1;categoryIds:200;.*type:income;/));
+    }
+    if (count > 4) {
+      const other = income.querySelector('[data-income-key="other"]')!;
+      expect(other).toHaveAttribute("aria-expanded", "false");
+      fireEvent.click(other);
+      expect(other).toHaveAttribute("aria-expanded", "true");
+      const members = income.querySelectorAll('.visual-dashboard-legend__members button');
+      expect(members).toHaveLength(count - 4);
+      expect(members[0]).toHaveTextContent("Income 4");
+      expect(members[0]).toHaveTextContent(`USD ${(count - 4) * 100}`);
+      fireEvent.click(members[0]);
+      expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1;categoryIds:204;.*type:income;/));
+    }
+  });
+
+  it("opens a single income parent's child breakdown and restores keyboard focus on return", async () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 200, name: "Work", parentId: null },
+      { id: 201, name: "Salary", parentId: 200 },
+      { id: 202, name: "Bonus", parentId: 200 },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 200, accountCurrency: "USD", amount: 10, created: "2026-09-01" },
+      { categoryId: 201, accountCurrency: "USD", amount: 800, created: "2026-09-01" },
+      { categoryId: 202, accountCurrency: "USD", amount: 200, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const income = container.querySelector<HTMLElement>('[data-qa="visual-income"]')!;
+    expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
+    expect(income).toHaveTextContent("dashboard.visual.viewBreakdown");
+    fireEvent.click(income.querySelector('[data-income-key="200"]')!);
+    expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeInTheDocument();
+    expect(income.querySelectorAll('[data-income-key]')).toHaveLength(3);
+    expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 1010");
+    expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).toHaveFocus();
+    fireEvent.click(income.querySelector('[data-income-key="202"]')!);
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1;categoryIds:202;.*type:income;/));
+    fireEvent.keyDown(income, { key: "Escape" });
+    await act(async () => { await new Promise((resolve) => window.requestAnimationFrame(resolve)); });
+    expect(income.querySelector('[data-income-key="200"]')).toHaveFocus();
+    expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
+  });
+
+  it("keeps income gross flows and hierarchy separate from receiving wallets and system categories", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 200, name: "Work", parentId: null }, { id: 201, name: "Salary", parentId: 200 },
+      { id: 300, name: "Transfers", parentId: null, isSystem: true },
+      { id: 301, name: "Internal", parentId: 300 },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 201, accountCurrency: "USD", amount: 500, created: "2026-09-01" },
+      { categoryId: 201, accountCurrency: "USD", amount: -40, created: "2026-09-01" },
+      { categoryId: 301, accountCurrency: "USD", amount: 999, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const income = container.querySelector<HTMLElement>('[data-qa="visual-income"]')!;
+    expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 500");
+    expect(income).not.toHaveTextContent("Transfers");
+    expect(income).not.toHaveTextContent("Visible USD");
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.child" }));
+    expect(income.querySelector('[data-income-key="201"]')).toHaveTextContent("Work / Salary");
+  });
+
+  it("withholds partial income when its dated currency conversion is missing", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [{ id: 200, name: "Salary", parentId: null }], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 200, accountCurrency: "USD", amount: 500, created: "2026-09-01" },
+      { categoryId: 200, accountCurrency: "EUR", amount: 200, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container, rerender } = render(<Dashboard />);
+    const [start, end] = vi.mocked(fetchRatesForRange).mock.calls[0];
+    const key = `2:${start}:${end}`;
+    linkedState.rates.range = { items: [], requestKey: key, completedKey: key, loading: false, error: null };
+    rerender(<Dashboard />);
+    const income = container.querySelector<HTMLElement>('[data-qa="visual-income"]')!;
+    expect(income).toHaveTextContent("dashboard.unavailable.title");
+    expect(income.querySelector('[data-qa="visual-income-total"]')).toBeNull();
+    fireEvent.click(within(income).getByRole("button", { name: "dashboard.unavailable.retry" }));
+    expect(fetchRatesForRange).toHaveBeenCalledTimes(2);
+    linkedState.rates.range = {
+      items: [{ id: 1, currencyFrom: "USD", currencyTo: "EUR", rate: 2, date: "2026-09-01", isTemporary: false }],
+      requestKey: key, completedKey: key, loading: false, error: null,
+    };
+    rerender(<Dashboard />);
+    expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 600");
   });
 
   it("renders one expense category, highlights it and opens the existing scoped transaction link", () => {
@@ -414,6 +524,8 @@ describe("Dashboard", () => {
     expect(container.querySelector('[data-qa="visual-flow-result"]')).not.toBeInTheDocument();
     expect(container.querySelector('[data-flow="income"]')).not.toBeInTheDocument();
     expect(screen.queryByText("dashboard.categories.expenseEmpty")).not.toBeInTheDocument();
+    expect(container.querySelector('[data-qa="visual-income-total"]')).not.toBeInTheDocument();
+    expect(screen.queryByText("dashboard.categories.incomeEmpty")).not.toBeInTheDocument();
     if (status.isError) expect(screen.getByText("dashboard.cashFlow.error")).toBeInTheDocument();
   });
 

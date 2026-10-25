@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T10:39:27.105Z",
+  "generatedAt": "2026-10-25T11:01:43.105Z",
   "page": "visual-dashboard",
   "dataMode": "fixture",
   "harness": {
@@ -13,6 +13,12 @@
     "populated-360.png",
     "russian-390.png",
     "long-amounts-russian-360.png",
+    "income-two-390.png",
+    "income-four-390.png",
+    "income-tiny-390.png",
+    "income-single-parent-390.png",
+    "income-children-1440.png",
+    "income-other-390.png",
     "negative-wallet-390.png",
     "negative-late-wallet-390.png",
     "single-category-390.png",
@@ -46,43 +52,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 40,
-          "y": 63.796875,
+          "y": -109.203125,
           "width": 812.078125,
-          "height": 634.140625
+          "height": 807.09375
         },
         {
           "x": 876.078125,
-          "y": 63.796875,
+          "y": -109.203125,
           "width": 523.921875,
-          "height": 634.140625
+          "height": 425.015625
+        },
+        {
+          "x": 876.078125,
+          "y": 339.8125,
+          "width": 523.921875,
+          "height": 358.078125
         },
         {
           "x": 40,
-          "y": 721.9375,
+          "y": 721.890625,
           "width": 1360,
           "height": 245.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1425,
-        "height": 1099,
+        "height": 1272,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -102,8 +118,7 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
-        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
       ]
     },
     {
@@ -121,43 +136,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 40,
-          "y": -496.203125,
+          "y": -375.203125,
           "width": 944,
           "height": 634.140625
         },
         {
           "x": 40,
-          "y": 161.9375,
-          "width": 944,
-          "height": 536.234375
+          "y": 282.9375,
+          "width": 460,
+          "height": 414.984375
+        },
+        {
+          "x": 524,
+          "y": 282.9375,
+          "width": 460,
+          "height": 358.078125
         },
         {
           "x": 40,
-          "y": 722.171875,
+          "y": 721.921875,
           "width": 944,
           "height": 245.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1009,
-        "height": 1659,
+        "height": 1538,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -195,43 +220,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1262.015625,
+          "y": -1553.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -502.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 13.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2347,
+        "height": 2638,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -269,43 +304,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1262.015625,
+          "y": -1745.015625,
           "width": 328,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -694.875,
           "width": 328,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": -178.390625,
+          "width": 328,
+          "height": 550.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 328,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "QA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "QA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 345,
-        "height": 2343,
+        "height": 2826,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -325,7 +370,9 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -343,43 +390,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1262.015625,
+          "y": -1553.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -502.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 13.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23 865,00USD",
       "expenseTotal": "3 365,00USD",
+      "incomeTotal": "5 453,00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Доходы превысили расходы на 2 000,00 $",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nапрель 2026 г.\nДобавить транзакцию\nМои расходы\n\nКуда уходят мои деньги\n\nапрель 2026 г.\nНАЧАЛЬНЫЙ УРОВЕНЬ\nРодительские\nДочерние\nРасходы за месяц\n3 365,00\nUSD\nHome\n49 %\n1 665,00\nUSD\nFood\n26 %\n880,00\nUSD\nTransport\n5 %\n185,00\nUSD\nHealth\n4 %\n142,00\nUSD\nFamily\n4 %\n128,00\nUSD\nLeisure\n3 %\n96,00\nUSD\nShopping\n2 %\n84,00\nUSD\nEducation\n2 %\n72,00\nUSD\nПрочее\n3 %\n113,00\nUSD\nМои деньги\n\nНа выбранных кошельках\n\n23 865,00\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nДоли в USD\n\nБалансы кошельков · в исходных валютах\nDaily account\n2 380,00\nUSD\nSavings\n12 400,00\nUSD\nTravel card\n3 200,00\nPLN\nВсе счета\nКак прошёл месяц\n\nДоходы и расходы рядом\n\nДоходы\n5 400,00\nUSD\nРасходы\n-3 400,00\nUSD\n\nДоходы превысили расходы на 2 000,00 $\n\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты",
+      "textSample": "InEx\nQA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nапрель 2026 г.\nДобавить транзакцию\nМои расходы\n\nКуда уходят мои деньги\n\nНАЧАЛЬНЫЙ УРОВЕНЬ\nРодительские\nДочерние\nРасходы за месяц\n3 365,00\nUSD\nHome\n49 %\n1 665,00\nUSD\nFood\n26 %\n880,00\nUSD\nTransport\n5 %\n185,00\nUSD\nHealth\n4 %\n142,00\nUSD\nFamily\n4 %\n128,00\nUSD\nLeisure\n3 %\n96,00\nUSD\nShopping\n2 %\n84,00\nUSD\nEducation\n2 %\n72,00\nUSD\nПрочее\n3 %\n113,00\nUSD\nМои деньги\n\nНа выбранных кошельках\n\n23 865,00\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nДоли в USD\n\nБалансы кошельков · в исходных валютах\nDaily account\n2 380,00\nUSD\nSavings\n12 400,00\nUSD\nTravel card\n3 200,00\nPLN\nВсе счета\nОткуда пришли деньги\n\nДоходы по категориям\n\nДоходы за месяц\n5 453,00\nUSD\nSalary\n78,9 %\n4 300,00\nUSD\nFreelance\n14,3 %\n780,00\nUSD\nInterest\n2,1 %\n115,00\nUSD\nRefunds\n1,7 %\n94,00\nUSD\nПрочее\n3 %\n164,00\nUSD\nКак прошёл месяц\n\nДоходы и расходы рядом\n\nДоходы\n5 400,00\nUSD\nРасходы\n-3 400,00\nUSD\n\nДоходы превысили расходы на 2 000,00 $\n\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2366,
+        "height": 2657,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -399,7 +456,9 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -417,43 +476,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1616.015625,
+          "y": -2211.015625,
           "width": 328,
           "height": 1365.140625
         },
         {
           "x": 16,
-          "y": -234.875,
+          "y": -829.875,
           "width": 328,
-          "height": 605.890625
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 387.015625,
+          "y": -313.390625,
+          "width": 328,
+          "height": 684.453125
+        },
+        {
+          "x": 16,
+          "y": 387.0625,
           "width": 328,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "2 386 500 000 000,00USD",
       "expenseTotal": "3 365,00USD",
+      "incomeTotal": "5 453,00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Доходы превысили расходы на 2 000,00 $",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "QA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nапрель 2026 г.\nДобавить транзакцию\nМои расходы\n\nКуда уходят мои деньги\n\nапрель 2026 г.\nНАЧАЛЬНЫЙ УРОВЕНЬ\nРодительские\nДочерние\nРасходы за месяц\n3 365,00\nUSD\nHome — Очень длинное название категории для проверки переноса текста\n49 %\n1 665,00\nUSD\nFood — Очень длинное название категории для проверки переноса текста\n26 %\n880,00\nUSD\nTransport — Очень длинное название категории для проверки переноса текста\n5 %\n185,00\nUSD\nHealth — Очень длинное название категории для проверки переноса текста\n4 %\n142,00\nUSD\nFamily — Очень длинное название категории для проверки переноса текста\n4 %\n128,00\nUSD\nLeisure — Очень длинное название категории для проверки переноса текста\n3 %\n96,00\nUSD\nShopping — Очень длинное название категории для проверки переноса текста\n2 %\n84,00\nUSD\nEducation — Очень длинное название категории для проверки переноса текста\n2 %\n72,00\nUSD\nПрочее\n3 %\n113,00\nUSD\nМои деньги\n\nНа выбранных кошельках\n\n2 386 500 000 000,00\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nДоли в USD\n\nБалансы кошельков · в исходных валютах\nDaily account\n238 000 000 000,00\nUSD\nSavings\n1 240 000 000 000,00\nUSD\nTravel card\n320 000 000 000,00\nPLN\nВсе счета\nКак прошёл месяц\n\nДоходы и расходы рядом\n\nДоходы\n5 400,00\nUSD\nРасходы\n-3 400,00\nUSD\n\nДоходы превысили расходы на 2 000,00 $\n\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты",
+      "textSample": "QA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nапрель 2026 г.\nДобавить транзакцию\nМои расходы\n\nКуда уходят мои деньги\n\nНАЧАЛЬНЫЙ УРОВЕНЬ\nРодительские\nДочерние\nРасходы за месяц\n3 365,00\nUSD\nHome — Очень длинное название категории для проверки переноса текста\n49 %\n1 665,00\nUSD\nFood — Очень длинное название категории для проверки переноса текста\n26 %\n880,00\nUSD\nTransport — Очень длинное название категории для проверки переноса текста\n5 %\n185,00\nUSD\nHealth — Очень длинное название категории для проверки переноса текста\n4 %\n142,00\nUSD\nFamily — Очень длинное название категории для проверки переноса текста\n4 %\n128,00\nUSD\nLeisure — Очень длинное название категории для проверки переноса текста\n3 %\n96,00\nUSD\nShopping — Очень длинное название категории для проверки переноса текста\n2 %\n84,00\nUSD\nEducation — Очень длинное название категории для проверки переноса текста\n2 %\n72,00\nUSD\nПрочее\n3 %\n113,00\nUSD\nМои деньги\n\nНа выбранных кошельках\n\n2 386 500 000 000,00\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nДоли в USD\n\nБалансы кошельков · в исходных валютах\nDaily account\n238 000 000 000,00\nUSD\nSavings\n1 240 000 000 000,00\nUSD\nTravel card\n320 000 000 000,00\nPLN\nВсе счета\nОткуда пришли деньги\n\nДоходы по категориям\n\nДоходы за месяц\n5 453,00\nUSD\nSalary — Очень длинное название категории для проверки переноса текста\n78,9 %\n4 300,00\nUSD\nFreelance — Очень длинное название категории для проверки переноса текста\n14,3 %\n780,00\nUSD\nInterest — Очень длинное название категории для проверки переноса текста\n2,1 %\n115,00\nUSD\nRefunds — Очень длинное название категории для проверки переноса текста\n1,7 %\n94,00\nUSD\nПрочее\n3 %\n164,00\nUSD\nКак прошёл месяц\n\nДоходы и расходы рядом\n\nДоходы\n5 400,00\nUSD\nРасходы\n-3 400,00\nUSD\n\nДоходы превысили расходы на 2 000,00 $\n\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 345,
-        "height": 2732,
+        "height": 3292,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -473,7 +542,527 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+      ]
+    },
+    {
+      "name": "income-two-390",
+      "scenario": "income-two",
+      "width": 390,
+      "screenshot": "income-two-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1437.015625,
+          "width": 358,
+          "height": 1034.140625
+        },
+        {
+          "x": 16,
+          "y": -386.875,
+          "width": 358,
+          "height": 500.484375
+        },
+        {
+          "x": 16,
+          "y": 129.609375,
+          "width": 358,
+          "height": 242.03125
+        },
+        {
+          "x": 16,
+          "y": 387.640625,
+          "width": 358,
+          "height": 384.640625
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865.00USD",
+      "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,080.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 2,
+      "incomeOtherMembers": 0,
+      "flowResult": "Income exceeded spending by $2,000.00",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,080.00\nUSD\nSalary\n84.6%\n4,300.00\nUSD\nFreelance\n15.4%\n780.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 2516,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+      ]
+    },
+    {
+      "name": "income-four-390",
+      "scenario": "income-four",
+      "width": 390,
+      "screenshot": "income-four-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1502.015625,
+          "width": 358,
+          "height": 1034.140625
+        },
+        {
+          "x": 16,
+          "y": -451.875,
+          "width": 358,
+          "height": 500.484375
+        },
+        {
+          "x": 16,
+          "y": 64.609375,
+          "width": 358,
+          "height": 306.890625
+        },
+        {
+          "x": 16,
+          "y": 387.5,
+          "width": 358,
+          "height": 384.640625
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865.00USD",
+      "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,289.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 4,
+      "incomeOtherMembers": 0,
+      "flowResult": "Income exceeded spending by $2,000.00",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,289.00\nUSD\nSalary\n81.3%\n4,300.00\nUSD\nFreelance\n14.7%\n780.00\nUSD\nInterest\n2.2%\n115.00\nUSD\nRefunds\n1.8%\n94.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 2587,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+      ]
+    },
+    {
+      "name": "income-tiny-390",
+      "scenario": "income-tiny",
+      "width": 390,
+      "screenshot": "income-tiny-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1437.015625,
+          "width": 358,
+          "height": 1034.140625
+        },
+        {
+          "x": 16,
+          "y": -386.875,
+          "width": 358,
+          "height": 500.484375
+        },
+        {
+          "x": 16,
+          "y": 129.609375,
+          "width": 358,
+          "height": 242.03125
+        },
+        {
+          "x": 16,
+          "y": 387.640625,
+          "width": 358,
+          "height": 384.640625
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865.00USD",
+      "expenseTotal": "3,365.00USD",
+      "incomeTotal": "4,300.01USD",
+      "incomeChart": true,
+      "incomeLegendCount": 2,
+      "incomeOtherMembers": 0,
+      "tinyIncomeShare": "<0.1%",
+      "flowResult": "Income exceeded spending by $2,000.00",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n4,300.01\nUSD\nSalary\n100%\n4,300.00\nUSD\nOther income\n<0.1%\n0.01\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 2516,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+      ]
+    },
+    {
+      "name": "income-single-parent-390",
+      "scenario": "income-single-parent",
+      "width": 390,
+      "screenshot": "income-single-parent-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1444.015625,
+          "width": 358,
+          "height": 1034.140625
+        },
+        {
+          "x": 16,
+          "y": -393.875,
+          "width": 358,
+          "height": 500.484375
+        },
+        {
+          "x": 16,
+          "y": 122.609375,
+          "width": 358,
+          "height": 249.21875
+        },
+        {
+          "x": 16,
+          "y": 387.828125,
+          "width": 358,
+          "height": 384.640625
+        }
+      ],
+      "chartCount": 1,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865.00USD",
+      "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,080.00USD",
+      "incomeChart": false,
+      "incomeLegendCount": 1,
+      "incomeOtherMembers": 0,
+      "flowResult": "Income exceeded spending by $2,000.00",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,080.00\nUSD\nSalary\n100%\n5,080.00\nUSD\nView breakdown\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 2529,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+      ]
+    },
+    {
+      "name": "income-children-1440",
+      "scenario": "income-single-parent",
+      "width": 1440,
+      "interaction": "income-drilldown",
+      "screenshot": "income-children-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 40,
+          "y": -67.203125,
+          "width": 812.078125,
+          "height": 765.15625
+        },
+        {
+          "x": 876.078125,
+          "y": -67.203125,
+          "width": 523.921875,
+          "height": 425.015625
+        },
+        {
+          "x": 876.078125,
+          "y": 381.8125,
+          "width": 523.921875,
+          "height": 316.140625
+        },
+        {
+          "x": 40,
+          "y": 721.953125,
+          "width": 1360,
+          "height": 245.640625
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865.00USD",
+      "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,080.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 2,
+      "incomeOtherMembers": 0,
+      "flowResult": "Income exceeded spending by $2,000.00",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nInside Salary\n\nBack to parent categories\nIn this category\n5,080.00\nUSD\nMain job\n84.6%\n4,300.00\nUSD\nConsulting\n15.4%\n780.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1425,
+        "height": 1228,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+      ]
+    },
+    {
+      "name": "income-other-390",
+      "scenario": "populated",
+      "width": 390,
+      "interaction": "income-other",
+      "screenshot": "income-other-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1714.015625,
+          "width": 358,
+          "height": 1034.140625
+        },
+        {
+          "x": 16,
+          "y": -663.875,
+          "width": 358,
+          "height": 500.484375
+        },
+        {
+          "x": 16,
+          "y": -147.390625,
+          "width": 358,
+          "height": 519.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
+          "width": 358,
+          "height": 384.640625
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865.00USD",
+      "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 3,
+      "flowResult": "Income exceeded spending by $2,000.00",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nBenefits · 1.4%\n76.00\nUSD\nFood · 0.9%\n50.00\nUSD\nOther income · 0.7%\n38.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 2799,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -491,43 +1080,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1263.015625,
+          "y": -1554.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -212.875,
+          "y": -503.875,
           "width": 358,
-          "height": 583.78125
+          "height": 501.53125
         },
         {
           "x": 16,
-          "y": 386.90625,
+          "y": 13.65625,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.734375,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": false,
       "balance": "22,265.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": true,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n22,265.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nSome wallets have a negative balance. View all accounts for details. All accounts\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n-3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n22,265.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nSome wallets have a negative balance. View all accounts for details. All accounts\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n-3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2348,
+        "height": 2639,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -547,7 +1146,9 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -565,43 +1166,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1263.015625,
+          "y": -1554.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -212.875,
+          "y": -503.875,
           "width": 358,
-          "height": 583.78125
+          "height": 501.53125
         },
         {
           "x": 16,
-          "y": 386.90625,
+          "y": 13.65625,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.734375,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": false,
       "balance": "22,115.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": true,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n22,115.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nSome wallets have a negative balance. View all accounts for details. All accounts\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n22,115.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nSome wallets have a negative balance. View all accounts for details. All accounts\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2348,
+        "height": 2639,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -621,7 +1232,9 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -639,23 +1252,29 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -758.015625,
+          "y": -940.015625,
           "width": 358,
           "height": 530.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -393.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 122.609375,
+          "width": 358,
+          "height": 249.21875
+        },
+        {
+          "x": 16,
+          "y": 387.828125,
           "width": 358,
           "height": 384.640625
         }
@@ -665,17 +1284,21 @@
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "1,450.00USD",
+      "incomeTotal": "4,300.00USD",
+      "incomeChart": false,
+      "incomeLegendCount": 1,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n1,450.00\nUSD\nHome\n100%\n1,450.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n1,450.00\nUSD\nHome\n100%\n1,450.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n4,300.00\nUSD\nSalary\n100%\n4,300.00\nUSD\nView breakdown\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1843,
+        "height": 2025,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -695,7 +1318,8 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -713,23 +1337,29 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -440.015625,
+          "y": -575.015625,
           "width": 358,
           "height": 448.140625
         },
         {
           "x": 16,
-          "y": 24.125,
+          "y": -110.875,
           "width": 358,
-          "height": 347.640625
+          "height": 313.640625
         },
         {
           "x": 16,
-          "y": 387.765625,
+          "y": 218.765625,
+          "width": 358,
+          "height": 152.140625
+        },
+        {
+          "x": 16,
+          "y": 386.90625,
           "width": 358,
           "height": 384.640625
         }
@@ -737,17 +1367,20 @@
       "chartCount": 0,
       "chartBlank": false,
       "accountBar": false,
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
       "flowResult": "A fresh month. Your story starts with the first transaction.",
       "flowRows": 2,
       "flowRowsDisabled": true,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\n\nNo categorized expenses this month\n\nMy money\n\nAcross your selected wallets\n\nNo accounts are selected for the overview.\nChoose accounts\nWallet balances · original currencies\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n0.00\nUSD\nExpenses\n0.00\nUSD\n\nA fresh month. Your story starts with the first transaction.\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\n\nNo categorized expenses this month\n\nMy money\n\nAcross your selected wallets\n\nNo accounts are selected for the overview.\nChoose accounts\nWallet balances · original currencies\nAll accounts\nWhere it came from\n\nYour income, by category\n\nNo categorized income this month\n\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n0.00\nUSD\nExpenses\n0.00\nUSD\n\nA fresh month. Your story starts with the first transaction.\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1525,
+        "height": 1660,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -781,23 +1414,29 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -676.015625,
+          "y": -761.015625,
           "width": 358,
           "height": 448.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -296.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 219.609375,
+          "width": 358,
+          "height": 152.140625
+        },
+        {
+          "x": 16,
+          "y": 387.75,
           "width": 358,
           "height": 384.640625
         }
@@ -806,17 +1445,20 @@
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
       "flowResult": "A fresh month. Your story starts with the first transaction.",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\n\nNo categorized expenses this month\n\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n0.00\nUSD\nExpenses\n0.00\nUSD\n\nA fresh month. Your story starts with the first transaction.\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\n\nNo categorized expenses this month\n\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nNo categorized income this month\n\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n0.00\nUSD\nExpenses\n0.00\nUSD\n\nA fresh month. Your story starts with the first transaction.\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1761,
+        "height": 1846,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -854,42 +1496,52 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -676.015625,
+          "y": -967.015625,
           "width": 358,
           "height": 448.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -502.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 13.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 0,
+      "chartCount": 1,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $4,300.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\n\nNo categorized expenses this month\n\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n4,300.00\nUSD\nExpenses\n0.00\nUSD\n\nIncome exceeded spending by $4,300.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\n\nNo categorized expenses this month\n\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n4,300.00\nUSD\nExpenses\n0.00\nUSD\n\nIncome exceeded spending by $4,300.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1761,
+        "height": 2052,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -927,23 +1579,29 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1262.015625,
+          "y": -1347.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -296.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 219.609375,
+          "width": 358,
+          "height": 152.140625
+        },
+        {
+          "x": 16,
+          "y": 387.75,
           "width": 358,
           "height": 384.640625
         }
@@ -953,17 +1611,20 @@
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
       "flowResult": "Spending exceeded income by $1,450.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n0.00\nUSD\nExpenses\n-1,450.00\nUSD\n\nSpending exceeded income by $1,450.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nNo categorized income this month\n\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n0.00\nUSD\nExpenses\n-1,450.00\nUSD\n\nSpending exceeded income by $1,450.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2347,
+        "height": 2432,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -983,7 +1644,8 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
     {
@@ -1001,40 +1663,50 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -394.015625,
+          "y": -700.015625,
           "width": 358,
           "height": 298.140625
         },
         {
           "x": 16,
-          "y": -79.875,
+          "y": -385.875,
           "width": 358,
-          "height": 591.640625
+          "height": 523.640625
         },
         {
           "x": 16,
-          "y": 527.765625,
+          "y": 153.765625,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 527.84375,
           "width": 358,
           "height": 244.140625
         }
       ],
-      "chartCount": 0,
+      "chartCount": 1,
       "chartBlank": false,
       "accountBar": false,
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowRows": 0,
       "flowRowsDisabled": true,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nTotal unavailable\nA cached exchange rate is missing for: PLN (2026-04-05).\nRetry rates\nMy money\n\nAcross your selected wallets\n\nTotal unavailable\nA cached exchange rate is missing for: PLN.\nRetry rates\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nTotal unavailable\nA cached exchange rate is missing for: PLN (2026-04-20).\nRetry rates\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nTotal unavailable\nA cached exchange rate is missing for: PLN (2026-04-05).\nRetry rates\nMy money\n\nAcross your selected wallets\n\nTotal unavailable\nA cached exchange rate is missing for: PLN.\nRetry rates\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nTotal unavailable\nA cached exchange rate is missing for: PLN (2026-04-20).\nRetry rates\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1479,
+        "height": 1785,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1072,23 +1744,29 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -526.015625,
+          "y": -695.015625,
           "width": 358,
           "height": 298.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -380.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 135.609375,
+          "width": 358,
+          "height": 236.140625
+        },
+        {
+          "x": 16,
+          "y": 387.75,
           "width": 358,
           "height": 384.640625
         }
@@ -1097,17 +1775,20 @@
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nCould not load category breakdown\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nCould not load category breakdown\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nCould not load category breakdown\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1611,
+        "height": 1780,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1145,42 +1826,52 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1121.015625,
+          "y": -1413.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -70.875,
+          "y": -362.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 527.859375,
+          "y": 153.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 527.6875,
           "width": 358,
           "height": 244.140625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowRows": 0,
       "flowRowsDisabled": true,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nCould not load cash flow\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nCould not load cash flow\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2206,
+        "height": 2498,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1218,23 +1909,29 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -150.015625,
+          "y": -368.015625,
           "width": 358,
           "height": 298.140625
         },
         {
           "x": 16,
-          "y": 164.125,
+          "y": -53.875,
           "width": 358,
-          "height": 347.640625
+          "height": 313.640625
         },
         {
           "x": 16,
-          "y": 527.765625,
+          "y": 275.765625,
+          "width": 358,
+          "height": 236.140625
+        },
+        {
+          "x": 16,
+          "y": 527.90625,
           "width": 358,
           "height": 244.140625
         }
@@ -1242,16 +1939,19 @@
       "chartCount": 0,
       "chartBlank": false,
       "accountBar": false,
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
       "flowRows": 0,
       "flowRowsDisabled": true,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nCould not load category breakdown\nMy money\n\nAcross your selected wallets\n\nCould not load account balances\nWallet balances · original currencies\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nCould not load cash flow\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nCould not load category breakdown\nMy money\n\nAcross your selected wallets\n\nCould not load account balances\nWallet balances · original currencies\nAll accounts\nWhere it came from\n\nYour income, by category\n\nCould not load category breakdown\nHow the month went\n\nIncome and spending, side by side\n\nCould not load cash flow\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 1235,
+        "height": 1453,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1286,43 +1986,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 40,
-          "y": -432.203125,
+          "y": -311.203125,
           "width": 944,
           "height": 570.640625
         },
         {
           "x": 40,
-          "y": 162.4375,
-          "width": 944,
-          "height": 536.234375
+          "y": 283.4375,
+          "width": 460,
+          "height": 414.984375
+        },
+        {
+          "x": 524,
+          "y": 283.4375,
+          "width": 460,
+          "height": 358.078125
         },
         {
           "x": 40,
-          "y": 722.671875,
+          "y": 722.421875,
           "width": 944,
           "height": 245.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "1,665.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nInside Home\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nBack to parent categories\nIn this category\n1,665.00\nUSD\nRent\n87%\n1,450.00\nUSD\nUtilities\n13%\n215.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nInside Home\n\nSTARTING LEVEL\nParents\nChildren\nBack to parent categories\nIn this category\n1,665.00\nUSD\nRent\n87%\n1,450.00\nUSD\nUtilities\n13%\n215.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 1009,
-        "height": 1595,
+        "height": 1474,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1343,6 +2053,7 @@
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
         "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
         "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
@@ -1362,43 +2073,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1344.015625,
+          "y": -1635.015625,
           "width": 358,
           "height": 1116.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -502.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 13.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nTravel\n65.00\nUSD\nGifts\n48.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nTravel\n65.00\nUSD\nGifts\n48.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2429,
+        "height": 2720,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1418,8 +2139,7 @@
         "[vite] connected.",
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
-        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
-        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
       ]
     },
     {
@@ -1438,43 +2158,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1262.015625,
+          "y": -1553.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -502.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 13.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nLinked QA · USD\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nViewing Linked QA's financial workspace in read-only mode.\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nLinked Daily account\n2,380.00\nUSD\nLinked Savings\n12,400.00\nUSD\nLinked Travel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nLinked QA · USD\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nViewing Linked QA's financial workspace in read-only mode.\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nLinked Daily account\n2,380.00\nUSD\nLinked Savings\n12,400.00\nUSD\nLinked Travel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/dashboard",
       "pngDimensions": {
         "width": 375,
-        "height": 2429,
+        "height": 2720,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1502,6 +2232,7 @@
         "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
         "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
         "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width.",
         "The width(0) and height(0) of chart should be greater than 0,\n       please check the style of container, or the props width(100%) and height(100%),\n       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the\n       height and width."
       ]
     },
@@ -1521,43 +2252,53 @@
       "bottomNavOccludesLastContent": false,
       "drawerOpen": false,
       "visual": true,
-      "cardCount": 3,
+      "cardCount": 4,
       "bounds": [
         {
           "x": 16,
-          "y": -1262.015625,
+          "y": -1553.015625,
           "width": 358,
           "height": 1034.140625
         },
         {
           "x": 16,
-          "y": -211.875,
+          "y": -502.875,
           "width": 358,
-          "height": 582.734375
+          "height": 500.484375
         },
         {
           "x": 16,
-          "y": 386.859375,
+          "y": 13.609375,
+          "width": 358,
+          "height": 358.078125
+        },
+        {
+          "x": 16,
+          "y": 387.6875,
           "width": 358,
           "height": 384.640625
         }
       ],
-      "chartCount": 1,
+      "chartCount": 2,
       "chartBlank": false,
       "accountBar": true,
       "balance": "23,865.00USD",
       "expenseTotal": "3,365.00USD",
+      "incomeTotal": "5,453.00USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
       "flowResult": "Income exceeded spending by $2,000.00",
       "flowRows": 2,
       "flowRowsDisabled": false,
       "negativeWarningLinked": false,
       "hiddenAccountsVisible": false,
       "runtimeErrors": [],
-      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nApril 2026\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nApril 2026\nAdd transaction\nMy spending\n\nWhere my money goes\n\nSTARTING LEVEL\nParents\nChildren\nSpent this month\n3,365.00\nUSD\nHome\n49%\n1,665.00\nUSD\nFood\n26%\n880.00\nUSD\nTransport\n5%\n185.00\nUSD\nHealth\n4%\n142.00\nUSD\nFamily\n4%\n128.00\nUSD\nLeisure\n3%\n96.00\nUSD\nShopping\n2%\n84.00\nUSD\nEducation\n2%\n72.00\nUSD\nOther\n3%\n113.00\nUSD\nMy money\n\nAcross your selected wallets\n\n23,865.00\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nShares shown in USD\n\nWallet balances · original currencies\nDaily account\n2,380.00\nUSD\nSavings\n12,400.00\nUSD\nTravel card\n3,200.00\nPLN\nAll accounts\nWhere it came from\n\nYour income, by category\n\nEarned this month\n5,453.00\nUSD\nSalary\n78.9%\n4,300.00\nUSD\nFreelance\n14.3%\n780.00\nUSD\nInterest\n2.1%\n115.00\nUSD\nRefunds\n1.7%\n94.00\nUSD\nOther\n3%\n164.00\nUSD\nHow the month went\n\nIncome and spending, side by side\n\nIncome\n5,400.00\nUSD\nExpenses\n-3,400.00\nUSD\n\nIncome exceeded spending by $2,000.00\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
       "routePath": "/profile",
       "pngDimensions": {
         "width": 375,
-        "height": 2347,
+        "height": 2638,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1573,6 +2314,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
         "POST /auth/refresh",
         "GET /auth/me",
         "GET /accounts?mode=ALL",
@@ -1616,11 +2358,15 @@
       "bounds": [
         null,
         null,
+        null,
         null
       ],
       "chartCount": 3,
       "chartBlank": false,
       "accountBar": false,
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
       "flowRows": 0,
       "flowRowsDisabled": true,
       "negativeWarningLinked": false,
@@ -1661,6 +2407,66 @@
     "GET /auth/link-state",
     "GET /accounts?mode=ALL",
     "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
@@ -1866,6 +2672,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",

@@ -10,6 +10,7 @@ import BasicPage from "../../layouts/BasicPage";
 import { getAccountBalanceConversionResult } from "../Transactions/transaction-ledger-utils";
 import type { DashboardCategorySlice } from "./dashboard-utils";
 import type { DashboardData } from "./useDashboardData";
+import { IncomeDistribution } from "./IncomeDistribution";
 import "./visual-dashboard.css";
 
 const EXPENSE_CATEGORY_COLORS = ["#d87366", "#e8a15b", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#bd79a0", "#8b82bb", "#b98c73"];
@@ -141,7 +142,6 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                     ? t("dashboard.categories.childrenOf", { category: expenseParentName })
                                     : t("dashboard.visual.expenseHint")}</p>
                             </div>
-                            <span className="visual-dashboard-period">{currentPeriodLabel}</span>
                         </div>
                         <div className="visual-dashboard-category-controls">
                             <SegmentedControl
@@ -255,6 +255,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                         </Spin>
                     </section>
 
+                    <div className="visual-dashboard-right-column">
                     <section aria-labelledby="visual-money-title" className="visual-dashboard-card visual-dashboard-money" data-qa="visual-money">
                         <div className="visual-dashboard-card__header">
                             <div><h2 id="visual-money-title">{t("dashboard.visual.moneyTitle")}</h2><p>{t("dashboard.visual.moneyHint")}</p></div>
@@ -315,6 +316,9 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                             <Link className="visual-dashboard-all-accounts" to="/accounts">{t("dashboard.visual.allAccounts")}<ArrowRight size={16} aria-hidden="true" /></Link>
                         </div>
                     </section>
+
+                    <IncomeDistribution data={data} pending={categoryPending} error={categoryError} unavailable={unavailable} />
+                    </div>
 
                     <section aria-labelledby="visual-flow-title" className="visual-dashboard-card visual-dashboard-flow" data-qa="visual-flow">
                         <div className="visual-dashboard-card__header"><div><h2 id="visual-flow-title">{t("dashboard.visual.flowTitle")}</h2><p>{t("dashboard.visual.flowHint")}</p></div></div>
