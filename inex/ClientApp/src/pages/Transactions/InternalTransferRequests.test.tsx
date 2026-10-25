@@ -22,6 +22,35 @@ const account: AccountResponse = { id: 1, key: "usd", name: "Own USD", currency:
 const accounts = [account, { ...account, id: 2, name: "Own EUR", currency: "EUR" }, { ...account, id: 3, name: "Disabled USD", isEnabled: false }];
 beforeEach(() => { window.matchMedia = vi.fn().mockReturnValue({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() }); state.userId = 1; state.dataPage = 1; state.totalItems = 1; state.refresh.mockReset(); state.query.mockReset(); state.requests = [request]; state.pending = 1; state.error = false; state.loading = false; state.decide.mockReset(); state.decide.mockReturnValue({ unwrap: () => Promise.resolve({}) }); state.refetch.mockReset(); });
 describe("InternalTransferRequests", () => {
+    it.each(["Accepted", "Rejected", "Cancelled"] as const)("hides resolved %s history when no requests are pending", (status) => {
+        state.pending = 0;
+        state.requests = [{ ...request, status }];
+        render(<InternalTransferRequests accounts={accounts} />);
+        expect(screen.queryByRole("region", { name: "transferRequests.title" })).not.toBeInTheDocument();
+    });
+    it("hides an empty section and shows new pending requests from polling", () => {
+        state.pending = 0; state.requests = []; state.totalItems = 0;
+        const view = render(<InternalTransferRequests accounts={accounts} />);
+        expect(screen.queryByRole("region", { name: "transferRequests.title" })).not.toBeInTheDocument();
+        expect(state.query).toHaveBeenLastCalledWith({ userId: 1, page: 1 }, expect.objectContaining({ pollingInterval: 30000 }));
+        state.pending = 1; state.requests = [request]; state.totalItems = 1;
+        view.rerender(<InternalTransferRequests accounts={accounts} />);
+        expect(screen.getByRole("region", { name: "transferRequests.title" })).toBeInTheDocument();
+        state.pending = 0; state.requests = [{ ...request, status: "Accepted" }];
+        view.rerender(<InternalTransferRequests accounts={accounts} />);
+        expect(screen.queryByRole("region", { name: "transferRequests.title" })).not.toBeInTheDocument();
+        expect(state.refresh).toHaveBeenCalledExactlyOnceWith(state.dispatch);
+    });
+    it("keeps retry available when polling fails after an empty response", () => {
+        state.pending = 0; state.requests = []; state.totalItems = 0;
+        const view = render(<InternalTransferRequests accounts={accounts} />);
+        expect(screen.queryByRole("region", { name: "transferRequests.title" })).not.toBeInTheDocument();
+        state.error = true;
+        view.rerender(<InternalTransferRequests accounts={accounts} />);
+        expect(screen.getByText("transferRequests.loadFailure")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "transferRequests.retry" }));
+        expect(state.refetch).toHaveBeenCalledOnce();
+    });
     it("requires explicit same-currency active account choice and sends fixed acceptance only", async () => {
         const user = userEvent.setup(); render(<InternalTransferRequests accounts={accounts} />);
         expect(screen.getByText("Master QA")).toBeInTheDocument();

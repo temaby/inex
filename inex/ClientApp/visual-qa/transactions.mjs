@@ -585,12 +585,12 @@ async function applyInteraction(client, state) {
     await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
     await wait(150);
     await evaluate(client, clickButtonByTextExpression("Confirm operation"));
-    await waitFor(client, "document.querySelector('.transfer-request-card').innerText.includes('Accepted')");
+    await waitFor(client, "!document.querySelector('.transfer-requests')");
     return;
   }
   if (state.interaction === "request-reject") {
     await evaluate(client, clickButtonByTextExpression("Reject request"));
-    await waitFor(client, "document.querySelector('.transfer-request-card').innerText.includes('Rejected')");
+    await waitFor(client, "!document.querySelector('.transfer-requests')");
     return;
   }
   switch (state.interaction) {
@@ -816,7 +816,8 @@ async function waitForTransactionsReady(client, state) {
     return;
   }
   if (state.scenario.startsWith("transfer-requests")) {
-    await waitFor(client, "Boolean(document.querySelector('.transfer-requests')) && Boolean(document.querySelector('.transactions-ledger-row'))");
+    const hidden = ["transfer-requests-empty", "transfer-requests-accepted", "transfer-requests-rejected", "transfer-requests-create"].includes(state.scenario);
+    await waitFor(client, `${hidden ? "!" : "Boolean"}(document.querySelector('.transfer-requests')) && Boolean(document.querySelector('.transactions-ledger-row'))`);
     await wait(250);
     return;
   }
@@ -929,6 +930,7 @@ async function collectMetrics(client, state, apiRequestCount) {
           && main.getBoundingClientRect().top <= account.getBoundingClientRect().top
           && account.getBoundingClientRect().top <= date.getBoundingClientRect().top;
       }),
+      requestPanelVisible: Boolean(document.querySelector(".transfer-requests")),
       requestCardCount: document.querySelectorAll(".transfer-request-card").length,
       requestAcceptDisabled: document.querySelector(".transfer-request-card__actions button")?.disabled ?? null,
       requestPanelWithinBounds: Array.from(document.querySelectorAll(".transfer-request-card, .transfer-request-card button, .transfer-request-card .ant-select")).every(element => {
@@ -1073,6 +1075,9 @@ export const visualQaConfig = {
   collectAdditionalFailures: (stateResults) => {
     const failures = [];
     for (const state of stateResults.filter(item => item.name.startsWith("transfer-requests"))) {
+      const hidden = ["transfer-requests-empty", "transfer-requests-accepted", "transfer-requests-rejected", "transfer-requests-create"].includes(state.scenario)
+        || ["request-accept", "request-reject"].includes(state.interaction);
+      if (state.requestPanelVisible === hidden) failures.push(`${state.name}: unexpected request section visibility`);
       if (!state.requestPanelWithinBounds) failures.push(`${state.name}: request controls overflow viewport`);
       if (state.name.includes("no-account") || state.name.includes("revoked")) {
         if (!state.requestAcceptDisabled) failures.push(`${state.name}: invalid acceptance remains enabled`);

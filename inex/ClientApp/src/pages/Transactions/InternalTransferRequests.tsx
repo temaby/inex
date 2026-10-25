@@ -84,7 +84,7 @@ export default function InternalTransferRequests({ accounts }: { accounts: Accou
         if (postingMayHaveChanged) refreshObservedInternalTransferPostings(dispatch);
     }, [dispatch, page, result, userId]);
     const pending = result?.totalPending ?? 0;
-    if (userId == null) return null;
+    if (userId == null || (result && pending === 0 && !isError)) return null;
     return <section className="transfer-requests" aria-label={t("transferRequests.title")}>
         <h2>{t("transferRequests.title")} {pending > 0 && <Tag>{t("transferRequests.pendingCount", { count: pending })}</Tag>}</h2>
         <p>{t("transferRequests.explanation")}</p>

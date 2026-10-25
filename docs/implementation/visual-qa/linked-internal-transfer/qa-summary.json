@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-16T15:19:16.392Z",
+  "generatedAt": "2026-10-25T08:53:35.476Z",
   "page": "transactions",
   "dataMode": "fixture",
   "harness": {
@@ -172,6 +172,8 @@
     "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /internal-transfer-requests?page=1&pageSize=10",
@@ -236,6 +238,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": false,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -254,7 +257,7 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport U",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1425,
@@ -332,6 +335,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": false,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -350,7 +354,7 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport U",
+      "textSample": "InEx Dashboard Transactions Accounts Categories Budgets Reports QA QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 DESCRIPTION ACCOUNT DATE AMOUNT Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1009,
@@ -428,6 +432,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -446,11 +451,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > ",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend mar",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 375,
-        "height": 2885,
+        "height": 2900,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -524,6 +529,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -542,11 +548,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groce",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market L",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2998,
+        "height": 3013,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -620,6 +626,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": false,
       "requestPanelWithinBounds": true,
@@ -638,11 +645,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Sent request #41 Pending Linked QA -125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Cancel this request before editing or deleting your operation. Cancel request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, ",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Sent request #41 Pending Linked QA -125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Cancel this request before editing or deleting your operation. Cancel request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2870,
+        "height": 2885,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -716,6 +723,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -734,11 +742,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 EUR 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account An active account in EUR is required. The request stays pending; you can reject it. Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 EUR 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. Account Select account An active account in EUR is required. The request stays pending; you can reject it. Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 3082,
+        "height": 3097,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -812,6 +820,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -830,11 +839,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. This relationship is no longer active. Acceptance is unavailable. You can reject the request. Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.0",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Pending: 1 Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Pending Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Confirm a credit to your account for the fixed amount shown above. No conversion. This relationship is no longer active. Acceptance is unavailable. You can reject the request. Confirm operation Reject request INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 3051,
+        "height": 3066,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -874,7 +883,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.96875,
+      "lastContentBottom": 772.375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -908,10 +917,11 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
-      "requestCardCount": 1,
+      "requestPanelVisible": false,
+      "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
-      "requestState": "Accepted",
+      "requestState": null,
       "baseEquivalentCount": 3,
       "hasTrailingRowChevron": false,
       "rowContentWithinBounds": true,
@@ -926,11 +936,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Accepted Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Decision: 30.04.2026 10:00 INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transpo",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2802,
+        "height": 2369,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -970,7 +980,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.96875,
+      "lastContentBottom": 772.375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -1004,10 +1014,11 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
-      "requestCardCount": 1,
+      "requestPanelVisible": false,
+      "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
-      "requestState": "Rejected",
+      "requestState": null,
       "baseEquivalentCount": 3,
       "hasTrailingRowChevron": false,
       "rowContentWithinBounds": true,
@@ -1022,11 +1033,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Rejected Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. Decision: 30.04.2026 10:00 INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transpo",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2802,
+        "height": 2369,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1100,6 +1111,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
@@ -1118,11 +1130,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": true,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Could not load transfer requests. Retry INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Could not load transfer requests. Retry INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2583,
+        "height": 2598,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1162,7 +1174,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.96875,
+      "lastContentBottom": 772.375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -1196,6 +1208,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": false,
       "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
@@ -1214,11 +1227,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. No transfer requests. INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
+      "textSample": "QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2542,
+        "height": 2369,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1292,6 +1305,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": false,
       "mobileAmountFirst": true,
+      "requestPanelVisible": true,
       "requestCardCount": 1,
       "requestAcceptDisabled": true,
       "requestPanelWithinBounds": true,
@@ -1310,11 +1324,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "QA ОБЗОР Транзакции Добавить транзакцию Балансы счетов Запросы переводов Ожидают: 1 Запросы не зависят от фильтров списка. До подтверждения они не влияют на баланс и отчёты получателя. Входящий запрос #41 Ожидает решения Master QA +125.50 USD 28.04.2026 Shared household transfer #family Исходные условия сохраняются независимо от дальнейших изменений обеих операций. Подтвердите зачисление на ваш счёт фиксированной суммы, указанной выше. Без конвертации. Счёт Выберите счет Подтвердить операцию Отклонить запрос ДОХОД 3,200.00 USD Доходных транзакций за апрель 2026: 1 РАСХОДЫ 96.70 USD Расходных транзакций за апрель 2026: 4 ЧИСТЫЙ ПОТОК +3,103.30 USD Изменение чистого потока: 3 103,3. Нет активности за 1 мар. 2026 – 31 мар. 2026 Журнал 6 из 6 транзакций за апрель 2026 Фильтры ВИД Все 6 Доход 1 Расход 4 Перевод 1 Внутренний перевод 0 Сегодня · 2 записи BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Вчера · 2 записи Transfer to Emergency reserve for long-term household commitments Перевод #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD понедельник, 27 апр. · 1 запись",
+      "textSample": "QA ОБЗОР Транзакции Добавить транзакцию Балансы счетов Запросы переводов Ожидают: 1 Запросы не зависят от фильтров списка. До подтверждения они не влияют на баланс и отчёты получателя. Входящий запрос #41 Ожидает решения Master QA +125.50 USD 28.04.2026 Shared household transfer #family Исходные условия сохраняются независимо от дальнейших изменений обеих операций. Подтвердите зачисление на ваш счёт фиксированной суммы, указанной выше. Без конвертации. Счёт Выберите счет Подтвердить операцию Отклонить запрос ДОХОД 3,200.00 USD Доходных транзакций за апрель 2026: 1 РАСХОДЫ 96.70 USD Расходных транзакций за апрель 2026: 4 ЧИСТЫЙ ПОТОК +3,103.30 USD Изменение чистого потока: 3 103,3. Нет активности за 1 мар. 2026 – 31 мар. 2026 Журнал 6 из 6 транзакций за апрель 2026 Фильтры ВИД Все 6 Доход 1 Расход 4 Перевод 1 Внутренний перевод 0 Корректировка 0 Сегодня · 2 записи BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Вчера · 2 записи Transfer to Emergency reserve for long-term household commitments Перевод #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD понедельник, 27",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 3027,
+        "height": 3042,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1354,7 +1368,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.96875,
+      "lastContentBottom": 772.375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -1388,10 +1402,11 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
-      "requestCardCount": 1,
+      "requestPanelVisible": false,
+      "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
-      "requestState": "Accepted",
+      "requestState": null,
       "baseEquivalentCount": 3,
       "hasTrailingRowChevron": false,
       "rowContentWithinBounds": true,
@@ -1406,11 +1421,11 @@
       "apiRequestCount": 15,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Accepted Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 375,
-        "height": 2681,
+        "height": 2298,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1456,7 +1471,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.96875,
+      "lastContentBottom": 772.375,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -1490,10 +1505,11 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
-      "requestCardCount": 1,
+      "requestPanelVisible": false,
+      "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
-      "requestState": "Rejected",
+      "requestState": null,
       "baseEquivalentCount": 3,
       "hasTrailingRowChevron": false,
       "rowContentWithinBounds": true,
@@ -1505,14 +1521,14 @@
       "filterEmptyVisible": false,
       "firstUseEmptyVisible": false,
       "dataModeLabel": "fixture",
-      "apiRequestCount": 13,
+      "apiRequestCount": 15,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "InEx QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. Incoming request #41 Rejected Master QA +125.50 USD 28.04.2026 Shared household transfer #family Original terms are retained independently of later changes to either operation. INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-",
+      "textSample": "InEx QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 375,
-        "height": 2681,
+        "height": 2298,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -1528,7 +1544,9 @@
         "POST /internal-transfer-requests/41/reject",
         "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
-        "GET /internal-transfer-requests?page=1&pageSize=10"
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1556,7 +1574,7 @@
       "bottomNavVisible": true,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": 839,
-      "lastContentBottom": 771.953125,
+      "lastContentBottom": 772.359375,
       "drawerOpen": true,
       "drawerWithinViewport": true,
       "drawerBounds": {
@@ -1594,6 +1612,7 @@
       "readOnlyNoticeVisible": false,
       "addTransactionVisible": true,
       "mobileAmountFirst": true,
+      "requestPanelVisible": false,
       "requestCardCount": 0,
       "requestAcceptDisabled": null,
       "requestPanelWithinBounds": true,
@@ -1612,11 +1631,11 @@
       "apiRequestCount": 9,
       "recoveryActionVisibleAtStart": false,
       "recoveryActionOccludedAtStart": false,
-      "textSample": "My data QA OVERVIEW Transactions Add transaction Account balances Transfer requests Requests are independent of ledger filters. Pending requests do not affect the recipient’s balance or reports. No transfer requests. INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports New transaction Record ",
+      "textSample": "My data QA OVERVIEW Transactions Add transaction Account balances INCOME 3,200.00 USD 1 income transactions in April 2026 EXPENSES 96.70 USD 4 expense transactions in April 2026 NET FLOW +3,103.30 USD Net change: 3,103.3. No activity in 1 Mar 2026 – 31 Mar 2026 Ledger 6 of 6 transactions in April 2026 Filters VIEW All 6 Income 1 Expense 4 Transfer 1 Internal transfer 0 Correction 0 Today · 2 items BIEDRONKA groceries Living > Groceries #food @receipt-1042 PLN card 2026-04-30 -84.50 PLN ≈ -21.13 USD April salary Income > Salary #payroll USD operating 2026-04-30 +3,200.00 USD Yesterday · 2 items Transfer to Emergency reserve for long-term household commitments Transfer #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier USD operating 2026-04-29 -1,234,567,890.12 USD Taxi across town Living > Transport #transport UZS cash 2026-04-29 -96,000.00 UZS ≈ -8.00 USD Monday, 27 Apr · 1 item Weekend market Living > Groceries #food PLN card 2026-04-27 -142.30 PLN ≈ -35.58 USD Sunday, 26 Apr · 1 item Airport train Living > Transport #transport USD operating 2026-04-26 -32.00 USD Showing 6 of 6 transactions for April 2026 Load more Dashboard Transactions Accounts Categories Budgets Reports New transaction Record money sent to or received from another household user Type Internal transfer Linked user (optional) Record only my side Direction Sent Rec",
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 360,
-        "height": 2542,
+        "height": 2369,
         "mode": "fullPage"
       },
       "requestLog": [
