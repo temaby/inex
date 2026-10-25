@@ -65,27 +65,33 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
             ? "ALL"
             : { mode: "ALL", linkedUserId: selectedLinkedUserId },
     );
-    const visibleAccounts = useMemo(
-        () => (accountsQuery.currentData ?? []).filter((account) => account.isEnabled && account.isFavourite !== false),
+    const reportingAccounts = useMemo(
+        () => (accountsQuery.currentData ?? []).filter((account) => account.isEnabled),
         [accountsQuery.currentData],
+    );
+    const reportingAccountIds = useMemo(() => reportingAccounts.map((account) => account.id), [reportingAccounts]);
+    const hasReportingAccounts = reportingAccountIds.length > 0;
+    const visibleAccounts = useMemo(
+        () => reportingAccounts.filter((account) => account.isFavourite !== false),
+        [reportingAccounts],
     );
     const visibleAccountIds = useMemo(() => visibleAccounts.map((account) => account.id), [visibleAccounts]);
     const summaryFilter = useMemo(() => ({
         ...transactionsDefaultFilter,
-        accountIds: visibleAccountIds,
+        accountIds: reportingAccountIds,
         range: monthRange,
-    }), [monthRange, visibleAccountIds]);
+    }), [monthRange, reportingAccountIds]);
     const hasVisibleAccounts = visibleAccountIds.length > 0;
     const summaryQuery = useGetTransactionsSummaryQuery({
         filter: summaryFilter,
         linkedUserId: selectedLinkedUserId,
-    }, { skip: !hasVisibleAccounts });
+    }, { skip: !hasReportingAccounts });
     const categoryTransactionsQuery = useGetTransactionsQuery({
         pageSize: 0,
         page: 0,
         filter: summaryFilter,
         linkedUserId: selectedLinkedUserId,
-    }, { skip: !hasVisibleAccounts });
+    }, { skip: !hasReportingAccounts });
     const accountBalancesQuery = useGetAccountsSummaryQuery({
         ids: visibleAccountIds,
         linkedUserId: selectedLinkedUserId,
@@ -144,10 +150,10 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
         [accountBalances, baseCurrency, exchangeRates],
     );
     const cashFlowConversion = useMemo(
-        () => summaryQuery.currentData && baseCurrency
+        () => hasReportingAccounts && summaryQuery.currentData && baseCurrency
             ? getCashFlowConversionResult(summaryQuery.currentData.currentScope, baseCurrency, exchangeRates)
             : null,
-        [baseCurrency, exchangeRates, summaryQuery.currentData],
+        [baseCurrency, exchangeRates, hasReportingAccounts, summaryQuery.currentData],
     );
 
     const categorySource = categoriesQuery.currentData ?? [];
@@ -155,7 +161,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
         const rows: Array<{ id: number; value: number }> = [];
         const missing: Record<DashboardFlow, string[]> = { income: [], expense: [] };
 
-        for (const transaction of categoryTransactionsQuery.currentData?.data ?? []) {
+        for (const transaction of hasReportingAccounts ? categoryTransactionsQuery.currentData?.data ?? [] : []) {
             const flow: DashboardFlow = transaction.amount >= 0 ? "income" : "expense";
             let value = transaction.amount;
             if (transaction.accountCurrency !== baseCurrency) {
@@ -180,7 +186,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
             incomeMissingRates: Array.from(new Set(missing.income)),
             expenseMissingRates: Array.from(new Set(missing.expense)),
         };
-    }, [baseCurrency, categoryTransactionsQuery.currentData, exchangeRates]);
+    }, [baseCurrency, categoryTransactionsQuery.currentData, exchangeRates, hasReportingAccounts]);
     const defaultParentIds = useMemo(() => {
         const singleParent = (flow: DashboardFlow) => {
             const parents = buildDashboardCategorySlices({
@@ -248,11 +254,12 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
     }).format(value);
 
     const openFlow = (flow: DashboardFlow) => {
-        navigate(`/transactions?filter=accountIds:${visibleAccountIds.join(",")};start:${startDate};end:${endDate};type:${flow};`);
+        if (!hasReportingAccounts) return;
+        navigate(`/transactions?filter=accountIds:${reportingAccountIds.join(",")};start:${startDate};end:${endDate};type:${flow};`);
     };
 
     const selectCategory = (flow: DashboardFlow, slice: DashboardCategorySlice) => {
-        if (slice.id == null) return;
+        if (slice.id == null || !hasReportingAccounts) return;
         const hasChildren = categorySource.some((category) => category.parentId === slice.id);
         const selectedParentId = flow === "expense" ? expenseParentId : incomeParentId;
         if (categoryMode === "parent" && selectedParentId == null && hasChildren) {
@@ -262,7 +269,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
         }
 
         navigate(`/transactions?filter=${buildDashboardTransactionFilter({
-            accountIds: visibleAccountIds,
+            accountIds: reportingAccountIds,
             categoryIds: slice.categoryIds.length > 0 ? slice.categoryIds : [slice.id],
             flow,
             startDate,
@@ -310,6 +317,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
         selectedLinkedUserId,
         selectedLinkedAccount,
         visibleAccounts,
+        hasReportingAccounts,
         accountsQuery,
         accountBalancesQuery,
         accountBalances,

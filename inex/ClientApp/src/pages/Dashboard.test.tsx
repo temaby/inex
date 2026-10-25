@@ -125,6 +125,7 @@ describe("Dashboard", () => {
       currentData: [
         { id: 1, name: "Visible USD", isEnabled: true, isFavourite: true, currency: "USD" },
         { id: 2, name: "Hidden USD", isEnabled: true, isFavourite: false, currency: "USD" },
+        { id: 3, name: "Closed USD", isEnabled: false, isFavourite: true, currency: "USD" },
       ],
       isLoading: false,
       isError: false,
@@ -149,7 +150,7 @@ describe("Dashboard", () => {
     });
   });
 
-  it("scopes every Dashboard read to the selected linked user and only includes overview-visible accounts", () => {
+  it("scopes reports to all active accounts and wallet balances to favorite accounts for the linked user", () => {
     render(<Dashboard />);
 
     expect(apiMocks.accounts).toHaveBeenCalledWith({ mode: "ALL", linkedUserId: 2 });
@@ -157,13 +158,13 @@ describe("Dashboard", () => {
     expect(apiMocks.categories).toHaveBeenCalledWith({ mode: "ALL", linkedUserId: 2 });
     expect(apiMocks.transactionSummary).toHaveBeenCalledWith(expect.objectContaining({
       linkedUserId: 2,
-      filter: expect.objectContaining({ accountIds: [1] }),
+      filter: expect.objectContaining({ accountIds: [1, 2] }),
     }), { skip: false });
     expect(apiMocks.transactions).toHaveBeenCalledWith(expect.objectContaining({
       linkedUserId: 2,
       page: 0,
       pageSize: 0,
-      filter: expect.objectContaining({ accountIds: [1] }),
+      filter: expect.objectContaining({ accountIds: [1, 2] }),
     }), { skip: false });
 
     expect(screen.getByText("Visible USD")).toBeInTheDocument();
@@ -171,6 +172,55 @@ describe("Dashboard", () => {
     expect(screen.getByText("linkedAccount.readOnly:Linked QA")).toBeInTheDocument();
     expect(screen.queryByText(/budget/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/net worth/i)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { variant: "classic", linkedUserId: null }, { variant: "classic", linkedUserId: 2 },
+    { variant: "visual", linkedUserId: null }, { variant: "visual", linkedUserId: 2 },
+  ])("keeps reports and drill-down usable without favorite wallets: %j", ({ variant, linkedUserId }) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", variant);
+    linkedState.linkedAccount.selectedLinkedUserId = linkedUserId;
+    apiMocks.accounts.mockReturnValue({ currentData: [
+      { id: 1, name: "Not displayed USD", isEnabled: true, isFavourite: false, currency: "USD" },
+      { id: 2, name: "Hidden USD", isEnabled: true, isFavourite: false, currency: "USD" },
+      { id: 3, name: "Closed USD", isEnabled: false, isFavourite: true, currency: "USD" },
+    ], isLoading: false, isError: false });
+    apiMocks.categories.mockReturnValue({ currentData: [{ id: 10, name: "Food", parentId: null }], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { accountId: 2, categoryId: 10, accountCurrency: "USD", amount: -750, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    expect(apiMocks.accountSummaries).toHaveBeenCalledWith({ ids: [], linkedUserId }, { skip: true });
+    expect(apiMocks.transactionSummary).toHaveBeenCalledWith(expect.objectContaining({
+      linkedUserId, filter: expect.objectContaining({ accountIds: [1, 2] }),
+    }), { skip: false });
+    expect(apiMocks.transactions).toHaveBeenCalledWith(expect.objectContaining({
+      linkedUserId, filter: expect.objectContaining({ accountIds: [1, 2] }),
+    }), { skip: false });
+    expect(screen.getAllByText("dashboard.balance.empty").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Not displayed USD")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hidden USD")).not.toBeInTheDocument();
+    expect(screen.queryByText("Closed USD")).not.toBeInTheDocument();
+    const expense = container.querySelector<HTMLElement>(variant === "visual"
+      ? '[data-qa="visual-expenses"]' : '[data-qa="dashboard-expense-categories"]')!;
+    expect(expense).toHaveTextContent(variant === "visual" ? "USD 750" : "USD -750");
+    fireEvent.click(within(expense).getByRole("button", { name: /Food|selectCategory/ }));
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:10;.*type:expense;/));
+    const flowButton = container.querySelector<HTMLButtonElement>(variant === "visual"
+      ? '[data-flow="expense"]' : '.dashboard-cash-flow-summary button:last-child')!;
+    expect(flowButton).toBeEnabled();
+    expect(flowButton).toHaveTextContent("USD -750");
+    fireEvent.click(flowButton);
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;.*type:expense;/));
+  });
+
+  it("requests dated rates for report activity on a non-favorite account even when favorite balances need no conversion", () => {
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { accountId: 2, categoryId: 10, accountCurrency: "EUR", amount: -100, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    render(<Dashboard />);
+    expect(fetchRatesForRange).toHaveBeenCalledWith(expect.any(String), expect.any(String), 2);
+    expect(apiMocks.accountSummaries).toHaveBeenCalledWith({ ids: [1], linkedUserId: 2 }, { skip: false });
   });
 
   it("automatically requests own rates when opening with foreign account balances", () => {
@@ -352,7 +402,7 @@ describe("Dashboard", () => {
       fireEvent.focus(first);
       expect(first).toHaveClass("is-highlighted");
       fireEvent.click(first);
-      expect(apiMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/accountIds:1;categoryIds:200;.*type:income;/));
+      expect(apiMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:200;.*type:income;/));
     }
     if (count > 4) {
       const other = income.querySelector('[data-income-key="other"]')!;
@@ -364,7 +414,7 @@ describe("Dashboard", () => {
       expect(members[0]).toHaveTextContent("Income 4");
       expect(members[0]).toHaveTextContent(`USD ${(count - 4) * 100}`);
       fireEvent.click(members[0]);
-      expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1;categoryIds:204;.*type:income;/));
+      expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:204;.*type:income;/));
     }
   });
 
@@ -394,7 +444,7 @@ describe("Dashboard", () => {
     expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 1010");
     expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).toHaveFocus();
     fireEvent.click(income.querySelector('[data-income-key="202"]')!);
-    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1;categoryIds:202;.*type:income;/));
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:202;.*type:income;/));
     fireEvent.keyDown(income, { key: "Escape" });
     await act(async () => { await new Promise((resolve) => window.requestAnimationFrame(resolve)); });
     expect(income.querySelector('[data-income-key="200"]')).toHaveFocus();
@@ -490,7 +540,7 @@ describe("Dashboard", () => {
     fireEvent.focus(category);
     expect(category).toHaveClass("is-highlighted");
     fireEvent.click(category);
-    expect(apiMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/accountIds:1;categoryIds:10;.*type:expense;/));
+    expect(apiMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:10;.*type:expense;/));
   });
 
   it("drills into parent categories, returns with Escape, and supports child mode", () => {
@@ -568,7 +618,7 @@ describe("Dashboard", () => {
     if (status.isError) expect(screen.getByText("dashboard.cashFlow.error")).toBeInTheDocument();
   });
 
-  it("prevents empty overview flow links from navigating to unrestricted transactions", () => {
+  it("prevents flow links without active reporting accounts from navigating to unrestricted transactions", () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     apiMocks.accounts.mockReturnValue({ currentData: [], isLoading: false, isError: false });
     apiMocks.accountSummaries.mockReturnValue({ currentData: [], isLoading: false, isError: false });

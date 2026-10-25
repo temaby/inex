@@ -18,7 +18,7 @@ const ACCOUNT_COLORS = ["#389b8b", "#ed8b75", "#9c89ca", "#739fc6", "#d9ac50", "
 
 const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const {
-        t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts,
+        t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts, hasReportingAccounts,
         accountBalances, baseCurrency, accountConversion, balancePanelLoading, balancePanelError,
         accountDataLoading, accountDataError, categoryPanelLoading, categoriesQuery,
         categoryTransactionsQuery, summaryQuery, ratesLoading, missingCashFlowRates,
@@ -332,7 +332,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                     <div className="visual-dashboard-flow__layout">
                                         <div className="visual-dashboard-flow__bars" aria-label={t("dashboard.cashFlow.summaryTitle")}>
                                             {cashFlowChartData.map((item) => (
-                                                <button disabled={visibleAccounts.length === 0} data-flow={item.key} className={`visual-dashboard-flow__row visual-dashboard-flow__row--${item.key}`} key={item.key} onClick={() => openFlow(item.key === "income" ? "income" : "expense")} type="button">
+                                                <button disabled={!hasReportingAccounts} data-flow={item.key} className={`visual-dashboard-flow__row visual-dashboard-flow__row--${item.key}`} key={item.key} onClick={() => openFlow(item.key === "income" ? "income" : "expense")} type="button">
                                                     <span className="visual-dashboard-flow__label">{item.key === "income" ? <ArrowUp size={16} aria-hidden="true" /> : <ArrowDown size={16} aria-hidden="true" />}{item.label}</span>
                                                     <Num currency={baseCurrency} currencySize="sm" kind={item.key === "income" ? "income" : "expense"} locale={locale} signage="negative-only" value={item.key === "income" ? item.value : -item.value} />
                                                     <span aria-hidden="true" className="visual-dashboard-flow__track"><span data-qa="visual-flow-bar" style={{ width: `${flowMaximum > 0 ? item.value / flowMaximum * 100 : 0}%` }} /></span>

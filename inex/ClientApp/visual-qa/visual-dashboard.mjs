@@ -6,7 +6,12 @@ import {
 } from "./harness.mjs";
 
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
+const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  { name: "report-all-active-1440", scenario: "report-all-active", width: 1440 },
+  { name: "report-only-1440", scenario: "report-only", width: 1440 },
+  { name: "report-only-390", scenario: "report-only", width: 390 },
+  { name: "report-linked-1440", scenario: "report-linked", width: 1440, interaction: "linked" },
   ...[800, 900].map((height) => ({ name: `compact-1440-${height}`, scenario: "populated", width: 1440, height })),
   { name: "single-parent-1440-800", scenario: "income-single-parent", width: 1440, height: 800 },
   { name: "linked-russian-1440-900", scenario: "linked-russian", width: 1440, height: 900, interaction: "linked" },
@@ -29,6 +34,13 @@ const states = [
 function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef) {
   const source = {
     ...fixture,
+    get dashboardVisualFixtureAccounts() {
+      return fixture.dashboardVisualFixtureAccounts.map((account) => {
+        const reportAccount = reportingScenarios.includes(scenarioRef.current) && account.id === 14
+          ? { ...account, currency: "PLN", currencyId: 2 } : account;
+        return scenarioRef.current === "report-only" ? { ...reportAccount, isFavourite: false } : reportAccount;
+      });
+    },
     get dashboardVisualFixtureAccountSummaries() {
       return fixture.dashboardVisualFixtureAccountSummaries.map((account) => ({
         ...account,
@@ -58,10 +70,37 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     },
   };
   const handleClassic = classic.createApiHandler(source, requestLog, unhandledApiRequests, {
-    get current() { return scenarioRef.current === "linked-russian" ? "linked" : scenarioRef.current; },
+    get current() { return ["linked-russian", "report-linked"].includes(scenarioRef.current) ? "linked" : scenarioRef.current; },
   });
   return async (event, client) => {
     const url = new URL(event.request.url);
+    if (reportingScenarios.includes(scenarioRef.current) && ["/api/transactions", "/api/transactions/summary"].includes(url.pathname)) {
+      requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}${url.search}`);
+      const requestedIds = url.searchParams.getAll("accountId").map(Number);
+      const enabledIds = source.dashboardVisualFixtureAccounts.filter((account) => account.isEnabled).map((account) => account.id);
+      const rows = [
+        { id: 1, accountId: 11, categoryId: 111, accountCurrency: "USD", amount: -100, created: "2026-04-03T12:00:00" },
+        { id: 2, accountId: 14, categoryId: 131, accountCurrency: "PLN", amount: -200, created: "2026-04-03T12:00:00" },
+        { id: 3, accountId: 14, categoryId: 201, accountCurrency: "PLN", amount: 2000, created: "2026-04-03T12:00:00" },
+        { id: 4, accountId: 15, categoryId: 191, accountCurrency: "USD", amount: -900, created: "2026-04-03T12:00:00" },
+      ].filter((row) => enabledIds.includes(row.accountId) && (!requestedIds.length || requestedIds.includes(row.accountId)));
+      const buckets = ["USD", "PLN"].map((currency) => {
+        const currencyRows = rows.filter((row) => row.accountCurrency === currency);
+        return { date: "2026-04-03", currency,
+          income: currencyRows.reduce((sum, row) => sum + Math.max(row.amount, 0), 0),
+          expense: currencyRows.reduce((sum, row) => sum + Math.min(row.amount, 0), 0),
+          recordCount: currencyRows.length };
+      }).filter((bucket) => bucket.recordCount > 0);
+      const counts = { all: rows.length, income: rows.filter((row) => row.amount >= 0).length,
+        expense: rows.filter((row) => row.amount < 0).length, transfer: 0, internalTransfer: 0, correction: 0 };
+      const body = url.pathname === "/api/transactions"
+        ? { data: rows, metadata: { totalItems: rows.length } }
+        : { ...fixture.dashboardVisualFixtureTransactionSummary, totalCount: rows.length, typeCounts: counts, viewTypeCounts: counts,
+          currencySummaries: buckets.map(({currency, income, expense}) => ({currency, income, expense, net: income + expense})),
+          currentScope: { ...fixture.dashboardVisualFixtureTransactionSummary.currentScope, totalCount: rows.length, typeCounts: counts, cashFlowBuckets: buckets } };
+      await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...jsonResponse(body) });
+      return;
+    }
     if (url.pathname === "/api/accounts" && scenarioRef.current === "accounts-error") {
       requestLog.push(`GET /accounts${url.search}`);
       await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...problemResponse("Account scope failed", "Controlled account read failure.", 500) });
@@ -153,6 +192,7 @@ async function collectMetrics(client, state) {
       incomeLegendCount: document.querySelectorAll('[data-income-key]').length,
       incomeOtherMembers: document.querySelectorAll('[data-qa=visual-income] .visual-dashboard-legend__members button').length,
       tinyIncomeShare: document.querySelector('[data-income-key="250"] .visual-dashboard-legend__percentage')?.textContent,
+      flowExpense: document.querySelector('[data-flow=expense] [role=text]')?.textContent,
       flowResult: document.querySelector('[data-qa=visual-flow-result]')?.textContent,
       flowRows: document.querySelectorAll('[data-flow]').length,
       flowRowsDisabled: [...document.querySelectorAll('[data-flow]')].every(el => el.disabled),
@@ -203,6 +243,13 @@ function collectAdditionalFailures(results) {
   const failures = [];
   for (const state of results) {
     if (state.height && state.pageHeight > state.viewport.height) failures.push(`${state.name}: dashboard exceeds viewport (${state.pageHeight}px)`);
+    if (reportingScenarios.includes(state.scenario)) {
+      if (!state.expenseTotal?.includes('150.00') || !state.flowExpense?.includes('150.00')
+        || !state.incomeTotal?.includes('500.00') || !state.flowResult?.includes('350.00')) failures.push(`${state.name}: non-favorite report activity missing or closed account included`);
+      if (state.flowRowsDisabled) failures.push(`${state.name}: report links disabled`);
+      if (state.scenario === "report-only" && (state.balance || state.accountBar)) failures.push(`${state.name}: non-favorite balance displayed`);
+      if (state.scenario !== "report-only" && !state.balance?.includes('23,865.00')) failures.push(`${state.name}: wallet balance scope changed`);
+    }
     if (state.runtimeErrors.length) failures.push(`${state.name}: ${state.runtimeErrors.join(', ')}`);
     if (state.hiddenAccountsVisible) failures.push(`${state.name}: hidden account disclosed`);
     if (state.scenario === "classic") {
