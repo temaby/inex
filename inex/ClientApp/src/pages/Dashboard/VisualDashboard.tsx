@@ -7,26 +7,25 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { InExButton, Num, SegmentedControl } from "../../components/primitives";
 import BasicPage from "../../layouts/BasicPage";
-import { getAccountBalanceConversionResult } from "../Transactions/transaction-ledger-utils";
 import type { DashboardCategorySlice } from "./dashboard-utils";
 import type { DashboardData } from "./useDashboardData";
 import { IncomeDistribution } from "./IncomeDistribution";
+import { VisualAccountDistribution } from "./VisualAccountDistribution";
 import { getVisualDashboardFlowTitleKey } from "./visual-dashboard-copy";
 import "./visual-dashboard.css";
 
 const EXPENSE_CATEGORY_COLORS = ["#d87366", "#e8a15b", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#bd79a0", "#8b82bb", "#b98c73"];
-const ACCOUNT_COLORS = ["#389b8b", "#ed8b75", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#6db2ad", "#a4a26a", "#b98c73"];
 
 const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const {
         t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts, hasReportingAccounts,
-        accountBalances, baseCurrency, accountConversion, balancePanelLoading, balancePanelError,
-        accountDataLoading, accountDataError, categoryPanelLoading, categoriesQuery,
+        baseCurrency, accountConversion, balancePanelLoading, balancePanelError,
+        categoryPanelLoading, categoriesQuery,
         categoryTransactionsQuery, summaryQuery, ratesLoading, missingCashFlowRates,
         cashFlowConversion, hasCashFlow, cashFlowChartData, openFlow, categoryMode,
         setCategoryMode, expenseParentName, expenseAutoExpanded, expenseSlices, setExpenseParentId,
         selectCategory, categoryConversion, retryRates, effectiveDate,
-        currentPeriodLabel, exchangeRates, accountsQuery, accountBalancesQuery,
+        currentPeriodLabel, accountsQuery, accountBalancesQuery,
     } = data;
     const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
     const [otherExpanded, setOtherExpanded] = useState(false);
@@ -81,13 +80,6 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         || (summaryQuery.isFetching && !summaryQuery.currentData);
     const categoryError = accountsQuery.isError || categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError);
     const expenseMissingRates = categoryConversion.expenseMissingRates;
-    const convertedAccounts = accountBalances.map((account) => ({
-        ...account,
-        converted: getAccountBalanceConversionResult([account], baseCurrency, exchangeRates),
-    }));
-    const hasNegativeBalance = accountBalances.some((account) => account.value < 0);
-    const showAccountDistribution = accountConversion.isComplete && accountConversion.value > 0
-        && !hasNegativeBalance && !moneyPending && !moneyError;
     const flowMaximum = Math.max(...cashFlowChartData.map((item) => item.value), 0);
     // Compare the amounts at the same precision that Num displays to the user.
     const displayedAmount = (value: number) => Number(new Intl.NumberFormat("en", {
@@ -276,45 +268,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                     </div>
                                 ) : unavailable(accountConversion.unavailableCurrencies)}
                         </Spin>
-                        {showAccountDistribution ? (
-                            <div className="visual-dashboard-account-distribution">
-                                <div
-                                    aria-label={`${t("dashboard.visual.accountDistribution")}: ${convertedAccounts.filter((account) => account.converted.value > 0).map((account) => `${account.name} ${percentage(account.converted.value / accountConversion.value)}`).join(", ")}`}
-                                    className="visual-dashboard-account-bar"
-                                    data-qa="visual-account-bar"
-                                    role="img"
-                                >
-                                    {convertedAccounts.map((account, index) => account.converted.value > 0 ? (
-                                        <span aria-hidden="true" key={account.id} style={{ background: ACCOUNT_COLORS[index % ACCOUNT_COLORS.length], width: `${account.converted.value / accountConversion.value * 100}%` }} title={`${account.name}: ${money(account.converted.value)}`} />
-                                    ) : null)}
-                                </div>
-                                <p>{t("dashboard.visual.distributionCurrency", { currency: baseCurrency })}</p>
-                            </div>
-                        ) : !moneyPending && !moneyError && accountConversion.isComplete && accountBalances.length > 0 ? (
-                            <p className="visual-dashboard-hint">
-                                {t(hasNegativeBalance ? "dashboard.visual.negativeBalancesHint" : "dashboard.visual.zeroBalancesHint")}
-                                {hasNegativeBalance ? <> <Link to="/accounts">{t("dashboard.visual.allAccounts")}</Link></> : null}
-                            </p>
-                        ) : null}
-                        <div className="visual-dashboard-wallets">
-                            <span className="visual-dashboard-small-label">{t("dashboard.visual.nativeBalances")}</span>
-                            <Spin spinning={accountDataLoading}>
-                                {!accountDataError ? (
-                                    <ul>
-                                        {accountBalances.slice(0, 3).map((account, index) => (
-                                            <li key={account.id}>
-                                                <Link to="/accounts">
-                                                    <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: ACCOUNT_COLORS[index % ACCOUNT_COLORS.length] }} />
-                                                    <span className="visual-dashboard-wallets__name">{account.name}</span>
-                                                    <Num accessibleLabel={t("dashboard.balance.amountLabel")} currency={account.currency} currencySize="sm" kind={account.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={account.value} />
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : null}
-                            </Spin>
-                            <Link className="visual-dashboard-all-accounts" to="/accounts">{t("dashboard.visual.allAccounts")}<ArrowRight size={16} aria-hidden="true" /></Link>
-                        </div>
+                        <VisualAccountDistribution data={data} error={moneyError} key={selectedLinkedUserId ?? "self"} pending={moneyPending} />
                     </section>
 
                     <IncomeDistribution data={data} pending={categoryPending} error={categoryError} unavailable={unavailable} />

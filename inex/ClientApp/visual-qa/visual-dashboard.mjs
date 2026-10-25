@@ -8,6 +8,14 @@ import {
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  ...[1440, 1024, 390, 360].map((width) => ({ name: `wallet-selected-${width}`, scenario: "populated", width, interaction: "select-non-favorite" })),
+  { name: "wallet-favorite-selected-390", scenario: "populated", width: 390, interaction: "select-favorite" },
+  { name: "wallet-hover-1440", scenario: "populated", width: 1440, interaction: "hover-wallet" },
+  { name: "wallet-focus-1440", scenario: "populated", width: 1440, interaction: "focus-wallet" },
+  { name: "wallet-cleared-390", scenario: "populated", width: 390, interaction: "clear-wallet" },
+  { name: "wallet-selected-russian-360", scenario: "russian", width: 360, interaction: "select-non-favorite" },
+  { name: "wallet-tiny-selected-360", scenario: "tiny-wallet", width: 360, interaction: "pick-tiny-wallet" },
+  ...["zero-wallets", "debt-wallets", "two-favorites"].map((scenario) => ({ name: `${scenario}-390`, scenario, width: 390 })),
   { name: "wording-russian-1440", scenario: "russian", width: 1440 },
   ...["wording-negative", "wording-equal", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].map((scenario) => ({ name: `${scenario}-390`, scenario, width: 390 })),
   { name: "report-all-active-1440", scenario: "report-all-active", width: 1440 },
@@ -40,13 +48,18 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       return fixture.dashboardVisualFixtureAccounts.map((account) => {
         const reportAccount = reportingScenarios.includes(scenarioRef.current) && account.id === 14
           ? { ...account, currency: "PLN", currencyId: 2 } : account;
-        return scenarioRef.current === "report-only" ? { ...reportAccount, isFavourite: false } : reportAccount;
+        return scenarioRef.current === "report-only" ? { ...reportAccount, isFavourite: false }
+          : scenarioRef.current === "two-favorites" ? { ...reportAccount, isFavourite: [11, 13].includes(account.id) } : reportAccount;
       });
     },
     get dashboardVisualFixtureAccountSummaries() {
       return fixture.dashboardVisualFixtureAccountSummaries.map((account) => ({
         ...account,
-        value: scenarioRef.current === "negative" ? account.value
+        ...(reportingScenarios.includes(scenarioRef.current) && account.id === 14 ? { currency: "PLN", currencyId: 2 } : {}),
+        value: scenarioRef.current === "tiny-wallet" && account.id === 13 ? 0.001
+          : scenarioRef.current === "zero-wallets" ? 0
+          : scenarioRef.current === "debt-wallets" ? -Math.abs(account.value)
+          : scenarioRef.current === "negative" ? account.value
           : scenarioRef.current === "negative-late" && account.id === 16 ? -Math.abs(account.value)
           : scenarioRef.current === "long-amounts" ? Math.abs(account.value) * 100000000 : Math.abs(account.value),
       }));
@@ -132,6 +145,33 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "focus-wallet") {
+    await client.send("Page.bringToFront");
+    await evaluate(client, "document.querySelector('[data-qa=visual-account-bar] [data-account-id=\"13\"]').focus()");
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-tooltip]'))");
+  }
+  if (state.interaction === "pick-tiny-wallet") {
+    await evaluate(client, `(() => { const picker = document.querySelector('[data-qa=visual-account-picker]'); picker.value='13'; picker.dispatchEvent(new Event('change',{bubbles:true})); })()`);
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-selection]'))");
+  }
+  if (["select-non-favorite", "select-favorite", "clear-wallet"].includes(state.interaction)) {
+    const id = state.interaction === "select-favorite" ? 13 : 14;
+    await evaluate(client, `document.querySelector('[data-qa=visual-account-bar] [data-account-id="${id}"]').click()`);
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-selection]'))");
+    if (state.interaction === "clear-wallet") {
+      await evaluate(client, "document.querySelector('[data-qa=visual-account-clear]').click()");
+      await waitFor(client, "!document.querySelector('[data-qa=visual-account-selection]')");
+    }
+  }
+  if (state.interaction === "hover-wallet") {
+    const point = await evaluate(client, `(() => {
+      const el = document.querySelector('[data-qa=visual-account-bar] [data-account-id="13"]');
+      el.scrollIntoView({block:'center'});
+      const r = el.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2};
+    })()`);
+    await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
+    await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-tooltip]'))");
+  }
   if (state.interaction === "income-drilldown") {
     await evaluate(client, "document.querySelector('[data-qa=visual-income] button[aria-label=\"Back to categories\"]').click()");
     await waitFor(client, "Boolean(document.querySelector('[data-income-key=\"200\"]'))");
@@ -216,7 +256,17 @@ async function collectMetrics(client, state) {
       flowRows: document.querySelectorAll('[data-flow]').length,
       flowRowsDisabled: [...document.querySelectorAll('[data-flow]')].every(el => el.disabled),
       negativeWarningLinked: Boolean(document.querySelector('.visual-dashboard-hint a[href="/accounts"]')),
-      hiddenAccountsVisible: text.includes('Hidden reserve') || text.includes('Closed account'),
+      hiddenAccountsVisible: text.includes('Closed account'),
+      favoriteIds: [...document.querySelectorAll('[data-qa=visual-favorite-accounts] [data-account-id]')].map(el => Number(el.dataset.accountId)),
+      favoriteColors: [...document.querySelectorAll('[data-qa=visual-favorite-accounts] [data-account-id]')].map(el => ({id:Number(el.dataset.accountId),color:el.querySelector('.visual-dashboard-swatch')?.style.background})),
+      segmentColors: [...document.querySelectorAll('[data-qa=visual-account-bar] [data-account-id]')].map(el => ({id:Number(el.dataset.accountId),color:el.style.background})),
+      selectionColor: document.querySelector('[data-qa=visual-account-selection] .visual-dashboard-swatch')?.style.background,
+      segmentIds: [...document.querySelectorAll('[data-qa=visual-account-bar] [data-account-id]')].map(el => Number(el.dataset.accountId)),
+      segmentWidths: [...document.querySelectorAll('[data-qa=visual-account-bar] [data-account-id]')].map(el => parseFloat(el.style.width)),
+      selectedWallet: document.querySelector('[data-qa=visual-account-selection]')?.textContent,
+      selectedWalletId: document.querySelector('[data-qa=visual-account-bar] [aria-pressed=true]')?.dataset.accountId,
+      walletTooltip: document.querySelector('[data-qa=visual-account-tooltip]')?.textContent,
+      favoritesEmpty: Boolean(document.querySelector('[data-qa=visual-favorites-empty] a[href="/accounts"]')),
       runtimeErrors: window.__visualDashboardErrors ?? [],
       textSample: text.slice(0, 3500),
     };
@@ -266,8 +316,8 @@ function collectAdditionalFailures(results) {
       if (!state.expenseTotal?.includes('150.00') || !state.flowExpense?.includes('150.00')
         || !state.incomeTotal?.includes('500.00') || !state.flowResult?.includes('350.00')) failures.push(`${state.name}: non-favorite report activity missing or closed account included`);
       if (state.flowRowsDisabled) failures.push(`${state.name}: report links disabled`);
-      if (state.scenario === "report-only" && (state.balance || state.accountBar)) failures.push(`${state.name}: non-favorite balance displayed`);
-      if (state.scenario !== "report-only" && !state.balance?.includes('23,865.00')) failures.push(`${state.name}: wallet balance scope changed`);
+      if (!state.balance?.includes('26,265.00') || !state.accountBar) failures.push(`${state.name}: all-active balance/distribution missing`);
+      if (state.scenario === "report-only" && (!state.favoritesEmpty || state.favoriteIds.length)) failures.push(`${state.name}: no-favorites state incorrect`);
     }
     if (state.runtimeErrors.length) failures.push(`${state.name}: ${state.runtimeErrors.join(', ')}`);
     if (state.hiddenAccountsVisible) failures.push(`${state.name}: hidden account disclosed`);
@@ -275,6 +325,19 @@ function collectAdditionalFailures(results) {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
       continue;
     }
+    if (state.favoriteIds.length > 5 || state.favoriteIds.includes(14) || state.favoriteIds.includes(15)) failures.push(`${state.name}: ineligible account in favorites`);
+    if (state.scenario === "populated" && JSON.stringify(state.favoriteIds) !== JSON.stringify([12,18,11,19,16])) failures.push(`${state.name}: favorite cap/order incorrect`);
+    if (state.scenario === "two-favorites" && JSON.stringify(state.favoriteIds) !== JSON.stringify([11,13])) failures.push(`${state.name}: fewer favorites incorrect`);
+    if (state.accountBar && Math.abs(state.segmentWidths.reduce((sum, width) => sum + width, 0) - 100) > 0.01) failures.push(`${state.name}: segment denominator inconsistent`);
+    if (state.accountBar && state.favoriteColors.some(item => state.segmentColors.some(segment => segment.id === item.id && segment.color !== item.color))) failures.push(`${state.name}: favorite colors differ from segments`);
+    if (state.selectedWalletId && state.selectionColor !== state.segmentColors.find(item => item.id === Number(state.selectedWalletId))?.color) failures.push(`${state.name}: selected color differs from segment`);
+    if (state.scenario === "populated" && state.segmentIds.length !== 8) failures.push(`${state.name}: eligible segment missing`);
+    if (state.interaction === "select-non-favorite" && (state.selectedWalletId !== '14' || !state.selectedWallet?.includes('Hidden reserve'))) failures.push(`${state.name}: non-favorite selection missing`);
+    if (state.interaction === "select-favorite" && (state.selectedWalletId !== '13' || !state.selectedWallet?.includes('PLN') || !state.selectedWallet?.includes('USD'))) failures.push(`${state.name}: favorite currency details missing`);
+    if (state.interaction === "clear-wallet" && (state.selectedWallet || state.selectedWalletId)) failures.push(`${state.name}: selection not cleared`);
+    if (["hover-wallet", "focus-wallet"].includes(state.interaction) && (!state.walletTooltip?.includes('Travel card') || !state.walletTooltip?.includes('PLN') || !state.walletTooltip?.includes('USD') || !state.walletTooltip?.includes('%'))) failures.push(`${state.name}: incomplete wallet tooltip`);
+    if (state.interaction === "pick-tiny-wallet" && (state.selectedWalletId !== '13' || !state.selectedWallet?.includes('<0.1%'))) failures.push(`${state.name}: tiny segment inaccessible or share rounded to zero`);
+    if (state.scenario === "missing-rate" && state.favoriteIds.length !== 5) failures.push(`${state.name}: native favorites hidden by missing rates`);
     const russian = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(state.scenario);
     const expectedHeadings = russian
       ? ["Куда уходят деньги", "Деньги на счетах", "Откуда пришли деньги", "Как идёт месяц"]
@@ -291,7 +354,9 @@ function collectAdditionalFailures(results) {
     }
     if (!state.visual || state.cardCount !== 4 || state.chartBlank) failures.push(`${state.name}: missing cards or blank chart`);
     if (["populated", "russian", "long-amounts", "single-category", "linked", "settings"].includes(state.scenario) && !state.accountBar) failures.push(`${state.name}: account shares absent`);
-    if (["negative", "negative-late", "missing-rate", "empty"].includes(state.scenario) && state.accountBar) failures.push(`${state.name}: misleading account shares`);
+    if (["missing-rate", "empty", "zero-wallets", "debt-wallets"].includes(state.scenario) && state.accountBar) failures.push(`${state.name}: misleading account shares`);
+    if (state.scenario === "negative" && (!state.accountBar || state.segmentIds.includes(13))) failures.push(`${state.name}: debt included in positive distribution`);
+    if (state.scenario === "negative-late" && (!state.accountBar || state.segmentIds.includes(16))) failures.push(`${state.name}: late debt included in positive distribution`);
     if (state.scenario === "empty" && !state.flowRowsDisabled) failures.push(`${state.name}: empty scope navigation enabled`);
     if (state.scenario === "accounts-error" && (state.flowRows || state.flowResult)) failures.push(`${state.name}: failed scope shown as complete zeros`);
     if (state.scenario === "negative-late" && !state.negativeWarningLinked) failures.push(`${state.name}: missing link to negative wallet details`);
