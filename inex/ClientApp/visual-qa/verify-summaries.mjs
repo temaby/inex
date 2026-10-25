@@ -17,6 +17,8 @@ const canonicalSummaries = [
       "populated-1440.png", "populated-1024.png", "populated-390.png", "populated-360.png",
       "compact-1440-800.png", "compact-1440-900.png", "single-parent-1440-800.png", "linked-russian-1440-900.png",
       "report-all-active-1440.png", "report-only-1440.png", "report-only-390.png", "report-linked-1440.png",
+      "wording-russian-1440.png", "wording-negative-390.png", "wording-equal-390.png",
+      "wording-negative-ru-390.png", "wording-equal-ru-390.png", "wording-empty-ru-390.png",
       "russian-390.png", "long-amounts-russian-360.png", "negative-wallet-390.png", "negative-late-wallet-390.png", "accounts-error-390.png",
       "single-category-390.png", "empty-390.png", "no-activity-390.png", "income-only-390.png",
       "expense-only-390.png", "missing-rate-390.png", "category-error-390.png", "summary-error-390.png",

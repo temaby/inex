@@ -197,7 +197,7 @@ describe("Dashboard", () => {
     expect(apiMocks.transactions).toHaveBeenCalledWith(expect.objectContaining({
       linkedUserId, filter: expect.objectContaining({ accountIds: [1, 2] }),
     }), { skip: false });
-    expect(screen.getAllByText("dashboard.balance.empty").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(variant === "visual" ? "dashboard.visual.accountsEmpty" : "dashboard.balance.empty").length).toBeGreaterThan(0);
     expect(screen.queryByText("Not displayed USD")).not.toBeInTheDocument();
     expect(screen.queryByText("Hidden USD")).not.toBeInTheDocument();
     expect(screen.queryByText("Closed USD")).not.toBeInTheDocument();
@@ -355,6 +355,21 @@ describe("Dashboard", () => {
     expect(container.querySelector(".dashboard-grid")).toBeInTheDocument();
   });
 
+  it("removes repeated visual subtitles and uses accessible category and account wording", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    const { container } = render(<Dashboard />);
+    expect(screen.queryByText("dashboard.subtitle")).not.toBeInTheDocument();
+    expect(screen.queryByText("dashboard.categories.level")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "dashboard.visual.mainCategories" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "dashboard.visual.subcategories" })).toBeInTheDocument();
+    expect(screen.getByText("dashboard.visual.moneyHint")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "dashboard.visual.flowTitle" })).toBeInTheDocument();
+    for (const key of ["expenseHint", "incomeHint", "flowHint"]) {
+      expect(screen.queryByText(`dashboard.visual.${key}`)).not.toBeInTheDocument();
+    }
+    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveAttribute("data-accessible-label", "dashboard.visual.totalBalance");
+  });
+
   it.each([
     [2000, -750, "resultPositive", "$1,250.00", "100%", "37.5%"],
     [500, -750, "resultNegative", "$250.00", "66.66666666666666%", "100%"],
@@ -395,7 +410,7 @@ describe("Dashboard", () => {
     expect(income.querySelector('[data-qa="visual-income-chart"]') !== null).toBe(count > 1);
     expect(income.querySelectorAll('[data-income-key]')).toHaveLength(Math.min(count, 5));
     if (count === 0) {
-      expect(income).toHaveTextContent("dashboard.categories.incomeEmpty");
+      expect(income).toHaveTextContent("dashboard.visual.incomeEmpty");
     } else {
       expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent(`USD ${count * (count + 1) * 50}`);
       const first = income.querySelector('[data-income-key="200"]')!;
@@ -434,14 +449,17 @@ describe("Dashboard", () => {
     const income = container.querySelector<HTMLElement>('[data-qa="visual-income"]')!;
     expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeInTheDocument();
     expect(income.querySelectorAll('[data-income-key]')).toHaveLength(3);
+    expect(income.querySelector('[data-qa="visual-income-context"]')).toBeNull();
+    expect(income).toHaveTextContent("dashboard.visual.incomeTotal");
     expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).not.toHaveFocus();
-    fireEvent.click(within(income).getByRole("button", { name: "dashboard.categories.backToParents" }));
+    fireEvent.click(within(income).getByRole("button", { name: "dashboard.visual.backToCategories" }));
     expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
     expect(income).toHaveTextContent("dashboard.visual.viewBreakdown");
     fireEvent.click(income.querySelector('[data-income-key="200"]')!);
     expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeInTheDocument();
     expect(income.querySelectorAll('[data-income-key]')).toHaveLength(3);
     expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 1010");
+    expect(income.querySelector('[data-qa="visual-income-context"]')).toHaveTextContent("Work");
     expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).toHaveFocus();
     fireEvent.click(income.querySelector('[data-income-key="202"]')!);
     expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:202;.*type:income;/));
@@ -474,7 +492,7 @@ describe("Dashboard", () => {
     expect(container.querySelector('[data-income-key="201"]')).toHaveTextContent("Salary");
     expect(container.querySelector('[data-income-key="202"]')).toHaveTextContent("Bonus");
     expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).not.toHaveFocus();
-    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.backToParents" }));
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.visual.backToCategories" }));
     rerender(<Dashboard />);
     expect(container.querySelector('[data-income-key="200"]')).toHaveTextContent("Work");
     expect(container.querySelector('[data-income-key="201"]')).toBeNull();
@@ -500,7 +518,7 @@ describe("Dashboard", () => {
     expect(income.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 500");
     expect(income).not.toHaveTextContent("Transfers");
     expect(income).not.toHaveTextContent("Visible USD");
-    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.child" }));
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.visual.subcategories" }));
     expect(income.querySelector('[data-income-key="201"]')).toHaveTextContent("Work / Salary");
   });
 
@@ -550,13 +568,13 @@ describe("Dashboard", () => {
     const { container } = render(<Dashboard />);
     expect(container.querySelector('[data-category-key="11"]')).toHaveTextContent("Groceries");
     expect(screen.getByRole("heading", { name: "dashboard.visual.expensesTitle" })).not.toHaveFocus();
-    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.backToParents" }));
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.visual.backToCategories" }));
     fireEvent.click(container.querySelector('[data-category-key="10"]')!);
     expect(container.querySelector('[data-category-key="11"]')).toHaveTextContent("Groceries");
     expect(screen.getByRole("heading", { name: "dashboard.visual.expensesTitle" })).toHaveFocus();
     fireEvent.keyDown(screen.getByRole("heading", { name: "dashboard.visual.expensesTitle" }), { key: "Escape" });
     expect(container.querySelector('[data-category-key="10"]')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.child" }));
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.visual.subcategories" }));
     expect(container.querySelector('[data-category-key="11"]')).toHaveTextContent("Food / Groceries");
   });
 
@@ -566,7 +584,7 @@ describe("Dashboard", () => {
     apiMocks.accounts.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
     apiMocks.accountSummaries.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
     const { container } = render(<Dashboard />);
-    expect(screen.getByText("dashboard.categories.expenseEmpty")).toBeInTheDocument();
+    expect(screen.getByText("dashboard.visual.expenseEmpty")).toBeInTheDocument();
     expect(container.querySelectorAll(".visual-dashboard-wallets li")).toHaveLength(3);
     expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 500");
     expect(screen.getByText("dashboard.visual.allAccounts")).toBeInTheDocument();
@@ -612,9 +630,9 @@ describe("Dashboard", () => {
     const { container } = render(<Dashboard />);
     expect(container.querySelector('[data-qa="visual-flow-result"]')).not.toBeInTheDocument();
     expect(container.querySelector('[data-flow="income"]')).not.toBeInTheDocument();
-    expect(screen.queryByText("dashboard.categories.expenseEmpty")).not.toBeInTheDocument();
+    expect(screen.queryByText("dashboard.visual.expenseEmpty")).not.toBeInTheDocument();
     expect(container.querySelector('[data-qa="visual-income-total"]')).not.toBeInTheDocument();
-    expect(screen.queryByText("dashboard.categories.incomeEmpty")).not.toBeInTheDocument();
+    expect(screen.queryByText("dashboard.visual.incomeEmpty")).not.toBeInTheDocument();
     if (status.isError) expect(screen.getByText("dashboard.cashFlow.error")).toBeInTheDocument();
   });
 

@@ -78,10 +78,10 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
             <div className="visual-dashboard-card__header">
                 <div>
                     <h2 id="visual-income-title" ref={heading} tabIndex={-1}>{t("dashboard.visual.incomeTitle")}</h2>
-                    <p>{incomeParentName ? t("dashboard.categories.childrenOf", { category: incomeParentName }) : t("dashboard.visual.incomeHint")}</p>
+                    {incomeParentName && !incomeAutoExpanded ? <p data-qa="visual-income-context">{incomeParentName}</p> : null}
                 </div>
-                {incomeParentName ? <InExButton aria-label={t("dashboard.categories.backToParents")} icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
-                    {t("dashboard.categories.parent")}
+                {incomeParentName ? <InExButton aria-label={t("dashboard.visual.backToCategories")} icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
+                    {t("dashboard.visual.allCategories")}
                 </InExButton> : null}
             </div>
             <Spin spinning={pending} tip={t("dashboard.categories.loading")}>
@@ -90,7 +90,7 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                         : categoryConversion.incomeMissingRates.length > 0 ? unavailable(categoryConversion.incomeMissingRates)
                             : slices.length === 0 ? (
                                 <div className="visual-dashboard-income__empty" role="status">
-                                    <ArrowUp aria-hidden="true" size={22} /><p>{t("dashboard.categories.incomeEmpty")}</p>
+                                    <ArrowUp aria-hidden="true" size={22} /><p>{t("dashboard.visual.incomeEmpty")}</p>
                                 </div>
                             ) : (
                                 <div className={slices.length > 1 ? "visual-dashboard-income__layout" : "visual-dashboard-income__single"}>
@@ -113,7 +113,7 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                             </ResponsiveContainer>
                                         </div> : null}
                                         <div className={slices.length > 1 ? "visual-dashboard-donut__center" : undefined}>
-                                            <span>{t(incomeParentName ? "dashboard.visual.selectedTotal" : "dashboard.visual.incomeTotal")}</span>
+                                            <span>{t(incomeParentName && !incomeAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.incomeTotal")}</span>
                                             <Num dataQa="visual-income-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={total} />
                                         </div>
                                     </div>

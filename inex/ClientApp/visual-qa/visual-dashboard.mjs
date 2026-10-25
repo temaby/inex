@@ -8,6 +8,8 @@ import {
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  { name: "wording-russian-1440", scenario: "russian", width: 1440 },
+  ...["wording-negative", "wording-equal", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].map((scenario) => ({ name: `${scenario}-390`, scenario, width: 390 })),
   { name: "report-all-active-1440", scenario: "report-all-active", width: 1440 },
   { name: "report-only-1440", scenario: "report-only", width: 1440 },
   { name: "report-only-390", scenario: "report-only", width: 390 },
@@ -58,6 +60,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     },
     get dashboardVisualFixtureTransactions() {
       const scenario = scenarioRef.current;
+      if (scenario === "wording-empty-ru") return [];
       if (["income-two", "income-four", "income-single-parent", "income-tiny", "linked-russian"].includes(scenario)) {
         const ids = scenario === "income-four" ? [201, 211, 221, 231] : scenario === "income-tiny" ? [201, 251] : [201, 211];
         return fixture.dashboardVisualFixtureTransactions
@@ -74,6 +77,16 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
   });
   return async (event, client) => {
     const url = new URL(event.request.url);
+    if (scenarioRef.current.startsWith("wording-") && url.pathname === "/api/transactions/summary") {
+      requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}${url.search}`);
+      const income = scenarioRef.current === "wording-empty-ru" ? 0 : 100;
+      const expense = scenarioRef.current.includes("negative") ? -150 : -income;
+      const body = { ...fixture.dashboardVisualFixtureTransactionSummary,
+        currentScope: { ...fixture.dashboardVisualFixtureTransactionSummary.currentScope,
+          cashFlowBuckets: [{ date: "2026-04-03", currency: "USD", income, expense, recordCount: income ? 2 : 0 }] } };
+      await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...jsonResponse(body) });
+      return;
+    }
     if (reportingScenarios.includes(scenarioRef.current) && ["/api/transactions", "/api/transactions/summary"].includes(url.pathname)) {
       requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}${url.search}`);
       const requestedIds = url.searchParams.getAll("accountId").map(Number);
@@ -110,7 +123,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}`);
       const body = url.pathname === "/api/currencies"
         ? [{ id: 1, key: "USD", name: "US Dollar" }]
-        : { id: 1, username: "QA", email: "qa@example.test", currencyId: 1, languageCode: ["russian", "long-amounts", "linked-russian"].includes(scenarioRef.current) ? "ru" : "en" };
+        : { id: 1, username: "QA", email: "qa@example.test", currencyId: 1, languageCode: ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(scenarioRef.current) ? "ru" : "en" };
       await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...jsonResponse(body) });
     } else {
       await handleClassic(event, client);
@@ -120,7 +133,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 
 async function applyInteraction(client, state) {
   if (state.interaction === "income-drilldown") {
-    await evaluate(client, "document.querySelector('[data-qa=visual-income] button[aria-label=\"Back to parent categories\"]').click()");
+    await evaluate(client, "document.querySelector('[data-qa=visual-income] button[aria-label=\"Back to categories\"]').click()");
     await waitFor(client, "Boolean(document.querySelector('[data-income-key=\"200\"]'))");
     await evaluate(client, "document.querySelector('[data-income-key=\"200\"]').click()");
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-income-chart]')) && document.querySelectorAll('[data-income-key]').length === 2");
@@ -144,7 +157,7 @@ async function applyInteraction(client, state) {
   }
   if (state.interaction === "drilldown") {
     await evaluate(client, clickButtonByTextExpression("Home"));
-    await waitFor(client, "document.body.innerText.includes('Inside Home')");
+    await waitFor(client, "document.querySelector('[data-qa=visual-expense-context]')?.textContent === 'Home'");
   }
   if (state.interaction === "other") {
     await evaluate(client, clickButtonByTextExpression("Other"));
@@ -192,6 +205,12 @@ async function collectMetrics(client, state) {
       incomeLegendCount: document.querySelectorAll('[data-income-key]').length,
       incomeOtherMembers: document.querySelectorAll('[data-qa=visual-income] .visual-dashboard-legend__members button').length,
       tinyIncomeShare: document.querySelector('[data-income-key="250"] .visual-dashboard-legend__percentage')?.textContent,
+      headings: [...document.querySelectorAll('[data-qa=visual-dashboard] h2')].map(el => el.textContent),
+      pageSubtitleVisible: Boolean(document.querySelector('[data-qa=page-eyebrow]')),
+      incomeContext: document.querySelector('[data-qa=visual-income-context]')?.textContent,
+      expenseContext: document.querySelector('[data-qa=visual-expense-context]')?.textContent,
+      untranslatedKeyVisible: /dashboard\.(visual|categories|balance)\./.test(text),
+      technicalNavigationVisible: /Starting level|Back to parent|Родительские|Дочерние|Начальный уровень|кошел|wallet/i.test(text),
       flowExpense: document.querySelector('[data-flow=expense] [role=text]')?.textContent,
       flowResult: document.querySelector('[data-qa=visual-flow-result]')?.textContent,
       flowRows: document.querySelectorAll('[data-flow]').length,
@@ -207,7 +226,7 @@ async function collectMetrics(client, state) {
 
 function runState(args) {
   process.stdout.write(`Visual dashboard QA: ${args.state.name}\n`);
-  const language = ["russian", "long-amounts", "linked-russian"].includes(args.state.scenario) ? "ru" : "en";
+  const language = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(args.state.scenario) ? "ru" : "en";
   return runBrowserState({
     ...args,
     routePath: args.state.interaction === "settings" ? "/profile" : "/dashboard",
@@ -230,7 +249,7 @@ function runState(args) {
         if (state.scenario === "missing-rate") await waitFor(client, "document.body.innerText.includes('Total unavailable')");
         else if (state.scenario === "category-error") await waitFor(client, "document.body.innerText.includes('Could not load category breakdown')");
         else if (["summary-error", "accounts-error"].includes(state.scenario)) await waitFor(client, "document.body.innerText.includes('Could not load cash flow')");
-        else if (["empty", "no-activity", "income-only"].includes(state.scenario)) await waitFor(client, "document.body.innerText.includes('No categorized expenses this month')");
+        else if (["empty", "no-activity", "income-only", "wording-empty-ru"].includes(state.scenario)) await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-expenses] .visual-dashboard-empty'))");
         else await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-expenses] .recharts-surface')) && !document.querySelector('.ant-spin-spinning')");
       }
     },
@@ -255,6 +274,20 @@ function collectAdditionalFailures(results) {
     if (state.scenario === "classic") {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
       continue;
+    }
+    const russian = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(state.scenario);
+    const expectedHeadings = russian
+      ? ["Куда уходят деньги", "Деньги на счетах", "Откуда пришли деньги", "Как идёт месяц"]
+      : ["Where the money goes", "Money in accounts", "Where the money came from", "How the month is going"];
+    if (JSON.stringify(state.headings) !== JSON.stringify(expectedHeadings)) failures.push(`${state.name}: visual section wording incorrect`);
+    if (state.pageSubtitleVisible || state.untranslatedKeyVisible || state.technicalNavigationVisible) failures.push(`${state.name}: outdated or missing visual copy`);
+    if (state.scenario === "income-single-parent" && !state.interaction && state.incomeContext) failures.push(`${state.name}: automatic root exposes hierarchy context`);
+    if (state.interaction === "drilldown" && state.expenseContext !== "Home") failures.push(`${state.name}: category navigation context missing`);
+    if (state.scenario.startsWith("wording-")) {
+      const russian = state.scenario.endsWith("-ru");
+      const expected = state.scenario.includes("negative") ? (russian ? "Расходов больше на" : "Expenses are higher by")
+        : state.scenario.includes("empty") ? "За этот период нет операций." : (russian ? "Доходы и расходы равны" : "Income and expenses are equal");
+      if (!state.flowResult?.includes(expected)) failures.push(`${state.name}: incorrect localized financial result`);
     }
     if (!state.visual || state.cardCount !== 4 || state.chartBlank) failures.push(`${state.name}: missing cards or blank chart`);
     if (["populated", "russian", "long-amounts", "single-category", "linked", "settings"].includes(state.scenario) && !state.accountBar) failures.push(`${state.name}: account shares absent`);
