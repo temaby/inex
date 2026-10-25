@@ -11,6 +11,7 @@ import { getAccountBalanceConversionResult } from "../Transactions/transaction-l
 import type { DashboardCategorySlice } from "./dashboard-utils";
 import type { DashboardData } from "./useDashboardData";
 import { IncomeDistribution } from "./IncomeDistribution";
+import { getVisualDashboardFlowTitleKey } from "./visual-dashboard-copy";
 import "./visual-dashboard.css";
 
 const EXPENSE_CATEGORY_COLORS = ["#d87366", "#e8a15b", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#bd79a0", "#8b82bb", "#b98c73"];
@@ -18,7 +19,7 @@ const ACCOUNT_COLORS = ["#389b8b", "#ed8b75", "#9c89ca", "#739fc6", "#d9ac50", "
 
 const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const {
-        t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts,
+        t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts, hasReportingAccounts,
         accountBalances, baseCurrency, accountConversion, balancePanelLoading, balancePanelError,
         accountDataLoading, accountDataError, categoryPanelLoading, categoriesQuery,
         categoryTransactionsQuery, summaryQuery, ratesLoading, missingCashFlowRates,
@@ -101,7 +102,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const unavailable = (currencies: string[]) => (
         <div className="visual-dashboard-state" role="status">
             <strong>{t("dashboard.unavailable.title")}</strong>
-            <span>{t("dashboard.unavailable.rates", { currencies: currencies.join(", ") })}</span>
+            <span>{t("dashboard.visual.ratesMissing", { currencies: currencies.join(", ") })}</span>
             <InExButton kind="ghost" onClick={retryRates} size="sm">{t("dashboard.unavailable.retry")}</InExButton>
         </div>
     );
@@ -118,7 +119,6 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                 </div>
             )}
             frame="analytics"
-            subtitle={t("dashboard.subtitle")}
             title={t("dashboard.title")}
         >
             <div className="visual-dashboard-workspace" data-qa="visual-dashboard">
@@ -140,25 +140,23 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                         <div className="visual-dashboard-card__header">
                             <div>
                                 <h2 id="visual-expenses-title" ref={expenseHeading} tabIndex={-1}>{t("dashboard.visual.expensesTitle")}</h2>
-                                <p>{expenseParentName
-                                    ? t("dashboard.categories.childrenOf", { category: expenseParentName })
-                                    : t("dashboard.visual.expenseHint")}</p>
+                                {expenseParentName && !expenseAutoExpanded ? <p data-qa="visual-expense-context">{expenseParentName}</p> : null}
                             </div>
                         </div>
                         <div className="visual-dashboard-category-controls">
                             <SegmentedControl
-                                label={t("dashboard.categories.level")}
+                                label={<span className="visual-dashboard-sr-only">{t("dashboard.visual.categoryView")}</span>}
                                 onChange={(value) => setCategoryMode(value === "child" ? "child" : "parent")}
                                 options={[
-                                    { key: "parent", label: t("dashboard.categories.parent") },
-                                    { key: "child", label: t("dashboard.categories.child") },
+                                    { key: "parent", label: t("dashboard.visual.mainCategories") },
+                                    { key: "child", label: t("dashboard.visual.subcategories") },
                                 ]}
                                 size="compact"
                                 value={categoryMode}
                             />
                             {expenseParentName ? (
-                                <InExButton icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
-                                    {t("dashboard.categories.backToParents")}
+                                <InExButton aria-label={t("dashboard.visual.backToCategories")} icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
+                                    {t("dashboard.visual.allCategories")}
                                 </InExButton>
                             ) : null}
                         </div>
@@ -170,7 +168,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                             ) : expenseMissingRates.length > 0 ? unavailable(expenseMissingRates) : expenseSlices.length === 0 ? (
                                 <div className="visual-dashboard-empty" role="status">
                                     <div className="visual-dashboard-empty__ring" aria-hidden="true"><ArrowDown size={28} /></div>
-                                    <p>{t("dashboard.categories.expenseEmpty")}</p>
+                                    <p>{t("dashboard.visual.expenseEmpty")}</p>
                                 </div>
                             ) : (
                                 <div className="visual-dashboard-expense-layout">
@@ -208,7 +206,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                         </ResponsiveContainer>
                                         </div>
                                         <div className="visual-dashboard-donut__center">
-                                            <span>{t(expenseParentName ? "dashboard.visual.selectedTotal" : "dashboard.visual.expenseTotal")}</span>
+                                            <span>{t(expenseParentName && !expenseAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.expenseTotal")}</span>
                                             <Num dataQa="visual-expense-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={totalExpense} />
                                         </div>
                                     </div>
@@ -268,12 +266,12 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                 <div className="visual-dashboard-state" role="alert">{t("dashboard.balance.error")}</div>
                             ) : moneyPending ? <div className="visual-dashboard-state visual-dashboard-state--loading" /> : visibleAccounts.length === 0 ? (
                                 <div className="visual-dashboard-state" role="status">
-                                    <span>{t("dashboard.balance.empty")}</span>
+                                    <span>{t("dashboard.visual.accountsEmpty")}</span>
                                     <Link to="/accounts">{t("dashboard.balance.manageAccounts")}</Link>
                                 </div>
                             ) : accountConversion.isComplete ? (
                                     <div className="visual-dashboard-money__total">
-                                        <Num dataQa="visual-balance-total" accessibleLabel={t("dashboard.balance.amountLabel")} currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
+                                        <Num accessibleLabel={t("dashboard.visual.totalBalance", { currency: baseCurrency })} dataQa="visual-balance-total" currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
                                         <p>{t("dashboard.balance.metadata", { count: visibleAccounts.length, date: effectiveDate })}</p>
                                     </div>
                                 ) : unavailable(accountConversion.unavailableCurrencies)}
@@ -323,7 +321,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                     </div>
 
                     <section aria-labelledby="visual-flow-title" className="visual-dashboard-card visual-dashboard-flow" data-qa="visual-flow">
-                        <div className="visual-dashboard-card__header"><div><h2 id="visual-flow-title">{t("dashboard.visual.flowTitle")}</h2><p>{t("dashboard.visual.flowHint")}</p></div></div>
+                        <div className="visual-dashboard-card__header"><div><h2 id="visual-flow-title">{t(getVisualDashboardFlowTitleKey(summaryQuery.currentData?.currentScope.period?.startDate))}</h2></div></div>
                         <Spin spinning={flowPending} tip={t("dashboard.cashFlow.loading")}>
                             {accountsQuery.isError || summaryQuery.isError ? (
                                 <div className="visual-dashboard-state" role="alert">{t("dashboard.cashFlow.error")}</div>
@@ -332,7 +330,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                     <div className="visual-dashboard-flow__layout">
                                         <div className="visual-dashboard-flow__bars" aria-label={t("dashboard.cashFlow.summaryTitle")}>
                                             {cashFlowChartData.map((item) => (
-                                                <button disabled={visibleAccounts.length === 0} data-flow={item.key} className={`visual-dashboard-flow__row visual-dashboard-flow__row--${item.key}`} key={item.key} onClick={() => openFlow(item.key === "income" ? "income" : "expense")} type="button">
+                                                <button disabled={!hasReportingAccounts} data-flow={item.key} className={`visual-dashboard-flow__row visual-dashboard-flow__row--${item.key}`} key={item.key} onClick={() => openFlow(item.key === "income" ? "income" : "expense")} type="button">
                                                     <span className="visual-dashboard-flow__label">{item.key === "income" ? <ArrowUp size={16} aria-hidden="true" /> : <ArrowDown size={16} aria-hidden="true" />}{item.label}</span>
                                                     <Num currency={baseCurrency} currencySize="sm" kind={item.key === "income" ? "income" : "expense"} locale={locale} signage="negative-only" value={item.key === "income" ? item.value : -item.value} />
                                                     <span aria-hidden="true" className="visual-dashboard-flow__track"><span data-qa="visual-flow-bar" style={{ width: `${flowMaximum > 0 ? item.value / flowMaximum * 100 : 0}%` }} /></span>
