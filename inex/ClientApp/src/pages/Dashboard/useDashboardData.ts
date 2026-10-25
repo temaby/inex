@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { getAccountBalanceConversionResult, getBaseCurrencyEquivalent, getCashFlowConversionResult, getCurrentTransactionMonthRange } from "../Transactions/transaction-ledger-utils";
 import { buildDashboardCategorySlices, buildDashboardTransactionFilter, type DashboardCategoryMode, type DashboardFlow, type DashboardCategorySlice } from "./dashboard-utils";
 
-export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
+export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBalances = false } = {}) => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -72,8 +72,8 @@ export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
     const reportingAccountIds = useMemo(() => reportingAccounts.map((account) => account.id), [reportingAccounts]);
     const hasReportingAccounts = reportingAccountIds.length > 0;
     const visibleAccounts = useMemo(
-        () => reportingAccounts.filter((account) => account.isFavourite !== false),
-        [reportingAccounts],
+        () => allActiveBalances ? reportingAccounts : reportingAccounts.filter((account) => account.isFavourite !== false),
+        [allActiveBalances, reportingAccounts],
     );
     const visibleAccountIds = useMemo(() => visibleAccounts.map((account) => account.id), [visibleAccounts]);
     const summaryFilter = useMemo(() => ({

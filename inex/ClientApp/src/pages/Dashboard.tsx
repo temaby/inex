@@ -10,7 +10,7 @@ export { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard/C
 const Dashboard = () => {
     const userId = useAppSelector((state) => state.auth.user?.id);
     const [variant] = useDashboardVariant(userId);
-    const data = useDashboardData({ autoExpandSingleParent: variant === "visual" });
+    const data = useDashboardData({ autoExpandSingleParent: variant === "visual", allActiveBalances: variant === "visual" });
     return variant === "visual" ? <VisualDashboard data={data} /> : <ClassicDashboard data={data} />;
 };
 

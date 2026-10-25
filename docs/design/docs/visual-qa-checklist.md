@@ -56,6 +56,20 @@ npm run lint
 
 ## Evidence Summary
 
+### Visual Dashboard account distribution and favorites — 2026-10-25
+
+Data mode: **fixture**. All 55 Visual Dashboard states, including a focus-only tooltip, and 17 Classic Dashboard states pass; API requests are intercepted and no backend or exchange-rate provider is called. The Visual balance query now includes all active accounts in the selected workspace, while its native list contains at most five explicitly favorite accounts. Classic retains its existing scope.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| Five favorites and compact desktop | [1440×800](../../implementation/visual-qa/visual-dashboard/compact-1440-800.png), [1024px](../../implementation/visual-qa/visual-dashboard/populated-1024.png), [360px](../../implementation/visual-qa/visual-dashboard/populated-360.png) | PASS: five stable favorites, native currencies, no viewport or horizontal overflow |
+| Non-favorite selection and localized details | [Desktop](../../implementation/visual-qa/visual-dashboard/wallet-selected-1440.png), [mobile](../../implementation/visual-qa/visual-dashboard/wallet-selected-360.png), [Russian](../../implementation/visual-qa/visual-dashboard/wallet-selected-russian-360.png) | PASS: separate persistent details preserve favorite membership and color mapping |
+| Hover, tiny share and clearing | [Tooltip](../../implementation/visual-qa/visual-dashboard/wallet-hover-1440.png), [tiny selectable balance](../../implementation/visual-qa/visual-dashboard/wallet-tiny-selected-360.png), [cleared](../../implementation/visual-qa/visual-dashboard/wallet-cleared-390.png) | PASS: named native/converted amounts, explicit currency codes, consistent positive denominator, alternative touch target |
+| Empty or fewer favorites | [No favorites](../../implementation/visual-qa/visual-dashboard/report-only-1440.png), [mobile](../../implementation/visual-qa/visual-dashboard/report-only-390.png), [two favorites](../../implementation/visual-qa/visual-dashboard/two-favorites-390.png) | PASS: total and all-account chart remain independent of favorites, management link available |
+| Debt, zero and unavailable rates | [Mixed debt](../../implementation/visual-qa/visual-dashboard/negative-wallet-390.png), [debt only](../../implementation/visual-qa/visual-dashboard/debt-wallets-390.png), [zero](../../implementation/visual-qa/visual-dashboard/zero-wallets-390.png), [missing rates](../../implementation/visual-qa/visual-dashboard/missing-rate-390.png) | PASS: debt remains in net total, positive shares exclude debt/zero, incomplete conversions hide chart but preserve native favorites |
+
+Build/typecheck and lint pass; the full frontend suite passed 321 tests, followed by 54 passing Dashboard regressions after review patches. Canonical `visual-qa:verify` reports seven unrelated summaries older than 24 hours; both Dashboard summaries pass. Windows browser-profile cleanup reports a non-blocking temporary-directory warning after successful captures. Earlier dashboard evidence below is historical.
+
 ### Visual dashboard income distribution — 2026-10-25
 
 The current visual composition has four cards: expenses on the left, compact wallets and income stacked on the right, and the monthly comparison below. The smaller cards sit side by side at tablet widths and fill one column on phones. Data mode: **fixture**; no real backend or provider calls.
