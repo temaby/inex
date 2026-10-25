@@ -72,6 +72,7 @@ describe("Profile", () => {
     const dispatch = vi.fn();
 
     beforeEach(() => {
+        localStorage.clear();
         vi.clearAllMocks();
         dispatch.mockResolvedValue({});
         mockUseAppDispatch.mockReturnValue(dispatch);
@@ -106,6 +107,21 @@ describe("Profile", () => {
         await waitFor(() => expect(mockApiGet).toHaveBeenCalledWith("/auth/link-state"));
         expect(await screen.findByText("profile.link.status.unlinked")).toBeInTheDocument();
         expect(screen.queryByText("Confirm New Password")).not.toBeInTheDocument();
+    });
+
+    it("saves the dashboard switch immediately without submitting the profile", async () => {
+        const { unmount } = render(<Profile />);
+        const toggle = screen.getByRole("switch", { name: "profile.visualDashboard.label" });
+        expect(toggle).toHaveAttribute("aria-checked", "false");
+        fireEvent.click(toggle);
+        expect(toggle).toHaveAttribute("aria-checked", "true");
+        expect(localStorage.getItem("inex.dashboard.variant.user-7")).toBe("visual");
+        expect(mockUpdateProfile).not.toHaveBeenCalled();
+        await screen.findByText("profile.link.status.unlinked");
+        unmount();
+        render(<Profile />);
+        expect(screen.getByRole("switch", { name: "profile.visualDashboard.label" })).toHaveAttribute("aria-checked", "true");
+        await screen.findByText("profile.link.status.unlinked");
     });
 
     it("renders the authenticated user's linked-account status", async () => {

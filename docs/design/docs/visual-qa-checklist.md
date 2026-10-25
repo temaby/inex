@@ -33,6 +33,7 @@ npm run visual-qa:categories
 npm run visual-qa:budgets
 npm run visual-qa:hero-consistency
 npm run visual-qa:dashboard
+npm run visual-qa:visual-dashboard
 npm run visual-qa:reports
 npm run visual-qa:profile
 npm run visual-qa:auth
@@ -54,6 +55,36 @@ npm run lint
 - Notes for Windows/macOS/Linux differences: Vite/esbuild and the CDP harness may need permission to spawn child processes and a Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH`.
 
 ## Evidence Summary
+
+### Visual dashboard income distribution — 2026-10-25
+
+The current visual composition has four cards: expenses on the left, compact wallets and income stacked on the right, and the monthly comparison below. The smaller cards sit side by side at tablet widths and fill one column on phones. Data mode: **fixture**; no real backend or provider calls.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| Desktop, tablet, mobile, narrow mobile | [1440px](../../implementation/visual-qa/visual-dashboard/populated-1440.png), [1024px](../../implementation/visual-qa/visual-dashboard/populated-1024.png), [390px](../../implementation/visual-qa/visual-dashboard/populated-390.png), [360px](../../implementation/visual-qa/visual-dashboard/populated-360.png) | Full-width phone cards, compact readable legends, proportional charts, one period label |
+| Income adaptations | [Two](../../implementation/visual-qa/visual-dashboard/income-two-390.png), [four](../../implementation/visual-qa/visual-dashboard/income-four-390.png), [single parent](../../implementation/visual-qa/visual-dashboard/income-single-parent-390.png), [children](../../implementation/visual-qa/visual-dashboard/income-children-1440.png), [Other expanded](../../implementation/visual-qa/visual-dashboard/income-other-390.png), [tiny segment](../../implementation/visual-qa/visual-dashboard/income-tiny-390.png) | Single category uses a summary; child drill-down and underlying Other values remain accessible; tiny positive shares use <0.1% and exact segment geometry |
+| Russian and long amounts | [Russian](../../implementation/visual-qa/visual-dashboard/russian-390.png), [long amounts](../../implementation/visual-qa/visual-dashboard/long-amounts-russian-360.png) | Localized text and amounts wrap within cards |
+
+Result: **PASS**, all 28 visual states and all 17 Classic Dashboard states. Build/typecheck, lint, and all 294 frontend tests pass. No page overflow, blank charts, hidden-account disclosure, unhandled API requests, or final-content navigation occlusion. The canonical verifier fails only on seven unrelated stale summaries; both dashboard summaries pass.
+
+The earlier three-card evidence below is historical. Financial inputs, the Classic Dashboard, and the feature flag are unchanged. The existing fixture's independently authored category rows and summary values differ; see [implementation notes](../../implementation/spec-visual-dashboard-income-distribution.md) for the preserved inputs and validation details.
+
+### Alternative visual dashboard — 2026-10-25
+
+Follow-up: personalized headings (“Мои расходы”, “Мои деньги”; EN equivalents) and replaced expense donut/legend greens with coral, amber, rose and lavender/blue. Account colors retain their existing mapping. Re-ran all 22 visual-dashboard fixture states and inspected desktop and Russian mobile captures: PASS. Settings persistence capture now reloads through full navigation to the current URL to avoid a recurring CDP `Page.reload` stall.
+
+Data mode: **fixture**. `visual-qa:visual-dashboard` passes 22 states, `visual-qa:dashboard` passes all 17 classic states, and `visual-qa:profile` passes all 8 Settings states. All API calls are intercepted; no real backend or exchange-rate providers were called.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| New composition, 1440 / 1024 / 390 / 360px | [Desktop](../../implementation/visual-qa/visual-dashboard/populated-1440.png), [tablet](../../implementation/visual-qa/visual-dashboard/populated-1024.png), [mobile](../../implementation/visual-qa/visual-dashboard/populated-390.png), [narrow mobile](../../implementation/visual-qa/visual-dashboard/populated-360.png) | PASS: three cards, readable donut/legend/flow, no overflow, blank charts or final-content navigation occlusion |
+| Russian and long amounts | [Russian](../../implementation/visual-qa/visual-dashboard/russian-390.png), [long amounts](../../implementation/visual-qa/visual-dashboard/long-amounts-russian-360.png) | PASS: labels and original currencies remain readable |
+| Error and incomplete data | [Missing rates](../../implementation/visual-qa/visual-dashboard/missing-rate-390.png), [account error](../../implementation/visual-qa/visual-dashboard/accounts-error-390.png) | PASS: incomplete totals unavailable; failed scope never appears as zero activity |
+| Negative wallet outside preview | [Negative wallet](../../implementation/visual-qa/visual-dashboard/negative-late-wallet-390.png) | PASS: no misleading shares, direct full-account details link |
+| Flag and existing experience | [Settings](../../implementation/visual-qa/profile/populated-390.png), [persisted visual view](../../implementation/visual-qa/visual-dashboard/settings-switch-390.png), [classic default](../../implementation/visual-qa/visual-dashboard/classic-default-1440.png) | PASS: user-scoped local switch, reload persistence, classic default preserved |
+
+The new harness is included in `visual-qa:all` and `visual-qa:verify`. Canonical verification currently fails only because seven unrelated summaries are older than 24 hours; Dashboard, Visual Dashboard and Profile summaries pass. Existing below-baseline results remain historical evidence.
 
 | Area | Generated | Screenshots | Summary |
 | --- | --- | ---: | --- |

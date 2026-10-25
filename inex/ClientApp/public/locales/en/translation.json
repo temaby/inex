@@ -180,6 +180,10 @@
       "usernameRejected": "Username is unavailable or invalid.",
       "currentPasswordIncorrect": "Current password is incorrect.",
       "newPasswordRejected": "New password does not meet the password requirements."
+    },
+    "visualDashboard": {
+      "label": "New dashboard",
+      "description": "Try a brighter, more visual home page. Saved immediately on this browser."
     }
   },
   "language": {
@@ -247,6 +251,34 @@
       "short": "Unavailable",
       "rates": "A cached exchange rate is missing for: {{currencies}}.",
       "retry": "Retry rates"
+    },
+    "visual": {
+      "incomeTitle": "Where it came from",
+      "incomeHint": "Your income, by category",
+      "incomeTotal": "Earned this month",
+      "viewBreakdown": "View breakdown",
+      "smallShare": "<{{percentage}}",
+      "expensesTitle": "My spending",
+      "expenseHint": "Where my money goes",
+      "expenseTotal": "Spent this month",
+      "selectedTotal": "In this category",
+      "moneyTitle": "My money",
+      "moneyHint": "Across your selected wallets",
+      "accountDistribution": "Money across wallets",
+      "nativeBalances": "Wallet balances · original currencies",
+      "allAccounts": "All accounts",
+      "negativeBalancesHint": "Some wallets have a negative balance. View all accounts for details.",
+      "zeroBalancesHint": "Your wallet balances are zero.",
+      "distributionCurrency": "Shares shown in {{currency}}",
+      "flowTitle": "How the month went",
+      "flowHint": "Income and spending, side by side",
+      "resultPositive": "Income exceeded spending by {{amount}}",
+      "resultNegative": "Spending exceeded income by {{amount}}",
+      "resultEqual": "Income and spending balanced out",
+      "resultNoActivity": "A fresh month. Your story starts with the first transaction.",
+      "monthLabel": "Dashboard month",
+      "selectCategory": "{{category}}: {{percentage}}, {{amount}}",
+      "viewTransactions": "View {{category}} transactions"
     }
   },
   "transactions": {

@@ -6,7 +6,7 @@ export const profileVisualFixtureMeta = {
   baseline: "Profile & Settings mockup parity",
   fixedNow: "2026-04-30T12:00:00.000Z",
   expectedTabCount: 2,
-  expectedCardCount: 2,
+  expectedCardCount: 3,
   expectedFormCount: 2,
   expectedOverviewMetricCount: 3,
   expectedCurrencyCount: 3,
