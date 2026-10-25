@@ -68,9 +68,11 @@ async function applyInteraction(client, state) {
     await waitFor(client, "Boolean(document.querySelector('[role=switch][aria-labelledby=profile-dashboard-heading]'))");
     await evaluate(client, "document.querySelector('[role=switch][aria-labelledby=profile-dashboard-heading]').click()");
     await waitFor(client, "localStorage.getItem('inex.dashboard.variant.user-1') === 'visual'");
+    process.stdout.write("Visual dashboard QA: Settings preference saved\n");
     await evaluate(client, clickButtonByTextExpression("Dashboard"));
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-dashboard]'))");
-    await client.send("Page.reload");
+    const dashboardUrl = await evaluate(client, "location.href");
+    await client.send("Page.navigate", { url: dashboardUrl });
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-dashboard]')) && document.querySelector('[data-qa=visual-money]').innerText.includes('Daily account')");
   }
   if (state.interaction === "drilldown") {

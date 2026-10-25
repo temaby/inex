@@ -255,11 +255,11 @@
       "retry": "Повторить загрузку курсов"
     },
     "visual": {
-      "expensesTitle": "На что потратили",
-      "expenseHint": "Ваши расходы — с первого взгляда",
-      "expenseTotal": "Потратили за месяц",
+      "expensesTitle": "Мои расходы",
+      "expenseHint": "Куда уходят мои деньги",
+      "expenseTotal": "Расходы за месяц",
       "selectedTotal": "В этой категории",
-      "moneyTitle": "Наши деньги",
+      "moneyTitle": "Мои деньги",
       "moneyHint": "На выбранных кошельках",
       "accountDistribution": "Деньги по кошелькам",
       "nativeBalances": "Балансы кошельков · в исходных валютах",

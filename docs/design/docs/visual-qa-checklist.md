@@ -58,6 +58,8 @@ npm run lint
 
 ### Alternative visual dashboard — 2026-10-25
 
+Follow-up: personalized headings (“Мои расходы”, “Мои деньги”; EN equivalents) and replaced expense donut/legend greens with coral, amber, rose and lavender/blue. Account colors retain their existing mapping. Re-ran all 22 visual-dashboard fixture states and inspected desktop and Russian mobile captures: PASS. Settings persistence capture now reloads through full navigation to the current URL to avoid a recurring CDP `Page.reload` stall.
+
 Data mode: **fixture**. `visual-qa:visual-dashboard` passes 22 states, `visual-qa:dashboard` passes all 17 classic states, and `visual-qa:profile` passes all 8 Settings states. All API calls are intercepted; no real backend or exchange-rate providers were called.
 
 | Scope | Evidence | Result |

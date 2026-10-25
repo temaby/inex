@@ -253,11 +253,11 @@
       "retry": "Retry rates"
     },
     "visual": {
-      "expensesTitle": "Where it went",
-      "expenseHint": "Your spending, at a glance",
+      "expensesTitle": "My spending",
+      "expenseHint": "Where my money goes",
       "expenseTotal": "Spent this month",
       "selectedTotal": "In this category",
-      "moneyTitle": "Our money",
+      "moneyTitle": "My money",
       "moneyHint": "Across your selected wallets",
       "accountDistribution": "Money across wallets",
       "nativeBalances": "Wallet balances · original currencies",

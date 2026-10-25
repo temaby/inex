@@ -12,7 +12,8 @@ import type { DashboardCategorySlice } from "./dashboard-utils";
 import type { DashboardData } from "./useDashboardData";
 import "./visual-dashboard.css";
 
-const CATEGORY_COLORS = ["#389b8b", "#ed8b75", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#6db2ad", "#a4a26a", "#b98c73"];
+const EXPENSE_CATEGORY_COLORS = ["#d87366", "#e8a15b", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#bd79a0", "#8b82bb", "#b98c73"];
+const ACCOUNT_COLORS = ["#389b8b", "#ed8b75", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#6db2ad", "#a4a26a", "#b98c73"];
 
 const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const {
@@ -193,7 +194,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                 >
                                                     {expenseSlices.map((slice, index) => (
                                                         <Cell
-                                                            fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
+                                                            fill={EXPENSE_CATEGORY_COLORS[index % EXPENSE_CATEGORY_COLORS.length]}
                                                             fillOpacity={highlightedCategory && highlightedCategory !== slice.key ? 0.3 : 1}
                                                             key={slice.key}
                                                             style={{ cursor: "pointer", transition: "fill-opacity 160ms ease" }}
@@ -228,7 +229,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                         onMouseLeave={() => setHighlightedCategory(null)}
                                                         type="button"
                                                     >
-                                                        <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />
+                                                        <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: EXPENSE_CATEGORY_COLORS[index % EXPENSE_CATEGORY_COLORS.length] }} />
                                                         <span className="visual-dashboard-legend__name">{slice.label}</span>
                                                         <strong className="visual-dashboard-legend__percentage">{percentage(share)}</strong>
                                                         <span className="visual-dashboard-legend__amount"><Num currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={slice.amount} /></span>
@@ -283,7 +284,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                     role="img"
                                 >
                                     {convertedAccounts.map((account, index) => account.converted.value > 0 ? (
-                                        <span aria-hidden="true" key={account.id} style={{ background: CATEGORY_COLORS[index % CATEGORY_COLORS.length], width: `${account.converted.value / accountConversion.value * 100}%` }} title={`${account.name}: ${money(account.converted.value)}`} />
+                                        <span aria-hidden="true" key={account.id} style={{ background: ACCOUNT_COLORS[index % ACCOUNT_COLORS.length], width: `${account.converted.value / accountConversion.value * 100}%` }} title={`${account.name}: ${money(account.converted.value)}`} />
                                     ) : null)}
                                 </div>
                                 <p>{t("dashboard.visual.distributionCurrency", { currency: baseCurrency })}</p>
@@ -302,7 +303,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                         {accountBalances.slice(0, 3).map((account, index) => (
                                             <li key={account.id}>
                                                 <Link to="/accounts">
-                                                    <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />
+                                                    <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: ACCOUNT_COLORS[index % ACCOUNT_COLORS.length] }} />
                                                     <span className="visual-dashboard-wallets__name">{account.name}</span>
                                                     <Num accessibleLabel={t("dashboard.balance.amountLabel")} currency={account.currency} currencySize="sm" kind={account.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={account.value} />
                                                 </Link>
