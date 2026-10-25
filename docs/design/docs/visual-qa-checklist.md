@@ -33,6 +33,7 @@ npm run visual-qa:categories
 npm run visual-qa:budgets
 npm run visual-qa:hero-consistency
 npm run visual-qa:dashboard
+npm run visual-qa:visual-dashboard
 npm run visual-qa:reports
 npm run visual-qa:profile
 npm run visual-qa:auth
@@ -54,6 +55,20 @@ npm run lint
 - Notes for Windows/macOS/Linux differences: Vite/esbuild and the CDP harness may need permission to spawn child processes and a Chromium-family browser. If auto-detection fails, set `CHROME_PATH` or `EDGE_PATH`.
 
 ## Evidence Summary
+
+### Alternative visual dashboard — 2026-10-25
+
+Data mode: **fixture**. `visual-qa:visual-dashboard` passes 22 states, `visual-qa:dashboard` passes all 17 classic states, and `visual-qa:profile` passes all 8 Settings states. All API calls are intercepted; no real backend or exchange-rate providers were called.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| New composition, 1440 / 1024 / 390 / 360px | [Desktop](../../implementation/visual-qa/visual-dashboard/populated-1440.png), [tablet](../../implementation/visual-qa/visual-dashboard/populated-1024.png), [mobile](../../implementation/visual-qa/visual-dashboard/populated-390.png), [narrow mobile](../../implementation/visual-qa/visual-dashboard/populated-360.png) | PASS: three cards, readable donut/legend/flow, no overflow, blank charts or final-content navigation occlusion |
+| Russian and long amounts | [Russian](../../implementation/visual-qa/visual-dashboard/russian-390.png), [long amounts](../../implementation/visual-qa/visual-dashboard/long-amounts-russian-360.png) | PASS: labels and original currencies remain readable |
+| Error and incomplete data | [Missing rates](../../implementation/visual-qa/visual-dashboard/missing-rate-390.png), [account error](../../implementation/visual-qa/visual-dashboard/accounts-error-390.png) | PASS: incomplete totals unavailable; failed scope never appears as zero activity |
+| Negative wallet outside preview | [Negative wallet](../../implementation/visual-qa/visual-dashboard/negative-late-wallet-390.png) | PASS: no misleading shares, direct full-account details link |
+| Flag and existing experience | [Settings](../../implementation/visual-qa/profile/populated-390.png), [persisted visual view](../../implementation/visual-qa/visual-dashboard/settings-switch-390.png), [classic default](../../implementation/visual-qa/visual-dashboard/classic-default-1440.png) | PASS: user-scoped local switch, reload persistence, classic default preserved |
+
+The new harness is included in `visual-qa:all` and `visual-qa:verify`. Canonical verification currently fails only because seven unrelated summaries are older than 24 hours; Dashboard, Visual Dashboard and Profile summaries pass. Existing below-baseline results remain historical evidence.
 
 | Area | Generated | Screenshots | Summary |
 | --- | --- | ---: | --- |

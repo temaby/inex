@@ -180,6 +180,10 @@
       "usernameRejected": "Имя пользователя недоступно или некорректно.",
       "currentPasswordIncorrect": "Текущий пароль неверный.",
       "newPasswordRejected": "Новый пароль не соответствует требованиям."
+    },
+    "visualDashboard": {
+      "label": "Новый дашборд",
+      "description": "Попробуйте более наглядный и яркий вариант главной страницы. Сохраняется сразу в этом браузере."
     }
   },
   "language": {
@@ -249,6 +253,29 @@
       "short": "Недоступно",
       "rates": "Нет сохранённого курса для: {{currencies}}.",
       "retry": "Повторить загрузку курсов"
+    },
+    "visual": {
+      "expensesTitle": "На что потратили",
+      "expenseHint": "Ваши расходы — с первого взгляда",
+      "expenseTotal": "Потратили за месяц",
+      "selectedTotal": "В этой категории",
+      "moneyTitle": "Наши деньги",
+      "moneyHint": "На выбранных кошельках",
+      "accountDistribution": "Деньги по кошелькам",
+      "nativeBalances": "Балансы кошельков · в исходных валютах",
+      "allAccounts": "Все счета",
+      "negativeBalancesHint": "На некоторых кошельках отрицательный баланс. Подробности — в списке всех счетов.",
+      "zeroBalancesHint": "Балансы кошельков равны нулю.",
+      "distributionCurrency": "Доли в {{currency}}",
+      "flowTitle": "Как прошёл месяц",
+      "flowHint": "Доходы и расходы рядом",
+      "resultPositive": "Доходы превысили расходы на {{amount}}",
+      "resultNegative": "Расходы превысили доходы на {{amount}}",
+      "resultEqual": "Доходы и расходы сравнялись",
+      "resultNoActivity": "Новый месяц. Ваша история начнётся с первой транзакции.",
+      "monthLabel": "Месяц на дашборде",
+      "selectCategory": "{{category}}: {{percentage}}, {{amount}}",
+      "viewTransactions": "Транзакции: {{category}}"
     }
   },
   "transactions": {

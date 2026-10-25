@@ -10,6 +10,18 @@ const defaultMaxAgeHours = 24;
 
 const canonicalSummaries = [
   {
+    folder: "visual-dashboard",
+    page: "visual-dashboard",
+    routes: ["/dashboard"],
+    screenshots: [
+      "populated-1440.png", "populated-1024.png", "populated-390.png", "populated-360.png",
+      "russian-390.png", "long-amounts-russian-360.png", "negative-wallet-390.png", "negative-late-wallet-390.png", "accounts-error-390.png",
+      "single-category-390.png", "empty-390.png", "no-activity-390.png", "income-only-390.png",
+      "expense-only-390.png", "missing-rate-390.png", "category-error-390.png", "summary-error-390.png",
+      "drilldown-1024.png", "other-390.png", "linked-390.png", "settings-switch-390.png", "classic-default-1440.png",
+    ],
+  },
+  {
     folder: "accounts",
     page: "accounts",
     routes: ["/accounts"],

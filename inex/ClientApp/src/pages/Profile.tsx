@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Alert, Button, Form, Input, Select } from "antd";
+import { Alert, Button, Form, Input, Select, Switch } from "antd";
 import type { FormInstance } from "antd/es/form";
 import { CheckCircle2, KeyRound, Languages, Link2, ShieldCheck, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { changePassword, updateProfile } from "../store/auth/auth-actions";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
 import { parseAxiosError } from "../utils/parseAxiosError";
+import { useDashboardVariant } from "./Dashboard/dashboard-variant";
 import "./Profile.css";
 
 interface Currency {
@@ -145,6 +146,7 @@ const Profile = () => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.auth.user);
+    const [dashboardVariant, setDashboardVariant] = useDashboardVariant(user?.id);
     const [profileForm] = Form.useForm<ProfileFormValues>();
     const [passwordForm] = Form.useForm<PasswordFormValues>();
     const selectedCurrencyId = Form.useWatch("currencyId", profileForm);
@@ -453,6 +455,19 @@ const Profile = () => {
                                 <strong>{t("profile.overview.protected")}</strong>
                             </div>
                         </div>
+                    </section>
+
+                    <section className="profile-card profile-dashboard-preference" aria-labelledby="profile-dashboard-heading">
+                        <div>
+                            <h2 id="profile-dashboard-heading">{t("profile.visualDashboard.label")}</h2>
+                            <p id="profile-dashboard-description">{t("profile.visualDashboard.description")}</p>
+                        </div>
+                        <Switch
+                            aria-labelledby="profile-dashboard-heading"
+                            aria-describedby="profile-dashboard-description"
+                            checked={dashboardVariant === "visual"}
+                            onChange={(checked) => setDashboardVariant(checked ? "visual" : "classic")}
+                        />
                     </section>
 
                     <section className="profile-link-status" aria-labelledby="profile-link-status-heading">

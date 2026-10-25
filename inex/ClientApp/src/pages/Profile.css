@@ -440,3 +440,14 @@
         font-size: 18px;
     }
 }
+.profile-dashboard-preference {
+  align-items: center;
+  display: flex;
+  gap: var(--space-5);
+  justify-content: space-between;
+}
+
+.profile-dashboard-preference > div { min-width: 0; }
+.profile-dashboard-preference h2 { font-size: var(--fs-18); margin: 0 0 var(--space-2); }
+.profile-dashboard-preference p { color: var(--fg-2); margin: 0; }
+.profile-dashboard-preference .ant-switch { flex-shrink: 0; }

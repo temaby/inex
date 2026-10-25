@@ -9,6 +9,7 @@ import { visualQaConfig as heroConsistency } from "./hero-consistency.mjs";
 import { visualQaConfig as profile } from "./profile.mjs";
 import { visualQaConfig as reports } from "./reports.mjs";
 import { visualQaConfig as transactions } from "./transactions.mjs";
+import { visualQaConfig as visualDashboard } from "./visual-dashboard.mjs";
 
 const configs = [
   accounts,
@@ -20,6 +21,7 @@ const configs = [
   profile,
   reports,
   transactions,
+  visualDashboard,
 ];
 
 const environment = await createVisualQaEnvironment({

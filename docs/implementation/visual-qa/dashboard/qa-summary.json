@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-05T19:57:19.845Z",
+  "generatedAt": "2026-10-25T10:12:59.133Z",
   "page": "dashboard",
   "dataMode": "fixture",
   "harness": {
@@ -61,7 +61,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -71,7 +71,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -81,7 +81,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -91,7 +91,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -101,7 +101,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -111,7 +111,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -121,7 +121,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -131,7 +131,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -141,7 +141,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -157,7 +157,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -167,7 +167,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -177,7 +177,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -187,7 +187,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -197,7 +197,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -207,7 +207,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
     "GET /accounts?mode=ALL",
@@ -217,7 +217,7 @@
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-    "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "GET /accounts?mode=ALL&linkedUserId=2",
     "GET /categories?mode=ALL&linkedUserId=2",
     "GET /exchange/rates/2026-04-30",
@@ -325,7 +325,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -432,7 +432,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -539,7 +539,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -646,7 +646,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -746,7 +746,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -853,7 +853,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -960,7 +960,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1067,7 +1067,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1174,7 +1174,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1348,7 +1348,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1445,7 +1445,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1544,7 +1544,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1641,7 +1641,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1730,7 +1730,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1837,7 +1837,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30"
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
       ],
       "consoleMessages": [
         "[vite] connecting...",
@@ -1944,7 +1944,7 @@
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
-        "GET /exchange/rates/cached?startDate=2026-04-01&endDate=2026-04-30",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
         "GET /accounts?mode=ALL&linkedUserId=2",
         "GET /categories?mode=ALL&linkedUserId=2",
         "GET /exchange/rates/2026-04-30",
