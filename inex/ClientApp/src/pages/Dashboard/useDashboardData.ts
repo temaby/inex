@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { getAccountBalanceConversionResult, getBaseCurrencyEquivalent, getCashFlowConversionResult, getCurrentTransactionMonthRange } from "../Transactions/transaction-ledger-utils";
 import { buildDashboardCategorySlices, buildDashboardTransactionFilter, type DashboardCategoryMode, type DashboardFlow, type DashboardCategorySlice } from "./dashboard-utils";
 
-export const useDashboardData = () => {
+export const useDashboardData = ({ autoExpandSingleParent = false } = {}) => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -22,8 +22,9 @@ export const useDashboardData = () => {
     const dailyRates = useAppSelector((state) => state.rates.items);
     const cachedRates = useAppSelector((state) => state.rates.range);
     const [categoryMode, setCategoryMode] = useState<DashboardCategoryMode>("parent");
-    const [expenseParentId, setExpenseParentId] = useState<number | null>(null);
-    const [incomeParentId, setIncomeParentId] = useState<number | null>(null);
+    // undefined uses the automatic initial level; null is an explicit return to parents.
+    const [expenseParentSelection, setExpenseParentId] = useState<number | null>();
+    const [incomeParentSelection, setIncomeParentId] = useState<number | null>();
     const [accountsExpanded, setAccountsExpanded] = useState(false);
     const accountListId = useId();
 
@@ -123,10 +124,10 @@ export const useDashboardData = () => {
     }, [cachedRateKey, dispatch, endDate, needsCachedRates, selectedLinkedUserId, startDate]);
 
     useEffect(() => {
-        setExpenseParentId(null);
-        setIncomeParentId(null);
+        setExpenseParentId(undefined);
+        setIncomeParentId(undefined);
         setAccountsExpanded(false);
-    }, [categoryMode, selectedLinkedUserId]);
+    }, [categoryMode, selectedLinkedUserId, startDate]);
 
     const exchangeRates = cachedRates?.completedKey === cachedRateKey ? cachedRates.items : [];
     const ratesLoading = needsCachedRates && (
@@ -180,6 +181,24 @@ export const useDashboardData = () => {
             expenseMissingRates: Array.from(new Set(missing.expense)),
         };
     }, [baseCurrency, categoryTransactionsQuery.currentData, exchangeRates]);
+    const defaultParentIds = useMemo(() => {
+        const singleParent = (flow: DashboardFlow) => {
+            const parents = buildDashboardCategorySlices({
+                categories: categorySource, reportData: categoryConversion.rows,
+                flow, mode: "parent", otherLabel: t("dashboard.categories.other"),
+            });
+            const parentId = parents.length === 1 ? parents[0].id : null;
+            return parentId != null && categorySource.some((category) => !category.isSystem && category.parentId === parentId)
+                ? parentId : null;
+        };
+        return { expense: singleParent("expense"), income: singleParent("income") };
+    }, [categoryConversion.rows, categorySource, t]);
+    const expenseAutoExpanded = autoExpandSingleParent && categoryMode === "parent"
+        && expenseParentSelection === undefined && defaultParentIds.expense != null;
+    const incomeAutoExpanded = autoExpandSingleParent && categoryMode === "parent"
+        && incomeParentSelection === undefined && defaultParentIds.income != null;
+    const expenseParentId = expenseAutoExpanded ? defaultParentIds.expense : expenseParentSelection ?? null;
+    const incomeParentId = incomeAutoExpanded ? defaultParentIds.income : incomeParentSelection ?? null;
     const expenseSlices = useMemo(() => buildDashboardCategorySlices({
         categories: categorySource,
         reportData: categoryConversion.rows,
@@ -316,6 +335,8 @@ export const useDashboardData = () => {
         setCategoryMode,
         expenseParentName,
         incomeParentName,
+        expenseAutoExpanded,
+        incomeAutoExpanded,
         expenseSlices,
         incomeSlices,
         setExpenseParentId,

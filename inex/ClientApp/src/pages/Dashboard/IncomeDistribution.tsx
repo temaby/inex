@@ -16,7 +16,7 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
     error: boolean;
     unavailable: (currencies: string[]) => React.ReactNode;
 }) => {
-    const { t, i18n, incomeSlices, incomeParentName, setIncomeParentId, selectCategory,
+    const { t, i18n, incomeSlices, incomeParentName, incomeAutoExpanded, setIncomeParentId, selectCategory,
         categoryMode, categoryConversion, baseCurrency, categoriesQuery } = data;
     const [highlighted, setHighlighted] = useState<string | null>(null);
     const [otherExpanded, setOtherExpanded] = useState(false);
@@ -45,14 +45,15 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
         setOtherExpanded(false);
     }, [incomeSlices]);
     useEffect(() => {
-        if (incomeParentName) heading.current?.focus();
-    }, [incomeParentName]);
+        if (incomeParentName && !incomeAutoExpanded) heading.current?.focus();
+    }, [incomeParentName, incomeAutoExpanded]);
 
     const returnToParents = () => {
         setIncomeParentId(null);
         window.requestAnimationFrame(() => {
             const buttons = legend.current?.querySelectorAll<HTMLButtonElement>("[data-income-key]");
-            Array.from(buttons ?? []).find((button) => button.dataset.incomeKey === lastParentKey.current)?.focus();
+            (Array.from(buttons ?? []).find((button) => button.dataset.incomeKey === lastParentKey.current)
+                ?? (lastParentKey.current == null ? buttons?.[0] : undefined))?.focus();
         });
     };
     const select = (slice: DashboardCategorySlice, returnFocusKey = slice.key) => {
@@ -79,8 +80,8 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                     <h2 id="visual-income-title" ref={heading} tabIndex={-1}>{t("dashboard.visual.incomeTitle")}</h2>
                     <p>{incomeParentName ? t("dashboard.categories.childrenOf", { category: incomeParentName }) : t("dashboard.visual.incomeHint")}</p>
                 </div>
-                {incomeParentName ? <InExButton icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
-                    {t("dashboard.categories.backToParents")}
+                {incomeParentName ? <InExButton aria-label={t("dashboard.categories.backToParents")} icon={<ChevronLeft size={15} />} kind="ghost" onClick={returnToParents} size="sm">
+                    {t("dashboard.categories.parent")}
                 </InExButton> : null}
             </div>
             <Spin spinning={pending} tip={t("dashboard.categories.loading")}>

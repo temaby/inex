@@ -7,6 +7,9 @@ import {
 
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const states = [
+  ...[800, 900].map((height) => ({ name: `compact-1440-${height}`, scenario: "populated", width: 1440, height })),
+  { name: "single-parent-1440-800", scenario: "income-single-parent", width: 1440, height: 800 },
+  { name: "linked-russian-1440-900", scenario: "linked-russian", width: 1440, height: 900, interaction: "linked" },
   ...[1440, 1024, 390, 360].map((width) => ({ name: `populated-${width}`, scenario: "populated", width })),
   { name: "russian-390", scenario: "russian", width: 390 },
   { name: "long-amounts-russian-360", scenario: "long-amounts", width: 360 },
@@ -21,7 +24,7 @@ const states = [
   { name: "linked-390", scenario: "linked", width: 390, interaction: "linked" },
   { name: "settings-switch-390", scenario: "settings", width: 390, interaction: "settings" },
   { name: "classic-default-1440", scenario: "classic", width: 1440 },
-].map((state) => ({ ...state, screenshot: `${state.name}.png`, viewport: { width: state.width, height: state.width >= 1024 ? 1000 : 900 } }));
+].map((state) => ({ ...state, screenshot: `${state.name}.png`, viewport: { width: state.width, height: state.height ?? (state.width >= 1024 ? 1000 : 900) } }));
 
 function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef) {
   const source = {
@@ -37,13 +40,13 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     get dashboardVisualFixtureCategories() {
       return fixture.dashboardVisualFixtureCategories.map((category) => ({
         ...category,
-        parentId: scenarioRef.current === "income-single-parent" && category.id === 211 ? 200 : category.parentId,
+        parentId: ["income-single-parent", "linked-russian"].includes(scenarioRef.current) && category.id === 211 ? 200 : category.parentId,
         name: scenarioRef.current === "long-amounts" ? `${category.name} — Очень длинное название категории для проверки переноса текста` : category.name,
       }));
     },
     get dashboardVisualFixtureTransactions() {
       const scenario = scenarioRef.current;
-      if (["income-two", "income-four", "income-single-parent", "income-tiny"].includes(scenario)) {
+      if (["income-two", "income-four", "income-single-parent", "income-tiny", "linked-russian"].includes(scenario)) {
         const ids = scenario === "income-four" ? [201, 211, 221, 231] : scenario === "income-tiny" ? [201, 251] : [201, 211];
         return fixture.dashboardVisualFixtureTransactions
           .filter((transaction) => transaction.amount < 0 || ids.includes(transaction.categoryId))
@@ -54,7 +57,9 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         : fixture.dashboardVisualFixtureTransactions;
     },
   };
-  const handleClassic = classic.createApiHandler(source, requestLog, unhandledApiRequests, scenarioRef);
+  const handleClassic = classic.createApiHandler(source, requestLog, unhandledApiRequests, {
+    get current() { return scenarioRef.current === "linked-russian" ? "linked" : scenarioRef.current; },
+  });
   return async (event, client) => {
     const url = new URL(event.request.url);
     if (url.pathname === "/api/accounts" && scenarioRef.current === "accounts-error") {
@@ -66,7 +71,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}`);
       const body = url.pathname === "/api/currencies"
         ? [{ id: 1, key: "USD", name: "US Dollar" }]
-        : { id: 1, username: "QA", email: "qa@example.test", currencyId: 1, languageCode: ["russian", "long-amounts"].includes(scenarioRef.current) ? "ru" : "en" };
+        : { id: 1, username: "QA", email: "qa@example.test", currencyId: 1, languageCode: ["russian", "long-amounts", "linked-russian"].includes(scenarioRef.current) ? "ru" : "en" };
       await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...jsonResponse(body) });
     } else {
       await handleClassic(event, client);
@@ -76,6 +81,8 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 
 async function applyInteraction(client, state) {
   if (state.interaction === "income-drilldown") {
+    await evaluate(client, "document.querySelector('[data-qa=visual-income] button[aria-label=\"Back to parent categories\"]').click()");
+    await waitFor(client, "Boolean(document.querySelector('[data-income-key=\"200\"]'))");
     await evaluate(client, "document.querySelector('[data-income-key=\"200\"]').click()");
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-income-chart]')) && document.querySelectorAll('[data-income-key]').length === 2");
   }
@@ -106,7 +113,7 @@ async function applyInteraction(client, state) {
   }
   if (state.interaction === "linked") {
     await evaluate(client, `(() => {
-      const selector = document.querySelector('[aria-label="Financial workspace"]');
+      const selector = document.querySelector('.inex-linked-account-select input');
       (selector?.closest('.ant-select')?.querySelector('.ant-select-selector') ?? selector)?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     })()`);
     await waitFor(client, "Boolean(document.querySelector('.ant-select-item-option'))");
@@ -127,6 +134,8 @@ async function collectMetrics(client, state) {
     const bounds = cards.map(el => { const r = el?.getBoundingClientRect(); return r ? { x:r.x, y:r.y, width:r.width, height:r.height } : null; });
     const charts = [...document.querySelectorAll('.recharts-surface')];
     return {
+      pageHeight: document.documentElement.scrollHeight,
+      scrollTop: window.scrollY,
       hasHorizontalOverflow: document.documentElement.scrollWidth > innerWidth || document.body.scrollWidth > innerWidth,
       bottomNavVisible,
       bottomNavOccludesLastContent: Boolean(bottomNavVisible && content && content.getBoundingClientRect().bottom > nav.getBoundingClientRect().top - 4),
@@ -158,7 +167,7 @@ async function collectMetrics(client, state) {
 
 function runState(args) {
   process.stdout.write(`Visual dashboard QA: ${args.state.name}\n`);
-  const language = ["russian", "long-amounts"].includes(args.state.scenario) ? "ru" : "en";
+  const language = ["russian", "long-amounts", "linked-russian"].includes(args.state.scenario) ? "ru" : "en";
   return runBrowserState({
     ...args,
     routePath: args.state.interaction === "settings" ? "/profile" : "/dashboard",
@@ -193,6 +202,7 @@ function runState(args) {
 function collectAdditionalFailures(results) {
   const failures = [];
   for (const state of results) {
+    if (state.height && state.pageHeight > state.viewport.height) failures.push(`${state.name}: dashboard exceeds viewport (${state.pageHeight}px)`);
     if (state.runtimeErrors.length) failures.push(`${state.name}: ${state.runtimeErrors.join(', ')}`);
     if (state.hiddenAccountsVisible) failures.push(`${state.name}: hidden account disclosed`);
     if (state.scenario === "classic") {
@@ -207,14 +217,14 @@ function collectAdditionalFailures(results) {
     if (state.scenario === "negative-late" && !state.negativeWarningLinked) failures.push(`${state.name}: missing link to negative wallet details`);
     if (state.width >= 1200 && state.interaction !== "settings") {
       const [expense, money, income, flow] = state.bounds;
-      if (Math.abs(expense.y - money.y) > 1 || expense.width <= money.width || income.y < money.y + money.height || flow.y < Math.max(expense.y + expense.height, income.y + income.height)) failures.push(`${state.name}: desktop hierarchy incorrect`);
+      if (Math.abs(expense.y - money.y) > 1 || expense.width <= money.width || Math.abs(income.y - flow.y) > 1 || income.y < money.y + money.height || flow.y < expense.y + expense.height) failures.push(`${state.name}: desktop hierarchy incorrect`);
     }
     if (state.scenario === "populated" && !state.interaction && !state.flowResult?.includes('2,000')) failures.push(`${state.name}: financial result incorrect`);
     if (state.width <= 600 && state.bounds.some((card) => Math.abs(card.width - state.bounds[0].width) > 1)) failures.push(`${state.name}: mobile cards do not fill the column`);
     if (state.scenario === "single-category" && state.chartCount !== 1) failures.push(`${state.name}: single-category chart missing`);
-    const singleIncome = state.scenario === "single-category" || (state.scenario === "income-single-parent" && !state.interaction);
+    const singleIncome = state.scenario === "single-category";
     if (singleIncome && (state.incomeChart || state.incomeLegendCount !== 1)) failures.push(`${state.name}: single income should use a summary`);
-    const multiIncome = ["populated", "russian", "long-amounts", "income-only", "income-two", "income-four", "income-tiny"].includes(state.scenario) || state.interaction === "income-drilldown";
+    const multiIncome = ["populated", "russian", "long-amounts", "income-only", "income-two", "income-four", "income-tiny", "income-single-parent", "linked-russian"].includes(state.scenario) || state.interaction === "income-drilldown";
     if (multiIncome && !state.incomeChart) failures.push(`${state.name}: income donut missing`);
     if (state.scenario === "income-two" && state.incomeLegendCount !== 2) failures.push(`${state.name}: two-source legend incomplete`);
     if (state.scenario === "income-four" && state.incomeLegendCount !== 4) failures.push(`${state.name}: four-source legend incomplete`);

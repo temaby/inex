@@ -23,7 +23,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         accountDataLoading, accountDataError, categoryPanelLoading, categoriesQuery,
         categoryTransactionsQuery, summaryQuery, ratesLoading, missingCashFlowRates,
         cashFlowConversion, hasCashFlow, cashFlowChartData, openFlow, categoryMode,
-        setCategoryMode, expenseParentName, expenseSlices, setExpenseParentId,
+        setCategoryMode, expenseParentName, expenseAutoExpanded, expenseSlices, setExpenseParentId,
         selectCategory, categoryConversion, retryRates, effectiveDate,
         currentPeriodLabel, exchangeRates, accountsQuery, accountBalancesQuery,
     } = data;
@@ -47,14 +47,15 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     }, [categoryMode, expenseParentName, expenseSlices]);
 
     useEffect(() => {
-        if (expenseParentName) expenseHeading.current?.focus();
-    }, [expenseParentName]);
+        if (expenseParentName && !expenseAutoExpanded) expenseHeading.current?.focus();
+    }, [expenseParentName, expenseAutoExpanded]);
 
     const returnToParents = () => {
         setExpenseParentId(null);
         window.requestAnimationFrame(() => {
             const buttons = legendRef.current?.querySelectorAll<HTMLButtonElement>("[data-category-key]");
-            Array.from(buttons ?? []).find((button) => button.dataset.categoryKey === lastParentKey.current)?.focus();
+            (Array.from(buttons ?? []).find((button) => button.dataset.categoryKey === lastParentKey.current)
+                ?? (lastParentKey.current == null ? buttons?.[0] : undefined))?.focus();
         });
     };
 
@@ -106,6 +107,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     );
 
     return (
+        <div className="visual-dashboard-page">
         <BasicPage
             extra={(
                 <div className="visual-dashboard-actions">
@@ -348,6 +350,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                 </div>
             </div>
         </BasicPage>
+        </div>
     );
 };
 

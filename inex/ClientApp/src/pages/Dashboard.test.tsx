@@ -368,7 +368,7 @@ describe("Dashboard", () => {
     }
   });
 
-  it("opens a single income parent's child breakdown and restores keyboard focus on return", async () => {
+  it("defaults a single income parent to children and restores focus after an explicit drill-down", async () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     apiMocks.categories.mockReturnValue({ currentData: [
       { id: 200, name: "Work", parentId: null },
@@ -382,6 +382,10 @@ describe("Dashboard", () => {
     ] }, isLoading: false, isError: false });
     const { container } = render(<Dashboard />);
     const income = container.querySelector<HTMLElement>('[data-qa="visual-income"]')!;
+    expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeInTheDocument();
+    expect(income.querySelectorAll('[data-income-key]')).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).not.toHaveFocus();
+    fireEvent.click(within(income).getByRole("button", { name: "dashboard.categories.backToParents" }));
     expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
     expect(income).toHaveTextContent("dashboard.visual.viewBreakdown");
     fireEvent.click(income.querySelector('[data-income-key="200"]')!);
@@ -395,6 +399,38 @@ describe("Dashboard", () => {
     await act(async () => { await new Promise((resolve) => window.requestAnimationFrame(resolve)); });
     expect(income.querySelector('[data-income-key="200"]')).toHaveFocus();
     expect(income.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
+  });
+
+  it("applies the default independently after data loads and preserves explicit parent selection until workspace changes", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 10, name: "Food", parentId: null }, { id: 11, name: "Groceries", parentId: 10 },
+      { id: 20, name: "Home", parentId: null }, { id: 21, name: "Rent", parentId: 20 },
+      { id: 200, name: "Work", parentId: null }, { id: 201, name: "Salary", parentId: 200 },
+      { id: 202, name: "Bonus", parentId: 200 },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ isLoading: true, isError: false });
+    const { container, rerender } = render(<Dashboard />);
+    expect(container.querySelector('[data-income-key]')).toBeNull();
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 11, accountCurrency: "USD", amount: -50, created: "2026-09-01" },
+      { categoryId: 21, accountCurrency: "USD", amount: -100, created: "2026-09-01" },
+      { categoryId: 201, accountCurrency: "USD", amount: 500, created: "2026-09-01" },
+      { categoryId: 202, accountCurrency: "USD", amount: 200, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    rerender(<Dashboard />);
+    expect(container.querySelector('[data-category-key="10"]')).toHaveTextContent("Food");
+    expect(container.querySelector('[data-category-key="20"]')).toHaveTextContent("Home");
+    expect(container.querySelector('[data-income-key="201"]')).toHaveTextContent("Salary");
+    expect(container.querySelector('[data-income-key="202"]')).toHaveTextContent("Bonus");
+    expect(screen.getByRole("heading", { name: "dashboard.visual.incomeTitle" })).not.toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.backToParents" }));
+    rerender(<Dashboard />);
+    expect(container.querySelector('[data-income-key="200"]')).toHaveTextContent("Work");
+    expect(container.querySelector('[data-income-key="201"]')).toBeNull();
+    linkedState.linkedAccount.selectedLinkedUserId = null;
+    rerender(<Dashboard />);
+    expect(container.querySelector('[data-income-key="201"]')).toHaveTextContent("Salary");
   });
 
   it("keeps income gross flows and hierarchy separate from receiving wallets and system categories", () => {
@@ -462,6 +498,9 @@ describe("Dashboard", () => {
     apiMocks.categories.mockReturnValue({ currentData: [{ id: 10, name: "Food", parentId: null }, { id: 11, name: "Groceries", parentId: 10 }], isLoading: false, isError: false });
     apiMocks.transactions.mockReturnValue({ currentData: { data: [{ categoryId: 11, accountCurrency: "USD", amount: -750, created: "2026-09-01" }] }, isLoading: false, isError: false });
     const { container } = render(<Dashboard />);
+    expect(container.querySelector('[data-category-key="11"]')).toHaveTextContent("Groceries");
+    expect(screen.getByRole("heading", { name: "dashboard.visual.expensesTitle" })).not.toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.categories.backToParents" }));
     fireEvent.click(container.querySelector('[data-category-key="10"]')!);
     expect(container.querySelector('[data-category-key="11"]')).toHaveTextContent("Groceries");
     expect(screen.getByRole("heading", { name: "dashboard.visual.expensesTitle" })).toHaveFocus();
