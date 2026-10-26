@@ -572,8 +572,91 @@ describe("Dashboard", () => {
     expect(category).toHaveTextContent("100%");
     fireEvent.focus(category);
     expect(category).toHaveClass("is-highlighted");
+    expect(container.querySelector('[data-qa="visual-expense-center"]')).toHaveTextContent("Food");
+    expect(container.querySelector('[data-qa="visual-expense-share"]')).toHaveTextContent("100%");
     fireEvent.click(category);
     expect(apiMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:10;.*type:expense;/));
+  });
+
+  it("shows expense details on hover and focus, restores focused details after pointer exit, and resets to the total", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 10, name: "Food", parentId: null }, { id: 20, name: "Home", parentId: null },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 10, accountCurrency: "USD", amount: -750, created: "2026-09-01" },
+      { categoryId: 20, accountCurrency: "USD", amount: -250, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const center = container.querySelector('[data-qa="visual-expense-center"]')!;
+    const food = container.querySelector('[data-category-key="10"]')!;
+    const home = container.querySelector('[data-category-key="20"]')!;
+    expect(center).toHaveTextContent("dashboard.visual.expenseTotal");
+    expect(center).toHaveTextContent("USD 1000");
+    fireEvent.mouseEnter(food);
+    expect(center).toHaveTextContent("Food");
+    expect(center).toHaveTextContent("USD 750");
+    expect(center).toHaveTextContent("75%");
+    fireEvent.mouseLeave(food);
+    expect(center).toHaveTextContent("dashboard.visual.expenseTotal");
+    fireEvent.focus(food);
+    fireEvent.mouseEnter(home);
+    expect(center).toHaveTextContent("Home");
+    expect(center).toHaveTextContent("USD 250");
+    expect(home).toHaveClass("is-highlighted");
+    fireEvent.mouseLeave(home);
+    expect(center).toHaveTextContent("Food");
+    expect(food).toHaveClass("is-highlighted");
+    fireEvent.blur(food);
+    expect(center).toHaveTextContent("dashboard.visual.expenseTotal");
+    expect(center).toHaveTextContent("USD 1000");
+    expect(container.querySelector('[data-qa="visual-expense-share"]')).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("clears inspected expense details when displayed data changes", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [{ id: 10, name: "Food", parentId: null }], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [{ categoryId: 10, accountCurrency: "USD", amount: -750, created: "2026-09-01" }] }, isLoading: false, isError: false });
+    const { container, rerender } = render(<Dashboard />);
+    fireEvent.mouseEnter(container.querySelector('[data-category-key="10"]')!);
+    expect(container.querySelector('[data-qa="visual-expense-center"]')).toHaveTextContent("Food");
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [{ categoryId: 10, accountCurrency: "USD", amount: -500, created: "2026-09-01" }] }, isLoading: false, isError: false });
+    rerender(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-expense-center"]')).toHaveTextContent("dashboard.visual.expenseTotal");
+    expect(container.querySelector('[data-qa="visual-expense-total"]')).toHaveTextContent("USD 500");
+  });
+
+  it("inspects expanded Other expenses while highlighting the grouped segment and retaining member navigation", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    const categories = Array.from({ length: 10 }, (_, index) => ({ id: 100 + index, name: `Expense ${index}`, parentId: null }));
+    apiMocks.categories.mockReturnValue({ currentData: categories, isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: categories.map((category, index) => ({
+      categoryId: category.id, accountCurrency: "USD", amount: -(10 - index) * 100, created: "2026-09-01",
+    })) }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const center = container.querySelector('[data-qa="visual-expense-center"]')!;
+    const other = container.querySelector('[data-category-key="other"]')!;
+    fireEvent.click(other);
+    const members = container.querySelectorAll('[data-category-member-key]');
+    expect(members).toHaveLength(2);
+    fireEvent.mouseEnter(members[0]);
+    expect(center).toHaveTextContent("Expense 8");
+    expect(center).toHaveTextContent("USD 200");
+    expect(center).toHaveTextContent("4%");
+    expect(other).toHaveClass("is-highlighted");
+    fireEvent.mouseLeave(members[0]);
+    expect(center).toHaveTextContent("dashboard.visual.expenseTotal");
+    fireEvent.focus(members[0]);
+    fireEvent.mouseEnter(members[1]);
+    expect(center).toHaveTextContent("Expense 9");
+    expect(center).toHaveTextContent("USD 100");
+    expect(center).toHaveTextContent("2%");
+    fireEvent.mouseLeave(members[1]);
+    expect(center).toHaveTextContent("Expense 8");
+    fireEvent.blur(members[0]);
+    expect(center).toHaveTextContent("dashboard.visual.expenseTotal");
+    fireEvent.click(members[0]);
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:108;.*type:expense;/));
   });
 
   it("drills into parent categories, returns with Escape, and supports child mode", () => {

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Spin } from "antd";
 import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 import { InExButton, Num, SegmentedControl } from "../../components/primitives";
 import BasicPage from "../../layouts/BasicPage";
@@ -27,8 +27,15 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         selectCategory, categoryConversion, retryRates, effectiveDate,
         currentPeriodLabel, accountsQuery, accountBalancesQuery,
     } = data;
-    const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
+    const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+    const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
     const [otherExpanded, setOtherExpanded] = useState(false);
+    const inspectedKey = hoveredCategory ?? focusedCategory;
+    const highlightedSlice = expenseSlices.find((slice) => slice.key === inspectedKey
+        || (otherExpanded && slice.members?.some((member) => member.key === inspectedKey)));
+    const highlightedCategory = highlightedSlice?.key;
+    const inspectedExpense = highlightedSlice?.key === inspectedKey ? highlightedSlice
+        : highlightedSlice?.members?.find((member) => member.key === inspectedKey);
     const expenseHeading = useRef<HTMLHeadingElement>(null);
     const lastParentKey = useRef<string | null>(null);
     const legendRef = useRef<HTMLOListElement>(null);
@@ -42,9 +49,10 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     }).format(value);
 
     useEffect(() => {
-        setHighlightedCategory(null);
+        setHoveredCategory(null);
+        setFocusedCategory(null);
         setOtherExpanded(false);
-    }, [categoryMode, expenseParentName, expenseSlices]);
+    }, [categoryMode, expenseParentName, expenseSlices, selectedLinkedUserId, currentPeriodLabel]);
 
     useEffect(() => {
         if (expenseParentName && !expenseAutoExpanded) expenseHeading.current?.focus();
@@ -175,8 +183,8 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                     isAnimationActive={false}
                                                     nameKey="label"
                                                     onClick={(_, index) => selectExpense(expenseSlices[index])}
-                                                    onMouseEnter={(_, index) => setHighlightedCategory(expenseSlices[index].key)}
-                                                    onMouseLeave={() => setHighlightedCategory(null)}
+                                                    onMouseEnter={(_, index) => setHoveredCategory(expenseSlices[index].key)}
+                                                    onMouseLeave={() => setHoveredCategory(null)}
                                                     outerRadius="94%"
                                                     paddingAngle={expenseSlices.length > 1 ? 2 : 0}
                                                     startAngle={90}
@@ -193,13 +201,15 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                         />
                                                     ))}
                                                 </Pie>
-                                                <Tooltip formatter={(value) => [money(Number(value)), t("dashboard.categories.amount")]} />
                                             </PieChart>
                                         </ResponsiveContainer>
                                         </div>
-                                        <div className="visual-dashboard-donut__center">
-                                            <span>{t(expenseParentName && !expenseAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.expenseTotal")}</span>
-                                            <Num dataQa="visual-expense-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={totalExpense} />
+                                        <div className="visual-dashboard-donut__center visual-dashboard-expense-center" data-qa="visual-expense-center">
+                                            <span className="visual-dashboard-expense-center__label">{inspectedExpense?.label ?? t(expenseParentName && !expenseAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.expenseTotal")}</span>
+                                            <Num dataQa="visual-expense-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={inspectedExpense?.amount ?? totalExpense} />
+                                            <span className="visual-dashboard-expense-center__share" data-qa="visual-expense-share" aria-hidden={!inspectedExpense}>
+                                                {inspectedExpense ? t("dashboard.visual.expenseShare", { percentage: percentage(totalExpense > 0 ? inspectedExpense.amount / totalExpense : 0) }) : "\u00a0"}
+                                            </span>
                                         </div>
                                     </div>
                                     <ol aria-label={t("dashboard.categories.expenseSummary")} className="visual-dashboard-legend" ref={legendRef}>
@@ -214,11 +224,11 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                         })}
                                                         className={highlightedCategory === slice.key ? "is-highlighted" : undefined}
                                                         data-category-key={slice.key}
-                                                        onBlur={() => setHighlightedCategory(null)}
+                                                        onBlur={() => setFocusedCategory(null)}
                                                         onClick={() => selectExpense(slice)}
-                                                        onFocus={() => setHighlightedCategory(slice.key)}
-                                                        onMouseEnter={() => setHighlightedCategory(slice.key)}
-                                                        onMouseLeave={() => setHighlightedCategory(null)}
+                                                        onFocus={() => setFocusedCategory(slice.key)}
+                                                        onMouseEnter={() => setHoveredCategory(slice.key)}
+                                                        onMouseLeave={() => setHoveredCategory(null)}
                                                         type="button"
                                                     >
                                                         <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: EXPENSE_CATEGORY_COLORS[index % EXPENSE_CATEGORY_COLORS.length] }} />
@@ -230,7 +240,20 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                         <ol className="visual-dashboard-legend__members">
                                                             {slice.members.map((member) => (
                                                                 <li key={member.key}>
-                                                                    <button onClick={() => selectExpense(member, "other")} type="button">
+                                                                    <button
+                                                                        aria-label={t("dashboard.visual.selectCategory", {
+                                                                            category: member.label,
+                                                                            percentage: percentage(totalExpense > 0 ? member.amount / totalExpense : 0),
+                                                                            amount: money(member.amount),
+                                                                        })}
+                                                                        data-category-member-key={member.key}
+                                                                        onBlur={() => setFocusedCategory(null)}
+                                                                        onClick={() => selectExpense(member, "other")}
+                                                                        onFocus={() => setFocusedCategory(member.key)}
+                                                                        onMouseEnter={() => setHoveredCategory(member.key)}
+                                                                        onMouseLeave={() => setHoveredCategory(null)}
+                                                                        type="button"
+                                                                    >
                                                                         <span>{member.label}</span>
                                                                         <Num currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={member.amount} />
                                                                     </button>

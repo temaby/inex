@@ -259,6 +259,7 @@
       "smallShare": "<{{percentage}}",
       "expensesTitle": "Where the money goes",
       "expenseTotal": "Monthly expenses",
+      "expenseShare": "{{percentage}} of expenses",
       "selectedTotal": "Total",
       "moneyTitle": "Money in accounts",
       "moneyHint": "All active accounts",
