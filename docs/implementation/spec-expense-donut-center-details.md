@@ -39,11 +39,11 @@ context:
 
 ## Code Map
 
-- `inex/ClientApp/src/pages/Dashboard/VisualDashboard.tsx` вЂ” expense chart, highlighting and center.
-- `inex/ClientApp/src/pages/Dashboard/visual-dashboard.css` вЂ” scoped expense center geometry.
-- `inex/ClientApp/public/locales/{en,ru}/translation.json` вЂ” category share copy.
-- `inex/ClientApp/src/pages/Dashboard.test.tsx` вЂ” mocked dashboard interaction coverage.
-- `inex/ClientApp/visual-qa/visual-dashboard.mjs` вЂ” isolated browser QA and screenshots.
+- `inex/ClientApp/src/pages/Dashboard/VisualDashboard.tsx` — expense chart, highlighting and center.
+- `inex/ClientApp/src/pages/Dashboard/visual-dashboard.css` — scoped expense center geometry.
+- `inex/ClientApp/public/locales/{en,ru}/translation.json` — category share copy.
+- `inex/ClientApp/src/pages/Dashboard.test.tsx` — mocked dashboard interaction coverage.
+- `inex/ClientApp/visual-qa/visual-dashboard.mjs` — isolated browser QA and screenshots.
 
 ## Tasks & Acceptance
 
@@ -82,10 +82,10 @@ Run focused Dashboard Vitest tests, frontend build/lint and the visual-dashboard
 ## Suggested Review Order
 
 - Follow inspection state and grouped member resolution, preserving existing category navigation.
-  [VisualDashboard.tsx:29](../../inex/ClientApp/src/pages/Dashboard/VisualDashboard.tsx#L29)
+  [VisualDashboard.tsx:30](../../inex/ClientApp/src/pages/Dashboard/VisualDashboard.tsx#L30)
 - Check fixed center geometry and bounded translated labels.
   [visual-dashboard.css:65](../../inex/ClientApp/src/pages/Dashboard/visual-dashboard.css#L65)
 - Verify real-browser detail and containment checks with fixture isolation.
-  [visual-dashboard.mjs:151](../../inex/ClientApp/visual-qa/visual-dashboard.mjs#L151)
+  [visual-dashboard.mjs:157](../../inex/ClientApp/visual-qa/visual-dashboard.mjs#L157)
 - Inspect behavioral coverage for focus fallback and expanded members.
   [Dashboard.test.tsx](../../inex/ClientApp/src/pages/Dashboard.test.tsx)
