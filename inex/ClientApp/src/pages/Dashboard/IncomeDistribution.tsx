@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Spin } from "antd";
 import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 import { InExButton, Num } from "../../components/primitives";
 import { rankDashboardCategorySlices, type DashboardCategorySlice } from "./dashboard-utils";
@@ -17,8 +17,9 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
     unavailable: (currencies: string[]) => React.ReactNode;
 }) => {
     const { t, i18n, incomeSlices, incomeParentName, incomeAutoExpanded, setIncomeParentId, selectCategory,
-        categoryMode, categoryConversion, baseCurrency, categoriesQuery } = data;
-    const [highlighted, setHighlighted] = useState<string | null>(null);
+        categoryMode, categoryConversion, baseCurrency, categoriesQuery, selectedLinkedUserId, currentPeriodLabel } = data;
+    const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+    const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
     const [otherExpanded, setOtherExpanded] = useState(false);
     const heading = useRef<HTMLHeadingElement>(null);
     const legend = useRef<HTMLOListElement>(null);
@@ -27,6 +28,12 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
         incomeSlices.flatMap((slice) => slice.isOther ? slice.members ?? [] : [slice]),
         t("dashboard.categories.other"), 4,
     ), [incomeSlices, t]);
+    const inspectedKey = hoveredCategory ?? focusedCategory;
+    const highlightedSlice = slices.find((slice) => slice.key === inspectedKey
+        || (otherExpanded && slice.members?.some((member) => member.key === inspectedKey)));
+    const highlighted = highlightedSlice?.key;
+    const inspectedIncome = slices.length > 1 ? highlightedSlice?.key === inspectedKey ? highlightedSlice
+        : highlightedSlice?.members?.find((member) => member.key === inspectedKey) : undefined;
     const total = slices.reduce((sum, slice) => sum + slice.amount, 0);
     const locale = i18n.language;
     const percentage = (amount: number) => {
@@ -41,9 +48,10 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
     }).format(value);
 
     useEffect(() => {
-        setHighlighted(null);
+        setHoveredCategory(null);
+        setFocusedCategory(null);
         setOtherExpanded(false);
-    }, [incomeSlices]);
+    }, [incomeSlices, incomeParentName, categoryMode, selectedLinkedUserId, currentPeriodLabel]);
     useEffect(() => {
         if (incomeParentName && !incomeAutoExpanded) heading.current?.focus();
     }, [incomeParentName, incomeAutoExpanded]);
@@ -102,19 +110,21 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                                         startAngle={90} endAngle={-270} isAnimationActive={false}
                                                         paddingAngle={0} stroke="none"
                                                         onClick={(_, index) => select(slices[index])}
-                                                        onMouseEnter={(_, index) => setHighlighted(slices[index].key)}
-                                                        onMouseLeave={() => setHighlighted(null)}>
+                                                        onMouseEnter={(_, index) => setHoveredCategory(slices[index].key)}
+                                                        onMouseLeave={() => setHoveredCategory(null)}>
                                                         {slices.map((slice, index) => <Cell key={slice.key} fill={INCOME_COLORS[index]}
                                                             fillOpacity={highlighted && highlighted !== slice.key ? 0.3 : 1}
                                                             style={{ cursor: "pointer", transition: "fill-opacity 160ms ease" }} />)}
                                                     </Pie>
-                                                    <Tooltip formatter={(value) => [money(Number(value)), t("dashboard.categories.amount")]} />
                                                 </PieChart>
                                             </ResponsiveContainer>
                                         </div> : null}
-                                        <div className={slices.length > 1 ? "visual-dashboard-donut__center" : undefined}>
-                                            <span>{t(incomeParentName && !incomeAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.incomeTotal")}</span>
-                                            <Num dataQa="visual-income-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={total} />
+                                        <div className={slices.length > 1 ? "visual-dashboard-donut__center visual-dashboard-income-center" : undefined} data-qa="visual-income-center">
+                                            <span className={slices.length > 1 ? "visual-dashboard-income-center__label" : undefined}>{inspectedIncome?.label ?? t(incomeParentName && !incomeAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.incomeTotal")}</span>
+                                            <Num dataQa="visual-income-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={inspectedIncome?.amount ?? total} />
+                                            {slices.length > 1 ? <span className="visual-dashboard-income-center__share" data-qa="visual-income-share" aria-hidden={!inspectedIncome}>
+                                                {inspectedIncome ? t("dashboard.visual.incomeShare", { percentage: percentage(inspectedIncome.amount) }) : "\u00a0"}
+                                            </span> : null}
                                         </div>
                                     </div>
                                     <ol aria-label={t("dashboard.categories.incomeSummary")} className="visual-dashboard-legend visual-dashboard-income__legend" ref={legend}>
@@ -124,8 +134,8 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                                     aria-label={t("dashboard.visual.selectCategory", { category: slice.label, percentage: percentage(slice.amount), amount: money(slice.amount) })}
                                                     aria-expanded={slice.isOther ? otherExpanded : undefined}
                                                     className={highlighted === slice.key ? "is-highlighted" : undefined}
-                                                    onFocus={() => setHighlighted(slice.key)} onBlur={() => setHighlighted(null)}
-                                                    onMouseEnter={() => setHighlighted(slice.key)} onMouseLeave={() => setHighlighted(null)}
+                                                    onFocus={() => setFocusedCategory(slice.key)} onBlur={() => setFocusedCategory(null)}
+                                                    onMouseEnter={() => setHoveredCategory(slice.key)} onMouseLeave={() => setHoveredCategory(null)}
                                                     onClick={() => select(slice)}>
                                                     <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: INCOME_COLORS[index] }} />
                                                     <span className="visual-dashboard-legend__name">{slice.label}</span>
@@ -136,7 +146,11 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                                 {slice.isOther && otherExpanded && slice.members ? (
                                                     <ol className="visual-dashboard-legend__members">
                                                         {slice.members.map((member) => <li key={member.key}>
-                                                            <button type="button" onClick={() => select(member, "other")}>
+                                                            <button type="button" data-income-member-key={member.key}
+                                                                aria-label={t("dashboard.visual.selectCategory", { category: member.label, percentage: percentage(member.amount), amount: money(member.amount) })}
+                                                                onFocus={() => setFocusedCategory(member.key)} onBlur={() => setFocusedCategory(null)}
+                                                                onMouseEnter={() => setHoveredCategory(member.key)} onMouseLeave={() => setHoveredCategory(null)}
+                                                                onClick={() => select(member, "other")}>
                                                                 <span>{member.label} · {percentage(member.amount)}</span>
                                                                 <Num currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={member.amount} />
                                                             </button>

@@ -225,6 +225,12 @@ Evidence under `docs/implementation/visual-qa/visual-dashboard/`: `expense-hover
 
 The aggregate summary verifier reports stale baselines for eight unrelated page groups; the updated visual-dashboard summary passes.
 
+## Income donut detail QA - 2026-10-26
+
+Data mode: fixture. The visual-dashboard harness passed all 75 states, including eleven new income inspection captures. Income hover and keyboard focus replace the center total with category name, amount and localized share. Expanded Other members highlight their containing slice; tiny positive shares retain <0.1% formatting. Blur restores the total, and the income tooltip is absent.
+
+Inspected desktop hover, compact desktop large/Russian labels, narrow Russian and large-income, expanded Other and tiny-share screenshots. Evidence under `docs/implementation/visual-qa/visual-dashboard/`: `income-focus-{1440,1024,390,360}.png`, `income-hover-1440.png`, `income-restored-390.png`, `income-other-member-390.png`, `income-tiny-inspected-390.png`, `income-russian-inspected-360.png`, and `income-long-inspected-{1440,360}.png`. Center bounds and child containment passed with no page overflow or final-content bottom-nav occlusion. Backend/provider calls were blocked. The single-category ringless summary and existing drill-down states passed. The aggregate verifier reports eight stale unrelated summaries; the updated visual-dashboard summary passes.
+
 ## Failures Found
 
 | ID | Route | Viewport | State | Failure Type | Description | Status | Fixed in commit |

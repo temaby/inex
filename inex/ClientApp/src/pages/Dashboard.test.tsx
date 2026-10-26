@@ -448,6 +448,109 @@ describe("Dashboard", () => {
     }
   });
 
+  it("inspects income with pointer precedence, restores focused details and then restores the total", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 200, name: "Salary", parentId: null }, { id: 210, name: "Bonus", parentId: null },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 200, accountCurrency: "USD", amount: 750, created: "2026-09-01" },
+      { categoryId: 210, accountCurrency: "USD", amount: 250, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const center = container.querySelector('[data-qa="visual-income-center"]')!;
+    const salary = container.querySelector('[data-income-key="200"]')!;
+    const bonus = container.querySelector('[data-income-key="210"]')!;
+    expect(center).toHaveTextContent("dashboard.visual.incomeTotal");
+    expect(center).toHaveTextContent("USD 1000");
+    fireEvent.mouseEnter(salary);
+    expect(center).toHaveTextContent("Salary");
+    expect(center).toHaveTextContent("USD 750");
+    expect(center).toHaveTextContent("75%");
+    fireEvent.mouseLeave(salary);
+    expect(center).toHaveTextContent("dashboard.visual.incomeTotal");
+    fireEvent.focus(salary);
+    fireEvent.mouseEnter(bonus);
+    expect(center).toHaveTextContent("Bonus");
+    expect(center).toHaveTextContent("USD 250");
+    expect(center).toHaveTextContent("25%");
+    expect(bonus).toHaveClass("is-highlighted");
+    fireEvent.mouseLeave(bonus);
+    expect(center).toHaveTextContent("Salary");
+    expect(salary).toHaveClass("is-highlighted");
+    fireEvent.blur(salary);
+    expect(center).toHaveTextContent("USD 1000");
+    expect(container.querySelector('[data-qa="visual-income-share"]')).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("inspects expanded Other income members and preserves their scoped navigation", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    const categories = Array.from({ length: 6 }, (_, index) => ({ id: 200 + index, name: `Income ${index}`, parentId: null }));
+    apiMocks.categories.mockReturnValue({ currentData: categories, isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: categories.map((category, index) => ({
+      categoryId: category.id, accountCurrency: "USD", amount: (6 - index) * 100, created: "2026-09-01",
+    })) }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const other = container.querySelector('[data-income-key="other"]')!;
+    const center = container.querySelector('[data-qa="visual-income-center"]')!;
+    fireEvent.click(other);
+    const members = container.querySelectorAll('[data-income-member-key]');
+    expect(members).toHaveLength(2);
+    fireEvent.focus(members[0]);
+    expect(center).toHaveTextContent("Income 4");
+    expect(center).toHaveTextContent("USD 200");
+    expect(center).toHaveTextContent("9.5%");
+    expect(other).toHaveClass("is-highlighted");
+    fireEvent.mouseEnter(members[1]);
+    expect(center).toHaveTextContent("Income 5");
+    expect(center).toHaveTextContent("USD 100");
+    expect(center).toHaveTextContent("4.8%");
+    fireEvent.mouseLeave(members[1]);
+    expect(center).toHaveTextContent("Income 4");
+    fireEvent.blur(members[0]);
+    expect(center).toHaveTextContent("dashboard.visual.incomeTotal");
+    fireEvent.click(members[0]);
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringMatching(/accountIds:1,2;categoryIds:204;.*type:income;/));
+  });
+
+  it("preserves tiny income share formatting and clears inspected details after data changes", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 200, name: "Salary", parentId: null }, { id: 210, name: "Interest", parentId: null },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 200, accountCurrency: "USD", amount: 1000, created: "2026-09-01" },
+      { categoryId: 210, accountCurrency: "USD", amount: 0.01, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container, rerender } = render(<Dashboard />);
+    fireEvent.focus(container.querySelector('[data-income-key="210"]')!);
+    const center = container.querySelector('[data-qa="visual-income-center"]')!;
+    expect(center).toHaveTextContent("Interest");
+    expect(center).toHaveTextContent("USD 0.01");
+    expect(center).toHaveTextContent("dashboard.visual.smallShare:0.1%");
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 200, accountCurrency: "USD", amount: 500, created: "2026-09-01" },
+      { categoryId: 210, accountCurrency: "USD", amount: 50, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    rerender(<Dashboard />);
+    expect(center).toHaveTextContent("dashboard.visual.incomeTotal");
+    expect(center).toHaveTextContent("USD 550");
+  });
+
+  it("keeps the single income summary ringless when its legend receives focus", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.categories.mockReturnValue({ currentData: [{ id: 200, name: "Salary", parentId: null }], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 200, accountCurrency: "USD", amount: 500, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    fireEvent.focus(container.querySelector('[data-income-key="200"]')!);
+    expect(container.querySelector('[data-qa="visual-income-center"]')).toHaveTextContent("dashboard.visual.incomeTotal");
+    expect(container.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 500");
+    expect(container.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
+    expect(container.querySelector('[data-qa="visual-income-share"]')).toBeNull();
+  });
+
   it("defaults a single income parent to children and restores focus after an explicit drill-down", async () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     apiMocks.categories.mockReturnValue({ currentData: [

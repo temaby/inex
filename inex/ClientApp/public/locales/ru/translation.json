@@ -257,6 +257,7 @@
     "visual": {
       "incomeTitle": "Откуда пришли деньги",
       "incomeTotal": "Доходы за месяц",
+      "incomeShare": "{{percentage}} от доходов",
       "viewBreakdown": "Посмотреть подробнее",
       "smallShare": "<{{percentage}}",
       "expensesTitle": "Куда уходят деньги",
