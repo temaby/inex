@@ -261,6 +261,7 @@
       "smallShare": "<{{percentage}}",
       "expensesTitle": "Куда уходят деньги",
       "expenseTotal": "Расходы за месяц",
+      "expenseShare": "{{percentage}} от расходов",
       "selectedTotal": "Всего",
       "moneyTitle": "Деньги на счетах",
       "moneyHint": "Все активные счета",

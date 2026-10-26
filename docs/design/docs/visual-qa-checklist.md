@@ -217,6 +217,14 @@ The new harness is included in `visual-qa:all` and `visual-qa:verify`. Canonical
 | `/register` | default | PASS | N/A | `auth/register-390.png`; `auth/register-360.png`; `auth/register-form-filled-390.png` | dataMode: fixture; long registration form scrolls without hidden submit action. |
 | Bottom nav check | all routes | PASS | PASS | All authenticated 390/360 screenshots and `qa-summary.json` metrics | dataMode: fixture; `bottomNavOccludesLastContent=false` for current authenticated mobile states. |
 
+## Expense donut detail QA — 2026-10-26
+
+Data mode: fixture. Visual dashboard harness passed all 64 states, including nine new expense detail captures. Segment hover and legend focus show the category name, amount and localized expense share in a fixed center; blur restores the total. The expense tooltip is absent. Desktop hover and narrow Russian label/large-expense and expanded Other screenshots were inspected for overlap and readability.
+
+Evidence under `docs/implementation/visual-qa/visual-dashboard/`: `expense-hover-1440.png`, `expense-focus-{1440,1024,390,360}.png`, `expense-restored-390.png`, `expense-russian-360.png`, `expense-long-label-360.png`, and `expense-other-member-390.png`. The harness blocks backend/provider access and checks stable center bounds, correct displayed details, page overflow and final-content bottom-nav clearance. Existing category drill-down and Other states pass.
+
+The aggregate summary verifier reports stale baselines for eight unrelated page groups; the updated visual-dashboard summary passes.
+
 ## Failures Found
 
 | ID | Route | Viewport | State | Failure Type | Description | Status | Fixed in commit |
