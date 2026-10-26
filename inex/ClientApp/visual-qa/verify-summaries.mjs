@@ -14,6 +14,9 @@ const canonicalSummaries = [
     page: "visual-dashboard",
     routes: ["/dashboard"],
     screenshots: [
+      "income-focus-1440.png", "income-focus-1024.png", "income-focus-390.png", "income-focus-360.png",
+      "income-hover-1440.png", "income-restored-390.png", "income-other-member-390.png", "income-tiny-inspected-390.png",
+      "income-russian-inspected-360.png", "income-long-inspected-1440.png", "income-long-inspected-360.png",
       "expense-focus-1440.png", "expense-focus-1024.png", "expense-focus-390.png", "expense-focus-360.png",
       "expense-hover-1440.png", "expense-restored-390.png", "expense-russian-360.png", "expense-long-label-360.png",
       "expense-other-member-390.png",

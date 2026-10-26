@@ -255,6 +255,7 @@
     "visual": {
       "incomeTitle": "Where the money came from",
       "incomeTotal": "Monthly income",
+      "incomeShare": "{{percentage}} of income",
       "viewBreakdown": "View details",
       "smallShare": "<{{percentage}}",
       "expensesTitle": "Where the money goes",

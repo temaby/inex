@@ -8,6 +8,13 @@ import {
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  ...[1440, 1024, 390, 360].map((width) => ({ name: `income-focus-${width}`, scenario: "populated", width, interaction: "income-inspect-focus" })),
+  { name: "income-hover-1440", scenario: "populated", width: 1440, interaction: "income-inspect-hover" },
+  { name: "income-restored-390", scenario: "populated", width: 390, interaction: "income-inspect-restored" },
+  { name: "income-other-member-390", scenario: "populated", width: 390, interaction: "income-inspect-member" },
+  { name: "income-tiny-inspected-390", scenario: "income-tiny", width: 390, interaction: "income-inspect-tiny" },
+  { name: "income-russian-inspected-360", scenario: "russian", width: 360, interaction: "income-inspect-focus" },
+  ...[1440, 360].map((width) => ({ name: `income-long-inspected-${width}`, scenario: "long-amounts", width, interaction: "income-inspect-focus" })),
   ...[1440, 1024, 390, 360].map((width) => ({ name: `expense-focus-${width}`, scenario: "populated", width, interaction: "expense-focus" })),
   { name: "expense-hover-1440", scenario: "populated", width: 1440, interaction: "expense-hover" },
   { name: "expense-restored-390", scenario: "populated", width: 390, interaction: "expense-restored" },
@@ -81,7 +88,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       const scenario = scenarioRef.current;
       if (scenario === "wording-empty-ru") return [];
       if (scenario === "long-amounts") return fixture.dashboardVisualFixtureTransactions.map((transaction) => ({
-        ...transaction, amount: transaction.amount < 0 ? transaction.amount * 1000000 : transaction.amount,
+        ...transaction, amount: transaction.amount * 1000000,
       }));
       if (["income-two", "income-four", "income-single-parent", "income-tiny", "linked-russian"].includes(scenario)) {
         const ids = scenario === "income-four" ? [201, 211, 221, 231] : scenario === "income-tiny" ? [201, 251] : [201, 211];
@@ -154,6 +161,58 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction?.startsWith("income-inspect-")) {
+    await client.send("Page.bringToFront");
+    if (state.interaction === "income-inspect-member") {
+      await evaluate(client, "document.querySelector('[data-income-key=other]').click()");
+      await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-income] .visual-dashboard-legend__members button'))");
+    }
+    await evaluate(client, `(() => {
+      const center = document.querySelector('[data-qa=visual-income-center]');
+      window.__incomeDefault = center.textContent;
+      const r = center.getBoundingClientRect();
+      window.__incomeCenterBounds = {width:r.width,height:r.height};
+      const member = ${JSON.stringify(state.interaction === "income-inspect-member")};
+      const row = document.querySelector(member ? '[data-qa=visual-income] .visual-dashboard-legend__members button'
+        : ${JSON.stringify(state.interaction === "income-inspect-tiny" ? '[data-income-key="250"]' : '[data-income-key]')});
+      window.__incomeTarget = row;
+      const memberText = member ? row.querySelector('span:first-child').textContent.split(' · ') : null;
+      window.__incomeExpected = {
+        label:member ? memberText[0] : row.querySelector('.visual-dashboard-legend__name').textContent,
+        amount:row.querySelector(member ? '[role=text]' : '.visual-dashboard-legend__amount').textContent,
+        share:member ? memberText[1] : row.querySelector('.visual-dashboard-legend__percentage').textContent,
+      };
+    })()`);
+    if (state.interaction === "income-inspect-hover") {
+      const point = await evaluate(client, `(() => {
+        const svg = document.querySelector('[data-qa=visual-income-chart] svg');
+        const r = svg.getBoundingClientRect();
+        return {x:r.x+r.width*.9,y:r.y+r.height/2};
+      })()`);
+      await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
+    } else await evaluate(client, "window.__incomeTarget.focus()");
+    await waitFor(client, "document.querySelector('[data-qa=visual-income-center]')?.textContent.includes(window.__incomeExpected.label)");
+    await evaluate(client, `(() => {
+      const center = document.querySelector('[data-qa=visual-income-center]');
+      const r = center.getBoundingClientRect();
+      window.__incomeInspection = {
+        correct: center.textContent.includes(window.__incomeExpected.label)
+          && center.textContent.includes(window.__incomeExpected.amount)
+          && document.querySelector('[data-qa=visual-income-share]').textContent.includes(window.__incomeExpected.share),
+        stable: Math.abs(r.width-window.__incomeCenterBounds.width)<1 && Math.abs(r.height-window.__incomeCenterBounds.height)<1,
+        contained: [...center.children].every(el => {
+          const b=el.getBoundingClientRect();
+          return b.left>=r.left-1 && b.right<=r.right+1 && b.top>=r.top-1 && b.bottom<=r.bottom+1
+            && el.scrollWidth<=el.clientWidth+1;
+        }),
+        tooltip: Boolean(document.querySelector('[data-qa=visual-income] .recharts-tooltip-wrapper')),
+      };
+    })()`);
+    if (state.interaction === "income-inspect-restored") {
+      await evaluate(client, "document.activeElement.blur()");
+      await waitFor(client, "document.querySelector('[data-qa=visual-income-center]')?.textContent === window.__incomeDefault");
+    }
+  }
   if (state.interaction?.startsWith("expense-")) {
     await client.send("Page.bringToFront");
     if (state.interaction === "expense-other-member") {
@@ -303,6 +362,7 @@ async function collectMetrics(client, state) {
       expenseTotal: document.querySelector('[data-qa=visual-expense-total]')?.textContent,
       expenseInspection: window.__expenseInspection,
       incomeTotal: document.querySelector('[data-qa=visual-income-total]')?.textContent,
+      incomeInspection: window.__incomeInspection,
       incomeChart: Boolean(document.querySelector('[data-qa=visual-income-chart] .recharts-pie-sector')),
       incomeLegendCount: document.querySelectorAll('[data-income-key]').length,
       incomeOtherMembers: document.querySelectorAll('[data-qa=visual-income] .visual-dashboard-legend__members button').length,
@@ -373,6 +433,7 @@ function runState(args) {
 function collectAdditionalFailures(results) {
   const failures = [];
   for (const state of results) {
+    if (state.interaction?.startsWith("income-inspect-") && (!state.incomeInspection?.correct || !state.incomeInspection?.stable || !state.incomeInspection?.contained || state.incomeInspection?.tooltip)) failures.push(`${state.name}: income detail incorrect, center shifted/overflowed or tooltip present`);
     if (state.interaction?.startsWith("expense-") && (!state.expenseInspection?.correct || !state.expenseInspection?.stable || !state.expenseInspection?.contained || state.expenseInspection?.tooltip)) failures.push(`${state.name}: expense detail incorrect, center shifted/overflowed or tooltip present`);
     if (state.height && state.pageHeight > state.viewport.height) failures.push(`${state.name}: dashboard exceeds viewport (${state.pageHeight}px)`);
     if (reportingScenarios.includes(state.scenario)) {
