@@ -8,13 +8,16 @@ import { useGetCategoriesQuery } from "../../store/categories/categories-api";
 import { useGetTransactionsQuery, useGetTransactionsSummaryQuery } from "../../store/transactions/transactions-api";
 import { transactionsDefaultFilter } from "../../store/transactions/transactions-slice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { getAccountBalanceConversionResult, getBaseCurrencyEquivalent, getCashFlowConversionResult, getCurrentTransactionMonthRange } from "../Transactions/transaction-ledger-utils";
+import { getAccountBalanceConversionResult, getBaseCurrencyEquivalent, getCashFlowConversionResult } from "../Transactions/transaction-ledger-utils";
 import { buildDashboardCategorySlices, buildDashboardTransactionFilter, type DashboardCategoryMode, type DashboardFlow, type DashboardCategorySlice } from "./dashboard-utils";
+import { useDashboardMonth } from "./useDashboardMonth";
+import { useCurrentBalanceRates } from "./useCurrentBalanceRates";
 
-export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBalances = false } = {}) => {
+export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBalances = false, monthSelection = false } = {}) => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const userId = useAppSelector((state) => state.auth.user?.id);
     const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
     const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
         (account) => account.id === state.linkedAccount.selectedLinkedUserId,
@@ -28,31 +31,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
     const [accountsExpanded, setAccountsExpanded] = useState(false);
     const accountListId = useId();
 
-    const [monthRange, setMonthRange] = useState(() => getCurrentTransactionMonthRange());
-
-    useEffect(() => {
-        let timeoutId: number;
-        const scheduleMonthRefresh = () => {
-            const nextMonth = dayjs().add(1, "month").startOf("month");
-            const delayUntilNextCheck = Math.min(
-                Math.max(nextMonth.diff(dayjs()) + 1_000, 1_000),
-                24 * 60 * 60 * 1_000,
-            );
-            timeoutId = window.setTimeout(() => {
-                const nextRange = getCurrentTransactionMonthRange();
-                setMonthRange((currentRange) => (
-                    currentRange[0] === nextRange[0] && currentRange[1] === nextRange[1]
-                        ? currentRange
-                        : nextRange
-                ));
-                scheduleMonthRefresh();
-            }, delayUntilNextCheck);
-        };
-
-        scheduleMonthRefresh();
-
-        return () => window.clearTimeout(timeoutId);
-    }, []);
+    const { monthRange, currentMonth, selectedMonth, isHistoricalMonth, selectMonth } = useDashboardMonth(monthSelection);
     const startDate = dayjs.unix(monthRange[0]).format("YYYY-MM-DD");
     const endDate = dayjs.unix(monthRange[1]).format("YYYY-MM-DD");
     const accountsQuery = useGetAccountsQuery(
@@ -115,7 +94,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
     const categoryNeedsRate = (categoryTransactionsQuery.currentData?.data ?? []).some(
         (transaction) => transaction.amount !== 0 && transaction.accountCurrency !== baseCurrency,
     );
-    const needsCachedRates = accountNeedsRate || cashFlowNeedsRate || categoryNeedsRate;
+    const needsCachedRates = (!isHistoricalMonth && accountNeedsRate) || cashFlowNeedsRate || categoryNeedsRate;
     const cachedRateKey = `${selectedLinkedUserId ?? "self"}:${startDate}:${endDate}`;
 
     const attemptedRateKey = useRef<string | null>(null);
@@ -136,6 +115,14 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
     }, [categoryMode, selectedLinkedUserId, startDate]);
 
     const exchangeRates = cachedRates?.completedKey === cachedRateKey ? cachedRates.items : [];
+    const currentBalanceRates = useCurrentBalanceRates(
+        isHistoricalMonth && accountNeedsRate && Boolean(baseCurrency), currentMonth, userId, selectedLinkedUserId, baseCurrency,
+    );
+    const balanceExchangeRates = isHistoricalMonth ? currentBalanceRates.items : exchangeRates;
+    const balanceRatesLoading = isHistoricalMonth ? currentBalanceRates.loading : needsCachedRates && (
+        cachedRates?.completedKey !== cachedRateKey
+        || (cachedRates?.requestKey === cachedRateKey && cachedRates.loading)
+    );
     const ratesLoading = needsCachedRates && (
         cachedRates?.completedKey !== cachedRateKey
         || (cachedRates?.requestKey === cachedRateKey && cachedRates.loading)
@@ -143,11 +130,12 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
     const retryRates = () => {
         void dispatch(fetchRatesForRange(startDate, endDate, selectedLinkedUserId));
     };
+    const retryBalanceRates = isHistoricalMonth ? currentBalanceRates.retry : retryRates;
     const accountConversion = useMemo(
         () => baseCurrency
-            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, exchangeRates)
+            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, balanceExchangeRates)
             : { value: 0, isComplete: false, unavailableCurrencies: [] },
-        [accountBalances, baseCurrency, exchangeRates],
+        [accountBalances, baseCurrency, balanceExchangeRates],
     );
     const cashFlowConversion = useMemo(
         () => hasReportingAccounts && summaryQuery.currentData && baseCurrency
@@ -285,7 +273,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
         || (hasVisibleAccounts && !accountBalancesQuery.isLoading && !accountSummaryComplete);
     const balancePanelLoading = accountDataLoading
         || (!baseCurrency && summaryQuery.isLoading)
-        || (accountNeedsRate && ratesLoading);
+        || (accountNeedsRate && balanceRatesLoading);
     const balancePanelError = accountDataError || (!baseCurrency && summaryQuery.isError);
     const categoryPanelLoading = categoriesQuery.isLoading
         || categoryTransactionsQuery.isLoading
@@ -354,12 +342,19 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
         retryRates,
         effectiveDate,
         currentPeriodLabel,
+        currentMonth,
+        selectedMonth,
+        isHistoricalMonth,
+        selectMonth,
+        startDate,
         accountsExpanded,
         setAccountsExpanded,
         accountListId,
         hasCollapsibleAccounts,
         hasDesktopCollapsibleAccounts,
         exchangeRates,
+        balanceExchangeRates,
+        retryBalanceRates,
     };
 };
 

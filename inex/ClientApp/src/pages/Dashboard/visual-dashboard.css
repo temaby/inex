@@ -13,6 +13,11 @@
   min-width: 0;
 }
 
+.visual-dashboard-month-controls { align-items: center; display: flex; gap: 2px; min-width: 0; max-width: 100%; }
+.visual-dashboard-month-picker { width: 170px; min-width: 0; }
+.visual-dashboard-month-picker input { text-align: center; text-transform: capitalize; }
+.visual-dashboard-month-controls > button { flex-shrink: 0; }
+
 .visual-dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);

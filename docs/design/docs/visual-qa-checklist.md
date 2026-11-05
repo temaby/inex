@@ -56,6 +56,19 @@ npm run lint
 
 ## Evidence Summary
 
+### Visual dashboard monthly history — 2026-11-05
+
+Data mode: **fixture**. All 87 visual dashboard states and 17 classic dashboard states pass. Every API request is intercepted; no real backend or exchange-rate provider is called. Page-specific harnesses were used, so the full-suite freshness verifier was not applicable.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| Historical reports and current balances | [1440px](../../implementation/visual-qa/visual-dashboard/month-history-1440.png), [1024px](../../implementation/visual-qa/visual-dashboard/month-history-1024.png), [390px](../../implementation/visual-qa/visual-dashboard/month-history-390.png) | PASS: historical FX produces expenses 200 and income 500; current balances remain 33,465 using separate current-period FX |
+| Russian and narrow layout | [Russian 360px](../../implementation/visual-qa/visual-dashboard/month-russian-360.png), [English 360px](../../implementation/visual-qa/visual-dashboard/month-history-360.png) | PASS: localized controls wrap without overlap or horizontal overflow; balances explicitly say Now / Сейчас |
+| Calendar, reset and browser history | [Open picker](../../implementation/visual-qa/visual-dashboard/month-picker-open-360.png), [selected month](../../implementation/visual-qa/visual-dashboard/month-picker-390.png), [current reset](../../implementation/visual-qa/visual-dashboard/month-reset-390.png), [reload and Back](../../implementation/visual-qa/visual-dashboard/month-back-refresh-1024.png) | PASS: month/year selection, future-month blocking, URL restoration and unrelated query preservation |
+| Empty, missing rates and linked scope | [Empty](../../implementation/visual-qa/visual-dashboard/month-empty-390.png), [missing historical rates](../../implementation/visual-qa/visual-dashboard/month-missing-390.png), [linked](../../implementation/visual-qa/visual-dashboard/month-linked-390.png) | PASS: complete-or-unavailable reporting, current balances remain usable, linked workspace scope preserved |
+
+Final build/typecheck and lint pass. Full frontend regression suite passed 353 tests; the final affected suites passed another 96 tests after minimum-date hardening. Three independent review passes found no confirmed actionable defects.
+
 ### Visual Dashboard account distribution and favorites — 2026-10-25
 
 Data mode: **fixture**. All 55 Visual Dashboard states, including a focus-only tooltip, and 17 Classic Dashboard states pass; API requests are intercepted and no backend or exchange-rate provider is called. The Visual balance query now includes all active accounts in the selected workspace, while its native list contains at most five explicitly favorite accounts. Classic retains its existing scope.

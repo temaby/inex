@@ -8,6 +8,15 @@ import {
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  ...[1440, 1024, 390, 360].map((width) => ({ name: `month-history-${width}`, scenario: "month-history", width, routePath: "/dashboard?month=2026-03&keep=1" })),
+  { name: "month-russian-360", scenario: "month-russian", width: 360, routePath: "/dashboard?month=2026-03" },
+  { name: "month-picker-390", scenario: "month-history", width: 390, interaction: "month-picker" },
+  { name: "month-picker-open-360", scenario: "month-history", width: 360, interaction: "month-picker-open" },
+  { name: "month-reset-390", scenario: "month-history", width: 390, routePath: "/dashboard?month=2026-03&keep=1", interaction: "month-reset" },
+  { name: "month-back-refresh-1024", scenario: "month-history", width: 1024, routePath: "/dashboard?month=2026-03&keep=1", interaction: "month-back-refresh" },
+  { name: "month-linked-390", scenario: "month-linked", width: 390, routePath: "/dashboard?month=2026-03", interaction: "linked" },
+  { name: "month-empty-390", scenario: "month-empty", width: 390, routePath: "/dashboard?month=2026-03" },
+  { name: "month-missing-390", scenario: "month-missing", width: 390, routePath: "/dashboard?month=2026-03" },
   ...[1440, 1024, 390, 360].map((width) => ({ name: `income-focus-${width}`, scenario: "populated", width, interaction: "income-inspect-focus" })),
   { name: "income-hover-1440", scenario: "populated", width: 1440, interaction: "income-inspect-hover" },
   { name: "income-restored-390", scenario: "populated", width: 390, interaction: "income-inspect-restored" },
@@ -102,10 +111,36 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     },
   };
   const handleClassic = classic.createApiHandler(source, requestLog, unhandledApiRequests, {
-    get current() { return ["linked-russian", "report-linked"].includes(scenarioRef.current) ? "linked" : scenarioRef.current; },
+    get current() { return ["linked-russian", "report-linked", "month-linked"].includes(scenarioRef.current) ? "linked" : scenarioRef.current; },
   });
   return async (event, client) => {
     const url = new URL(event.request.url);
+    if (scenarioRef.current.startsWith("month-") && (url.pathname.startsWith("/api/exchange/rates/")
+      || ["/api/transactions", "/api/transactions/summary"].includes(url.pathname))) {
+      requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}${url.search}`);
+      const month = (url.searchParams.get("startDate") ?? "2026-04").slice(0, 7);
+      const historical = month !== "2026-04";
+      const missing = historical && scenarioRef.current === "month-missing";
+      const empty = historical && scenarioRef.current === "month-empty";
+      const rate = historical ? 8 : 4;
+      const rows = empty ? [] : [
+        { id: 1, accountId: 11, categoryId: 111, accountCurrency: "USD", amount: -100, created: `${month}-03T12:00:00` },
+        { id: 2, accountId: 13, categoryId: 131, accountCurrency: "PLN", amount: -800, created: `${month}-03T12:00:00` },
+        { id: 3, accountId: 13, categoryId: 201, accountCurrency: "PLN", amount: 4000, created: `${month}-03T12:00:00` },
+      ];
+      const buckets = empty ? [] : [
+        { date: `${month}-03`, currency: "USD", income: 0, expense: -100, recordCount: 1 },
+        { date: `${month}-03`, currency: "PLN", income: 4000, expense: -800, recordCount: 2 },
+      ];
+      const body = url.pathname.startsWith("/api/exchange/rates/")
+        ? { data: missing ? [] : [{ id: 1, currencyFrom: "USD", currencyTo: "PLN", date: `${month}-03`, rate, isTemporary: false }] }
+        : url.pathname === "/api/transactions" ? { data: rows, metadata: { totalItems: rows.length } }
+        : { ...fixture.dashboardVisualFixtureTransactionSummary,
+          currentScope: { ...fixture.dashboardVisualFixtureTransactionSummary.currentScope,
+            totalCount: rows.length, period: { startDate: `${month}-01`, endDate: `${month}-${month === "2026-04" ? "30" : month === "2026-02" ? "28" : "31"}` }, cashFlowBuckets: buckets } };
+      await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...jsonResponse(body) });
+      return;
+    }
     if (scenarioRef.current.startsWith("wording-") && url.pathname === "/api/transactions/summary") {
       requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}${url.search}`);
       const income = scenarioRef.current === "wording-empty-ru" ? 0 : 100;
@@ -152,7 +187,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       requestLog.push(`${event.request.method} ${url.pathname.replace("/api", "")}`);
       const body = url.pathname === "/api/currencies"
         ? [{ id: 1, key: "USD", name: "US Dollar" }]
-        : { id: 1, username: "QA", email: "qa@example.test", currencyId: 1, languageCode: ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(scenarioRef.current) ? "ru" : "en" };
+        : { id: 1, username: "QA", email: "qa@example.test", currencyId: 1, languageCode: ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru", "month-russian"].includes(scenarioRef.current) ? "ru" : "en" };
       await client.send("Fetch.fulfillRequest", { requestId: event.requestId, ...jsonResponse(body) });
     } else {
       await handleClassic(event, client);
@@ -161,6 +196,28 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction?.startsWith("month-")) {
+    if (state.interaction.startsWith("month-picker")) {
+      await evaluate(client, "document.querySelector('[data-qa=visual-month-picker]')?.closest('.ant-picker')?.click()");
+      await waitFor(client, "Boolean(document.querySelector('.ant-picker-panel'))");
+      if (state.interaction === "month-picker-open") return;
+      await evaluate(client, "document.querySelector('.ant-picker-cell[title=\"2026-03\"] .ant-picker-cell-inner')?.click()");
+    } else if (state.interaction === "month-reset") {
+      await evaluate(client, "document.querySelector('[data-qa=visual-month-current]')?.click()");
+      await waitFor(client, "!new URLSearchParams(location.search).has('month') && document.querySelector('[data-qa=visual-month-next]')?.disabled && !document.querySelector('.ant-spin-spinning')");
+      return;
+    } else if (state.interaction === "month-back-refresh") {
+      await evaluate(client, "document.querySelector('[data-qa=visual-month-previous]')?.click()");
+      await waitFor(client, "new URLSearchParams(location.search).get('month') === '2026-02' && !document.querySelector('.ant-spin-spinning')");
+      await wait(800);
+      await client.send("Page.reload");
+      await waitFor(client, "document.querySelector('[data-qa=visual-month-picker]')?.closest('.ant-picker')?.querySelector('input')?.value.includes('February') && !document.querySelector('.ant-spin-spinning')");
+      await wait(800);
+      await evaluate(client, "history.back()");
+    }
+    await waitFor(client, "new URLSearchParams(location.search).get('month') === '2026-03' && document.querySelector('[data-qa=visual-expense-total]')?.textContent.includes('200.00') && !document.querySelector('.ant-spin-spinning')");
+    return;
+  }
   if (state.interaction?.startsWith("income-inspect-")) {
     await client.send("Page.bringToFront");
     if (state.interaction === "income-inspect-member") {
@@ -335,6 +392,8 @@ async function applyInteraction(client, state) {
 }
 
 async function collectMetrics(client, state) {
+  // Capture popup geometry before scrolling away from its anchored trigger.
+  await evaluate(client, "window.__monthPickerBounds = (() => { const r = document.querySelector('.ant-picker-panel')?.getBoundingClientRect(); return r ? {left:r.left,right:r.right,width:r.width} : null; })()");
   await evaluate(client, "window.scrollTo(0, document.documentElement.scrollHeight)");
   await wait(150);
   const metrics = await evaluate(client, `(() => {
@@ -347,6 +406,14 @@ async function collectMetrics(client, state) {
     const charts = [...document.querySelectorAll('.recharts-surface')];
     return {
       pageHeight: document.documentElement.scrollHeight,
+      selectedMonth: new URLSearchParams(location.search).get('month'),
+      preservedQuery: new URLSearchParams(location.search).get('keep'),
+      monthPickerValue: document.querySelector('[data-qa=visual-month-picker]')?.closest('.ant-picker')?.querySelector('input')?.value,
+      monthNextDisabled: document.querySelector('[data-qa=visual-month-next]')?.disabled,
+      monthCurrentVisible: Boolean(document.querySelector('[data-qa=visual-month-current]')),
+      balanceNow: document.querySelector('[data-qa=visual-balance-now]')?.textContent,
+      monthControlsBounds: (() => { const r = document.querySelector('[data-qa=visual-month-controls]')?.getBoundingClientRect(); return r ? {left:r.left,right:r.right,width:r.width} : null; })(),
+      pickerBounds: window.__monthPickerBounds,
       scrollTop: window.scrollY,
       hasHorizontalOverflow: document.documentElement.scrollWidth > innerWidth || document.body.scrollWidth > innerWidth,
       bottomNavVisible,
@@ -398,10 +465,10 @@ async function collectMetrics(client, state) {
 
 function runState(args) {
   process.stdout.write(`Visual dashboard QA: ${args.state.name}\n`);
-  const language = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(args.state.scenario) ? "ru" : "en";
+  const language = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru", "month-russian"].includes(args.state.scenario) ? "ru" : "en";
   return runBrowserState({
     ...args,
-    routePath: args.state.interaction === "settings" ? "/profile" : "/dashboard",
+    routePath: args.state.routePath ?? (args.state.interaction === "settings" ? "/profile" : "/dashboard"),
     initScript: `${fixedDateInitScript(args.fixture.dashboardVisualFixtureMeta.fixedNow, language)}
       if (!sessionStorage.getItem('visual-qa-preference-initialized')) {
         ${["classic", "settings"].includes(args.state.scenario) ? "localStorage.removeItem('inex.dashboard.variant.user-1');" : "localStorage.setItem('inex.dashboard.variant.user-1', 'visual');"}
@@ -418,7 +485,9 @@ function runState(args) {
         await waitFor(client, "document.querySelectorAll('.recharts-surface').length === 3");
       } else {
         await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-dashboard]'))");
-        if (state.scenario === "missing-rate") await waitFor(client, "document.body.innerText.includes('Total unavailable')");
+        if (state.scenario === "month-missing") await waitFor(client, "document.querySelector('[data-qa=visual-expenses]')?.innerText.includes('Total unavailable') && Boolean(document.querySelector('[data-qa=visual-balance-total]')) && !document.querySelector('.ant-spin-spinning')");
+        else if (state.scenario === "month-empty") await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-expenses] .visual-dashboard-empty')) && Boolean(document.querySelector('[data-qa=visual-balance-total]')) && !document.querySelector('.ant-spin-spinning')");
+        else if (state.scenario === "missing-rate") await waitFor(client, "document.body.innerText.includes('Total unavailable')");
         else if (state.scenario === "category-error") await waitFor(client, "document.body.innerText.includes('Could not load category breakdown')");
         else if (["summary-error", "accounts-error"].includes(state.scenario)) await waitFor(client, "document.body.innerText.includes('Could not load cash flow')");
         else if (["empty", "no-activity", "income-only", "wording-empty-ru"].includes(state.scenario)) await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-expenses] .visual-dashboard-empty'))");
@@ -433,6 +502,24 @@ function runState(args) {
 function collectAdditionalFailures(results) {
   const failures = [];
   for (const state of results) {
+    if (state.scenario.startsWith("month-")) {
+      const moneyDigits = (value) => value?.replace(/\D/g, "");
+      const reset = state.interaction === "month-reset";
+      const popup = state.interaction === "month-picker-open";
+      const empty = state.scenario === "month-empty";
+      const missing = state.scenario === "month-missing";
+      const expectedMonth = reset || popup ? null : "2026-03";
+      if (state.selectedMonth !== expectedMonth || state.monthNextDisabled !== (reset || popup)
+        || state.monthCurrentVisible !== !(reset || popup)) failures.push(`${state.name}: month controls and URL disagree`);
+      if (moneyDigits(state.balance) !== '3346500' || !state.balanceNow) failures.push(`${state.name}: current balances changed or current label missing`);
+      if (state.routePath.includes('keep=1') && state.preservedQuery !== '1') failures.push(`${state.name}: unrelated URL parameter lost`);
+      if (!empty && !missing && moneyDigits(state.expenseTotal) !== (reset || popup ? '30000' : '20000')) failures.push(`${state.name}: expense conversion uses wrong month's rate`);
+      if (!empty && !missing && moneyDigits(state.incomeTotal) !== (reset || popup ? '100000' : '50000')) failures.push(`${state.name}: income conversion uses wrong month's rate`);
+      if (missing && (state.expenseTotal || state.incomeTotal || state.flowResult)) failures.push(`${state.name}: incomplete historical totals displayed`);
+      if (empty && !state.flowResult?.includes('No transactions')) failures.push(`${state.name}: empty month state missing`);
+      if (state.monthControlsBounds?.left < 0 || state.monthControlsBounds?.right > state.width) failures.push(`${state.name}: month controls outside viewport`);
+      if (popup && (!state.pickerBounds || state.pickerBounds.left < 0 || state.pickerBounds.right > state.width)) failures.push(`${state.name}: picker outside viewport`);
+    }
     if (state.interaction?.startsWith("income-inspect-") && (!state.incomeInspection?.correct || !state.incomeInspection?.stable || !state.incomeInspection?.contained || state.incomeInspection?.tooltip)) failures.push(`${state.name}: income detail incorrect, center shifted/overflowed or tooltip present`);
     if (state.interaction?.startsWith("expense-") && (!state.expenseInspection?.correct || !state.expenseInspection?.stable || !state.expenseInspection?.contained || state.expenseInspection?.tooltip)) failures.push(`${state.name}: expense detail incorrect, center shifted/overflowed or tooltip present`);
     if (state.height && state.pageHeight > state.viewport.height) failures.push(`${state.name}: dashboard exceeds viewport (${state.pageHeight}px)`);
@@ -462,10 +549,11 @@ function collectAdditionalFailures(results) {
     if (["hover-wallet", "focus-wallet"].includes(state.interaction) && (!state.walletTooltip?.includes('Travel card') || !state.walletTooltip?.includes('PLN') || !state.walletTooltip?.includes('USD') || !state.walletTooltip?.includes('%'))) failures.push(`${state.name}: incomplete wallet tooltip`);
     if (state.interaction === "pick-tiny-wallet" && (state.selectedWalletId !== '13' || !state.selectedWallet?.includes('<0.1%'))) failures.push(`${state.name}: tiny segment inaccessible or share rounded to zero`);
     if (state.scenario === "missing-rate" && state.favoriteIds.length !== 5) failures.push(`${state.name}: native favorites hidden by missing rates`);
-    const russian = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru"].includes(state.scenario);
+    const russian = ["russian", "long-amounts", "linked-russian", "wording-negative-ru", "wording-equal-ru", "wording-empty-ru", "month-russian"].includes(state.scenario);
+    const pastMonth = state.scenario.startsWith("month-") && !["month-reset", "month-picker-open"].includes(state.interaction);
     const expectedHeadings = russian
-      ? ["Куда уходят деньги", "Деньги на счетах", "Откуда пришли деньги", "Как идёт месяц"]
-      : ["Where the money goes", "Money in accounts", "Where the money came from", "How the month is going"];
+      ? ["Куда уходят деньги", "Деньги на счетах", "Откуда пришли деньги", pastMonth ? "Как прошёл месяц" : "Как идёт месяц"]
+      : ["Where the money goes", "Money in accounts", "Where the money came from", pastMonth ? "How the month went" : "How the month is going"];
     if (JSON.stringify(state.headings) !== JSON.stringify(expectedHeadings)) failures.push(`${state.name}: visual section wording incorrect`);
     if (state.pageSubtitleVisible || state.untranslatedKeyVisible || state.technicalNavigationVisible) failures.push(`${state.name}: outdated or missing visual copy`);
     if (state.scenario === "income-single-parent" && !state.interaction && state.incomeContext) failures.push(`${state.name}: automatic root exposes hierarchy context`);

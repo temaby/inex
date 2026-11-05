@@ -3,6 +3,28 @@ import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { ratesActions } from "./rates-slice";
 import type { AppDispatch, RootState } from "../index";
+import type { ExchangeRateItem } from "./rates-slice";
+
+// Shared request behavior for independently scoped consumers; this does not mutate Redux caches.
+export const requestRatesForRange = async (
+  startDate: string,
+  endDate: string,
+  linkedUserId?: number | null,
+): Promise<ExchangeRateItem[]> => {
+  const params = { startDate, endDate, linkedUserId: linkedUserId ?? undefined };
+  if (linkedUserId != null) {
+    const { data } = await apiClient.get("/exchange/rates/cached", { params });
+    return data.data || [];
+  }
+  try {
+    const { data } = await apiClient.get("/exchange/rates/range", { params });
+    return data.data || [];
+  } catch {
+    // Synchronization can fail after writing useful rates; retain whatever is cached.
+    const { data } = await apiClient.get("/exchange/rates/cached", { params });
+    return data.data || [];
+  }
+};
 
 export const fetchRatesForDate = (date: Date, linkedUserId?: number | null) => {
   return async (dispatch: AppDispatch) => {
@@ -62,20 +84,9 @@ export const fetchRatesForRange = (
     const requestId = nanoid();
     dispatch(ratesActions.beginRangeRates({ key, requestId }));
 
-    const params = { startDate, endDate, linkedUserId: linkedUserId ?? undefined };
     try {
-      let data;
-      if (linkedUserId != null) {
-        ({ data } = await apiClient.get("/exchange/rates/cached", { params }));
-      } else {
-        try {
-          ({ data } = await apiClient.get("/exchange/rates/range", { params }));
-        } catch {
-          // Synchronization can fail after writing useful rates; retain whatever is cached.
-          ({ data } = await apiClient.get("/exchange/rates/cached", { params }));
-        }
-      }
-      dispatch(ratesActions.setRangeRates({ key, requestId, items: data.data || [] }));
+      const items = await requestRatesForRange(startDate, endDate, linkedUserId);
+      dispatch(ratesActions.setRangeRates({ key, requestId, items }));
     } catch (error) {
       dispatch(ratesActions.setRangeRatesError({
         key,

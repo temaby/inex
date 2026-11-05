@@ -1,8 +1,9 @@
 import * as React from "react";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import dayjs from "dayjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fetchRatesForRange } from "../store/rates/rates-action";
+import { fetchRatesForRange, requestRatesForRange } from "../store/rates/rates-action";
 import type { ExchangeRateItem } from "../store/rates/rates-slice";
 import Dashboard, { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard";
 
@@ -14,6 +15,8 @@ const apiMocks = vi.hoisted(() => ({
   transactionSummary: vi.fn(),
   dispatch: vi.fn(),
   navigate: vi.fn(),
+  search: new URLSearchParams(),
+  setSearch: vi.fn(),
 }));
 
 const linkedState = {
@@ -43,11 +46,12 @@ vi.mock("react-i18next", () => ({
 vi.mock("react-router-dom", () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
   useNavigate: () => apiMocks.navigate,
+  useSearchParams: () => [apiMocks.search, apiMocks.setSearch],
 }));
 
 vi.mock("../layouts/BasicPage", () => ({
-  default: ({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) => (
-    <main><h1>{title}</h1><p>{subtitle}</p>{children}</main>
+  default: ({ children, title, subtitle, extra }: { children: React.ReactNode; title: string; subtitle: string; extra: React.ReactNode }) => (
+    <main><h1>{title}</h1><p>{subtitle}</p>{extra}{children}</main>
   ),
 }));
 
@@ -99,6 +103,7 @@ vi.mock("../store/hooks", () => ({
 
 vi.mock("../store/rates/rates-action", () => ({
   fetchRatesForRange: vi.fn(),
+  requestRatesForRange: vi.fn(),
 }));
 
 vi.mock("../store/accounts/accounts-api", () => ({
@@ -120,6 +125,10 @@ describe("Dashboard", () => {
     localStorage.clear();
     apiMocks.dispatch.mockReset();
     apiMocks.navigate.mockReset();
+    apiMocks.search = new URLSearchParams();
+    apiMocks.setSearch.mockReset();
+    vi.mocked(requestRatesForRange).mockReset();
+    vi.mocked(requestRatesForRange).mockResolvedValue([]);
     vi.mocked(fetchRatesForRange).mockClear();
     linkedState.rates.range = undefined;
     linkedState.linkedAccount.selectedLinkedUserId = 2;
@@ -243,6 +252,63 @@ describe("Dashboard", () => {
     apiMocks.accountSummaries.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", value: 10 }], isLoading: false, isError: false });
     render(<Dashboard />);
     expect(fetchRatesForRange).toHaveBeenCalledWith(expect.any(String), expect.any(String), null);
+  });
+
+  it.each([null, 2])("keeps historical reports and current wallet conversions independent in scope %s", async (linkedUserId) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    linkedState.linkedAccount.selectedLinkedUserId = linkedUserId;
+    apiMocks.search = new URLSearchParams("keep=yes&month=2024-02");
+    apiMocks.accounts.mockReturnValue({ currentData: [{ id: 1, name: "PLN account", isEnabled: true, isFavourite: true, currency: "PLN" }], isLoading: false, isError: false });
+    apiMocks.accountSummaries.mockReturnValue({ currentData: [{ id: 1, name: "PLN account", currency: "PLN", value: 40 }], isLoading: false, isError: false });
+    apiMocks.categories.mockReturnValue({ currentData: [{ id: 10, name: "Food", parentId: null }, { id: 20, name: "Salary", parentId: null }], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { accountId: 1, categoryId: 10, accountCurrency: "PLN", amount: -80, created: "2024-02-03" },
+      { accountId: 1, categoryId: 20, accountCurrency: "PLN", amount: 160, created: "2024-02-03" },
+    ] }, isLoading: false, isError: false });
+    apiMocks.transactionSummary.mockReturnValue({ currentData: { baseCurrency: "USD", currentScope: {
+      cashFlowBuckets: [{ date: "2024-02-03", currency: "PLN", income: 160, expense: -80, recordCount: 2 }],
+    } }, isLoading: false, isError: false });
+    const key = `${linkedUserId ?? "self"}:2024-02-01:2024-02-29`;
+    linkedState.rates.range = { items: [{ id: 1, currencyFrom: "USD", currencyTo: "PLN", rate: 8, date: "2024-02-03", isTemporary: false }], requestKey: key, completedKey: key, loading: false, error: null };
+    vi.mocked(requestRatesForRange).mockResolvedValue([{ id: 2, currencyFrom: "USD", currencyTo: "PLN", rate: 4, date: dayjs().format("YYYY-MM-DD"), isTemporary: false }]);
+    const view = render(<Dashboard />);
+    await waitFor(() => expect(view.container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 10"));
+    expect(view.container.querySelector('[data-qa="visual-income-center"]')).toHaveTextContent("USD 20");
+    expect(view.container.querySelector('[data-qa="visual-expense-center"]')).toHaveTextContent("USD 10");
+    expect(screen.getByRole("heading", { name: "dashboard.visual.flowTitlePast" })).toBeInTheDocument();
+    expect(screen.getByText("dashboard.visual.balanceNow")).toBeInTheDocument();
+    expect(requestRatesForRange).toHaveBeenCalledWith(dayjs().startOf("month").format("YYYY-MM-DD"), dayjs().endOf("month").format("YYYY-MM-DD"), linkedUserId);
+    const args = apiMocks.transactionSummary.mock.lastCall?.[0];
+    expect(args.linkedUserId).toBe(linkedUserId);
+    expect(args.filter.range.map((value: number) => dayjs.unix(value).format("YYYY-MM-DD"))).toEqual(["2024-02-01", "2024-02-29"]);
+    fireEvent.click(view.container.querySelector('[data-flow="expense"]') as HTMLButtonElement);
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringContaining("start:2024-02-01;end:2024-02-29;type:expense;"));
+    fireEvent.click(view.container.querySelector('[data-category-key="10"]') as HTMLButtonElement);
+    expect(apiMocks.navigate).toHaveBeenLastCalledWith(expect.stringContaining("start:2024-02-01;end:2024-02-29;"));
+
+    linkedState.rates.range.items = [];
+    view.rerender(<Dashboard />);
+    expect(view.container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 10");
+    expect(view.container.querySelector('[data-qa="visual-expenses"]')).toHaveTextContent("dashboard.unavailable.title");
+    expect(view.container.querySelector('[data-qa="visual-income"]')).toHaveTextContent("dashboard.unavailable.title");
+    expect(requestRatesForRange).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps historical native reports usable when current balance rates fail and retries only balance rates", async () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.search = new URLSearchParams("month=2024-02");
+    apiMocks.accounts.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", isEnabled: true }], isLoading: false, isError: false });
+    apiMocks.accountSummaries.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", value: 10 }], isLoading: false, isError: false });
+    vi.mocked(requestRatesForRange).mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce([{ id: 1, currencyFrom: "USD", currencyTo: "EUR", rate: 2, date: dayjs().format("YYYY-MM-DD"), isTemporary: false }]);
+    const { container } = render(<Dashboard />);
+    const money = container.querySelector('[data-qa="visual-money"]') as HTMLElement;
+    await waitFor(() => expect(money).toHaveTextContent("dashboard.unavailable.title"));
+    expect(container.querySelector('[data-qa="visual-flow-result"]')).toHaveTextContent("1,250");
+    expect(fetchRatesForRange).not.toHaveBeenCalled();
+    fireEvent.click(within(money).getByRole("button", { name: "dashboard.unavailable.retry" }));
+    await waitFor(() => expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 5"));
+    expect(requestRatesForRange).toHaveBeenCalledTimes(2);
+    expect(fetchRatesForRange).not.toHaveBeenCalled();
   });
 
   it("automatically loads foreign rates after cache completion and again on remount, without render loops", () => {
