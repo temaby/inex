@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T21:21:56.928Z",
+  "generatedAt": "2026-11-05T21:16:12.435Z",
   "page": "dashboard",
   "dataMode": "fixture",
   "harness": {
@@ -104,10 +104,10 @@
     "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
     "POST /auth/refresh",
     "GET /auth/me",
-    "GET /accounts?mode=ALL",
-    "GET /categories?mode=ALL",
     "GET /exchange/rates/2026-04-30",
     "GET /auth/link-state",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
     "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
     "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
@@ -846,10 +846,10 @@
       "requestLog": [
         "POST /auth/refresh",
         "GET /auth/me",
-        "GET /accounts?mode=ALL",
-        "GET /categories?mode=ALL",
         "GET /exchange/rates/2026-04-30",
         "GET /auth/link-state",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
         "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
         "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",

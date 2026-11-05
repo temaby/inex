@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Spin } from "antd";
-import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, Wallet } from "lucide-react";
+import { Alert, DatePicker, Spin } from "antd";
+import dayjs from "dayjs";
+import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
@@ -12,6 +13,7 @@ import type { DashboardData } from "./useDashboardData";
 import { IncomeDistribution } from "./IncomeDistribution";
 import { VisualAccountDistribution } from "./VisualAccountDistribution";
 import { getVisualDashboardFlowTitleKey } from "./visual-dashboard-copy";
+import { isSupportedDashboardMonth } from "./useDashboardMonth";
 import "./visual-dashboard.css";
 
 const EXPENSE_CATEGORY_COLORS = ["#d87366", "#e8a15b", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#bd79a0", "#8b82bb", "#b98c73"];
@@ -26,6 +28,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         setCategoryMode, expenseParentName, expenseAutoExpanded, expenseSlices, setExpenseParentId,
         selectCategory, categoryConversion, retryRates, effectiveDate,
         currentPeriodLabel, accountsQuery, accountBalancesQuery,
+        selectedMonth, currentMonth, isHistoricalMonth, selectMonth, startDate, retryBalanceRates,
     } = data;
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
     const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
@@ -99,11 +102,11 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const resultKey = !hasCashFlow ? "resultNoActivity" : monthlyResult > 0 ? "resultPositive"
         : monthlyResult < 0 ? "resultNegative" : "resultEqual";
 
-    const unavailable = (currencies: string[]) => (
+    const unavailable = (currencies: string[], onRetry = retryRates) => (
         <div className="visual-dashboard-state" role="status">
             <strong>{t("dashboard.unavailable.title")}</strong>
             <span>{t("dashboard.visual.ratesMissing", { currencies: currencies.join(", ") })}</span>
-            <InExButton kind="ghost" onClick={retryRates} size="sm">{t("dashboard.unavailable.retry")}</InExButton>
+            <InExButton kind="ghost" onClick={onRetry} size="sm">{t("dashboard.unavailable.retry")}</InExButton>
         </div>
     );
 
@@ -112,7 +115,23 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         <BasicPage
             extra={(
                 <div className="visual-dashboard-actions">
-                    <span className="visual-dashboard-period">{currentPeriodLabel}</span>
+                    <div className="visual-dashboard-month-controls" data-qa="visual-month-controls" role="group" aria-label={t("dashboard.visual.monthLabel")}>
+                        <InExButton aria-label={t("dashboard.visual.previousMonth")} data-qa="visual-month-previous" disabled={!isSupportedDashboardMonth(dayjs(`${selectedMonth}-01`).subtract(1, "month"))} icon={<ChevronLeft size={15} />} kind="ghost" size="sm" onClick={() => selectMonth(dayjs(`${selectedMonth}-01`).subtract(1, "month"))} />
+                        <DatePicker
+                            allowClear={false}
+                            aria-label={t("dashboard.visual.monthLabel")}
+                            className="visual-dashboard-month-picker"
+                            data-qa="visual-month-picker"
+                            disabledDate={(date) => !isSupportedDashboardMonth(date) || date.startOf("month").isAfter(dayjs(`${currentMonth}-01`))}
+                            format="MMMM YYYY"
+                            inputReadOnly
+                            onChange={selectMonth}
+                            picker="month"
+                            value={dayjs(`${selectedMonth}-01`)}
+                        />
+                        <InExButton aria-label={t("dashboard.visual.nextMonth")} data-qa="visual-month-next" disabled={!isHistoricalMonth} icon={<ChevronRight size={15} />} kind="ghost" size="sm" onClick={() => selectMonth(dayjs(`${selectedMonth}-01`).add(1, "month"))} />
+                    </div>
+                    {isHistoricalMonth ? <InExButton data-qa="visual-month-current" kind="ghost" size="sm" onClick={() => selectMonth(dayjs(`${currentMonth}-01`))}>{t("dashboard.visual.currentMonth")}</InExButton> : null}
                     <InExButton kind="primary" onClick={() => navigate("/transactions?create=true")}>
                         {t("dashboard.addTransaction")}
                     </InExButton>
@@ -273,7 +292,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                     <div className="visual-dashboard-right-column">
                     <section aria-labelledby="visual-money-title" className="visual-dashboard-card visual-dashboard-money" data-qa="visual-money">
                         <div className="visual-dashboard-card__header">
-                            <div><h2 id="visual-money-title">{t("dashboard.visual.moneyTitle")}</h2><p>{t("dashboard.visual.moneyHint")}</p></div>
+                            <div><h2 id="visual-money-title">{t("dashboard.visual.moneyTitle")}</h2><p><span data-qa="visual-balance-now">{t("dashboard.visual.balanceNow")}</span>{" · "}<span>{t("dashboard.visual.moneyHint")}</span></p></div>
                             <span className="visual-dashboard-icon"><Wallet size={21} aria-hidden="true" /></span>
                         </div>
                         <Spin spinning={moneyPending} tip={t("dashboard.balance.loading")}>
@@ -289,7 +308,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                         <Num accessibleLabel={t("dashboard.visual.totalBalance", { currency: baseCurrency })} dataQa="visual-balance-total" currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
                                         <p>{t("dashboard.balance.metadata", { count: visibleAccounts.length, date: effectiveDate })}</p>
                                     </div>
-                                ) : unavailable(accountConversion.unavailableCurrencies)}
+                                ) : unavailable(accountConversion.unavailableCurrencies, retryBalanceRates)}
                         </Spin>
                         <VisualAccountDistribution data={data} error={moneyError} key={selectedLinkedUserId ?? "self"} pending={moneyPending} />
                     </section>
@@ -298,7 +317,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                     </div>
 
                     <section aria-labelledby="visual-flow-title" className="visual-dashboard-card visual-dashboard-flow" data-qa="visual-flow">
-                        <div className="visual-dashboard-card__header"><div><h2 id="visual-flow-title">{t(getVisualDashboardFlowTitleKey(summaryQuery.currentData?.currentScope.period?.startDate))}</h2></div></div>
+                        <div className="visual-dashboard-card__header"><div><h2 id="visual-flow-title">{t(getVisualDashboardFlowTitleKey(startDate))}</h2></div></div>
                         <Spin spinning={flowPending} tip={t("dashboard.cashFlow.loading")}>
                             {accountsQuery.isError || summaryQuery.isError ? (
                                 <div className="visual-dashboard-state" role="alert">{t("dashboard.cashFlow.error")}</div>

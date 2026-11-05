@@ -16,14 +16,14 @@ export const VisualAccountDistribution = ({ data, pending, error }: {
     pending: boolean;
     error: boolean;
 }) => {
-    const { t, i18n, accountBalances, visibleAccounts, baseCurrency, exchangeRates, accountConversion, accountDataLoading, accountDataError, accountsQuery, accountBalancesQuery } = data;
+    const { t, i18n, accountBalances, visibleAccounts, baseCurrency, balanceExchangeRates, accountConversion, accountDataLoading, accountDataError, accountsQuery, accountBalancesQuery } = data;
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const detailsId = useId();
     const pickerRef = useRef<HTMLSelectElement>(null);
     const locale = i18n.language;
     const convertedAccounts = accountBalances.map((account) => ({
         ...account,
-        converted: getAccountBalanceConversionResult([account], baseCurrency, exchangeRates),
+        converted: getAccountBalanceConversionResult([account], baseCurrency, balanceExchangeRates),
         color: accountColor(account.id),
     }));
     const favoriteIds = new Set(visibleAccounts.filter((account) => account.isFavourite === true).map((account) => account.id));
