@@ -1,13 +1,17 @@
 import * as React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AccountResponse } from "../../store/accounts/accounts-api";
+import type { AccountResponse, TransactionDefaultAccountsResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import TransactionCreate from "./TransactionCreate";
 
 const mutationState = vi.hoisted(() => ({
+    defaults: undefined as TransactionDefaultAccountsResponse | undefined,
+    defaultsFetching: false,
+    defaultsFailed: false,
+    loadDefaults: vi.fn(),
     createLoading: false,
     transferLoading: false,
     internalTransferLoading: false,
@@ -47,7 +51,17 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("../../store/hooks", () => ({
     useAppDispatch: () => mutationState.dispatch,
-    useAppSelector: () => mutationState.linkedUsers,
+    useAppSelector: (selector: (root: { auth: { user: { id: number } }; linkedAccount: { linkState: { linkedAccounts: typeof mutationState.linkedUsers } } }) => unknown) => selector({
+        auth: { user: { id: 1 } }, linkedAccount: { linkState: { linkedAccounts: mutationState.linkedUsers } },
+    }),
+}));
+
+vi.mock("../../store/accounts/accounts-api", () => ({
+    useLazyGetTransactionDefaultAccountsQuery: () => [mutationState.loadDefaults, {
+        currentData: mutationState.defaults,
+        isFetching: mutationState.defaultsFetching,
+        isError: mutationState.defaultsFailed,
+    }],
 }));
 
 vi.mock("../../store/transactions/transactions-api", () => ({
@@ -68,9 +82,11 @@ vi.mock("../../store/transactions/transactions-api", () => ({
 }));
 
 vi.mock("./TransactionCreateExpenseForm", () => ({
-    default: function TransactionCreateExpenseFormMock({ validationErrors }: { validationErrors: Record<string, string | undefined> }) {
+    default: function TransactionCreateExpenseFormMock({ validationErrors, fromAccount, onSetFromAccount }: { validationErrors: Record<string, string | undefined>; fromAccount: { id: number }; onSetFromAccount: (item: { key: string }) => void }) {
         return (
             <div data-testid="expense-form">
+                <output data-testid="expense-account">{fromAccount.id}</output>
+                <button type="button" onClick={() => onSetFromAccount({ key: "2" })}>Choose expense account</button>
                 {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
             </div>
         );
@@ -78,9 +94,11 @@ vi.mock("./TransactionCreateExpenseForm", () => ({
 }));
 
 vi.mock("./TransactionCreateIncomeForm", () => ({
-    default: function TransactionCreateIncomeFormMock({ validationErrors }: { validationErrors: Record<string, string | undefined> }) {
+    default: function TransactionCreateIncomeFormMock({ validationErrors, toAccount, onSetToAccount }: { validationErrors: Record<string, string | undefined>; toAccount: { id: number }; onSetToAccount: (item: { key: string }) => void }) {
         return (
             <div data-testid="income-form">
+                <output data-testid="income-account">{toAccount.id}</output>
+                <button type="button" onClick={() => onSetToAccount({ key: "2" })}>Choose income account</button>
                 {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
             </div>
         );
@@ -182,6 +200,10 @@ describe("TransactionCreate", () => {
         expect(mutationState.createTransaction).not.toHaveBeenCalled();
     });
     beforeEach(() => {
+        mutationState.loadDefaults.mockReturnValue({ unwrap: () => new Promise(() => undefined), unsubscribe: vi.fn() });
+        mutationState.defaults = undefined;
+        mutationState.defaultsFetching = false;
+        mutationState.defaultsFailed = false;
         window.matchMedia = vi.fn().mockReturnValue({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() });
         mutationState.linkedUsers = [];
         mutationState.createLinked.mockReset();
@@ -292,4 +314,76 @@ describe("TransactionCreate", () => {
         expect(mutationState.createInternalTransfer).not.toHaveBeenCalled();
     });
 
+});
+
+describe("TransactionCreate account recommendations", () => {
+    const recommendationAccounts = [accounts[0], { ...accounts[0], id: 2, key: "bank", name: "Bank" }, { ...accounts[0], id: 3, isEnabled: false }];
+    const form = () => <TransactionCreate accounts={recommendationAccounts} categories={categories} onCancel={() => undefined} onSubmit={() => undefined} />;
+    const selectMode = async (label: string) => {
+        const user = userEvent.setup();
+        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
+        await user.click(screen.getByText(label, { selector: ".ant-select-item-option-content" }));
+    };
+
+    beforeEach(() => {
+        mutationState.loadDefaults.mockReturnValue({ unwrap: () => Promise.resolve(), unsubscribe: vi.fn() });
+        window.matchMedia = vi.fn().mockReturnValue({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() });
+        mutationState.defaults = { expenseAccountId: 1, incomeAccountId: 2 };
+        mutationState.defaultsFetching = false;
+        mutationState.defaultsFailed = false;
+        mutationState.linkedUsers = [];
+    });
+
+    it("selects separate accounts when opening expenses and switching to income", async () => {
+        render(form());
+        await waitFor(() => expect(screen.getByTestId("expense-account")).toHaveTextContent("1"));
+        await selectMode("Income");
+        expect(screen.getByTestId("income-account")).toHaveTextContent("2");
+        await selectMode("Transfer");
+        await userEvent.click(screen.getByRole("button", { name: "Save transfer" }));
+        expect(screen.getByText("Please select a valid source account")).toBeInTheDocument();
+        expect(screen.getByText("Please select a valid destination account")).toBeInTheDocument();
+        await selectMode("Expense");
+        expect(screen.getByTestId("expense-account")).toHaveTextContent("1");
+    });
+
+    it.each(["Expense", "Income"])("preserves a manual %s account when a delayed response or refresh arrives", async mode => {
+        mutationState.defaults = undefined;
+        mutationState.defaultsFetching = true;
+        const view = render(form());
+        if (mode === "Income") await selectMode("Income");
+        await userEvent.click(screen.getByRole("button", { name: `Choose ${mode.toLowerCase()} account` }));
+        mutationState.defaults = { expenseAccountId: 1, incomeAccountId: 1 };
+        mutationState.defaultsFetching = false;
+        view.rerender(form());
+        expect(screen.getByTestId(`${mode.toLowerCase()}-account`)).toHaveTextContent("2");
+        mutationState.defaults = { expenseAccountId: null, incomeAccountId: null };
+        view.rerender(form());
+        expect(screen.getByTestId(`${mode.toLowerCase()}-account`)).toHaveTextContent("2");
+    });
+
+    it("waits for fresh recommendations and applies the current mode after a delayed response", async () => {
+        mutationState.defaultsFetching = true;
+        const view = render(form());
+        expect(screen.getByTestId("expense-account")).toHaveTextContent("-1");
+        await selectMode("Income");
+        expect(screen.getByTestId("income-account")).toHaveTextContent("-1");
+        mutationState.defaultsFetching = false;
+        view.rerender(form());
+        expect(screen.getByTestId("income-account")).toHaveTextContent("2");
+    });
+
+    it.each([null, 3, 999])("leaves absent, inactive or unavailable account %s unselected", async id => {
+        mutationState.defaults = { expenseAccountId: id, incomeAccountId: null };
+        render(form());
+        await waitFor(() => expect(screen.getByTestId("expense-account")).toHaveTextContent("-1"));
+    });
+
+    it("keeps manual selection available when the recommendation request fails", async () => {
+        mutationState.defaultsFailed = true;
+        render(form());
+        expect(screen.getByTestId("expense-account")).toHaveTextContent("-1");
+        await userEvent.click(screen.getByRole("button", { name: "Choose expense account" }));
+        expect(screen.getByTestId("expense-account")).toHaveTextContent("2");
+    });
 });

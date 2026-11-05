@@ -5,12 +5,13 @@ import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
 import { InExButton } from "../../components/primitives";
-import { AccountDetails } from "../../model/Account/AccountDetails";
+import { AccountDetails, defaultAccount } from "../../model/Account/AccountDetails";
 import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionSetState } from "../../model/Transaction/TransactionSetState";
 import type { InternalTransferDirection } from "../../model/Transaction/InternalTransferDirection";
 import { TransactionType } from "../../model/Transaction/TransactionType";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
+import { useLazyGetTransactionDefaultAccountsQuery } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useCreateCorrectionMutation, useCreateLinkedInternalTransferMutation, useCreateInternalTransferMutation, useCreateTransactionMutation, useCreateTransferMutation } from "../../store/transactions/transactions-api";
@@ -33,6 +34,7 @@ interface TransactionCreateProps {
 
 interface TransactionCreateState extends Omit<TransactionSetState, "date"> {
     date: Dayjs | null;
+    accountManuallySelected: boolean;
 }
 
 export interface TransactionCreateValidationErrors {
@@ -51,6 +53,7 @@ type TransactionCreateAction =
     | { type: "SET_AMOUNT_TO"; value: number }
     | { type: "SET_ACCOUNT_FROM"; value: AccountDetails }
     | { type: "SET_ACCOUNT_TO"; value: AccountDetails }
+    | { type: "APPLY_DEFAULT_ACCOUNT"; mode: TransactionType; value: AccountDetails }
     | { type: "SET_CATEGORY"; value: CategoryDetails }
     | { type: "SET_DATE"; value: Dayjs | null }
     | { type: "SET_COMMENT"; value: string }
@@ -59,6 +62,7 @@ type TransactionCreateAction =
 
 const createDefaultState = (): TransactionCreateState => ({
     ...new TransactionSetState(),
+    accountManuallySelected: false,
 });
 
 const reducer = (state: TransactionCreateState, action: TransactionCreateAction): TransactionCreateState => {
@@ -70,9 +74,14 @@ const reducer = (state: TransactionCreateState, action: TransactionCreateAction)
         case "SET_AMOUNT_TO":
             return { ...state, toAmount: action.value };
         case "SET_ACCOUNT_FROM":
-            return { ...state, fromAccount: action.value };
+            return { ...state, fromAccount: action.value, accountManuallySelected: true };
         case "SET_ACCOUNT_TO":
-            return { ...state, toAccount: action.value };
+            return { ...state, toAccount: action.value, accountManuallySelected: true };
+        case "APPLY_DEFAULT_ACCOUNT":
+            if (state.mode !== action.mode || state.accountManuallySelected) return state;
+            if (state.mode === TransactionType.EXPENSE) return { ...state, fromAccount: action.value };
+            if (state.mode === TransactionType.INCOME) return { ...state, toAccount: action.value };
+            return state;
         case "SET_CATEGORY":
             return { ...state, category: action.value };
         case "SET_DATE":
@@ -129,6 +138,19 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 }) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
+    const currentUserId = useAppSelector(root => root.auth.user?.id) ?? 0;
+    const [loadDefaultAccounts, defaultAccountsQuery] = useLazyGetTransactionDefaultAccountsQuery();
+    const [defaultsLoadedForUserId, setDefaultsLoadedForUserId] = React.useState<number>();
+    React.useEffect(() => {
+        setDefaultsLoadedForUserId(undefined);
+        if (currentUserId === 0) return;
+        let active = true;
+        const request = loadDefaultAccounts(currentUserId, false);
+        void request.unwrap().then(() => {
+            if (active) setDefaultsLoadedForUserId(currentUserId);
+        }).catch(() => { /* Manual selection remains available after a failed request. */ });
+        return () => { active = false; request.unsubscribe(); };
+    }, [currentUserId, loadDefaultAccounts]);
     const linkedAccounts = useAppSelector(root => root.linkedAccount.linkState?.linkedAccounts);
     const [linkedUserId, setLinkedUserId] = React.useState<number>();
     const submissionKey = React.useRef(crypto.randomUUID());
@@ -144,6 +166,18 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     React.useEffect(() => {
         onModeChange?.(state.mode);
     }, [onModeChange, state.mode]);
+
+    const { currentData: defaultAccounts, isFetching: defaultsFetching, isError: defaultsFailed } = defaultAccountsQuery;
+    React.useEffect(() => {
+        if (defaultsLoadedForUserId !== currentUserId || !defaultAccounts || defaultsFetching || defaultsFailed || state.accountManuallySelected) return;
+        if (state.mode !== TransactionType.EXPENSE && state.mode !== TransactionType.INCOME) return;
+        const id = state.mode === TransactionType.EXPENSE ? defaultAccounts.expenseAccountId : defaultAccounts.incomeAccountId;
+        const account = accounts.find(candidate => candidate.id === id && candidate.isEnabled);
+        dispatchTransactionAction({ type: "APPLY_DEFAULT_ACCOUNT", mode: state.mode, value: account ? toAccountDetails(account) : defaultAccount });
+        if (account) {
+            setValidationErrors(previous => ({ ...previous, fromAccount: undefined, toAccount: undefined }));
+        }
+    }, [accounts, currentUserId, defaultsLoadedForUserId, defaultAccounts, defaultsFetching, defaultsFailed, state.mode, state.accountManuallySelected]);
 
     const categoryTree = useMemo(
         () => getCategoriesTree(categories.map(toCategoryDetails), false, t("categories.systemGroup")) as CategoryDetails[],
