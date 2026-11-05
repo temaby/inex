@@ -22,6 +22,11 @@ export interface AccountSummary extends AccountResponse {
   thisMonthNet: number;
 }
 
+export interface TransactionDefaultAccountsResponse {
+  expenseAccountId: number | null;
+  incomeAccountId: number | null;
+}
+
 interface CreateAccountArgs {
   key: string;
   name: string;
@@ -64,6 +69,11 @@ export const accountsApi = createApi({
   baseQuery: axiosBaseQuery,
   tagTypes: ["Account"],
   endpoints: (builder) => ({
+    // The user ID isolates the client cache; the server derives ownership from authentication.
+    getTransactionDefaultAccounts: builder.query<TransactionDefaultAccountsResponse, number>({
+      query: () => ({ url: "/transactions/default-accounts" }),
+      providesTags: [{ type: "Account", id: "LIST" }, { type: "Account", id: "SUMMARY" }],
+    }),
     getAccounts: builder.query<AccountResponse[], AccountsQueryArgs>({
       query: (args) => {
         const { mode, linkedUserId } = normalizeAccountsQueryArgs(args);
@@ -121,6 +131,8 @@ export const accountsApi = createApi({
 });
 
 export const {
+  useGetTransactionDefaultAccountsQuery,
+  useLazyGetTransactionDefaultAccountsQuery,
   useGetAccountsQuery,
   useGetAccountsSummaryQuery,
   useCreateAccountMutation,

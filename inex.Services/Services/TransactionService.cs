@@ -14,6 +14,7 @@ using inex.Services.Models.Enums;
 using inex.Services.Helpers;
 using inex.Services.Models.Mappers;
 using Microsoft.EntityFrameworkCore;
+using inex.Services.Infrastructure.Time;
 
 namespace inex.Services.Services;
 
@@ -21,13 +22,32 @@ public class TransactionService : InExService, ITransactionService
 {
     #region Constructors
 
-    public TransactionService(IInExUnitOfWork uowInEx) : base(uowInEx)
+    private readonly IClock _clock;
+
+    public TransactionService(IInExUnitOfWork uowInEx, IClock clock) : base(uowInEx)
     {
+        _clock = clock;
     }
 
     #endregion Constructors
 
     #region Public Interface
+
+    public async Task<TransactionDefaultAccountsResponse> GetDefaultAccountsAsync(int userId, CancellationToken ct = default)
+    {
+        var usage = await DefaultAccountRecommendations.Query(
+            DbInEx.TransactionRepository.Get(true), userId, _clock.UtcNow.Date).ToListAsync(ct);
+        var activeIds = await DbInEx.AccountRepository.Get(true)
+            .Where(account => account.UserId == userId && account.IsEnabled)
+            .Select(account => account.Id).Take(2).ToListAsync(ct);
+        int? soleAccountId = activeIds.Count == 1 ? activeIds[0] : null;
+
+        return new TransactionDefaultAccountsResponse
+        {
+            ExpenseAccountId = DefaultAccountRecommendations.Choose(usage, true, soleAccountId),
+            IncomeAccountId = DefaultAccountRecommendations.Choose(usage, false, soleAccountId),
+        };
+    }
 
     public async Task<TransactionResponse> GetAsync(int id, int userId, CancellationToken ct = default)
     {

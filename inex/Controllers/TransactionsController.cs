@@ -28,6 +28,7 @@ public class TransactionsController : ApiControllerBase
     public const string GetSingleRoute = "{id}";
     public const string GetAllRoute = "";
     public const string GetSummaryRoute = "summary";
+    public const string GetDefaultAccountsRoute = "default-accounts";
 
     public const string PostAddRoute = "";
     public const string PostAddTransferRoute = "transfer";
@@ -52,6 +53,14 @@ public class TransactionsController : ApiControllerBase
     }
 
     #endregion Constructors
+
+    /// <summary>Get the current user's recommended accounts for expense and income creation.</summary>
+    [HttpGet(GetDefaultAccountsRoute)]
+    [ProducesResponseType(typeof(TransactionDefaultAccountsResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<TransactionDefaultAccountsResponse>> DefaultAccounts(CancellationToken ct)
+    {
+        return Ok(await _transactionService.GetDefaultAccountsAsync(CurrentUserId, ct));
+    }
 
     /// <summary>Get transaction details</summary>
     /// <param name="id">Transaction id</param>

@@ -18,7 +18,7 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transaction-type-dropdown") ? "docs/implementation/visual-qa/transaction-type-dropdown" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
+const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("default-account") ? "docs/implementation/visual-qa/transaction-default-accounts" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transaction-type-dropdown") ? "docs/implementation/visual-qa/transaction-type-dropdown" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
 const fixturePath = path.join(clientRoot, "src/test/fixtures/transactionsVisualFixture.ts");
 
 const authUser = {
@@ -140,6 +140,10 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
 }
 
 const states = [
+  ...["expense", "income"].flatMap(direction => [
+    ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `default-account-${direction}-${suffix}`, screenshot: `default-account-${direction}-${suffix}.png`, viewport, scenario: "default-account", interaction: `default-account-${direction}` })),
+    { name: `default-account-${direction}-ru-360`, screenshot: `default-account-${direction}-ru-360.png`, viewport: { width: 360, height: 900 }, scenario: "default-account-ru", interaction: `default-account-${direction}` },
+  ]),
   ...visualQaViewports.map(({suffix, viewport}) => ({ name: `transaction-type-dropdown-${suffix}`, screenshot: `transaction-type-dropdown-${suffix}.png`, viewport, scenario: "correction", interaction: "open-type-dropdown" })),
   { name: "transaction-type-dropdown-ru-360", screenshot: "transaction-type-dropdown-ru-360.png", viewport: { width: 360, height: 900 }, scenario: "correction-ru", interaction: "open-type-dropdown" },
 
@@ -469,7 +473,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse({ ...authUser, languageCode: (scenario === "transfer-requests-ru" || scenario === "correction-ru") ? "ru" : "en" });
+        return jsonResponse({ ...authUser, languageCode: (scenario === "transfer-requests-ru" || scenario === "correction-ru" || scenario === "default-account-ru") ? "ru" : "en" });
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET" && (scenario === "linked" || scenario === "transfer-requests-create")) {
         return jsonResponse({
@@ -531,6 +535,11 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ data: scenario === "missing-rate" ? [] : fixture.transactionsVisualFixtureRates });
       }
       const mutationSucceeded = (scenarioRef.requestCounts["transaction-mutation"] ?? 0) > 0;
+      if (url.pathname === "/api/transactions/default-accounts" && method === "GET") {
+        return jsonResponse(scenario.startsWith("default-account")
+          ? { expenseAccountId: 302, incomeAccountId: 301 }
+          : { expenseAccountId: null, incomeAccountId: null });
+      }
       if (url.pathname === "/api/transactions/summary" && method === "GET") {
         if (scenario === "transactions-error") {
           return problemResponse("Transactions fixture failure", "Controlled Transactions summary failure.", 500);
@@ -594,6 +603,18 @@ async function applyInteraction(client, state) {
     return;
   }
   switch (state.interaction) {
+    case "default-account-expense":
+    case "default-account-income": {
+      const russian = state.scenario === "default-account-ru";
+      await evaluate(client, clickButtonByTextExpression(russian ? "Добавить" : "Add transaction"));
+      await waitFor(client, "Boolean(document.querySelector('#transaction-create-type'))");
+      if (state.interaction === "default-account-income") {
+        await selectTransactionType(client, russian ? "Доход" : "Income");
+      }
+      const expected = state.interaction === "default-account-income" ? "USD operating" : "PLN card";
+      await waitFor(client, `Array.from(document.querySelectorAll('.transactions-create-form .ant-menu-submenu-title')).some(item => item.textContent?.includes(${JSON.stringify(expected)}))`);
+      return;
+    }
     case "open-type-dropdown": {
       const russian = state.scenario === "correction-ru";
       await evaluate(client, clickButtonByTextExpression(russian ? "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c" : "Add transaction"));
@@ -811,6 +832,10 @@ async function activateRetryButton(client) {
 }
 
 async function waitForTransactionsReady(client, state) {
+  if (state.scenario.startsWith("default-account")) {
+    await waitFor(client, "Boolean(document.querySelector('.transactions-ledger-row'))");
+    return;
+  }
   if (state.scenario.startsWith("correction")) {
     await waitFor(client, "Boolean(document.querySelector('.transactions-ledger-row'))", 30000);
     return;
@@ -975,7 +1000,7 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: args.state.routePath ?? "/transactions",
-    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, (args.state.scenario === "transfer-requests-ru" || args.state.scenario === "correction-ru") ? "ru" : "en")}
+    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, (args.state.scenario === "transfer-requests-ru" || args.state.scenario === "correction-ru" || args.state.scenario === "default-account-ru") ? "ru" : "en")}
       localStorage.removeItem("inex.transactions.account-balances-pinned");`,
     waitForReady: waitForTransactionsReady,
     applyInteraction,

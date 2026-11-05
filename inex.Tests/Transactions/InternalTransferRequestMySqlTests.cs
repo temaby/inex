@@ -159,7 +159,7 @@ public class InternalTransferRequestMySqlTests
         var accountService = new AccountService(new InExUnitOfWork(db), new Clock());
         await Assert.ThrowsAsync<ConflictException>(() => accountService.DeleteAsync(from.Id, master.Id)); db.ChangeTracker.Clear();
         await Service(db).DecideAsync(unique.Id, "cancel", null, master.Id, default); db.ChangeTracker.Clear();
-        await new TransactionService(new InExUnitOfWork(db)).DeleteAsync(unique.MasterTransactionId!.Value, master.Id); db.ChangeTracker.Clear();
+        await new TransactionService(new InExUnitOfWork(db), new Clock()).DeleteAsync(unique.MasterTransactionId!.Value, master.Id); db.ChangeTracker.Clear();
         var history = await db.InternalTransferRequests.SingleAsync(x => x.Id == unique.Id);
         Assert.Null(history.MasterTransactionId); Assert.Equal(-20, history.MasterValue); Assert.Equal(InternalTransferRequestStatus.Cancelled, history.Status);
 

@@ -22,7 +22,7 @@ public sealed class InternalTransferRequestTests : IDisposable
     public InternalTransferRequestTests()
     {
         db = new(new DbContextOptionsBuilder<InExDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        uow = new(db); service = new(uow, new Clock()); transactions = new(uow);
+        uow = new(db); service = new(uow, new Clock()); transactions = new(uow, new Clock());
         db.Currencies.AddRange(new Currency { Id = 1, Key = "USD", Name = "USD" }, new Currency { Id = 2, Key = "EUR", Name = "EUR" });
         db.Users.AddRange(new AppUser { Id = 1, UserName = "Master", CurrencyId = 1 }, new AppUser { Id = 2, UserName = "Linked", CurrencyId = 1 });
         db.Accounts.AddRange(new Account { Id = 1, UserId = 1, CurrencyId = 1, IsEnabled = true, Key = "master", Name = "Master" },
