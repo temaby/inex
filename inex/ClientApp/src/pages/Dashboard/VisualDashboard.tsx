@@ -305,7 +305,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                 </div>
                             ) : accountConversion.isComplete ? (
                                     <div className="visual-dashboard-money__total">
-                                        <Num accessibleLabel={t("dashboard.visual.totalBalance", { currency: baseCurrency })} dataQa="visual-balance-total" currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
+                                        <Num accessibleLabel={t("dashboard.visual.totalBalance", { currency: baseCurrency })} dataQa="visual-balance-total" fractionDigits={0} currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
                                         <p>{t("dashboard.balance.metadata", { count: visibleAccounts.length, date: effectiveDate })}</p>
                                     </div>
                                 ) : unavailable(accountConversion.unavailableCurrencies, retryBalanceRates)}

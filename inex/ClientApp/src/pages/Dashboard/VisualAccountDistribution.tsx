@@ -19,7 +19,7 @@ export const VisualAccountDistribution = ({ data, pending, error }: {
     const { t, i18n, accountBalances, visibleAccounts, baseCurrency, balanceExchangeRates, accountConversion, accountDataLoading, accountDataError, accountsQuery, accountBalancesQuery } = data;
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const detailsId = useId();
-    const pickerRef = useRef<HTMLSelectElement>(null);
+    const barRef = useRef<HTMLDivElement>(null);
     const locale = i18n.language;
     const convertedAccounts = accountBalances.map((account) => ({
         ...account,
@@ -45,7 +45,7 @@ export const VisualAccountDistribution = ({ data, pending, error }: {
     }, [accountBalances, accountDataError, nativePending, selectedId]);
 
     const clearSelection = () => {
-        pickerRef.current?.focus();
+        barRef.current?.querySelector<HTMLButtonElement>(`[data-account-id="${selectedId}"]`)?.focus();
         setSelectedId(null);
     };
 
@@ -79,7 +79,7 @@ export const VisualAccountDistribution = ({ data, pending, error }: {
                         clearSelection();
                     }
                 }}>
-                    <div aria-label={t("dashboard.visual.accountDistribution")} className="visual-dashboard-account-bar" data-qa="visual-account-bar" role="group">
+                    <div aria-label={t("dashboard.visual.accountDistribution")} className="visual-dashboard-account-bar" data-qa="visual-account-bar" ref={barRef} role="group">
                         {positiveAccounts.map((account) => (
                             <Tooltip color="var(--bg-surface)" key={account.id} trigger={["hover", "focus"]} title={<div className="visual-dashboard-account-tooltip" data-qa="visual-account-tooltip">{details(account)}</div>}>
                                 <button
@@ -93,13 +93,6 @@ export const VisualAccountDistribution = ({ data, pending, error }: {
                                 />
                             </Tooltip>
                         ))}
-                    </div>
-                    <div className="visual-dashboard-account-distribution__caption">
-                        <p>{t("dashboard.visual.distributionCurrency", { currency: baseCurrency })}</p>
-                        <select aria-label={t("dashboard.visual.chooseAccount")} data-qa="visual-account-picker" onChange={(event) => setSelectedId(event.target.value ? Number(event.target.value) : null)} ref={pickerRef} value={selectedId ?? ""}>
-                            <option value="">{t("dashboard.visual.chooseAccount")}</option>
-                            {positiveAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
-                        </select>
                     </div>
                     {selectedAccount ? (
                         <div className="visual-dashboard-account-selection" data-qa="visual-account-selection" id={detailsId} role="status">

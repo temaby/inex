@@ -8,6 +8,8 @@ import {
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  { name: "round-up-1440", scenario: "round-up", width: 1440 },
+  { name: "round-down-360", scenario: "round-down", width: 360 },
   ...[1440, 1024, 390, 360].map((width) => ({ name: `month-history-${width}`, scenario: "month-history", width, routePath: "/dashboard?month=2026-03&keep=1" })),
   { name: "month-russian-360", scenario: "month-russian", width: 360, routePath: "/dashboard?month=2026-03" },
   { name: "month-picker-390", scenario: "month-history", width: 390, interaction: "month-picker" },
@@ -78,7 +80,8 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       return fixture.dashboardVisualFixtureAccountSummaries.map((account) => ({
         ...account,
         ...(reportingScenarios.includes(scenarioRef.current) && account.id === 14 ? { currency: "PLN", currencyId: 2 } : {}),
-        value: scenarioRef.current === "tiny-wallet" && account.id === 13 ? 0.001
+        value: scenarioRef.current.startsWith("round-") && account.id === 11 ? Math.abs(account.value) + (scenarioRef.current === "round-up" ? 0.6 : 0.4)
+          : scenarioRef.current === "tiny-wallet" && account.id === 13 ? 0.001
           : scenarioRef.current === "zero-wallets" ? 0
           : scenarioRef.current === "debt-wallets" ? -Math.abs(account.value)
           : scenarioRef.current === "negative" ? account.value
@@ -244,7 +247,7 @@ async function applyInteraction(client, state) {
       const point = await evaluate(client, `(() => {
         const svg = document.querySelector('[data-qa=visual-income-chart] svg');
         const r = svg.getBoundingClientRect();
-        return {x:r.x+r.width*.9,y:r.y+r.height/2};
+        return {x:r.x+r.width*.94,y:r.y+r.height/2};
       })()`);
       await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
     } else await evaluate(client, "window.__incomeTarget.focus()");
@@ -328,7 +331,10 @@ async function applyInteraction(client, state) {
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-tooltip]'))");
   }
   if (state.interaction === "pick-tiny-wallet") {
-    await evaluate(client, `(() => { const picker = document.querySelector('[data-qa=visual-account-picker]'); picker.value='13'; picker.dispatchEvent(new Event('change',{bubbles:true})); })()`);
+    await client.send("Page.bringToFront");
+    await evaluate(client, `document.querySelector('[data-qa=visual-account-bar] [data-account-id="13"]').focus()`);
+    await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, text: "\r" });
+    await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-selection]'))");
   }
   if (["select-visible-account", "select-favorite", "clear-wallet"].includes(state.interaction)) {
@@ -435,6 +441,10 @@ async function collectMetrics(client, state) {
       incomeOtherMembers: document.querySelectorAll('[data-qa=visual-income] .visual-dashboard-legend__members button').length,
       tinyIncomeShare: document.querySelector('[data-income-key="250"] .visual-dashboard-legend__percentage')?.textContent,
       headings: [...document.querySelectorAll('[data-qa=visual-dashboard] h2')].map(el => el.textContent),
+      accountPickerVisible: Boolean(document.querySelector('[data-qa=visual-account-picker]')),
+      distributionCaptionVisible: Boolean(document.querySelector('.visual-dashboard-account-distribution__caption')),
+      balanceFractional: /[.,]\d{2}(?:\s|$)/.test(document.querySelector('[data-qa=visual-balance-total]')?.textContent ?? ''),
+      bodyTextTooSmall: [...document.querySelectorAll('.visual-dashboard-legend__name, .visual-dashboard-legend__amount, .visual-dashboard-wallets__name, .visual-dashboard-wallets [role=text], .visual-dashboard-small-label, .visual-dashboard-money__total p, .visual-dashboard-income-center__label, .visual-dashboard-flow__label')].some(el => parseFloat(getComputedStyle(el).fontSize) < 14),
       pageSubtitleVisible: Boolean(document.querySelector('[data-qa=page-eyebrow]')),
       incomeContext: document.querySelector('[data-qa=visual-income-context]')?.textContent,
       expenseContext: document.querySelector('[data-qa=visual-expense-context]')?.textContent,
@@ -511,7 +521,7 @@ function collectAdditionalFailures(results) {
       const expectedMonth = reset || popup ? null : "2026-03";
       if (state.selectedMonth !== expectedMonth || state.monthNextDisabled !== (reset || popup)
         || state.monthCurrentVisible !== !(reset || popup)) failures.push(`${state.name}: month controls and URL disagree`);
-      if (moneyDigits(state.balance) !== '2386500' || !state.balanceNow) failures.push(`${state.name}: current balances changed or current label missing`);
+      if (moneyDigits(state.balance) !== '23865' || !state.balanceNow) failures.push(`${state.name}: current balances changed or current label missing`);
       if (state.routePath.includes('keep=1') && state.preservedQuery !== '1') failures.push(`${state.name}: unrelated URL parameter lost`);
       if (!empty && !missing && moneyDigits(state.expenseTotal) !== (reset || popup ? '30000' : '20000')) failures.push(`${state.name}: expense conversion uses wrong month's rate`);
       if (!empty && !missing && moneyDigits(state.incomeTotal) !== (reset || popup ? '100000' : '50000')) failures.push(`${state.name}: income conversion uses wrong month's rate`);
@@ -527,7 +537,7 @@ function collectAdditionalFailures(results) {
       if (!state.expenseTotal?.includes('150.00') || !state.flowExpense?.includes('150.00')
         || !state.incomeTotal?.includes('500.00') || !state.flowResult?.includes('350.00')) failures.push(`${state.name}: non-favorite report activity missing or closed account included`);
       if (state.flowRowsDisabled) failures.push(`${state.name}: report links disabled`);
-      if (state.scenario === 'report-only' ? state.balance || state.accountBar : !state.balance?.includes('23,865.00') || !state.accountBar) failures.push(`${state.name}: overview balance/distribution scope incorrect`);
+      if (state.scenario === 'report-only' ? state.balance || state.accountBar : !state.balance?.includes('23,865') || !state.accountBar) failures.push(`${state.name}: overview balance/distribution scope incorrect`);
       if (state.scenario === "report-only" && (!state.favoritesEmpty || state.favoriteIds.length)) failures.push(`${state.name}: no-favorites state incorrect`);
     }
     if (state.runtimeErrors.length) failures.push(`${state.name}: ${state.runtimeErrors.join(', ')}`);
@@ -536,6 +546,9 @@ function collectAdditionalFailures(results) {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
       continue;
     }
+    if (state.scenario.startsWith("round-") && state.balance?.replace(/\D/g, "") !== (state.scenario === "round-up" ? "23866" : "23865")) failures.push(`${state.name}: balance is not rounded to the nearest whole unit`);
+    if (state.accountPickerVisible || state.distributionCaptionVisible) failures.push(`${state.name}: removed account controls are visible`);
+    if (state.balanceFractional || state.bodyTextTooSmall) failures.push(`${state.name}: balance precision or readable typography incorrect`);
     if (state.segmentIds.includes(14) || state.segmentIds.includes(15)) failures.push(`${state.name}: account excluded from overviews included in distribution`);
     if (state.favoriteIds.length > 5 || state.favoriteIds.includes(14) || state.favoriteIds.includes(15)) failures.push(`${state.name}: ineligible account in favorites`);
     if (state.scenario === "populated" && JSON.stringify(state.favoriteIds) !== JSON.stringify([12,18,11,19,16])) failures.push(`${state.name}: favorite cap/order incorrect`);

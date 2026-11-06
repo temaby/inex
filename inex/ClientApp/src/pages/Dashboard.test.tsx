@@ -992,7 +992,7 @@ describe("Dashboard", () => {
     expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 100");
     expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
     expect(container.querySelector('[data-qa="visual-account-bar"] [data-account-id="2"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-qa="visual-account-picker"]')).not.toHaveTextContent("Second USD");
+    expect(container.querySelector('[data-qa="visual-account-picker"]')).not.toBeInTheDocument();
     expect(container.querySelector('[data-qa="visual-account-bar"] button')).toHaveStyle({ width: "100%" });
     apiMocks.accounts.mockReturnValue({ currentData: accounts.map((account) => ({ ...account, isFavourite: false })), isLoading: false, isError: false });
     rerender(<Dashboard />);
@@ -1037,12 +1037,12 @@ describe("Dashboard", () => {
     act(() => clear.focus());
     fireEvent.click(clear);
     expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-qa="visual-account-picker"]')).toHaveFocus();
-    fireEvent.change(container.querySelector('[data-qa="visual-account-picker"]')!, { target: { value: "7" } });
+    expect(segment(7)).toHaveFocus();
+    fireEvent.click(segment(7));
     expect(segment(7)).toHaveAttribute("aria-pressed", "true");
     fireEvent.keyDown(segment(7), { key: "Escape" });
     expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-qa="visual-account-picker"]')).toHaveFocus();
+    expect(segment(7)).toHaveFocus();
     fireEvent.focus(segment(7));
     const tooltip = await screen.findByText("Wallet 7", { selector: '[data-qa="visual-account-tooltip"] strong' });
     expect(tooltip.closest('[data-qa="visual-account-tooltip"]')).toHaveTextContent("USD 700");
@@ -1082,7 +1082,7 @@ describe("Dashboard", () => {
     expect([...container.querySelectorAll<HTMLElement>('[data-qa="visual-favorite-accounts"] li')].map((row) => row.dataset.accountId)).toEqual(["2", "3"]);
   });
 
-  it("keeps tiny segments proportional and selectable through the account picker", () => {
+  it("keeps tiny segments proportional and keyboard accessible", () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     const accounts = [
       { id: 1, name: "Large", currency: "USD", isEnabled: true, isFavourite: true, value: 99999.99 },
@@ -1094,7 +1094,9 @@ describe("Dashboard", () => {
     const segment = container.querySelector<HTMLButtonElement>('[data-qa="visual-account-bar"] [data-account-id="2"]')!;
     expect(parseFloat(segment.style.width)).toBeCloseTo(0.00001, 8);
     expect(segment).toHaveAttribute("aria-label", expect.stringContaining("<0.1%"));
-    fireEvent.change(container.querySelector('[data-qa="visual-account-picker"]')!, { target: { value: "2" } });
+    act(() => segment.focus());
+    expect(segment).toHaveFocus();
+    fireEvent.click(segment);
     expect(segment).toHaveAttribute("aria-pressed", "true");
     expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("USD 0.01");
     expect(container.querySelector('[data-qa="visual-favorite-accounts"]')).toHaveTextContent("Tiny");
