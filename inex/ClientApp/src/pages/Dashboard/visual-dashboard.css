@@ -21,11 +21,11 @@
 .visual-dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-5);
   min-width: 0;
 }
 
-.visual-dashboard-right-column { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.visual-dashboard-right-column { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
 .visual-dashboard-workspace [role="text"] > [aria-hidden="true"] { column-gap: .28em !important; }
 
 .visual-dashboard-card {
@@ -197,6 +197,7 @@
 }
 
 @media (min-width: 1101px) and (max-height: 850px) {
+  .visual-dashboard-page .inex-page-body { padding-bottom: var(--space-2); }
   .visual-dashboard-right-column > .visual-dashboard-money { gap: 4px; padding-block: 12px; }
   .visual-dashboard-money .visual-dashboard-wallets { padding-top: 4px; }
   .visual-dashboard-money .visual-dashboard-wallets li a { padding-block: 3px; }
@@ -218,8 +219,7 @@
 }
 
 @media (max-width: 600px) {
-  .visual-dashboard-grid { gap: 16px; }
-  .visual-dashboard-right-column { display: flex; align-items: stretch; gap: 16px; }
+  .visual-dashboard-right-column { display: flex; align-items: stretch; }
   .visual-dashboard-right-column > .visual-dashboard-card { padding: 20px; }
   .visual-dashboard-card { padding: 20px; border-radius: 20px; gap: 20px; }
   .visual-dashboard-card h2 { font-size: 20px; }
