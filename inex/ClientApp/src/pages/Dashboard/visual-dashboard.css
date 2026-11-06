@@ -187,7 +187,6 @@
   .visual-dashboard-income__layout { grid-template-columns: minmax(0, .65fr) minmax(0, 1.35fr); gap: 10px; }
   .visual-dashboard-flow > .ant-spin-nested-loading { margin-block: auto; }
 
-  .visual-dashboard-page .inex-page-head { padding-top: 12px; padding-bottom: 10px; }
   .visual-dashboard-page .inex-page-body { padding-bottom: 12px; }
   .visual-dashboard-card h2 { font-size: 20px; }
   .visual-dashboard-card p { margin-top: 4px; }
@@ -195,6 +194,12 @@
   .visual-dashboard-flow { gap: 10px; padding-block: 16px; }
   .visual-dashboard-flow__row { gap: 6px; }
   .visual-dashboard-flow__track { height: 10px; }
+}
+
+@media (min-width: 1101px) and (max-height: 850px) {
+  .visual-dashboard-right-column > .visual-dashboard-money { gap: 4px; padding-block: 12px; }
+  .visual-dashboard-money .visual-dashboard-wallets { padding-top: 4px; }
+  .visual-dashboard-money .visual-dashboard-wallets li a { padding-block: 3px; }
 }
 
 @media (min-width: 601px) {

@@ -438,10 +438,10 @@ describe("Dashboard", () => {
     expect(container.querySelector(".dashboard-grid")).toBeInTheDocument();
   });
 
-  it("removes repeated visual subtitles and uses accessible category and account wording", () => {
+  it("keeps the shared page subtitle and uses concise accessible category and account wording", () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     const { container } = render(<Dashboard />);
-    expect(screen.queryByText("dashboard.subtitle")).not.toBeInTheDocument();
+    expect(screen.getByText("dashboard.subtitle")).toBeInTheDocument();
     expect(screen.queryByText("dashboard.categories.level")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "dashboard.visual.mainCategories" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "dashboard.visual.subcategories" })).toBeInTheDocument();
