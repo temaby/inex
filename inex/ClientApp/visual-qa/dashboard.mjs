@@ -330,6 +330,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       negativeAccountHasSemanticColor: amountColorToken(negativeAccountRow) === 'var(--expense-600)',
       cashFlowTrailingSpace,
       legendItemCount,
+      summariesWithRedundantCents: [...document.querySelectorAll('.dashboard-chart-legend__button [role=text], .dashboard-cash-flow-summary [role=text], .dashboard-account-list [role=text], [data-qa=dashboard-balance] [role=text]')]
+        .map(el => el.textContent).filter(text => /[.,]00(?=\\D|$)/.test(text)),
       positionPanelVisible: Boolean(document.querySelector('[data-qa="dashboard-position"]')),
       balancePanelVisible: Boolean(document.querySelector('[data-qa="dashboard-balance"]')),
       accountsPanelVisible: Boolean(document.querySelector('[data-qa="dashboard-accounts"]')),
@@ -383,6 +385,10 @@ function runState(args) {
 function collectAdditionalFailures(stateResults) {
   const fixture = fixtureExports;
   const failures = [];
+
+  for (const state of stateResults) {
+    if (state.summariesWithRedundantCents.length) failures.push(`${state.name}: overview still displays redundant cents`);
+  }
 
   for (const state of stateResults.filter((item) => item.scenario === "populated" || item.scenario === "linked")) {
     if (state.panelCount !== fixture.dashboardVisualFixtureMeta.expectedPanelCount) {

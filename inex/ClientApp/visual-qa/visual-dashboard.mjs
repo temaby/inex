@@ -10,6 +10,8 @@ const reportingScenarios = ["report-all-active", "report-only", "report-linked"]
 const states = [
   { name: "round-up-1440", scenario: "round-up", width: 1440 },
   { name: "round-down-360", scenario: "round-down", width: 360 },
+  { name: "round-up-income-inspected-390", scenario: "round-up", width: 390, interaction: "income-inspect-focus" },
+  { name: "round-down-expense-inspected-360", scenario: "round-down", width: 360, interaction: "expense-focus" },
   ...[1440, 1024, 390, 360].map((width) => ({ name: `month-history-${width}`, scenario: "month-history", width, routePath: "/dashboard?month=2026-03&keep=1" })),
   { name: "month-russian-360", scenario: "month-russian", width: 360, routePath: "/dashboard?month=2026-03" },
   { name: "month-picker-390", scenario: "month-history", width: 390, interaction: "month-picker" },
@@ -98,6 +100,9 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
     },
     get dashboardVisualFixtureTransactions() {
       const scenario = scenarioRef.current;
+      if (scenario.startsWith("round-")) return fixture.dashboardVisualFixtureTransactions.map((transaction) => ({
+        ...transaction, amount: transaction.amount + Math.sign(transaction.amount) * (scenario === "round-up" ? 0.68 : 0.37),
+      }));
       if (scenario === "wording-empty-ru") return [];
       if (scenario === "long-amounts") return fixture.dashboardVisualFixtureTransactions.map((transaction) => ({
         ...transaction, amount: transaction.amount * 1000000,
@@ -218,7 +223,7 @@ async function applyInteraction(client, state) {
       await wait(800);
       await evaluate(client, "history.back()");
     }
-    await waitFor(client, "new URLSearchParams(location.search).get('month') === '2026-03' && document.querySelector('[data-qa=visual-expense-total]')?.textContent.includes('200.00') && !document.querySelector('.ant-spin-spinning')");
+    await waitFor(client, "new URLSearchParams(location.search).get('month') === '2026-03' && document.querySelector('[data-qa=visual-expense-total]')?.textContent.replace(/[^0-9]/g, '') === '200' && !document.querySelector('.ant-spin-spinning')");
     return;
   }
   if (state.interaction?.startsWith("income-inspect-")) {
@@ -239,7 +244,7 @@ async function applyInteraction(client, state) {
       const memberText = member ? row.querySelector('span:first-child').textContent.split(' · ') : null;
       window.__incomeExpected = {
         label:member ? memberText[0] : row.querySelector('.visual-dashboard-legend__name').textContent,
-        amount:row.querySelector(member ? '[role=text]' : '.visual-dashboard-legend__amount').textContent,
+        amount:row.getAttribute('aria-label').split(', ').pop().replace(/[^0-9.,-]/g, ''),
         share:member ? memberText[1] : row.querySelector('.visual-dashboard-legend__percentage').textContent,
       };
     })()`);
@@ -257,7 +262,7 @@ async function applyInteraction(client, state) {
       const r = center.getBoundingClientRect();
       window.__incomeInspection = {
         correct: center.textContent.includes(window.__incomeExpected.label)
-          && center.textContent.includes(window.__incomeExpected.amount)
+          && center.querySelector('[data-qa=visual-income-total]').textContent.replace(/[^0-9.,-]/g, '') === window.__incomeExpected.amount
           && document.querySelector('[data-qa=visual-income-share]').textContent.includes(window.__incomeExpected.share),
         stable: Math.abs(r.width-window.__incomeCenterBounds.width)<1 && Math.abs(r.height-window.__incomeCenterBounds.height)<1,
         contained: [...center.children].every(el => {
@@ -289,7 +294,7 @@ async function applyInteraction(client, state) {
       window.__expenseTarget = row;
       window.__expenseExpected = {
         label:row.querySelector(member ? 'span:first-child' : '.visual-dashboard-legend__name').textContent,
-        amount:row.querySelector(member ? '[role=text]' : '.visual-dashboard-legend__amount').textContent,
+        amount:row.getAttribute('aria-label').split(', ').pop().replace(/[^0-9.,-]/g, ''),
         share:member ? null : row.querySelector('.visual-dashboard-legend__percentage').textContent,
       };
     })()`);
@@ -309,7 +314,7 @@ async function applyInteraction(client, state) {
       const r = center.getBoundingClientRect();
       window.__expenseInspection = {
         correct: center.textContent.includes(window.__expenseExpected.label)
-          && center.textContent.includes(window.__expenseExpected.amount)
+          && center.querySelector('[data-qa=visual-expense-total]').textContent.replace(/[^0-9.,-]/g, '') === window.__expenseExpected.amount
           && (!window.__expenseExpected.share || document.querySelector('[data-qa=visual-expense-share]').textContent.includes(window.__expenseExpected.share)),
         stable: Math.abs(r.width-window.__expenseCenterBounds.width)<1 && Math.abs(r.height-window.__expenseCenterBounds.height)<1,
         contained: [...center.children].every(el => {
@@ -432,6 +437,8 @@ async function collectMetrics(client, state) {
       chartBlank: charts.some(el => el.getBoundingClientRect().height <= 0 || el.getBoundingClientRect().width <= 0),
       accountBar: Boolean(document.querySelector('[data-qa=visual-account-bar]')),
       balance: document.querySelector('[data-qa=visual-balance-total]')?.textContent,
+      summariesWithRedundantCents: [...document.querySelectorAll('.visual-dashboard-legend__amount, [data-flow] [role=text], [data-qa=visual-favorite-accounts] [role=text]')]
+        .map(el => el.textContent).filter(text => /[.,]00(?=\\D|$)/.test(text)),
       expenseTotal: document.querySelector('[data-qa=visual-expense-total]')?.textContent,
       expenseInspection: window.__expenseInspection,
       incomeTotal: document.querySelector('[data-qa=visual-income-total]')?.textContent,
@@ -523,8 +530,8 @@ function collectAdditionalFailures(results) {
         || state.monthCurrentVisible !== !(reset || popup)) failures.push(`${state.name}: month controls and URL disagree`);
       if (moneyDigits(state.balance) !== '23865' || !state.balanceNow) failures.push(`${state.name}: current balances changed or current label missing`);
       if (state.routePath.includes('keep=1') && state.preservedQuery !== '1') failures.push(`${state.name}: unrelated URL parameter lost`);
-      if (!empty && !missing && moneyDigits(state.expenseTotal) !== (reset || popup ? '30000' : '20000')) failures.push(`${state.name}: expense conversion uses wrong month's rate`);
-      if (!empty && !missing && moneyDigits(state.incomeTotal) !== (reset || popup ? '100000' : '50000')) failures.push(`${state.name}: income conversion uses wrong month's rate`);
+      if (!empty && !missing && moneyDigits(state.expenseTotal) !== (reset || popup ? '300' : '200')) failures.push(`${state.name}: expense conversion uses wrong month's rate`);
+      if (!empty && !missing && moneyDigits(state.incomeTotal) !== (reset || popup ? '1000' : '500')) failures.push(`${state.name}: income conversion uses wrong month's rate`);
       if (missing && (state.expenseTotal || state.incomeTotal || state.flowResult)) failures.push(`${state.name}: incomplete historical totals displayed`);
       if (empty && !state.flowResult?.includes('No transactions')) failures.push(`${state.name}: empty month state missing`);
       if (state.monthControlsBounds?.left < 0 || state.monthControlsBounds?.right > state.width) failures.push(`${state.name}: month controls outside viewport`);
@@ -534,13 +541,14 @@ function collectAdditionalFailures(results) {
     if (state.interaction?.startsWith("expense-") && (!state.expenseInspection?.correct || !state.expenseInspection?.stable || !state.expenseInspection?.contained || state.expenseInspection?.tooltip)) failures.push(`${state.name}: expense detail incorrect, center shifted/overflowed or tooltip present`);
     if (state.height && state.pageHeight > state.viewport.height) failures.push(`${state.name}: dashboard exceeds viewport (${state.pageHeight}px)`);
     if (reportingScenarios.includes(state.scenario)) {
-      if (!state.expenseTotal?.includes('150.00') || !state.flowExpense?.includes('150.00')
-        || !state.incomeTotal?.includes('500.00') || !state.flowResult?.includes('350.00')) failures.push(`${state.name}: non-favorite report activity missing or closed account included`);
+      if (!state.expenseTotal?.includes('150') || !state.flowExpense?.includes('150')
+        || !state.incomeTotal?.includes('500') || !state.flowResult?.includes('350')) failures.push(`${state.name}: non-favorite report activity missing or closed account included`);
       if (state.flowRowsDisabled) failures.push(`${state.name}: report links disabled`);
       if (state.scenario === 'report-only' ? state.balance || state.accountBar : !state.balance?.includes('23,865') || !state.accountBar) failures.push(`${state.name}: overview balance/distribution scope incorrect`);
       if (state.scenario === "report-only" && (!state.favoritesEmpty || state.favoriteIds.length)) failures.push(`${state.name}: no-favorites state incorrect`);
     }
     if (state.runtimeErrors.length) failures.push(`${state.name}: ${state.runtimeErrors.join(', ')}`);
+    if (state.summariesWithRedundantCents.length) failures.push(`${state.name}: overview still displays redundant cents`);
     if (state.hiddenAccountsVisible) failures.push(`${state.name}: hidden account disclosed`);
     if (state.scenario === "classic") {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
