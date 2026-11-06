@@ -612,7 +612,7 @@ async function applyInteraction(client, state) {
         await selectTransactionType(client, russian ? "Доход" : "Income");
       }
       const expected = state.interaction === "default-account-income" ? "USD operating" : "PLN card";
-      await waitFor(client, `Array.from(document.querySelectorAll('.transactions-create-form .ant-menu-submenu-title')).some(item => item.textContent?.includes(${JSON.stringify(expected)}))`);
+      await waitFor(client, `Array.from(document.querySelectorAll('.transactions-create-form [data-picker-id]')).some(item => item.textContent?.includes(${JSON.stringify(expected)}))`);
       return;
     }
     case "open-type-dropdown": {
@@ -667,7 +667,7 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
       await evaluate(client, `(() => {
-        const trigger = Array.from(document.querySelectorAll(".ant-menu-submenu-title")).find((item) => item.textContent?.includes("Select account"));
+        const trigger = Array.from(document.querySelectorAll("[data-picker-id]")).find((item) => item.textContent?.includes("Select account"));
         if (!trigger) return false;
         trigger.click();
         return true;

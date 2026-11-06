@@ -1,9 +1,65 @@
-.ant-menu-vertical .ant-menu-item, .ant-menu-vertical-left .ant-menu-item, .ant-menu-vertical-right .ant-menu-item, .ant-menu-inline .ant-menu-item, .ant-menu-vertical .ant-menu-submenu-title, .ant-menu-vertical-left .ant-menu-submenu-title, .ant-menu-vertical-right .ant-menu-submenu-title, .ant-menu-inline .ant-menu-submenu-title {
-    height: 40px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    padding: 0 16px;
-    overflow: hidden;
-    line-height: 40px;
-    text-overflow: ellipsis;
+.container {
+    min-width: 0;
+    width: 100%;
+}
+
+.trigger {
+    align-items: center;
+    background: var(--bg-1, #fff);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-2);
+    color: var(--fg-1);
+    cursor: pointer;
+    display: flex;
+    font: inherit;
+    gap: 12px;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 9px 11px;
+    text-align: left;
+    width: 100%;
+}
+
+.trigger > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.trigger > svg {
+    color: var(--fg-3);
+    flex-shrink: 0;
+}
+
+.trigger:focus-visible {
+    border-color: var(--income-500);
+    box-shadow: var(--focus-ring);
+    outline: none;
+}
+
+.popupBody {
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+    padding: 4px !important;
+}
+
+.menu:global(.ant-menu-inline) {
+    border-inline-end: 0 !important;
+    min-width: 0;
+    width: 100%;
+}
+
+.menu :global(.ant-menu-item),
+.menu :global(.ant-menu-submenu-title) {
+    height: auto;
+    line-height: 1.5;
+    min-height: 44px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    white-space: normal;
+}
+
+.menu :global(.ant-menu-title-content) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }

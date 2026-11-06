@@ -41,6 +41,8 @@ The `-Ui` check includes a focused visual QA readiness probe:
 
 If no browser is detected, install Chrome or Edge, or set `CHROME_PATH` / `EDGE_PATH` to the executable before running visual QA. If Chrome or Edge is installed but visual QA still cannot launch it inside Codex, rerun the visual QA command with sandbox escalation approved.
 
+If Vite reports `listen EACCES` even after escalation and doctor reports no listener, try an available alternate port using `$env:INEX_VISUAL_QA_PORT='53147'` before the QA command. Doctor checks listeners, which does not prove the OS permits binding a particular port. This workaround does not require firewall or application configuration changes.
+
 ## DB MCP Verification
 
 PowerShell cannot call Codex MCP tools directly. The DB check confirms that the project-local MCP files exist without reading their contents, then reminds Codex agents to verify the server through MCP before DB work:
