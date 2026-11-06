@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { Num } from "../../components/primitives";
 import { getAccountBalanceConversionResult } from "../Transactions/transaction-ledger-utils";
 import type { DashboardData } from "./useDashboardData";
+import { dashboardFractionDigits } from "./dashboard-money";
 
 const ACCOUNT_COLORS = ["#389b8b", "#ed8b75", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#6db2ad", "#a4a26a", "#b98c73"];
 const accountColor = (id: number) => ACCOUNT_COLORS[Math.abs(id) % ACCOUNT_COLORS.length];
@@ -118,7 +119,7 @@ export const VisualAccountDistribution = ({ data, pending, error }: {
                                     <Link to="/accounts">
                                         <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: account.color }} />
                                         <span className="visual-dashboard-wallets__name">{account.name}</span>
-                                        <Num accessibleLabel={t("dashboard.balance.amountLabel")} currency={account.currency} currencySize="sm" kind={account.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={account.value} />
+                                        <Num accessibleLabel={t("dashboard.balance.amountLabel")} currency={account.currency} currencySize="sm" fractionDigits={dashboardFractionDigits(account.value)} kind={account.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={account.value} />
                                     </Link>
                                 </li>
                             ))}

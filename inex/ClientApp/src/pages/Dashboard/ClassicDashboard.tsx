@@ -10,6 +10,7 @@ import { InExButton, Num, SegmentedControl } from "../../components/primitives";
 import BasicPage from "../../layouts/BasicPage";
 import type { DashboardCategoryMode, DashboardCategorySlice, DashboardFlow } from "./dashboard-utils";
 import type { DashboardData } from "./useDashboardData";
+import { dashboardFractionDigits } from "./dashboard-money";
 import "./dashboard.css";
 
 export const DASHBOARD_INCOME_COLORS = [
@@ -198,6 +199,7 @@ const CategoryPanel = ({
                                             <Num
                                                 currency={currency}
                                                 currencySize="sm"
+                                                fractionDigits={dashboardFractionDigits(slice.amount)}
                                                 kind={flow}
                                                 locale={locale}
                                                 value={flow === "expense" ? -slice.amount : slice.amount}
@@ -271,6 +273,7 @@ const ClassicDashboard = ({ data }: { data: DashboardData }) => {
                                     <Num
                                         accessibleLabel={t("dashboard.balance.amountLabel")}
                                         currency={baseCurrency}
+                                        fractionDigits={dashboardFractionDigits(accountConversion.value)}
                                         kind={accountConversion.value < 0 ? "expense" : "neutral"}
                                         locale={i18n.language}
                                         signage="negative-only"
@@ -324,6 +327,7 @@ const ClassicDashboard = ({ data }: { data: DashboardData }) => {
                                                 <Num
                                                     accessibleLabel={t("dashboard.balance.amountLabel")}
                                                     currency={account.currency}
+                                                    fractionDigits={dashboardFractionDigits(account.value)}
                                                     kind={account.value < 0 ? "expense" : "neutral"}
                                                     locale={i18n.language}
                                                     signage="negative-only"
@@ -389,6 +393,7 @@ const ClassicDashboard = ({ data }: { data: DashboardData }) => {
                                             <span>
                                                 <Num
                                                     currency={baseCurrency}
+                                                    fractionDigits={dashboardFractionDigits(item.value)}
                                                     kind={item.key as DashboardFlow}
                                                     locale={i18n.language}
                                                     value={item.key === "expense" ? -item.value : item.value}
@@ -404,7 +409,9 @@ const ClassicDashboard = ({ data }: { data: DashboardData }) => {
                                             <CartesianGrid stroke="var(--border-1)" vertical={false} />
                                             <XAxis axisLine={false} dataKey="label" tickLine={false} />
                                             <YAxis axisLine={false} tickFormatter={(value) => formatMoney(Number(value))} tickLine={false} width={86} />
-                                            <Tooltip formatter={(value) => [formatMoney(Number(value)), t("dashboard.categories.amount")]} />
+                                            <Tooltip formatter={(value) => [new Intl.NumberFormat(i18n.language, {
+                                                style: "currency", currency: baseCurrency || "USD", maximumFractionDigits: 2,
+                                            }).format(Number(value)), t("dashboard.categories.amount")]} />
                                             <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                                                 {cashFlowChartData.map((item) => <Cell fill={item.fill} key={item.key} />)}
                                             </Bar>

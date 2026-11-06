@@ -7,6 +7,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { InExButton, Num } from "../../components/primitives";
 import { rankDashboardCategorySlices, type DashboardCategorySlice } from "./dashboard-utils";
 import type { DashboardData } from "./useDashboardData";
+import { dashboardFractionDigits } from "./dashboard-money";
 
 const INCOME_COLORS = ["#319b88", "#69b6c7", "#7099ca", "#8bbda1", "#b1c8ce"];
 
@@ -121,7 +122,7 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                         </div> : null}
                                         <div className={slices.length > 1 ? "visual-dashboard-donut__center visual-dashboard-income-center" : undefined} data-qa="visual-income-center">
                                             <span className={slices.length > 1 ? "visual-dashboard-income-center__label" : undefined}>{inspectedIncome?.label ?? t(incomeParentName && !incomeAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.incomeTotal")}</span>
-                                            <Num dataQa="visual-income-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={inspectedIncome?.amount ?? total} />
+                                            <Num dataQa="visual-income-total" currency={baseCurrency} currencySize="sm" fractionDigits={highlightedSlice ? 2 : dashboardFractionDigits(total)} kind="neutral" locale={locale} value={inspectedIncome?.amount ?? total} />
                                             {slices.length > 1 ? <span className="visual-dashboard-income-center__share" data-qa="visual-income-share" aria-hidden={!inspectedIncome}>
                                                 {inspectedIncome ? t("dashboard.visual.incomeShare", { percentage: percentage(inspectedIncome.amount) }) : "\u00a0"}
                                             </span> : null}
@@ -140,7 +141,7 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                                     <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: INCOME_COLORS[index] }} />
                                                     <span className="visual-dashboard-legend__name">{slice.label}</span>
                                                     <strong className="visual-dashboard-legend__percentage">{percentage(slice.amount)}</strong>
-                                                    <span className="visual-dashboard-legend__amount"><Num currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={slice.amount} /></span>
+                                                    <span className="visual-dashboard-legend__amount"><Num currency={baseCurrency} currencySize="sm" fractionDigits={dashboardFractionDigits(slice.amount)} kind="neutral" locale={locale} value={slice.amount} /></span>
                                                     {slices.length === 1 && canDrill(slice) ? <span className="visual-dashboard-income__drill">{t("dashboard.visual.viewBreakdown")}<ChevronRight size={13} aria-hidden="true" /></span> : null}
                                                 </button>
                                                 {slice.isOther && otherExpanded && slice.members ? (

@@ -59,7 +59,7 @@ vi.mock("../components/primitives", () => ({
   InExButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props} type="button">{children}</button>
   ),
-  Num: ({ accessibleLabel, currency, kind, locale, signage, value, dataQa }: {
+  Num: ({ accessibleLabel, currency, kind, locale, signage, value, dataQa, fractionDigits = 2 }: {
     accessibleLabel?: string;
     currency: string;
     kind: string;
@@ -67,6 +67,7 @@ vi.mock("../components/primitives", () => ({
     signage?: string;
     value: number;
     dataQa?: string;
+    fractionDigits?: number;
   }) => (
     <span
       data-accessible-label={accessibleLabel}
@@ -74,6 +75,7 @@ vi.mock("../components/primitives", () => ({
       data-locale={locale}
       data-signage={signage}
       data-qa={dataQa}
+      data-fraction-digits={fractionDigits}
     >
       {currency} {value}
     </span>
@@ -451,13 +453,52 @@ describe("Dashboard", () => {
     expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveAttribute("data-accessible-label", "dashboard.visual.totalBalance");
   });
 
+  it.each(["classic", "visual"])("applies summary precision consistently in %s and preserves inspection detail", (variant) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", variant);
+    const account = { id: 1, name: "Wallet", currency: "USD", isEnabled: true, isFavourite: true, value: 12.68 };
+    apiMocks.accounts.mockReturnValue({ currentData: [account], isLoading: false, isError: false });
+    apiMocks.accountSummaries.mockReturnValue({ currentData: [account], isLoading: false, isError: false });
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 1, name: "Spending", parentId: null }, { id: 2, name: "Earnings", parentId: null },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 1, accountCurrency: "USD", amount: -12.68, created: "2026-09-01" },
+      { categoryId: 2, accountCurrency: "USD", amount: 24.42, created: "2026-09-01" },
+    ] }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const summaries = container.querySelectorAll('[data-fraction-digits]');
+    expect(summaries.length).toBeGreaterThan(4);
+    summaries.forEach((amount) => expect(amount).toHaveAttribute("data-fraction-digits", "0"));
+    if (variant === "visual") {
+      fireEvent.mouseEnter(container.querySelector('[data-category-key="category-1"]') ?? container.querySelector('[data-category-key]')!);
+      expect(container.querySelector('[data-qa="visual-expense-total"]')).toHaveAttribute("data-fraction-digits", "2");
+      fireEvent.click(container.querySelector('[data-qa="visual-account-bar"] button')!);
+      expect(container.querySelector('[data-qa="visual-account-selection"] [data-fraction-digits]')).toHaveAttribute("data-fraction-digits", "2");
+    }
+  });
+
+  it.each(["classic", "visual"])("keeps sub-unit balances fractional in %s", (variant) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", variant);
+    apiMocks.accountSummaries.mockReturnValue({ currentData: [
+      { id: 1, name: "Visible USD", currency: "USD", isEnabled: true, isFavourite: true, value: -0.42 },
+    ], isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    const balance = container.querySelector('[data-qa="visual-balance-total"]')
+      ?? container.querySelector('.dashboard-balance-total [data-fraction-digits]');
+    expect(balance).toHaveAttribute("data-fraction-digits", "2");
+    expect(balance).toHaveAttribute("data-signage", "negative-only");
+    expect(balance).toHaveTextContent("USD -0.42");
+  });
+
   it.each([
-    [2000, -750, "resultPositive", "$1,250.00", "100%", "37.5%"],
-    [500, -750, "resultNegative", "$250.00", "66.66666666666666%", "100%"],
-    [750, -750, "resultEqual", "$0.00", "100%", "100%"],
-    [0, 0, "resultNoActivity", "$0.00", "0%", "0%"],
-    [0.3, -0.1 - 0.2, "resultEqual", "$0.00", "99.99999999999997%", "100%"],
-    [1.005, -1.004, "resultPositive", "$0.01", "100%", "99.90049751243782%"],
+    [2000, -750, "resultPositive", "$1,250", "100%", "37.5%"],
+    [500, -750, "resultNegative", "$250", "66.66666666666666%", "100%"],
+    [750, -750, "resultEqual", "$0", "100%", "100%"],
+    [0, 0, "resultNoActivity", "$0", "0%", "0%"],
+    [0.3, -0.1 - 0.2, "resultEqual", "$0", "99.99999999999997%", "100%"],
+    [1.005, -1.004, "resultEqual", "$0", "100%", "99.90049751243782%"],
+    [1.5, -1.49, "resultPositive", "$1", "100%", "99.33333333333333%"],
+    [0.42, -0.2, "resultPositive", "$0.22", "100%", "47.61904761904762%"],
   ])("renders common-scale flow and result for income %s / expenses %s", (income, expense, result, delta, incomeWidth, expenseWidth) => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     const summary = apiMocks.transactionSummary().currentData;
@@ -603,16 +644,26 @@ describe("Dashboard", () => {
     expect(center).toHaveTextContent("USD 550");
   });
 
-  it("keeps the single income summary ringless when its legend receives focus", () => {
+  it("keeps the single income summary ringless and reveals cents on focus or hover", () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     apiMocks.categories.mockReturnValue({ currentData: [{ id: 200, name: "Salary", parentId: null }], isLoading: false, isError: false });
     apiMocks.transactions.mockReturnValue({ currentData: { data: [
-      { categoryId: 200, accountCurrency: "USD", amount: 500, created: "2026-09-01" },
+      { categoryId: 200, accountCurrency: "USD", amount: 500.68, created: "2026-09-01" },
     ] }, isLoading: false, isError: false });
     const { container } = render(<Dashboard />);
-    fireEvent.focus(container.querySelector('[data-income-key="200"]')!);
+    const incomeButton = container.querySelector('[data-income-key="200"]')!;
+    const incomeTotal = container.querySelector('[data-qa="visual-income-total"]');
+    expect(incomeTotal).toHaveAttribute("data-fraction-digits", "0");
+    fireEvent.focus(incomeButton);
     expect(container.querySelector('[data-qa="visual-income-center"]')).toHaveTextContent("dashboard.visual.incomeTotal");
-    expect(container.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 500");
+    expect(incomeTotal).toHaveTextContent("USD 500.68");
+    expect(incomeTotal).toHaveAttribute("data-fraction-digits", "2");
+    fireEvent.blur(incomeButton);
+    expect(incomeTotal).toHaveAttribute("data-fraction-digits", "0");
+    fireEvent.mouseEnter(incomeButton);
+    expect(incomeTotal).toHaveAttribute("data-fraction-digits", "2");
+    fireEvent.mouseLeave(incomeButton);
+    expect(incomeTotal).toHaveAttribute("data-fraction-digits", "0");
     expect(container.querySelector('[data-qa="visual-income-chart"]')).toBeNull();
     expect(container.querySelector('[data-qa="visual-income-share"]')).toBeNull();
   });

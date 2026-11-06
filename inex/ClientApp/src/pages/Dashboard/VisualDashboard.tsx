@@ -14,6 +14,7 @@ import { IncomeDistribution } from "./IncomeDistribution";
 import { VisualAccountDistribution } from "./VisualAccountDistribution";
 import { getVisualDashboardFlowTitleKey } from "./visual-dashboard-copy";
 import { isSupportedDashboardMonth } from "./useDashboardMonth";
+import { dashboardFractionDigits, displayedDashboardAmount, formatDashboardMoney } from "./dashboard-money";
 import "./visual-dashboard.css";
 
 const EXPENSE_CATEGORY_COLORS = ["#d87366", "#e8a15b", "#9c89ca", "#739fc6", "#d9ac50", "#ce81a0", "#bd79a0", "#8b82bb", "#b98c73"];
@@ -92,12 +93,9 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const categoryError = accountsQuery.isError || categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError);
     const expenseMissingRates = categoryConversion.expenseMissingRates;
     const flowMaximum = Math.max(...cashFlowChartData.map((item) => item.value), 0);
-    // Compare the amounts at the same precision that Num displays to the user.
-    const displayedAmount = (value: number) => Number(new Intl.NumberFormat("en", {
-        useGrouping: false, maximumFractionDigits: 2,
-    }).format(value));
+    // Compare displayed totals without changing the source values or chart proportions.
     const monthlyResult = cashFlowConversion?.isComplete
-        ? Math.round((displayedAmount(cashFlowConversion.income) - displayedAmount(Math.abs(cashFlowConversion.expense))) * 100) / 100
+        ? Math.round((displayedDashboardAmount(cashFlowConversion.income) - displayedDashboardAmount(Math.abs(cashFlowConversion.expense))) * 100) / 100
         : 0;
     const resultKey = !hasCashFlow ? "resultNoActivity" : monthlyResult > 0 ? "resultPositive"
         : monthlyResult < 0 ? "resultNegative" : "resultEqual";
@@ -225,7 +223,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                         </div>
                                         <div className="visual-dashboard-donut__center visual-dashboard-expense-center" data-qa="visual-expense-center">
                                             <span className="visual-dashboard-expense-center__label">{inspectedExpense?.label ?? t(expenseParentName && !expenseAutoExpanded ? "dashboard.visual.selectedTotal" : "dashboard.visual.expenseTotal")}</span>
-                                            <Num dataQa="visual-expense-total" currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={inspectedExpense?.amount ?? totalExpense} />
+                                            <Num dataQa="visual-expense-total" currency={baseCurrency} currencySize="sm" fractionDigits={inspectedExpense ? 2 : dashboardFractionDigits(totalExpense)} kind="neutral" locale={locale} value={inspectedExpense?.amount ?? totalExpense} />
                                             <span className="visual-dashboard-expense-center__share" data-qa="visual-expense-share" aria-hidden={!inspectedExpense}>
                                                 {inspectedExpense ? t("dashboard.visual.expenseShare", { percentage: percentage(totalExpense > 0 ? inspectedExpense.amount / totalExpense : 0) }) : "\u00a0"}
                                             </span>
@@ -253,7 +251,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                                         <span aria-hidden="true" className="visual-dashboard-swatch" style={{ background: EXPENSE_CATEGORY_COLORS[index % EXPENSE_CATEGORY_COLORS.length] }} />
                                                         <span className="visual-dashboard-legend__name">{slice.label}</span>
                                                         <strong className="visual-dashboard-legend__percentage">{percentage(share)}</strong>
-                                                        <span className="visual-dashboard-legend__amount"><Num currency={baseCurrency} currencySize="sm" kind="neutral" locale={locale} value={slice.amount} /></span>
+                                                        <span className="visual-dashboard-legend__amount"><Num currency={baseCurrency} currencySize="sm" fractionDigits={dashboardFractionDigits(slice.amount)} kind="neutral" locale={locale} value={slice.amount} /></span>
                                                     </button>
                                                     {slice.isOther && otherExpanded && slice.members ? (
                                                         <ol className="visual-dashboard-legend__members">
@@ -305,7 +303,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                 </div>
                             ) : accountConversion.isComplete ? (
                                     <div className="visual-dashboard-money__total">
-                                        <Num accessibleLabel={t("dashboard.visual.totalBalance", { currency: baseCurrency })} dataQa="visual-balance-total" fractionDigits={0} currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
+                                        <Num accessibleLabel={t("dashboard.visual.totalBalance", { currency: baseCurrency })} dataQa="visual-balance-total" fractionDigits={dashboardFractionDigits(accountConversion.value)} currency={baseCurrency} currencySize="sm" kind={accountConversion.value < 0 ? "expense" : "neutral"} locale={locale} signage="negative-only" value={accountConversion.value} />
                                         <p>{t("dashboard.balance.metadata", { count: visibleAccounts.length, date: effectiveDate })}</p>
                                     </div>
                                 ) : unavailable(accountConversion.unavailableCurrencies, retryBalanceRates)}
@@ -328,14 +326,14 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                             {cashFlowChartData.map((item) => (
                                                 <button disabled={!hasReportingAccounts} data-flow={item.key} className={`visual-dashboard-flow__row visual-dashboard-flow__row--${item.key}`} key={item.key} onClick={() => openFlow(item.key === "income" ? "income" : "expense")} type="button">
                                                     <span className="visual-dashboard-flow__label">{item.key === "income" ? <ArrowUp size={16} aria-hidden="true" /> : <ArrowDown size={16} aria-hidden="true" />}{item.label}</span>
-                                                    <Num currency={baseCurrency} currencySize="sm" kind={item.key === "income" ? "income" : "expense"} locale={locale} signage="negative-only" value={item.key === "income" ? item.value : -item.value} />
+                                                    <Num currency={baseCurrency} currencySize="sm" fractionDigits={dashboardFractionDigits(item.value)} kind={item.key === "income" ? "income" : "expense"} locale={locale} signage="negative-only" value={item.key === "income" ? item.value : -item.value} />
                                                     <span aria-hidden="true" className="visual-dashboard-flow__track"><span data-qa="visual-flow-bar" style={{ width: `${flowMaximum > 0 ? item.value / flowMaximum * 100 : 0}%` }} /></span>
                                                 </button>
                                             ))}
                                         </div>
                                         <div data-qa="visual-flow-result" className={`visual-dashboard-result visual-dashboard-result--${monthlyResult < 0 ? "negative" : monthlyResult > 0 ? "positive" : "neutral"}`} role="status">
                                             <span aria-hidden="true" className="visual-dashboard-result__icon">{monthlyResult < 0 ? <ArrowDown size={23} /> : monthlyResult > 0 ? <ArrowUp size={23} /> : <ArrowRight size={23} />}</span>
-                                            <p>{t(`dashboard.visual.${resultKey}`, { amount: money(Math.abs(monthlyResult)) })}</p>
+                                            <p>{t(`dashboard.visual.${resultKey}`, { amount: formatDashboardMoney(Math.abs(monthlyResult), locale, baseCurrency) })}</p>
                                         </div>
                                     </div>
                                 )}

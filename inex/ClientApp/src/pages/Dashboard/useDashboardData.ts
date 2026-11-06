@@ -12,6 +12,7 @@ import { getAccountBalanceConversionResult, getBaseCurrencyEquivalent, getCashFl
 import { buildDashboardCategorySlices, buildDashboardTransactionFilter, type DashboardCategoryMode, type DashboardFlow, type DashboardCategorySlice } from "./dashboard-utils";
 import { useDashboardMonth } from "./useDashboardMonth";
 import { useCurrentBalanceRates } from "./useCurrentBalanceRates";
+import { formatDashboardMoney } from "./dashboard-money";
 
 export const useDashboardData = ({ autoExpandSingleParent = false, requireExplicitFavourites = false, monthSelection = false } = {}) => {
     const { t, i18n } = useTranslation();
@@ -235,11 +236,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
         },
     ];
 
-    const formatMoney = (value: number) => new Intl.NumberFormat(i18n.language, {
-        style: "currency",
-        currency: baseCurrency || "USD",
-        maximumFractionDigits: 0,
-    }).format(value);
+    const formatMoney = (value: number) => formatDashboardMoney(value, i18n.language, baseCurrency);
 
     const openFlow = (flow: DashboardFlow) => {
         if (!hasReportingAccounts) return;
