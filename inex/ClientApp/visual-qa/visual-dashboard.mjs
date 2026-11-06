@@ -8,6 +8,9 @@ import {
 const outputDir = path.join(classic.repoRoot, "docs/implementation/visual-qa/visual-dashboard");
 const reportingScenarios = ["report-all-active", "report-only", "report-linked"];
 const states = [
+  { name: "populated-1920", scenario: "populated", width: 1920 },
+  { name: "russian-1920", scenario: "russian", width: 1920 },
+  { name: "classic-default-1920", scenario: "classic", width: 1920 },
   { name: "round-up-1440", scenario: "round-up", width: 1440 },
   { name: "round-down-360", scenario: "round-down", width: 360 },
   { name: "round-up-income-inspected-390", scenario: "round-up", width: 390, interaction: "income-inspect-focus" },
@@ -415,7 +418,16 @@ async function collectMetrics(client, state) {
     const cards = ['visual-expenses','visual-money','visual-income','visual-flow'].map(key => document.querySelector('[data-qa='+key+']'));
     const bounds = cards.map(el => { const r = el?.getBoundingClientRect(); return r ? { x:r.x, y:r.y, width:r.width, height:r.height } : null; });
     const charts = [...document.querySelectorAll('.recharts-surface')];
+    const frameBounds = (selector) => {
+      const r = document.querySelector(selector).getBoundingClientRect();
+      return { left: r.left, right: r.right, width: r.width };
+    };
+    const headerStyle = getComputedStyle(document.querySelector('.inex-page-head'));
     return {
+      headerFrame: frameBounds('.inex-page-head__frame'),
+      bodyFrame: frameBounds('.inex-page-body > .inex-page-frame'),
+      headerPadding: [headerStyle.paddingTop, headerStyle.paddingBottom],
+      eyebrowVisible: Boolean(document.querySelector('[data-qa=page-eyebrow]')?.textContent),
       pageHeight: document.documentElement.scrollHeight,
       selectedMonth: new URLSearchParams(location.search).get('month'),
       preservedQuery: new URLSearchParams(location.search).get('keep'),
@@ -452,7 +464,6 @@ async function collectMetrics(client, state) {
       distributionCaptionVisible: Boolean(document.querySelector('.visual-dashboard-account-distribution__caption')),
       balanceFractional: /[.,]\d{2}(?:\s|$)/.test(document.querySelector('[data-qa=visual-balance-total]')?.textContent ?? ''),
       bodyTextTooSmall: [...document.querySelectorAll('.visual-dashboard-legend__name, .visual-dashboard-legend__amount, .visual-dashboard-wallets__name, .visual-dashboard-wallets [role=text], .visual-dashboard-small-label, .visual-dashboard-money__total p, .visual-dashboard-income-center__label, .visual-dashboard-flow__label')].some(el => parseFloat(getComputedStyle(el).fontSize) < 14),
-      pageSubtitleVisible: Boolean(document.querySelector('[data-qa=page-eyebrow]')),
       incomeContext: document.querySelector('[data-qa=visual-income-context]')?.textContent,
       expenseContext: document.querySelector('[data-qa=visual-expense-context]')?.textContent,
       untranslatedKeyVisible: /dashboard\.(visual|categories|balance)\./.test(text),
@@ -519,6 +530,12 @@ function runState(args) {
 function collectAdditionalFailures(results) {
   const failures = [];
   for (const state of results) {
+    const expectedWidth = Math.min(state.width - (state.width <= 768 ? 32 : 80), 1360);
+    if (Math.abs(state.bodyFrame.width - expectedWidth) > 1
+      || Math.abs(state.headerFrame.left - state.bodyFrame.left) > 1
+      || Math.abs(state.headerFrame.right - state.bodyFrame.right) > 1) failures.push(`${state.name}: dashboard frame differs from management pages`);
+    const expectedPadding = state.width <= 768 ? ['20px', '12px'] : ['28px', '20px'];
+    if (!state.eyebrowVisible || JSON.stringify(state.headerPadding) !== JSON.stringify(expectedPadding)) failures.push(`${state.name}: shared page heading rhythm missing`);
     if (state.scenario.startsWith("month-")) {
       const moneyDigits = (value) => value?.replace(/\D/g, "");
       const reset = state.interaction === "month-reset";
@@ -577,7 +594,7 @@ function collectAdditionalFailures(results) {
       ? ["Куда уходят деньги", "Деньги на счетах", "Откуда пришли деньги", pastMonth ? "Как прошёл месяц" : "Как идёт месяц"]
       : ["Where the money goes", "Money in accounts", "Where the money came from", pastMonth ? "How the month went" : "How the month is going"];
     if (JSON.stringify(state.headings) !== JSON.stringify(expectedHeadings)) failures.push(`${state.name}: visual section wording incorrect`);
-    if (state.pageSubtitleVisible || state.untranslatedKeyVisible || state.technicalNavigationVisible) failures.push(`${state.name}: outdated or missing visual copy`);
+    if (state.untranslatedKeyVisible || state.technicalNavigationVisible) failures.push(`${state.name}: outdated or missing visual copy`);
     if (state.scenario === "income-single-parent" && !state.interaction && state.incomeContext) failures.push(`${state.name}: automatic root exposes hierarchy context`);
     if (state.interaction === "drilldown" && state.expenseContext !== "Home") failures.push(`${state.name}: category navigation context missing`);
     if (state.scenario.startsWith("wording-")) {

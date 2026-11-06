@@ -239,7 +239,7 @@ const ClassicDashboard = ({ data }: { data: DashboardData }) => {
     return (
         <BasicPage
             extra={<InExButton kind="primary" onClick={() => navigate("/transactions?create=true")}>{t("dashboard.addTransaction")}</InExButton>}
-            frame="analytics"
+            frame="management"
             title={t("dashboard.title")}
             subtitle={t("dashboard.subtitle")}
         >

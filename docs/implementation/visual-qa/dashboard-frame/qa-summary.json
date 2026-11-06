@@ -1,0 +1,2513 @@
+{
+  "generatedAt": "2026-11-06T17:48:41.066Z",
+  "page": "visual-dashboard",
+  "dataMode": "fixture",
+  "harness": {
+    "realBackendCalled": false,
+    "apiIsolation": "All API requests intercepted; providers never called."
+  },
+  "screenshots": [
+    "populated-1920.png",
+    "russian-1920.png",
+    "classic-default-1920.png",
+    "month-history-1440.png",
+    "month-russian-360.png",
+    "compact-1440-800.png",
+    "compact-1440-900.png",
+    "populated-1440.png",
+    "populated-1024.png",
+    "populated-390.png",
+    "populated-360.png",
+    "russian-390.png"
+  ],
+  "states": [
+    {
+      "name": "populated-1920",
+      "scenario": "populated",
+      "width": 1920,
+      "screenshot": "populated-1920.png",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 280,
+        "right": 1640,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 280,
+        "right": 1640,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 1000,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 1236.984375,
+        "right": 1492.984375,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 0,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 280,
+          "y": 162.796875,
+          "width": 816.9375,
+          "height": 421.453125
+        },
+        {
+          "x": 1112.9375,
+          "y": 162.796875,
+          "width": 527.0625,
+          "height": 421.453125
+        },
+        {
+          "x": 1112.9375,
+          "y": 600.25,
+          "width": 527.0625,
+          "height": 223.984375
+        },
+        {
+          "x": 280,
+          "y": 600.25,
+          "width": 816.9375,
+          "height": 223.984375
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1920,
+        "height": 1000,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "russian-1920",
+      "scenario": "russian",
+      "width": 1920,
+      "screenshot": "russian-1920.png",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 280,
+        "right": 1640,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 280,
+        "right": 1640,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 1000,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "апрель 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Сейчас",
+      "monthControlsBounds": {
+        "left": 1190.390625,
+        "right": 1446.390625,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 0,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 280,
+          "y": 162.796875,
+          "width": 816.9375,
+          "height": 421.453125
+        },
+        {
+          "x": 1112.9375,
+          "y": 162.796875,
+          "width": 527.0625,
+          "height": 421.453125
+        },
+        {
+          "x": 1112.9375,
+          "y": 600.25,
+          "width": 527.0625,
+          "height": 223.984375
+        },
+        {
+          "x": 280,
+          "y": 600.25,
+          "width": 816.9375,
+          "height": 223.984375
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23 865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3 365USD",
+      "incomeTotal": "5 453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Куда уходят деньги",
+        "Деньги на счетах",
+        "Откуда пришли деньги",
+        "Как идёт месяц"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3 400USD",
+      "flowResult": "Доходов больше на 2 000 $",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты\nQA\nQA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nДобавить транзакцию\nКуда уходят деньги\nВИД КАТЕГОРИЙ\nОсновные\nПодкатегории\nРасходы за месяц\n3 365\nUSD\n \nHome\n49 %\n1 665\nUSD\nFood\n26 %\n880\nUSD\nTransport\n5 %\n185\nUSD\nHealth\n4 %\n142\nUSD\nFamily\n4 %\n128\nUSD\nLeisure\n3 %\n96\nUSD\nShopping\n2 %\n84\nUSD\nEducation\n2 %\n72\nUSD\nПрочее\n3 %\n113\nUSD\nДеньги на счетах\n\nСейчас · Счета, включённые в обзоры\n\n23 865\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nИзбранные счета · в их валютах\nSavings\n12 400\nUSD\nEmergency fund\n5 400\nUSD\nDaily account\n2 380\nUSD\nBrokerage\n1 800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nВсе счета\nОткуда пришли деньги\nДоходы за месяц\n5 453\nUSD\n \nSalary\n78,9 %\n4 300\nUSD\nFreelance\n14,3 %\n780\nUSD\nInterest\n2,1 %\n115\nUSD\nRefunds\n1,7 %\n94\nUSD\nПрочее\n3 %\n164\nUSD\nКак идёт месяц\nДоходы\n5 400\nUSD\nРасходы\n-3 400\nUSD\n\nДоходов больше на 2 000 $",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1920,
+        "height": 1000,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "classic-default-1920",
+      "scenario": "classic",
+      "width": 1920,
+      "screenshot": "classic-default-1920.png",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 280,
+        "right": 1640,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 280,
+        "right": 1640,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 1289,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthCurrentVisible": false,
+      "monthControlsBounds": null,
+      "pickerBounds": null,
+      "scrollTop": 289,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": false,
+      "cardCount": 0,
+      "bounds": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "chartCount": 3,
+      "chartBlank": false,
+      "accountBar": false,
+      "summariesWithRedundantCents": [],
+      "incomeChart": false,
+      "incomeLegendCount": 0,
+      "incomeOtherMembers": 0,
+      "headings": [],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": true,
+      "flowRows": 0,
+      "flowRowsDisabled": true,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [],
+      "favoriteColors": [],
+      "segmentColors": [],
+      "segmentIds": [],
+      "segmentWidths": [],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nAvailable\n23,865 USD\n7 accounts · rates as of Apr 30, 2026\nAccounts\nChoose accounts\nDaily account\n2,380 USD\nSavings\n12,400 USD\nTravel card\n3,200 PLN\nFamily everyday account with a deliberately long label\n875 USD\nCash\n210 USD\nShow all 7 accounts\nIncome and expenses\n\nApril 2026\n\nIncome\n5,400 USD\nExpenses\n3,400 USD\nIncome\nExpenses\n$0\n$1,500\n$3,000\n$4,500\n$6,000\nWHERE MONEY MOVES\nCategories this month\nSTARTING LEVEL\nParents\nChildren\nCATEGORY SPLIT\nExpenses\n\nSelect a category to see its children\n\n9\nSEGMENTS\nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nCATEGORY SPLIT\nIncome\n\nSelect a category to see its children\n\n7\nSEGMENTS\nSalary\n79%\n4,300\nUSD\nFreelance\n14%\n780\nUSD\nInterest\n2%\n115\nUSD\nRefunds\n2%\n94\nUSD\nBenefits\n1%\n76\nUSD\nFood\n1%\n50\nUSD\nOther income\n1%\n38\nUSD\n$0",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1905,
+        "height": 1289,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "month-history-1440",
+      "scenario": "month-history",
+      "width": 1440,
+      "routePath": "/dashboard?month=2026-03&keep=1",
+      "screenshot": "month-history-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 1000,
+      "selectedMonth": "2026-03",
+      "preservedQuery": "1",
+      "monthPickerValue": "March 2026",
+      "monthNextDisabled": false,
+      "monthCurrentVisible": true,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 871.921875,
+        "right": 1127.921875,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 0,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 40,
+          "y": 162.796875,
+          "width": 816.9375,
+          "height": 419.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 162.796875,
+          "width": 527.0625,
+          "height": 419.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 598.03125,
+          "width": 527.0625,
+          "height": 181.1875
+        },
+        {
+          "x": 40,
+          "y": 598.03125,
+          "width": 816.9375,
+          "height": 181.1875
+        }
+      ],
+      "chartCount": 1,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "200USD",
+      "incomeTotal": "500USD",
+      "incomeChart": false,
+      "incomeLegendCount": 1,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month went"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-200USD",
+      "flowResult": "Income is higher by $300",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nCurrent month\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n200\nUSD\n \nFood\n50%\n100\nUSD\nHealth\n50%\n100\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nCategories\nMonthly income\n500\nUSD\nMain job\n100%\n500\nUSD\nHow the month went\nIncome\n500\nUSD\nExpenses\n-200\nUSD\n\nIncome is higher by $300",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-03-31",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "month-russian-360",
+      "scenario": "month-russian",
+      "width": 360,
+      "routePath": "/dashboard?month=2026-03",
+      "screenshot": "month-russian-360.png",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 16,
+        "right": 344,
+        "width": 328
+      },
+      "bodyFrame": {
+        "left": 16,
+        "right": 344,
+        "width": 328
+      },
+      "headerPadding": [
+        "20px",
+        "12px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 2275,
+      "selectedMonth": "2026-03",
+      "preservedQuery": null,
+      "monthPickerValue": "март 2026",
+      "monthNextDisabled": false,
+      "monthCurrentVisible": true,
+      "balanceNow": "Сейчас",
+      "monthControlsBounds": {
+        "left": 16,
+        "right": 272,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 1375,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1150.015625,
+          "width": 328,
+          "height": 569.96875
+        },
+        {
+          "x": 16,
+          "y": -564.046875,
+          "width": 328,
+          "height": 708.234375
+        },
+        {
+          "x": 16,
+          "y": 160.1875,
+          "width": 328,
+          "height": 251.78125
+        },
+        {
+          "x": 16,
+          "y": 427.96875,
+          "width": 328,
+          "height": 344.25
+        }
+      ],
+      "chartCount": 1,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23 865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "200USD",
+      "incomeTotal": "500USD",
+      "incomeChart": false,
+      "incomeLegendCount": 1,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Куда уходят деньги",
+        "Деньги на счетах",
+        "Откуда пришли деньги",
+        "Как прошёл месяц"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-200USD",
+      "flowResult": "Доходов больше на 300 $",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "QA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nТекущий месяц\nДобавить транзакцию\nКуда уходят деньги\nВИД КАТЕГОРИЙ\nОсновные\nПодкатегории\nРасходы за месяц\n200\nUSD\n \nFood\n50 %\n100\nUSD\nHealth\n50 %\n100\nUSD\nДеньги на счетах\n\nСейчас · Счета, включённые в обзоры\n\n23 865\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nИзбранные счета · в их валютах\nSavings\n12 400\nUSD\nEmergency fund\n5 400\nUSD\nDaily account\n2 380\nUSD\nBrokerage\n1 800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nВсе счета\nОткуда пришли деньги\nКатегории\nДоходы за месяц\n500\nUSD\nMain job\n100 %\n500\nUSD\nКак прошёл месяц\nДоходы\n500\nUSD\nРасходы\n-200\nUSD\n\nДоходов больше на 300 $\n\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты",
+      "pngDimensions": {
+        "width": 345,
+        "height": 2300,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-03-31",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "compact-1440-800",
+      "scenario": "populated",
+      "width": 1440,
+      "height": 800,
+      "screenshot": "compact-1440-800.png",
+      "viewport": {
+        "width": 1440,
+        "height": 800
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 800,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 996.984375,
+        "right": 1252.984375,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 0,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 40,
+          "y": 162.796875,
+          "width": 816.9375,
+          "height": 385.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 162.796875,
+          "width": 527.0625,
+          "height": 385.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 564.03125,
+          "width": 527.0625,
+          "height": 223.984375
+        },
+        {
+          "x": 40,
+          "y": 564.03125,
+          "width": 816.9375,
+          "height": 223.984375
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 800,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "compact-1440-900",
+      "scenario": "populated",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "compact-1440-900.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 900,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 996.984375,
+        "right": 1252.984375,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 0,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 40,
+          "y": 162.796875,
+          "width": 816.9375,
+          "height": 419.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 162.796875,
+          "width": 527.0625,
+          "height": 419.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 598.03125,
+          "width": 527.0625,
+          "height": 223.984375
+        },
+        {
+          "x": 40,
+          "y": 598.03125,
+          "width": 816.9375,
+          "height": 223.984375
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 900,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "populated-1440",
+      "scenario": "populated",
+      "width": 1440,
+      "screenshot": "populated-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "bodyFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 1000,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 996.984375,
+        "right": 1252.984375,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 0,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 40,
+          "y": 162.796875,
+          "width": 816.9375,
+          "height": 419.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 162.796875,
+          "width": 527.0625,
+          "height": 419.234375
+        },
+        {
+          "x": 872.9375,
+          "y": 598.03125,
+          "width": 527.0625,
+          "height": 223.984375
+        },
+        {
+          "x": 40,
+          "y": 598.03125,
+          "width": 816.9375,
+          "height": 223.984375
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 1000,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "populated-1024",
+      "scenario": "populated",
+      "width": 1024,
+      "screenshot": "populated-1024.png",
+      "viewport": {
+        "width": 1024,
+        "height": 1000
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 40,
+        "right": 984,
+        "width": 944
+      },
+      "bodyFrame": {
+        "left": 40,
+        "right": 984,
+        "width": 944
+      },
+      "headerPadding": [
+        "28px",
+        "20px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 1413,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 580.984375,
+        "right": 836.984375,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 413,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": false,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 40,
+          "y": -250.203125,
+          "width": 944,
+          "height": 513.84375
+        },
+        {
+          "x": 40,
+          "y": 279.640625,
+          "width": 466,
+          "height": 481.234375
+        },
+        {
+          "x": 518,
+          "y": 279.640625,
+          "width": 466,
+          "height": 353.9375
+        },
+        {
+          "x": 40,
+          "y": 776.875,
+          "width": 944,
+          "height": 191.5
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports\nQA\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 1009,
+        "height": 1413,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "populated-390",
+      "scenario": "populated",
+      "width": 390,
+      "screenshot": "populated-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 16,
+        "right": 374,
+        "width": 358
+      },
+      "bodyFrame": {
+        "left": 16,
+        "right": 374,
+        "width": 358
+      },
+      "headerPadding": [
+        "20px",
+        "12px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 3058,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 16,
+        "right": 272,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 2158,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1933.015625,
+          "width": 358,
+          "height": 1042.359375
+        },
+        {
+          "x": 16,
+          "y": -874.65625,
+          "width": 358,
+          "height": 654.234375
+        },
+        {
+          "x": 16,
+          "y": -204.421875,
+          "width": 358,
+          "height": 615.9375
+        },
+        {
+          "x": 16,
+          "y": 427.515625,
+          "width": 358,
+          "height": 344.25
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 3112,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "populated-360",
+      "scenario": "populated",
+      "width": 360,
+      "screenshot": "populated-360.png",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 16,
+        "right": 344,
+        "width": 328
+      },
+      "bodyFrame": {
+        "left": 16,
+        "right": 344,
+        "width": 328
+      },
+      "headerPadding": [
+        "20px",
+        "12px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 3050,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "April 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Now",
+      "monthControlsBounds": {
+        "left": 16,
+        "right": 272,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 2150,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1925.015625,
+          "width": 328,
+          "height": 1042.359375
+        },
+        {
+          "x": 16,
+          "y": -866.65625,
+          "width": 328,
+          "height": 708.234375
+        },
+        {
+          "x": 16,
+          "y": -142.421875,
+          "width": 328,
+          "height": 553.9375
+        },
+        {
+          "x": 16,
+          "y": 427.515625,
+          "width": 328,
+          "height": 344.25
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23,865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3,365USD",
+      "incomeTotal": "5,453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Where the money goes",
+        "Money in accounts",
+        "Where the money came from",
+        "How the month is going"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3,400USD",
+      "flowResult": "Income is higher by $2,000",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "QA\nYOUR CURRENT FINANCIAL POSITION\nDashboard\nAdd transaction\nWhere the money goes\nCATEGORY VIEW\nMain categories\nSubcategories\nMonthly expenses\n3,365\nUSD\n \nHome\n49%\n1,665\nUSD\nFood\n26%\n880\nUSD\nTransport\n5%\n185\nUSD\nHealth\n4%\n142\nUSD\nFamily\n4%\n128\nUSD\nLeisure\n3%\n96\nUSD\nShopping\n2%\n84\nUSD\nEducation\n2%\n72\nUSD\nOther\n3%\n113\nUSD\nMoney in accounts\n\nNow · Accounts shown in overviews\n\n23,865\nUSD\n\n7 accounts · rates as of Apr 30, 2026\n\nFavorite accounts · original currencies\nSavings\n12,400\nUSD\nEmergency fund\n5,400\nUSD\nDaily account\n2,380\nUSD\nBrokerage\n1,800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nAll accounts\nWhere the money came from\nMonthly income\n5,453\nUSD\n \nSalary\n78.9%\n4,300\nUSD\nFreelance\n14.3%\n780\nUSD\nInterest\n2.1%\n115\nUSD\nRefunds\n1.7%\n94\nUSD\nOther\n3%\n164\nUSD\nHow the month is going\nIncome\n5,400\nUSD\nExpenses\n-3,400\nUSD\n\nIncome is higher by $2,000\n\nDashboard\nTransactions\nAccounts\nCategories\nBudgets\nReports",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 345,
+        "height": 3050,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    },
+    {
+      "name": "russian-390",
+      "scenario": "russian",
+      "width": 390,
+      "screenshot": "russian-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "dataMode": "fixture",
+      "headerFrame": {
+        "left": 16,
+        "right": 374,
+        "width": 358
+      },
+      "bodyFrame": {
+        "left": 16,
+        "right": 374,
+        "width": 358
+      },
+      "headerPadding": [
+        "20px",
+        "12px"
+      ],
+      "eyebrowVisible": true,
+      "pageHeight": 3112,
+      "selectedMonth": null,
+      "preservedQuery": null,
+      "monthPickerValue": "апрель 2026",
+      "monthNextDisabled": true,
+      "monthCurrentVisible": false,
+      "balanceNow": "Сейчас",
+      "monthControlsBounds": {
+        "left": 16,
+        "right": 272,
+        "width": 256
+      },
+      "pickerBounds": null,
+      "scrollTop": 2212,
+      "hasHorizontalOverflow": false,
+      "bottomNavVisible": true,
+      "bottomNavOccludesLastContent": false,
+      "drawerOpen": false,
+      "visual": true,
+      "cardCount": 4,
+      "bounds": [
+        {
+          "x": 16,
+          "y": -1987.015625,
+          "width": 358,
+          "height": 1042.359375
+        },
+        {
+          "x": 16,
+          "y": -928.65625,
+          "width": 358,
+          "height": 708.234375
+        },
+        {
+          "x": 16,
+          "y": -204.421875,
+          "width": 358,
+          "height": 615.9375
+        },
+        {
+          "x": 16,
+          "y": 427.515625,
+          "width": 358,
+          "height": 344.25
+        }
+      ],
+      "chartCount": 2,
+      "chartBlank": false,
+      "accountBar": true,
+      "balance": "23 865USD",
+      "summariesWithRedundantCents": [],
+      "expenseTotal": "3 365USD",
+      "incomeTotal": "5 453USD",
+      "incomeChart": true,
+      "incomeLegendCount": 5,
+      "incomeOtherMembers": 0,
+      "headings": [
+        "Куда уходят деньги",
+        "Деньги на счетах",
+        "Откуда пришли деньги",
+        "Как идёт месяц"
+      ],
+      "accountPickerVisible": false,
+      "distributionCaptionVisible": false,
+      "balanceFractional": false,
+      "bodyTextTooSmall": false,
+      "untranslatedKeyVisible": false,
+      "technicalNavigationVisible": false,
+      "flowExpense": "-3 400USD",
+      "flowResult": "Доходов больше на 2 000 $",
+      "flowRows": 2,
+      "flowRowsDisabled": false,
+      "negativeWarningLinked": false,
+      "hiddenAccountsVisible": false,
+      "favoriteIds": [
+        12,
+        18,
+        11,
+        19,
+        16
+      ],
+      "favoriteColors": [
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        }
+      ],
+      "segmentColors": [
+        {
+          "id": 11,
+          "color": "rgb(156, 137, 202)"
+        },
+        {
+          "id": 12,
+          "color": "rgb(115, 159, 198)"
+        },
+        {
+          "id": 13,
+          "color": "rgb(217, 172, 80)"
+        },
+        {
+          "id": 16,
+          "color": "rgb(164, 162, 106)"
+        },
+        {
+          "id": 17,
+          "color": "rgb(185, 140, 115)"
+        },
+        {
+          "id": 18,
+          "color": "rgb(56, 155, 139)"
+        },
+        {
+          "id": 19,
+          "color": "rgb(237, 139, 117)"
+        }
+      ],
+      "segmentIds": [
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19
+      ],
+      "segmentWidths": [
+        9.97276,
+        51.9589,
+        3.35219,
+        3.66646,
+        0.87995,
+        22.6273,
+        7.54243
+      ],
+      "favoritesEmpty": false,
+      "runtimeErrors": [],
+      "textSample": "InEx\nQA\nВАШЕ ТЕКУЩЕЕ ФИНАНСОВОЕ ПОЛОЖЕНИЕ\nДашборд\nДобавить транзакцию\nКуда уходят деньги\nВИД КАТЕГОРИЙ\nОсновные\nПодкатегории\nРасходы за месяц\n3 365\nUSD\n \nHome\n49 %\n1 665\nUSD\nFood\n26 %\n880\nUSD\nTransport\n5 %\n185\nUSD\nHealth\n4 %\n142\nUSD\nFamily\n4 %\n128\nUSD\nLeisure\n3 %\n96\nUSD\nShopping\n2 %\n84\nUSD\nEducation\n2 %\n72\nUSD\nПрочее\n3 %\n113\nUSD\nДеньги на счетах\n\nСейчас · Счета, включённые в обзоры\n\n23 865\nUSD\n\n7 счетов · курсы на 30 апр. 2026 г.\n\nИзбранные счета · в их валютах\nSavings\n12 400\nUSD\nEmergency fund\n5 400\nUSD\nDaily account\n2 380\nUSD\nBrokerage\n1 800\nUSD\nFamily everyday account with a deliberately long label\n875\nUSD\nВсе счета\nОткуда пришли деньги\nДоходы за месяц\n5 453\nUSD\n \nSalary\n78,9 %\n4 300\nUSD\nFreelance\n14,3 %\n780\nUSD\nInterest\n2,1 %\n115\nUSD\nRefunds\n1,7 %\n94\nUSD\nПрочее\n3 %\n164\nUSD\nКак идёт месяц\nДоходы\n5 400\nUSD\nРасходы\n-3 400\nUSD\n\nДоходов больше на 2 000 $\n\nДашборд\nТранзакции\nСчета\nКатегории\nБюджеты\nОтчёты",
+      "routePath": "/dashboard",
+      "pngDimensions": {
+        "width": 375,
+        "height": 3112,
+        "mode": "fullPage"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /exchange/rates/2026-04-30",
+        "GET /auth/link-state",
+        "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+        "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+      ]
+    }
+  ],
+  "apiRequests": [
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-03-31",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-03-01T00%3A00%3A00&endDate=2026-03-31T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-03-31",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /exchange/rates/2026-04-30",
+    "GET /auth/link-state",
+    "GET /transactions/summary?mode=active&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions?mode=active&pageSize=0&page=0&accountId=11&accountId=12&accountId=13&accountId=14&accountId=16&accountId=17&accountId=18&accountId=19&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts/details?mode=active&ids[0]=11&ids[1]=12&ids[2]=13&ids[3]=16&ids[4]=17&ids[5]=18&ids[6]=19",
+    "GET /exchange/rates/range?startDate=2026-04-01&endDate=2026-04-30"
+  ],
+  "unhandledApiRequests": [],
+  "checks": {
+    "hasFailures": false,
+    "failures": [],
+    "mobile390NoHorizontalOverflow": true,
+    "mobile360NoHorizontalOverflow": true,
+    "mobileBottomNavClear": true,
+    "fixtureModeAvoidedBackendApis": true
+  }
+}

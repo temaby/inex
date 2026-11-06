@@ -135,8 +135,9 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                     </InExButton>
                 </div>
             )}
-            frame="analytics"
+            frame="management"
             title={t("dashboard.title")}
+            subtitle={t("dashboard.subtitle")}
         >
             <div className="visual-dashboard-workspace" data-qa="visual-dashboard">
                 {selectedLinkedUserId !== null ? (
