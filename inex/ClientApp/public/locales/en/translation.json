@@ -263,7 +263,7 @@
       "expenseShare": "{{percentage}} of expenses",
       "selectedTotal": "Total",
       "moneyTitle": "Money in accounts",
-      "moneyHint": "All active accounts",
+      "moneyHint": "Accounts shown in overviews",
       "accountDistribution": "Account shares",
       "nativeBalances": "Account balances · original currencies",
       "allAccounts": "All accounts",

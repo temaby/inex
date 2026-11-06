@@ -30,12 +30,12 @@ const states = [
   { name: "expense-russian-360", scenario: "russian", width: 360, interaction: "expense-focus" },
   { name: "expense-long-label-360", scenario: "long-amounts", width: 360, interaction: "expense-focus" },
   { name: "expense-other-member-390", scenario: "populated", width: 390, interaction: "expense-other-member" },
-  ...[1440, 1024, 390, 360].map((width) => ({ name: `wallet-selected-${width}`, scenario: "populated", width, interaction: "select-non-favorite" })),
+  ...[1440, 1024, 390, 360].map((width) => ({ name: `wallet-selected-${width}`, scenario: "populated", width, interaction: "select-visible-account" })),
   { name: "wallet-favorite-selected-390", scenario: "populated", width: 390, interaction: "select-favorite" },
   { name: "wallet-hover-1440", scenario: "populated", width: 1440, interaction: "hover-wallet" },
   { name: "wallet-focus-1440", scenario: "populated", width: 1440, interaction: "focus-wallet" },
   { name: "wallet-cleared-390", scenario: "populated", width: 390, interaction: "clear-wallet" },
-  { name: "wallet-selected-russian-360", scenario: "russian", width: 360, interaction: "select-non-favorite" },
+  { name: "wallet-selected-russian-360", scenario: "russian", width: 360, interaction: "select-visible-account" },
   { name: "wallet-tiny-selected-360", scenario: "tiny-wallet", width: 360, interaction: "pick-tiny-wallet" },
   ...["zero-wallets", "debt-wallets", "two-favorites"].map((scenario) => ({ name: `${scenario}-390`, scenario, width: 390 })),
   { name: "wording-russian-1440", scenario: "russian", width: 1440 },
@@ -331,8 +331,8 @@ async function applyInteraction(client, state) {
     await evaluate(client, `(() => { const picker = document.querySelector('[data-qa=visual-account-picker]'); picker.value='13'; picker.dispatchEvent(new Event('change',{bubbles:true})); })()`);
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-selection]'))");
   }
-  if (["select-non-favorite", "select-favorite", "clear-wallet"].includes(state.interaction)) {
-    const id = state.interaction === "select-favorite" ? 13 : 14;
+  if (["select-visible-account", "select-favorite", "clear-wallet"].includes(state.interaction)) {
+    const id = state.interaction === "select-favorite" ? 13 : 17;
     await evaluate(client, `document.querySelector('[data-qa=visual-account-bar] [data-account-id="${id}"]').click()`);
     await waitFor(client, "Boolean(document.querySelector('[data-qa=visual-account-selection]'))");
     if (state.interaction === "clear-wallet") {
@@ -511,7 +511,7 @@ function collectAdditionalFailures(results) {
       const expectedMonth = reset || popup ? null : "2026-03";
       if (state.selectedMonth !== expectedMonth || state.monthNextDisabled !== (reset || popup)
         || state.monthCurrentVisible !== !(reset || popup)) failures.push(`${state.name}: month controls and URL disagree`);
-      if (moneyDigits(state.balance) !== '3346500' || !state.balanceNow) failures.push(`${state.name}: current balances changed or current label missing`);
+      if (moneyDigits(state.balance) !== '2386500' || !state.balanceNow) failures.push(`${state.name}: current balances changed or current label missing`);
       if (state.routePath.includes('keep=1') && state.preservedQuery !== '1') failures.push(`${state.name}: unrelated URL parameter lost`);
       if (!empty && !missing && moneyDigits(state.expenseTotal) !== (reset || popup ? '30000' : '20000')) failures.push(`${state.name}: expense conversion uses wrong month's rate`);
       if (!empty && !missing && moneyDigits(state.incomeTotal) !== (reset || popup ? '100000' : '50000')) failures.push(`${state.name}: income conversion uses wrong month's rate`);
@@ -527,7 +527,7 @@ function collectAdditionalFailures(results) {
       if (!state.expenseTotal?.includes('150.00') || !state.flowExpense?.includes('150.00')
         || !state.incomeTotal?.includes('500.00') || !state.flowResult?.includes('350.00')) failures.push(`${state.name}: non-favorite report activity missing or closed account included`);
       if (state.flowRowsDisabled) failures.push(`${state.name}: report links disabled`);
-      if (!state.balance?.includes('26,265.00') || !state.accountBar) failures.push(`${state.name}: all-active balance/distribution missing`);
+      if (state.scenario === 'report-only' ? state.balance || state.accountBar : !state.balance?.includes('23,865.00') || !state.accountBar) failures.push(`${state.name}: overview balance/distribution scope incorrect`);
       if (state.scenario === "report-only" && (!state.favoritesEmpty || state.favoriteIds.length)) failures.push(`${state.name}: no-favorites state incorrect`);
     }
     if (state.runtimeErrors.length) failures.push(`${state.name}: ${state.runtimeErrors.join(', ')}`);
@@ -536,14 +536,15 @@ function collectAdditionalFailures(results) {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
       continue;
     }
+    if (state.segmentIds.includes(14) || state.segmentIds.includes(15)) failures.push(`${state.name}: account excluded from overviews included in distribution`);
     if (state.favoriteIds.length > 5 || state.favoriteIds.includes(14) || state.favoriteIds.includes(15)) failures.push(`${state.name}: ineligible account in favorites`);
     if (state.scenario === "populated" && JSON.stringify(state.favoriteIds) !== JSON.stringify([12,18,11,19,16])) failures.push(`${state.name}: favorite cap/order incorrect`);
     if (state.scenario === "two-favorites" && JSON.stringify(state.favoriteIds) !== JSON.stringify([11,13])) failures.push(`${state.name}: fewer favorites incorrect`);
     if (state.accountBar && Math.abs(state.segmentWidths.reduce((sum, width) => sum + width, 0) - 100) > 0.01) failures.push(`${state.name}: segment denominator inconsistent`);
     if (state.accountBar && state.favoriteColors.some(item => state.segmentColors.some(segment => segment.id === item.id && segment.color !== item.color))) failures.push(`${state.name}: favorite colors differ from segments`);
     if (state.selectedWalletId && state.selectionColor !== state.segmentColors.find(item => item.id === Number(state.selectedWalletId))?.color) failures.push(`${state.name}: selected color differs from segment`);
-    if (state.scenario === "populated" && state.segmentIds.length !== 8) failures.push(`${state.name}: eligible segment missing`);
-    if (state.interaction === "select-non-favorite" && (state.selectedWalletId !== '14' || !state.selectedWallet?.includes('Hidden reserve'))) failures.push(`${state.name}: non-favorite selection missing`);
+    if (state.scenario === "populated" && state.segmentIds.length !== 7) failures.push(`${state.name}: eligible segment missing`);
+    if (state.interaction === "select-visible-account" && (state.selectedWalletId !== '17' || !state.selectedWallet?.includes('Cash'))) failures.push(`${state.name}: visible account selection missing`);
     if (state.interaction === "select-favorite" && (state.selectedWalletId !== '13' || !state.selectedWallet?.includes('PLN') || !state.selectedWallet?.includes('USD'))) failures.push(`${state.name}: favorite currency details missing`);
     if (state.interaction === "clear-wallet" && (state.selectedWallet || state.selectedWalletId)) failures.push(`${state.name}: selection not cleared`);
     if (["hover-wallet", "focus-wallet"].includes(state.interaction) && (!state.walletTooltip?.includes('Travel card') || !state.walletTooltip?.includes('PLN') || !state.walletTooltip?.includes('USD') || !state.walletTooltip?.includes('%'))) failures.push(`${state.name}: incomplete wallet tooltip`);
