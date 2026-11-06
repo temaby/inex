@@ -208,7 +208,7 @@ describe("Dashboard", () => {
       { accountId: 2, categoryId: 10, accountCurrency: "USD", amount: -750, created: "2026-09-01" },
     ] }, isLoading: false, isError: false });
     const { container } = render(<Dashboard />);
-    expect(apiMocks.accountSummaries).toHaveBeenCalledWith({ ids: variant === "visual" ? [1, 2] : [], linkedUserId }, { skip: variant !== "visual" });
+    expect(apiMocks.accountSummaries).toHaveBeenCalledWith({ ids: [], linkedUserId }, { skip: true });
     expect(apiMocks.transactionSummary).toHaveBeenCalledWith(expect.objectContaining({
       linkedUserId, filter: expect.objectContaining({ accountIds: [1, 2] }),
     }), { skip: false });
@@ -218,8 +218,8 @@ describe("Dashboard", () => {
     expect(screen.getAllByText(variant === "visual" ? "dashboard.visual.favoritesEmpty" : "dashboard.balance.empty").length).toBeGreaterThan(0);
     expect(container.querySelector('[data-qa="visual-favorite-accounts"]')).not.toBeInTheDocument();
     if (variant === "visual") {
-      expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 1200");
-      expect(container.querySelectorAll('[data-qa="visual-account-bar"] button')).toHaveLength(2);
+      expect(container.querySelector('[data-qa="visual-balance-total"]')).not.toBeInTheDocument();
+      expect(container.querySelectorAll('[data-qa="visual-account-bar"] button')).toHaveLength(0);
     } else {
       expect(screen.queryByText("Not displayed USD")).not.toBeInTheDocument();
       expect(screen.queryByText("Hidden USD")).not.toBeInTheDocument();
@@ -297,7 +297,7 @@ describe("Dashboard", () => {
   it("keeps historical native reports usable when current balance rates fail and retries only balance rates", async () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     apiMocks.search = new URLSearchParams("month=2024-02");
-    apiMocks.accounts.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", isEnabled: true }], isLoading: false, isError: false });
+    apiMocks.accounts.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", isEnabled: true, isFavourite: true }], isLoading: false, isError: false });
     apiMocks.accountSummaries.mockReturnValue({ currentData: [{ id: 1, name: "Euro", currency: "EUR", value: 10 }], isLoading: false, isError: false });
     vi.mocked(requestRatesForRange).mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce([{ id: 1, currencyFrom: "USD", currencyTo: "EUR", rate: 2, date: dayjs().format("YYYY-MM-DD"), isTemporary: false }]);
     const { container } = render(<Dashboard />);
@@ -960,18 +960,58 @@ describe("Dashboard", () => {
     const rows = [...container.querySelectorAll<HTMLElement>('[data-qa="visual-favorite-accounts"] li')];
     expect(rows.map((row) => Number(row.dataset.accountId))).toEqual(favorites.map((account) => account.id).reverse().slice(0, 5));
     expect(rows).toHaveLength(Math.min(count, 5));
-    const bar = container.querySelector('[data-qa="visual-account-bar"]')!;
-    expect(bar.querySelectorAll("button")).toHaveLength(count + 2);
-    expect(bar.querySelector('[data-account-id="101"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent(`USD ${40000 + count * (count + 1) * 5}`);
-    expect(apiMocks.accountSummaries).toHaveBeenCalledWith({ ids: [...favorites.map((account) => account.id), 100, 102], linkedUserId: 2 }, { skip: false });
+    const bar = container.querySelector('[data-qa="visual-account-bar"]');
+    expect(bar?.querySelectorAll("button").length ?? 0).toBe(count);
+    expect(bar?.querySelector('[data-account-id="100"]')).toBeFalsy();
+    expect(bar?.querySelector('[data-account-id="102"]')).toBeFalsy();
+    expect(bar?.querySelector('[data-account-id="101"]')).toBeFalsy();
+    if (count > 0) expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent(`USD ${count * (count + 1) * 5}`);
+    else expect(container.querySelector('[data-qa="visual-balance-total"]')).not.toBeInTheDocument();
+    expect(apiMocks.accountSummaries).toHaveBeenCalledWith({ ids: favorites.map((account) => account.id), linkedUserId: 2 }, { skip: count === 0 });
     if (count === 0) expect(container.querySelector('[data-qa="visual-favorites-empty"] a')).toHaveAttribute("href", "/accounts");
   });
 
-  it("selects favorite and non-favorite segments without changing the list, and clears with a control or Escape", async () => {
+  it.each([null, 2])("removes a deselected overview account from totals and selection in workspace %s", (linkedUserId) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    linkedState.linkedAccount.selectedLinkedUserId = linkedUserId;
+    const accounts = [
+      { id: 1, name: "Visible USD", currency: "USD", isEnabled: true, isFavourite: true, value: 100 },
+      { id: 2, name: "Second USD", currency: "USD", isEnabled: true, isFavourite: true, value: 300 },
+    ];
+    apiMocks.accounts.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
+    apiMocks.accountSummaries.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
+    const { container, rerender } = render(<Dashboard />);
+    fireEvent.click(container.querySelector('[data-qa="visual-account-bar"] [data-account-id="2"]')!);
+    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 400");
+    apiMocks.accounts.mockReturnValue({ currentData: [accounts[0], { ...accounts[1], isFavourite: false }], isLoading: false, isError: false });
+    rerender(<Dashboard />);
+    expect(apiMocks.accountSummaries).toHaveBeenLastCalledWith({ ids: [1], linkedUserId }, { skip: false });
+    expect(apiMocks.transactionSummary).toHaveBeenLastCalledWith(expect.objectContaining({
+      linkedUserId, filter: expect.objectContaining({ accountIds: [1, 2] }),
+    }), { skip: false });
+    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 100");
+    expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-qa="visual-account-bar"] [data-account-id="2"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-qa="visual-account-picker"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-qa="visual-account-bar"] button')).toHaveStyle({ width: "100%" });
+    apiMocks.accounts.mockReturnValue({ currentData: accounts.map((account) => ({ ...account, isFavourite: false })), isLoading: false, isError: false });
+    rerender(<Dashboard />);
+    expect(apiMocks.accountSummaries).toHaveBeenLastCalledWith({ ids: [], linkedUserId }, { skip: true });
+    expect(container.querySelector('[data-qa="visual-balance-total"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-qa="visual-account-bar"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-qa="visual-favorites-empty"]')).toBeInTheDocument();
+    apiMocks.accounts.mockReturnValue({ currentData: [accounts[0], { ...accounts[1], isFavourite: false }], isLoading: false, isError: false });
+    rerender(<Dashboard />);
+    expect(apiMocks.accountSummaries).toHaveBeenLastCalledWith({ ids: [1], linkedUserId }, { skip: false });
+    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 100");
+    expect(container.querySelectorAll('[data-qa="visual-account-bar"] button')).toHaveLength(1);
+    expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
+  });
+
+  it("selects visible segments including an account beyond the five-row limit without changing the list, and clears with a control or Escape", async () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     const accounts = Array.from({ length: 7 }, (_, index) => ({
-      id: index + 1, name: `Wallet ${index + 1}`, currency: "USD", isEnabled: true, isFavourite: index < 6, value: (index + 1) * 100,
+      id: index + 1, name: `Wallet ${index + 1}`, currency: "USD", isEnabled: true, isFavourite: true, value: (index + 1) * 100,
     }));
     apiMocks.accounts.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
     apiMocks.accountSummaries.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
@@ -997,12 +1037,12 @@ describe("Dashboard", () => {
     act(() => clear.focus());
     fireEvent.click(clear);
     expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-qa="visual-account-picker"]')).toHaveFocus();
-    fireEvent.change(container.querySelector('[data-qa="visual-account-picker"]')!, { target: { value: "7" } });
+    expect(segment(7)).toHaveFocus();
+    fireEvent.click(segment(7));
     expect(segment(7)).toHaveAttribute("aria-pressed", "true");
     fireEvent.keyDown(segment(7), { key: "Escape" });
     expect(container.querySelector('[data-qa="visual-account-selection"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-qa="visual-account-picker"]')).toHaveFocus();
+    expect(segment(7)).toHaveFocus();
     fireEvent.focus(segment(7));
     const tooltip = await screen.findByText("Wallet 7", { selector: '[data-qa="visual-account-tooltip"] strong' });
     expect(tooltip.closest('[data-qa="visual-account-tooltip"]')).toHaveTextContent("USD 700");
@@ -1042,11 +1082,11 @@ describe("Dashboard", () => {
     expect([...container.querySelectorAll<HTMLElement>('[data-qa="visual-favorite-accounts"] li')].map((row) => row.dataset.accountId)).toEqual(["2", "3"]);
   });
 
-  it("keeps tiny segments proportional and selectable through the account picker", () => {
+  it("keeps tiny segments proportional and keyboard accessible", () => {
     localStorage.setItem("inex.dashboard.variant.user-1", "visual");
     const accounts = [
       { id: 1, name: "Large", currency: "USD", isEnabled: true, isFavourite: true, value: 99999.99 },
-      { id: 2, name: "Tiny", currency: "USD", isEnabled: true, isFavourite: false, value: 0.01 },
+      { id: 2, name: "Tiny", currency: "USD", isEnabled: true, isFavourite: true, value: 0.01 },
     ];
     apiMocks.accounts.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
     apiMocks.accountSummaries.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
@@ -1054,10 +1094,12 @@ describe("Dashboard", () => {
     const segment = container.querySelector<HTMLButtonElement>('[data-qa="visual-account-bar"] [data-account-id="2"]')!;
     expect(parseFloat(segment.style.width)).toBeCloseTo(0.00001, 8);
     expect(segment).toHaveAttribute("aria-label", expect.stringContaining("<0.1%"));
-    fireEvent.change(container.querySelector('[data-qa="visual-account-picker"]')!, { target: { value: "2" } });
+    act(() => segment.focus());
+    expect(segment).toHaveFocus();
+    fireEvent.click(segment);
     expect(segment).toHaveAttribute("aria-pressed", "true");
     expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("USD 0.01");
-    expect(container.querySelector('[data-qa="visual-favorite-accounts"]')).not.toHaveTextContent("Tiny");
+    expect(container.querySelector('[data-qa="visual-favorite-accounts"]')).toHaveTextContent("Tiny");
   });
 
   it("clears selected details after workspace changes or account removal", () => {
@@ -1111,14 +1153,14 @@ describe("Dashboard", () => {
     expect(container.querySelector('[data-qa="visual-favorite-accounts"]')).toHaveTextContent("PLN 800");
     linkedState.rates.range.items = [{ id: 1, currencyFrom: "USD", currencyTo: "PLN", rate: 4, date: start, isTemporary: false }];
     rerender(<Dashboard />);
-    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 900");
+    expect(container.querySelector('[data-qa="visual-balance-total"]')).toHaveTextContent("USD 400");
     const segments = [...container.querySelectorAll<HTMLButtonElement>('[data-qa="visual-account-bar"] button')];
-    expect(segments.map((button) => button.style.width)).toEqual(["30%", "20%", "50%"]);
+    expect(segments.map((button) => button.style.width)).toEqual(["60%", "40%"]);
     expect([...container.querySelectorAll<HTMLElement>('[data-qa="visual-favorite-accounts"] li')].map((row) => row.dataset.accountId)).toEqual(["1", "2", "5", "3"]);
     fireEvent.click(segments[1]);
     expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("PLN 800");
     expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("dashboard.visual.convertedBalance:USD 200.00");
-    expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("dashboard.visual.positiveShare:20%");
+    expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("dashboard.visual.positiveShare:40%");
     expect(container.querySelector('[data-qa="visual-favorite-accounts"] [data-account-id="3"] [data-kind]')).toHaveAttribute("data-kind", "expense");
   });
 });

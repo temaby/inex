@@ -106,7 +106,7 @@ export const IncomeDistribution = ({ data, pending, error, unavailable }: {
                                         {slices.length > 1 ? <div className="visual-dashboard-donut__chart" aria-hidden="true" data-qa="visual-income-chart">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
-                                                    <Pie data={slices} dataKey="amount" nameKey="label" innerRadius="76%" outerRadius="98%"
+                                                    <Pie data={slices} dataKey="amount" nameKey="label" innerRadius="86%" outerRadius="98%"
                                                         startAngle={90} endAngle={-270} isAnimationActive={false}
                                                         paddingAngle={0} stroke="none"
                                                         onClick={(_, index) => select(slices[index])}

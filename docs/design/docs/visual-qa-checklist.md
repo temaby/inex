@@ -264,3 +264,19 @@ Inspected desktop hover, compact desktop large/Russian labels, narrow Russian an
 - Failures fixed: 0.
 - Exceptions accepted: 1.
 - Skipped: 0.
+
+
+## 2026-11-06 - Dashboard overview account scope
+
+Data mode: fixture. Visual Dashboard QA passed all 87 states at 1440, 1024, 390 and 360 pixels, including EN/RU, own/linked workspaces, empty overview selection, account selection, debt, currencies and historical months. Money totals, account counts, picker and positive distribution include only enabled accounts explicitly selected for overviews. Monthly reports continue to include all active accounts. Desktop fixture total is USD 23,865 across seven displayed accounts; the hidden reserve is excluded. With no displayed accounts, the balance and distribution are absent while report activity remains usable.
+
+Inspected `wallet-selected-1440.png`, `wallet-selected-russian-360.png` and `report-only-390.png` under `docs/implementation/visual-qa/visual-dashboard/`. No horizontal overflow, clipped money controls or final-content bottom-navigation occlusion was reported. All API calls were intercepted; no backend or exchange-rate provider was called. The aggregate verifier passes Visual Dashboard and Classic Dashboard; eight unrelated page summaries exceed the 24-hour freshness limit. The default QA port could not bind; `INEX_VISUAL_QA_PORT=15211` allowed the existing harness to run.
+
+
+## 2026-11-06 - Visual Dashboard readability
+
+Data mode: fixture. PASS: all 89 Visual Dashboard states at 1440, 1024, 390 and 360 pixels, including EN/RU, long labels/amounts, own/linked workspaces, historical months, account selection, empty/error states and native keyboard selection of a tiny balance segment. Primary body text uses 16px and secondary labels and list amounts use at least 14px. The main account balance uses whole-unit display rounding; explicit up/down captures verify nearest-unit rounding. Account-row balances keep cents. The account dropdown and Positive balances currency caption are absent. The compact 1440x800 and 1440x900 states retain viewport fit without reducing the new text sizes.
+
+Inspected desktop, compact desktop, narrow Russian, long-income inspection and mobile evidence under `docs/implementation/visual-qa/visual-dashboard/`. The enlarged income-donut hole keeps the Russian share inside the ring; independent review found and verified this correction. No horizontal overflow, missing chart, clipped controls or final-content bottom-navigation occlusion was reported. All API traffic was intercepted; no backend or exchange-rate provider was called. Build/typecheck, lint and all 66 Dashboard tests passed.
+
+Suggested tooling follow-up: add an optional named-state filter to the visual QA runner so a geometry correction can be checked before replacing the full screenshot baseline.

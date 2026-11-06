@@ -13,7 +13,7 @@ import { buildDashboardCategorySlices, buildDashboardTransactionFilter, type Das
 import { useDashboardMonth } from "./useDashboardMonth";
 import { useCurrentBalanceRates } from "./useCurrentBalanceRates";
 
-export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBalances = false, monthSelection = false } = {}) => {
+export const useDashboardData = ({ autoExpandSingleParent = false, requireExplicitFavourites = false, monthSelection = false } = {}) => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -51,8 +51,8 @@ export const useDashboardData = ({ autoExpandSingleParent = false, allActiveBala
     const reportingAccountIds = useMemo(() => reportingAccounts.map((account) => account.id), [reportingAccounts]);
     const hasReportingAccounts = reportingAccountIds.length > 0;
     const visibleAccounts = useMemo(
-        () => allActiveBalances ? reportingAccounts : reportingAccounts.filter((account) => account.isFavourite !== false),
-        [allActiveBalances, reportingAccounts],
+        () => reportingAccounts.filter((account) => requireExplicitFavourites ? account.isFavourite === true : account.isFavourite !== false),
+        [requireExplicitFavourites, reportingAccounts],
     );
     const visibleAccountIds = useMemo(() => visibleAccounts.map((account) => account.id), [visibleAccounts]);
     const summaryFilter = useMemo(() => ({
