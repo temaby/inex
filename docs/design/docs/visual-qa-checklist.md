@@ -56,6 +56,21 @@ npm run lint
 
 ## Evidence Summary
 
+### Mobile transaction account/category pickers — 2026-11-06
+
+Data mode: **fixture**. Dedicated QA covers 17 states at 1440/1024/390/360px: account/category selection, nested children, Russian labels, long lists, mouse/touch scrolling, open-popup drawer scrolling, income/transfer creation, editing, and budget multiple selection. Every API request is intercepted. All 17 states PASS, including Tab/Escape dismissal, focus, popup attachment, and viewport bounds.
+
+Run `node visual-qa/mobile-transaction-pickers.mjs` from `inex/ClientApp`. This dedicated output preserves page baselines; the full-suite freshness verifier is not applicable.
+
+| Scope | Evidence | Result |
+| --- | --- | --- |
+| Account popup and long labels | [390px](../../implementation/visual-qa/mobile-transaction-pickers/account-390.png), [Russian 360px](../../implementation/visual-qa/mobile-transaction-pickers/account-ru-360.png) | PASS: anchored popup, selection, scrolling, wrapped labels |
+| Nested categories | [1024px](../../implementation/visual-qa/mobile-transaction-pickers/category-1024.png), [360px](../../implementation/visual-qa/mobile-transaction-pickers/category-360.png) | PASS: inline children and lower-category selection |
+| Drawer scrolling | [Account](../../implementation/visual-qa/mobile-transaction-pickers/account-scrolled-360.png), [Category](../../implementation/visual-qa/mobile-transaction-pickers/category-scrolled-360.png) | PASS: open popup stays attached and bounded |
+| Shared consumers | [Edit](../../implementation/visual-qa/mobile-transaction-pickers/edit-category-360.png), [Budget](../../implementation/visual-qa/mobile-transaction-pickers/budget-multiple-360.png) | PASS: selection, deselection, keyboard dismissal |
+
+See [measured checks](../../implementation/visual-qa/mobile-transaction-pickers/qa-summary.json). Screenshots were inspected for anchoring, wrapping, nested rows, and clipping.
+
 ### Visual dashboard monthly history — 2026-11-05
 
 Data mode: **fixture**. All 87 visual dashboard states and 17 classic dashboard states pass. Every API request is intercepted; no real backend or exchange-rate provider is called. Page-specific harnesses were used, so the full-suite freshness verifier was not applicable.
