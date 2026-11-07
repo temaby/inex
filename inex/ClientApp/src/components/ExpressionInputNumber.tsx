@@ -10,6 +10,9 @@ interface ExpressionInputNumberProps {
     placeholder?: string;
     size?: "large" | "middle" | "small";
     style?: React.CSSProperties;
+    creation?: boolean;
+    locale?: string;
+    id?: string;
 }
 
 const parser = new Parser();
@@ -35,15 +38,21 @@ const ExpressionInputNumber: React.FC<ExpressionInputNumberProps> = ({
     precision = 2,
     placeholder,
     size,
-    style
+    style,
+    creation = false,
+    locale = "en",
+    id,
 }) => {
-    const [input, setInput] = useState<string>(value !== undefined ? value.toString() : "");
+    const format = (number: number) => new Intl.NumberFormat(locale, {
+        useGrouping: false, minimumFractionDigits: precision, maximumFractionDigits: precision,
+    }).format(number);
+    const [input, setInput] = useState<string>(creation && !value ? "" : value !== undefined ? value.toString() : "");
     const [evaluated, setEvaluated] = useState<number | null>(value ?? null);
 
     useEffect(() => {
         // Only update input if value changes from parent and is different from evaluated
         if (typeof value === "number" && value !== evaluated) {
-            setInput(value.toString());
+            setInput(creation && value === 0 ? "" : value.toString());
             setEvaluated(value);
         }
     }, [value]);
@@ -53,20 +62,26 @@ const ExpressionInputNumber: React.FC<ExpressionInputNumberProps> = ({
         setInput(strVal);
 
         const result = evaluateExpression(strVal);
-        setEvaluated(result);
+        // Creation publishes zero through its parent for incomplete input. Track
+        // that emitted value so the parent echo does not erase an expression
+        // while the user is still typing its next operand.
+        setEvaluated(creation ? (result === null ? 0 : Number(result.toFixed(precision))) : result);
         // Only call onChange if the expression is valid and complete
         if (result !== null && !isNaN(result)) {
-            if (onChange) onChange(result);
+            if (onChange) onChange(creation ? Number(result.toFixed(precision)) : result);
+        } else if (creation) {
+            onChange?.(null);
         }
     };
 
     const commitResult = () => {
         const result = evaluateExpression(input);
         if (result !== null && !isNaN(result)) {
-            const formatted = result.toFixed(precision);
+            const rounded = Number(result.toFixed(precision));
+            const formatted = creation ? format(rounded) : result.toFixed(precision);
             setInput(formatted);
-            setEvaluated(result);
-            if (onChange) onChange(result);
+            setEvaluated(creation ? rounded : result);
+            if (onChange) onChange(creation ? rounded : result);
         }
     };
 
@@ -82,6 +97,8 @@ const ExpressionInputNumber: React.FC<ExpressionInputNumberProps> = ({
 
     return (
         <Input
+            id={id}
+            inputMode={creation ? "decimal" : undefined}
             value={input}
             onChange={handleInputChange}
             onBlur={handleBlur}

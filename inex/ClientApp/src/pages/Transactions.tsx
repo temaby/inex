@@ -566,12 +566,12 @@ const Transactions = () => {
         </div>
     );
 
-    const addDrawerSubtitle = {
-        [TransactionType.EXPENSE]: t("transactions.newExpenseSubtitle"),
-        [TransactionType.INCOME]: t("transactions.newIncomeSubtitle"),
-        [TransactionType.TRANSFER]: t("transactions.newTransferSubtitle"),
-        [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferSubtitle"),
-        [TransactionType.CORRECTION]: t("transactions.newCorrectionSubtitle"),
+    const addDrawerTitle = {
+        [TransactionType.EXPENSE]: t("transactions.newExpenseTitle"),
+        [TransactionType.INCOME]: t("transactions.newIncomeTitle"),
+        [TransactionType.TRANSFER]: t("transactions.newTransferTitle"),
+        [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferTitle"),
+        [TransactionType.CORRECTION]: t("transactions.newCorrectionTitle"),
     }[createMode];
 
     const accountBalancesOverview = (
@@ -758,8 +758,7 @@ const Transactions = () => {
             {!isLinkedMode && <InExDrawer
                 onClose={closeAddDrawer}
                 open={addDrawerOpen}
-                subtitle={addDrawerSubtitle}
-                title={t("transactions.addDrawerTitle")}
+                title={addDrawerTitle}
                 width={460}
             >
                 {addDrawerOpen && (

@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Menu, Popover } from "antd";
-import type { MenuProps, MenuRef } from "antd";
+import { Input, Menu, Popover } from "antd";
+import type { InputRef, MenuProps, MenuRef } from "antd";
 import { ChevronDown } from "lucide-react";
 
 import css from "./Dropdown.module.css";
@@ -9,6 +9,7 @@ interface DropdownItem {
     id: number | string;
     name: string;
     children?: DropdownItem[];
+    currency?: string;
 }
 
 interface DropdownProps {
@@ -18,15 +19,36 @@ interface DropdownProps {
     placeholder?: string;
     multiple?: boolean;
     onChange?: NonNullable<MenuProps["onSelect"]>;
+    searchPlaceholder?: string;
+    showCurrency?: boolean;
 }
 
-const toMenuItems = (items: DropdownItem[]): MenuProps["items"] => items.map((item) => ({
+const itemLabel = (item: DropdownItem, showCurrency?: boolean) =>
+    showCurrency && item.currency ? `${item.name} · ${item.currency}` : item.name;
+
+const toMenuItems = (items: DropdownItem[], showCurrency?: boolean): MenuProps["items"] => items.map((item) => ({
     key: String(item.id),
-    label: item.name,
-    ...(item.children?.length ? { children: toMenuItems(item.children) } : {}),
+    label: itemLabel(item, showCurrency),
+    ...(item.children?.length ? { children: toMenuItems(item.children, showCurrency) } : {}),
 }));
 
 const Dropdown = (props: DropdownProps) => {
+    const [search, setSearch] = React.useState("");
+    const searchRef = React.useRef<InputRef>(null);
+    const matchingItems = React.useMemo(() => {
+        const query = search.trim().toLocaleLowerCase();
+        const filter = (items: DropdownItem[]): DropdownItem[] => items.flatMap(item => {
+            if (item.name.toLocaleLowerCase().includes(query)) return [item];
+            const children = item.children ? filter(item.children) : [];
+            return children.length ? [{ ...item, children }] : [];
+        });
+        return query ? filter(props.items) : props.items;
+    }, [props.items, search]);
+    const searchOpenKeys: string[] = [];
+    const collectParents = (items: DropdownItem[]) => items.forEach(item => {
+        if (item.children?.length) { searchOpenKeys.push(String(item.id)); collectParents(item.children); }
+    });
+    if (search.trim()) collectParents(matchingItems);
     const [open, setOpen] = React.useState(false);
     const [popupWidth, setPopupWidth] = React.useState(0);
     const [popupHeight, setPopupHeight] = React.useState(320);
@@ -34,7 +56,7 @@ const Dropdown = (props: DropdownProps) => {
     const menuRef = React.useRef<MenuRef>(null);
     const selectionIds = props.selection?.map((item) => String(item.id)) ?? [];
     const selectionText = props.selection?.length
-        ? props.selection.map((item) => item.name).join(", ")
+        ? props.selection.map((item) => itemLabel(item, props.showCurrency)).join(", ")
         : (props.placeholder ?? "");
     const menuId = `${props.id}-options`;
 
@@ -59,13 +81,16 @@ const Dropdown = (props: DropdownProps) => {
 
     React.useEffect(() => {
         if (!open) return;
-        const focusTimer = window.setTimeout(() => menuRef.current?.focus(), 0);
+        const focusTimer = window.setTimeout(() => {
+            if (props.searchPlaceholder) searchRef.current?.focus();
+            else menuRef.current?.focus();
+        }, 0);
         window.addEventListener("scroll", measurePopup, true);
         return () => {
             window.clearTimeout(focusTimer);
             window.removeEventListener("scroll", measurePopup, true);
         };
-    }, [open, measurePopup]);
+    }, [open, measurePopup, props.searchPlaceholder]);
 
     const closeAndFocus = () => {
         setOpen(false);
@@ -94,12 +119,25 @@ const Dropdown = (props: DropdownProps) => {
                 arrow={false}
                 classNames={{ root: "inex-picker-popup", body: css.popupBody }}
                 content={(
+                    <>
+                    {props.searchPlaceholder && <Input
+                        ref={searchRef}
+                        aria-label={props.searchPlaceholder}
+                        placeholder={props.searchPlaceholder}
+                        value={search}
+                        allowClear
+                        onChange={event => setSearch(event.target.value)}
+                        onKeyDown={event => {
+                            if (event.key === "ArrowDown") { event.preventDefault(); menuRef.current?.focus(); }
+                        }}
+                    />}
                     <Menu
                         aria-label={props.placeholder ?? selectionText}
                         className={`inex-picker-menu ${css.menu}`}
                         id={menuId}
                         inlineIndent={16}
-                        items={toMenuItems(props.items)}
+                        items={toMenuItems(matchingItems, props.showCurrency)}
+                        {...(search.trim() ? { openKeys: searchOpenKeys } : {})}
                         mode="inline"
                         multiple={props.multiple}
                         onClick={() => { if (!props.multiple) closeAndFocus(); }}
@@ -108,10 +146,11 @@ const Dropdown = (props: DropdownProps) => {
                         ref={menuRef}
                         selectedKeys={selectionIds}
                     />
+                    </>
                 )}
                 getPopupContainer={(trigger) => trigger.closest<HTMLElement>(".ant-drawer-content") ?? document.body}
                 onOpenChange={(nextOpen) => {
-                    if (nextOpen) measurePopup();
+                    if (nextOpen) { measurePopup(); setSearch(""); }
                     setOpen(nextOpen);
                 }}
                 open={open}

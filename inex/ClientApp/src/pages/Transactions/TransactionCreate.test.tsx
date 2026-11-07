@@ -1,5 +1,5 @@
 import * as React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -81,11 +81,18 @@ vi.mock("../../store/transactions/transactions-api", () => ({
     ],
 }));
 
+vi.mock("./useRecentCategories", () => ({ useRecentCategories: () => [] }));
+
 vi.mock("./TransactionCreateExpenseForm", () => ({
-    default: function TransactionCreateExpenseFormMock({ validationErrors, fromAccount, onSetFromAccount }: { validationErrors: Record<string, string | undefined>; fromAccount: { id: number }; onSetFromAccount: (item: { key: string }) => void }) {
+    default: function TransactionCreateExpenseFormMock({ validationErrors, fromAccount, onSetFromAccount, onSetFromAmount, onSetCategory, fromAmount }: {
+        validationErrors: Record<string, string | undefined>; fromAccount: { id: number }; onSetFromAccount: (item: { key: string }) => void;
+        onSetFromAmount: (value: number) => void; onSetCategory: (item: { key: string }) => void; fromAmount: number;
+    }) {
         return (
             <div data-testid="expense-form">
                 <output data-testid="expense-account">{fromAccount.id}</output>
+                <output data-testid="expense-amount">{fromAmount}</output>
+                <button type="button" onClick={() => { onSetFromAccount({ key: "1" }); onSetFromAmount(12.5); onSetCategory({ key: "10" }); }}>Fill expense</button>
                 <button type="button" onClick={() => onSetFromAccount({ key: "2" })}>Choose expense account</button>
                 {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
             </div>
@@ -185,10 +192,48 @@ const renderCreateForm = () =>
     );
 
 describe("TransactionCreate", () => {
+    it("keeps exactly one type active and restores More after leaving an additional type", async () => {
+        const user = userEvent.setup(); renderCreateForm();
+        expect(screen.getByRole("button", { name: "Expense" })).toHaveAttribute("aria-pressed", "true");
+        await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
+        await user.click(screen.getByRole("menuitem", { name: "transactions.correction" }));
+        expect(screen.getByRole("button", { name: "transactions.correction" })).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByRole("button", { name: "Expense" })).toHaveAttribute("aria-pressed", "false");
+        await user.click(screen.getByRole("button", { name: "Expense" }));
+        expect(screen.getByRole("button", { name: "transactions.moreTypes" })).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("opens More with the keyboard and consumes Escape while restoring trigger focus", async () => {
+        const user = userEvent.setup(); renderCreateForm();
+        const trigger = screen.getByRole("button", { name: "transactions.moreTypes" });
+        trigger.focus(); fireEvent.keyDown(trigger, { key: "ArrowDown" });
+        const option = await screen.findByRole("menuitem", { name: "transactions.correction" });
+        await waitFor(() => expect(option).toHaveFocus());
+        expect(trigger).toHaveAttribute("aria-expanded", "true");
+        await user.keyboard("{Escape}");
+        expect(trigger).toHaveAttribute("aria-expanded", "false");
+        expect(trigger).toHaveFocus();
+    });
+
+    it("submits one signed expense, guards duplicate clicks, and retains values after failure", async () => {
+        let rejectSave!: (reason: unknown) => void;
+        mutationState.createTransaction.mockReturnValueOnce({ unwrap: () => new Promise((_, reject) => { rejectSave = reject; }) });
+        const user = userEvent.setup(); renderCreateForm();
+        await user.click(screen.getByRole("button", { name: "Fill expense" }));
+        await user.dblClick(screen.getByRole("button", { name: "Save expense" }));
+        expect(mutationState.createTransaction).toHaveBeenCalledTimes(1);
+        expect(mutationState.createTransaction).toHaveBeenCalledWith(expect.objectContaining({ accountId: 1, categoryId: 10, amount: -12.5 }));
+        rejectSave({ response: { status: 503, data: {} } });
+        await waitFor(() => expect(mutationState.dispatch).toHaveBeenCalled());
+        expect(screen.getByTestId("expense-amount")).toHaveTextContent("12.5");
+        mutationState.createTransaction.mockReturnValueOnce({ unwrap: () => Promise.resolve() });
+        await user.click(screen.getByRole("button", { name: "Save expense" }));
+        expect(mutationState.createTransaction).toHaveBeenCalledTimes(2);
+    });
     it("requires a correction reason and uses its dedicated endpoint without a recipient", async () => {
         const user = userEvent.setup(); renderCreateForm();
-        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
-        await user.click(screen.getByText("transactions.correction", { selector: ".ant-select-item-option-content" }));
+        await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
+        await user.click(screen.getByRole("menuitem", { name: "transactions.correction" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
         await user.click(screen.getByRole("button", { name: "transactions.saveCorrection" }));
         expect(mutationState.createCorrection).not.toHaveBeenCalled();
@@ -261,8 +306,7 @@ describe("TransactionCreate", () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
-        await user.click(screen.getByText("Transfer", { selector: ".ant-select-item-option-content" }));
+        await user.click(screen.getByRole("button", { name: "Transfer" }));
         await user.click(screen.getByRole("button", { name: "Save transfer" }));
 
         expect(mutationState.createTransfer).not.toHaveBeenCalled();
@@ -276,8 +320,8 @@ describe("TransactionCreate", () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
-        await user.click(screen.getByText("Internal transfer", { selector: ".ant-select-item-option-content" }));
+        await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
+        await user.click(screen.getByRole("menuitem", { name: "Internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
 
         expect(screen.getByTestId("internal-transfer-form")).toBeInTheDocument();
@@ -290,8 +334,8 @@ describe("TransactionCreate", () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
-        await user.click(screen.getByText("Internal transfer", { selector: ".ant-select-item-option-content" }));
+        await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
+        await user.click(screen.getByRole("menuitem", { name: "Internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
 
@@ -305,8 +349,8 @@ describe("TransactionCreate", () => {
     it("sends a selected linked user through the separate idempotent request endpoint", async () => {
         mutationState.linkedUsers = [{ id: 2, username: "Linked QA" }];
         const user = userEvent.setup(); renderCreateForm();
-        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
-        await user.click(screen.getByText("Internal transfer", { selector: ".ant-select-item-option-content" }));
+        await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
+        await user.click(screen.getByRole("menuitem", { name: "Internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
         await user.click(screen.getByRole("combobox", { name: "" })); await user.click(screen.getByTitle("Linked QA"));
         await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
@@ -321,8 +365,7 @@ describe("TransactionCreate account recommendations", () => {
     const form = () => <TransactionCreate accounts={recommendationAccounts} categories={categories} onCancel={() => undefined} onSubmit={() => undefined} />;
     const selectMode = async (label: string) => {
         const user = userEvent.setup();
-        await user.click(screen.getByRole("combobox", { name: "transactions.type" }));
-        await user.click(screen.getByText(label, { selector: ".ant-select-item-option-content" }));
+        await user.click(screen.getByRole("button", { name: label }));
     };
 
     beforeEach(() => {

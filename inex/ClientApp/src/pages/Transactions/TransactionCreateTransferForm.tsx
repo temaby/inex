@@ -1,11 +1,11 @@
 import * as React from "react";
 import type { MenuProps } from "antd";
-import { DatePicker, Form, Input } from "antd";
+import { Form } from "antd";
 import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
 import Dropdown from "../../components/Dropdown";
-import ExpressionInputNumber from "../../components/ExpressionInputNumber";
+import { CreationAmount, CreationDate, CreationComment } from "./TransactionCreationFields";
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { TransactionCreateValidationErrors } from "./TransactionCreate";
@@ -60,11 +60,13 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
             <Form.Item
                 help={validationErrors.fromAccount}
                 label={t("transactions.transferFrom")}
+                htmlFor="transfer_from_account"
                 validateStatus={validationErrors.fromAccount ? "error" : undefined}
             >
                 <Dropdown
                     id="transfer_from_account"
                     items={accounts}
+                    showCurrency
                     multiple={false}
                     onChange={onSetFromAccount}
                     placeholder={t("transactions.selectAccount")}
@@ -74,26 +76,26 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
             <Form.Item
                 help={validationErrors.fromAmount}
                 label={t("transactions.amount")}
+                htmlFor="transfer_from_amount"
                 validateStatus={validationErrors.fromAmount ? "error" : undefined}
             >
-                <ExpressionInputNumber
-                    addonAfter={fromCurrency}
-                    key="transfer_from_amount"
+                <CreationAmount
+                    currency={fromCurrency}
+                    id="transfer_from_amount"
                     onChange={onSetFromAmount}
-                    placeholder={t("common.enterAmount")}
-                    precision={2}
-                    size="large"
                     value={fromAmount}
                 />
             </Form.Item>
             <Form.Item
                 help={validationErrors.toAccount}
                 label={t("transactions.transferTo")}
+                htmlFor="transfer_to_account"
                 validateStatus={validationErrors.toAccount ? "error" : undefined}
             >
                 <Dropdown
                     id="transfer_to_account"
                     items={accounts}
+                    showCurrency
                     multiple={false}
                     onChange={onSetToAccount}
                     placeholder={t("transactions.selectAccount")}
@@ -103,34 +105,18 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
             <Form.Item
                 help={validationErrors.toAmount}
                 label={t("transactions.amount")}
+                htmlFor="transfer_to_amount"
                 validateStatus={validationErrors.toAmount ? "error" : undefined}
             >
-                <ExpressionInputNumber
-                    addonAfter={toCurrency}
-                    key="transfer_to_amount"
+                <CreationAmount
+                    currency={toCurrency}
+                    id="transfer_to_amount"
                     onChange={onSetToAmount}
-                    placeholder={t("common.enterAmount")}
-                    precision={2}
-                    size="large"
                     value={toAmount}
                 />
             </Form.Item>
-            <Form.Item
-                help={validationErrors.date}
-                label={t("transactions.date")}
-                validateStatus={validationErrors.date ? "error" : undefined}
-            >
-                <DatePicker mode="date" onChange={onSetDate} value={date} />
-            </Form.Item>
-            <Form.Item label={t("transactions.comment")}>
-                <Input
-                    key="transfer_comment"
-                    onChange={onSetComment}
-                    placeholder={t("transactions.commentPlaceholder")}
-                    size="large"
-                    value={comment}
-                />
-            </Form.Item>
+            <CreationDate date={date} onChange={onSetDate} error={validationErrors.date} />
+            <CreationComment comment={comment} onChange={onSetComment} />
         </Form>
     );
 };
