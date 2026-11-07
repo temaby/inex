@@ -1,11 +1,12 @@
 import * as React from "react";
 import { configureStore } from "@reduxjs/toolkit";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fetchRatesForRange } from "../store/rates/rates-action";
+import { fetchRatesForRange, requestRatesForRange } from "../store/rates/rates-action";
+import type { AccountResponse, AccountSummary } from "../store/accounts/accounts-api";
 import ratesSlice from "../store/rates/rates-slice";
 import transactionsSlice from "../store/transactions/transactions-slice";
 import authSlice from "../store/auth/auth-slice";
@@ -21,6 +22,7 @@ const accountsQueryMock = vi.hoisted(() => vi.fn());
 const categoriesQueryMock = vi.hoisted(() => vi.fn());
 const summaryQueryMock = vi.hoisted(() => vi.fn());
 const transactionListProps = vi.hoisted(() => ({ current: null as unknown }));
+const accountFixtures = vi.hoisted(() => ({ current: undefined as AccountResponse[] | undefined }));
 
 vi.mock("react-router-dom", async () => {
     const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -49,6 +51,8 @@ vi.mock("react-i18next", async () => {
                     "transactions.accountBalancesPin": "Pin overview",
                     "transactions.accountBalancesSubtitle": "Active accounts in their native currencies.",
                     "transactions.accountBalancesUnpin": "Unpin overview",
+                    "transactions.accountBalancesActions": "Panel actions",
+                    "transactions.accountBalancesTotal": "Total in favorites",
                     "transactions.summaryTotal": "TOTAL",
                     "primitives.kindLabel.neutral": "Neutral",
                     "transactions.advancedFilters": "Advanced filters",
@@ -126,7 +130,7 @@ vi.mock("../store/accounts/accounts-api", () => ({
                 currency: "USD",
             },
         ];
-        return { currentData: accounts, data: accounts };
+        return { currentData: accountFixtures.current ?? accounts, data: accountFixtures.current ?? accounts };
     },
     useGetAccountsSummaryQuery: (...args: unknown[]) => accountSummaryQueryMock(...args),
 }));
@@ -164,6 +168,7 @@ vi.mock("../store/transactions/transactions-api", () => ({
 
 vi.mock("../store/rates/rates-action", () => ({
     fetchRatesForRange: vi.fn(() => ({ type: "test/rates" })),
+    requestRatesForRange: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("../layouts/BasicPage", () => ({
@@ -236,12 +241,23 @@ const renderTransactions = (linkedMode = false) => {
     };
 };
 
+const favoriteSummaries = (count = 7): AccountSummary[] => Array.from({ length: count }, (_, index) => ({
+    id: index + 10, key: `favorite-${index}`, name: `Favorite ${index + 1}`, description: null,
+    isEnabled: true, isFavourite: true, currencyId: 1, currency: "USD", value: index * 10, thisMonthNet: 0,
+}));
+
+const rerenderPage = (rerender: ReturnType<typeof render>["rerender"], store: ReturnType<typeof renderTransactions>["store"]) => {
+    rerender(<MemoryRouter><Provider store={store}><Transactions /></Provider></MemoryRouter>);
+};
+
 describe("Transactions month controls", () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-07-28T12:00:00"));
         navigateMock.mockReset();
         vi.mocked(fetchRatesForRange).mockClear();
+        vi.mocked(requestRatesForRange).mockReset().mockResolvedValue([]);
+        accountFixtures.current = undefined;
         routerState.search = "";
         summaryQueryState.data = undefined;
         accountsQueryMock.mockReset();
@@ -381,10 +397,10 @@ describe("Transactions month controls", () => {
         expect(screen.getByText("Wallet")).toBeInTheDocument();
         expect(screen.queryByText("Hidden wallet")).not.toBeInTheDocument();
         expect(screen.queryByText("Archived wallet")).not.toBeInTheDocument();
-        expect(screen.getAllByRole("text", { name: "Neutral: +100.00 USD" })).toHaveLength(2);
+        expect(screen.getAllByRole("text", { name: "Neutral: 100.00 USD" })).toHaveLength(2);
     });
 
-    it("shows a single sticky rail when the drawer overview is pinned on desktop", () => {
+    it("shows a single sticky rail when the drawer overview is pinned on desktop", async () => {
         Object.defineProperty(window, "matchMedia", {
             writable: true,
             value: vi.fn().mockImplementation((query: string) => ({
@@ -397,7 +413,9 @@ describe("Transactions month controls", () => {
         renderTransactions();
 
         fireEvent.click(screen.getByRole("button", { name: "Account balances" }));
-        fireEvent.click(screen.getByRole("button", { name: "Pin overview" }));
+        fireEvent.click(screen.getByRole("button", { name: "Panel actions" }));
+        await act(async () => { vi.advanceTimersByTime(200); });
+        fireEvent.click(screen.getByRole("menuitem", { name: /Pin overview/ }));
 
         expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
         expect(screen.getByRole("region", { name: "Account balances" })).toHaveClass("transactions-account-balances--rail");
@@ -412,6 +430,109 @@ describe("Transactions month controls", () => {
         expect(overview).toHaveClass("transactions-account-balances--inline");
         expect(screen.getByRole("button", { name: "Collapse" })).toHaveAttribute("aria-expanded", "true");
         expect(screen.queryByRole("dialog", { name: "Account balances" })).not.toBeInTheDocument();
+    });
+
+    it("shows every eligible explicit favorite in reference order even when balances arrive out of order", () => {
+        const favorites = favoriteSummaries();
+        accountFixtures.current = [
+            ...favorites,
+            { ...favorites[0], id: 80, name: "Not favorite", isFavourite: false },
+            { ...favorites[0], id: 81, name: "Disabled favorite", isEnabled: false },
+            { ...favorites[0], id: 82, name: "Missing favorite flag", isFavourite: undefined as unknown as boolean },
+        ];
+        accountSummaryQueryMock.mockReturnValue({ currentData: [
+            ...favorites.slice().reverse(),
+            { ...favorites[0], id: 99, name: "Inaccessible balance" },
+        ] });
+        window.localStorage.setItem("inex.transactions.account-balances-pinned", "true");
+        renderTransactions();
+
+        const panel = screen.getByRole("region", { name: "Account balances" });
+        expect(within(panel).getAllByRole("listitem")).toHaveLength(7);
+        expect(within(panel).getAllByRole("listitem").map(row => row.textContent)).toEqual(
+            favorites.map(account => expect.stringContaining(account.name)),
+        );
+        expect(panel).not.toHaveTextContent(/Not favorite|Disabled favorite|Missing favorite flag|Inaccessible balance/);
+        expect(accountSummaryQueryMock).toHaveBeenLastCalledWith({ ids: favorites.map(account => account.id), linkedUserId: null }, { skip: false });
+        expect(screen.getByTestId("transaction-list")).toHaveTextContent("Not favorite");
+    });
+
+    it.each(["income", "expense", "transfer", "internalTransfer", "correction"])(
+        "toggles favorite membership through canonical multi-account filters while preserving %s semantics",
+        type => {
+            const favorites = favoriteSummaries(2);
+            accountFixtures.current = favorites;
+            accountSummaryQueryMock.mockReturnValue({ currentData: favorites });
+            window.localStorage.setItem("inex.transactions.account-balances-pinned", "true");
+            routerState.search = `?filter=accountIds%3A99%3BcategoryIds%3A1%3Btype%3A${type}%3Btags%3Akeep%3Brefs%3Areceipt%3Bsearch%3Arent%3Bstart%3A2026-03-01%3Bend%3A2026-03-31%3B`;
+            const { store, rerender } = renderTransactions();
+            const original = store.getState().transactions.filter;
+            const panel = screen.getByRole("region", { name: "Account balances" });
+            fireEvent.click(within(panel).getByRole("button", { name: /Favorite 1/ }));
+            expect(store.getState().transactions.filter).toEqual({ ...original, accountIds: [10, 99] });
+
+            // The URL is the source of truth, including external filter changes.
+            routerState.search = new URL(navigateMock.mock.calls[navigateMock.mock.calls.length - 1]?.[0], "https://example.test").search;
+            rerenderPage(rerender, store);
+            expect(within(panel).getByRole("button", { name: /Favorite 1/ })).toHaveAttribute("aria-pressed", "true");
+            fireEvent.click(within(panel).getByRole("button", { name: /Favorite 2/ }));
+            expect(store.getState().transactions.filter).toEqual({ ...original, accountIds: [10, 11, 99] });
+
+            routerState.search = new URL(navigateMock.mock.calls[navigateMock.mock.calls.length - 1]?.[0], "https://example.test").search;
+            rerenderPage(rerender, store);
+            fireEvent.click(within(panel).getByRole("button", { name: /Favorite 1/ }));
+            expect(store.getState().transactions.filter).toEqual({ ...original, accountIds: [11, 99] });
+
+            routerState.search = `?filter=accountIds%3A99%3Btype%3A${type}%3B`;
+            rerenderPage(rerender, store);
+            expect(within(panel).getAllByRole("button", { pressed: false }).length).toBeGreaterThanOrEqual(2);
+            expect(within(panel).getAllByRole("listitem")).toHaveLength(2);
+            expect(accountSummaryQueryMock).toHaveBeenLastCalledWith({ ids: [10, 11], linkedUserId: null }, { skip: false });
+        },
+    );
+
+    it("keeps native balances and current converted total stable while a historical filter summary reloads", async () => {
+        const favorites = favoriteSummaries(2).map((account, index) => ({
+            ...account, currency: index === 0 ? "PLN" : "USD", value: index === 0 ? 100 : -20,
+        }));
+        accountFixtures.current = favorites;
+        accountSummaryQueryMock.mockReturnValue({ currentData: favorites });
+        vi.mocked(requestRatesForRange).mockResolvedValue([{
+            id: 1, currencyFrom: "USD", currencyTo: "PLN", rate: 4, date: "2026-07-28", isTemporary: false,
+        }]);
+        summaryQueryState.data = {
+            totalCount: 0, typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
+            viewTypeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
+            currencySummaries: [], baseCurrency: "USD",
+            currentScope: { totalCount: 0, typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 }, period: null, cashFlowBuckets: [] },
+            previousScope: null,
+        };
+        window.localStorage.setItem("inex.transactions.account-balances-pinned", "true");
+        const { store, rerender } = renderTransactions();
+        await act(async () => { await Promise.resolve(); });
+        const panel = screen.getByRole("region", { name: "Account balances" });
+        expect(within(panel).getByRole("text", { name: "Neutral: 100.00 PLN" })).toBeVisible();
+        expect(within(panel).getByRole("text", { name: "Neutral: -20.00 USD" })).toBeVisible();
+        expect(within(panel).getByRole("text", { name: "Neutral: 5.00 USD" })).toBeVisible();
+        expect(requestRatesForRange).toHaveBeenCalledWith("2026-07-01", "2026-07-31", null);
+
+        summaryQueryState.data = undefined;
+        routerState.search = "?filter=accountIds%3A10%3Btype%3Atransfer%3Btags%3Akeep%3Bstart%3A2020-01-01%3Bend%3A2020-01-31%3B";
+        rerenderPage(rerender, store);
+        expect(within(panel).getByRole("text", { name: "Neutral: 5.00 USD" })).toBeVisible();
+        expect(within(panel).getAllByRole("listitem")).toHaveLength(2);
+        expect(requestRatesForRange).toHaveBeenCalledTimes(1);
+    });
+
+    it("skips balance requests and links to Accounts when no eligible favorites are available", () => {
+        accountFixtures.current = [];
+        window.localStorage.setItem("inex.transactions.account-balances-pinned", "true");
+        renderTransactions(true);
+        expect(accountSummaryQueryMock).toHaveBeenLastCalledWith({ ids: [], linkedUserId: 2 }, { skip: true });
+        const panel = screen.getByRole("region", { name: "Account balances" });
+        expect(within(panel).getByRole("status")).toBeVisible();
+        expect(within(panel).getByRole("link")).toHaveAttribute("href", "/accounts");
+        expect(within(panel).queryByRole("list")).not.toBeInTheDocument();
     });
 
     it("keeps the filter drawer closed when the route has no serialized filter", () => {

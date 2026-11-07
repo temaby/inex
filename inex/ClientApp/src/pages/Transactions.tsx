@@ -26,6 +26,7 @@ import type { Signage } from "../components/primitives";
 import InternalTransferRequests from "./Transactions/InternalTransferRequests";
 import TransactionCreate from "./Transactions/TransactionCreate";
 import AccountBalancesCompanion from "./Transactions/AccountBalancesCompanion";
+import { useCurrentBalanceRates } from "./Dashboard/useCurrentBalanceRates";
 import TransactionFilterForm from "./Transactions/TransactionFilterForm";
 import TransactionList from "./Transactions/TransactionList";
 import { buildTransactionFilterSearch, parseTransactionFilterParam } from "./Transactions/transaction-filter-url";
@@ -104,6 +105,7 @@ const Transactions = () => {
     const filterParam = queryParams.get("filter");
 
     const userId = useAppSelector(state => state.auth.user?.id);
+    const userCurrencyId = useAppSelector(state => state.auth.user?.currencyId);
     const selectedLinkedUserId = useAppSelector(state => state.linkedAccount.selectedLinkedUserId);
     const selectedLinkedAccount = useAppSelector(state => state.linkedAccount.linkState?.linkedAccounts.find(
         account => account.id === state.linkedAccount.selectedLinkedUserId,
@@ -150,7 +152,7 @@ const Transactions = () => {
         [allAccounts],
     );
     const visibleOverviewAccounts = useMemo(
-        () => activeAccounts.filter(account => account.isFavourite !== false),
+        () => activeAccounts.filter(account => account.isFavourite === true),
         [activeAccounts],
     );
     const activeCategories = useMemo(
@@ -165,8 +167,11 @@ const Transactions = () => {
         skip: !(accountBalancesOpen || accountBalancesRailVisible) || visibleOverviewAccountIds.length === 0,
     });
     const accountBalances = useMemo(() => {
-        const visibleAccountIds = new Set(visibleOverviewAccountIds);
-        return (accountBalancesQuery.currentData ?? []).filter(account => visibleAccountIds.has(account.id));
+        const balancesById = new Map((accountBalancesQuery.currentData ?? []).map(account => [account.id, account]));
+        return visibleOverviewAccountIds.flatMap(id => {
+            const balance = balancesById.get(id);
+            return balance ? [balance] : [];
+        });
     }, [accountBalancesQuery.currentData, visibleOverviewAccountIds]);
     const accountBalancesLoading = (accountBalancesOpen || accountBalancesRailVisible) && (
         accountsLoading ||
@@ -221,6 +226,25 @@ const Transactions = () => {
     const summaryData = summaryQuery.currentData;
     const summaryInitialLoading = summaryQuery.isLoading || (summaryQuery.isFetching && summaryData === undefined);
     const baseCurrency = summaryData?.baseCurrency ?? selectedLinkedAccount?.baseCurrency ?? "USD";
+    // Keep the known reporting currency while a different ledger filter loads,
+    // but never carry that context across owners or profile currency changes.
+    const balanceCurrencyKey = `${userId}:${selectedLinkedUserId ?? "self"}:${userCurrencyId}`;
+    const [balanceCurrencyContext, setBalanceCurrencyContext] = useState<{ key: string; currency: string }>();
+    useEffect(() => {
+        if (summaryData?.baseCurrency) {
+            setBalanceCurrencyContext({ key: balanceCurrencyKey, currency: summaryData.baseCurrency });
+        }
+    }, [balanceCurrencyKey, summaryData?.baseCurrency]);
+    const balanceBaseCurrency = summaryData?.baseCurrency
+        ?? (balanceCurrencyContext?.key === balanceCurrencyKey ? balanceCurrencyContext.currency : undefined)
+        ?? selectedLinkedAccount?.baseCurrency
+        ?? "";
+    const balanceNeedsRates = (accountBalancesOpen || accountBalancesRailVisible)
+        && Boolean(balanceBaseCurrency)
+        && accountBalances.some(account => account.value !== 0 && account.currency !== balanceBaseCurrency);
+    const currentBalanceRates = useCurrentBalanceRates(
+        balanceNeedsRates, dayjs().format("YYYY-MM"), userId, selectedLinkedUserId, balanceBaseCurrency,
+    );
     const cachedRateRange = useMemo(() => {
         const currentPeriod = summaryData?.currentScope.period;
         if (!currentPeriod) return null;
@@ -228,14 +252,12 @@ const Transactions = () => {
         const needsCachedRateForCashFlow = [summaryData.currentScope, summaryData.previousScope]
             .flatMap(scope => scope?.cashFlowBuckets ?? [])
             .some(bucket => (bucket.income !== 0 || bucket.expense !== 0) && bucket.currency !== baseCurrency);
-        const needsCachedRateForAccountOverview = (accountBalancesOpen || accountBalancesRailVisible)
-            && accountBalances.some(account => account.currency !== baseCurrency);
-        if (!needsCachedRateForCashFlow && !needsCachedRateForAccountOverview) return null;
+        if (!needsCachedRateForCashFlow) return null;
 
         const startDate = summaryData.previousScope?.period?.startDate.slice(0, 10) ?? currentPeriod.startDate.slice(0, 10);
         const endDate = currentPeriod.endDate.slice(0, 10);
         return { startDate, endDate, key: `${selectedLinkedUserId ?? "self"}:${startDate}:${endDate}` };
-    }, [accountBalances, accountBalancesOpen, accountBalancesRailVisible, baseCurrency, selectedLinkedUserId, summaryData]);
+    }, [baseCurrency, selectedLinkedUserId, summaryData]);
     const cachedRateRangeKey = cachedRateRange?.key;
     const cachedRateStartDate = cachedRateRange?.startDate;
     const cachedRateEndDate = cachedRateRange?.endDate;
@@ -243,10 +265,10 @@ const Transactions = () => {
         ? cachedExchangeRateItems
         : [];
     const accountBalanceConversion = useMemo(
-        () => summaryData
-            ? getAccountBalanceConversionResult(accountBalances, baseCurrency, cachedExchangeRates)
+        () => balanceBaseCurrency
+            ? getAccountBalanceConversionResult(accountBalances, balanceBaseCurrency, currentBalanceRates.items)
             : { value: 0, isComplete: false, unavailableCurrencies: [] },
-        [accountBalances, baseCurrency, cachedExchangeRates, summaryData],
+        [accountBalances, balanceBaseCurrency, currentBalanceRates.items],
     );
     const currentConversion = useMemo(
         () => summaryData
@@ -300,6 +322,15 @@ const Transactions = () => {
         dispatch(transactionsActions.setFilter({ filter: normalizedFilter }));
         navigate(`${location.pathname}${buildTransactionFilterSearch(normalizedFilter)}`, { replace });
     }, [dispatch, location.pathname, navigate]);
+
+    const toggleFavoriteAccountFilter = (accountId: number) => {
+        applyServerFilter({
+            ...canonicalFilter,
+            accountIds: canonicalFilter.accountIds.includes(accountId)
+                ? canonicalFilter.accountIds.filter(id => id !== accountId)
+                : [...canonicalFilter.accountIds, accountId],
+        });
+    };
 
     const previousDataOwnerId = useRef(dataOwnerId);
     useEffect(() => {
@@ -577,8 +608,12 @@ const Transactions = () => {
     const accountBalancesOverview = (
         <AccountBalancesCompanion
             accounts={accountBalances}
-            baseCurrency={baseCurrency}
+            baseCurrency={balanceBaseCurrency}
             conversion={accountBalanceConversion}
+            isConversionLoading={currentBalanceRates.loading || (!balanceBaseCurrency && summaryInitialLoading)}
+            onConversionRetry={currentBalanceRates.retry}
+            selectedAccountIds={canonicalFilter.accountIds}
+            onAccountToggle={toggleFavoriteAccountFilter}
             isError={accountBalancesError}
             isExpanded={accountBalancesRailVisible || accountBalancesOpen}
             isLoading={accountBalancesLoading}
@@ -595,8 +630,12 @@ const Transactions = () => {
     const accountBalancesDrawerOverview = (
         <AccountBalancesCompanion
             accounts={accountBalances}
-            baseCurrency={baseCurrency}
+            baseCurrency={balanceBaseCurrency}
             conversion={accountBalanceConversion}
+            isConversionLoading={currentBalanceRates.loading || (!balanceBaseCurrency && summaryInitialLoading)}
+            onConversionRetry={currentBalanceRates.retry}
+            selectedAccountIds={canonicalFilter.accountIds}
+            onAccountToggle={toggleFavoriteAccountFilter}
             isError={accountBalancesError}
             isExpanded
             isLoading={accountBalancesLoading}

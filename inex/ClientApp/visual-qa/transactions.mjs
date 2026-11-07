@@ -18,7 +18,7 @@ import {
 } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
-const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("default-account") ? "docs/implementation/visual-qa/transaction-default-accounts" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transaction-type-dropdown") ? "docs/implementation/visual-qa/transaction-type-dropdown" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
+const outputDir = path.join(repoRoot, process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("account-overview") ? "docs/implementation/visual-qa/favorite-accounts-sidebar" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("default-account") ? "docs/implementation/visual-qa/transaction-default-accounts" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transaction-type-dropdown") ? "docs/implementation/visual-qa/transaction-type-dropdown" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("correction") ? "docs/implementation/visual-qa/account-corrections" : process.env.INEX_VISUAL_QA_STATE_FILTER?.startsWith("transfer-requests") ? "docs/implementation/visual-qa/linked-internal-transfer" : "docs/implementation/visual-qa/transactions");
 const fixturePath = path.join(clientRoot, "src/test/fixtures/transactionsVisualFixture.ts");
 
 const authUser = {
@@ -139,7 +139,35 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
   };
 }
 
+function overviewAccounts(fixture, scenario) {
+  if (scenario === "account-balances-empty") return fixture.transactionsVisualFixtureAccounts.map(account => ({ ...account, isFavourite: false }));
+  if (!scenario.startsWith("favorites-stress")) return fixture.transactionsVisualFixtureAccounts;
+  return [
+    ...fixture.transactionsVisualFixtureAccounts,
+    ...Array.from({ length: 14 }, (_, index) => ({
+      ...fixture.transactionsVisualFixtureAccounts[0], id: 800 + index, key: `favorite-${index}`,
+      name: index === 0 ? "Проценты с Visa UZS — семейный накопительный счёт" : `Favorite account ${index + 1}`,
+      currency: index === 0 ? "UZS" : "USD", isFavourite: true,
+    })),
+  ];
+}
+
+function overviewSummaries(fixture, scenario) {
+  if (!scenario.startsWith("favorites-stress")) return fixture.transactionsVisualFixtureAccountSummaries;
+  return [
+    ...fixture.transactionsVisualFixtureAccountSummaries,
+    ...overviewAccounts(fixture, scenario).filter(account => account.id >= 800).map((account, index) => ({
+      ...account, value: index === 0 ? 190860318.79 : index === 1 ? -7600 : index * 1000, thisMonthNet: 0,
+    })),
+  ];
+}
+
 const states = [
+  ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `account-overview-selected-${suffix}`, screenshot: `account-overview-selected-${suffix}.png`, viewport, scenario: "populated", interaction: "select-favorite" })),
+  { name: "account-overview-stress-1440", screenshot: "account-overview-stress-1440.png", viewport: { width: 1440, height: 800 }, scenario: "favorites-stress", interaction: "pin-favorites-stress" },
+  { name: "account-overview-stress-ru-360", screenshot: "account-overview-stress-ru-360.png", viewport: { width: 360, height: 900 }, scenario: "favorites-stress-ru", interaction: "pin-favorites-stress" },
+  { name: "account-overview-stress-drawer-ru-360", screenshot: "account-overview-stress-drawer-ru-360.png", viewport: { width: 360, height: 900 }, scenario: "favorites-stress-ru", interaction: "open-account-overview-drawer" },
+  { name: "account-overview-menu-escape-390", screenshot: "account-overview-menu-escape-390.png", viewport: { width: 390, height: 900 }, scenario: "populated", interaction: "escape-account-menu" },
   ...["expense", "income"].flatMap(direction => [
     ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `default-account-${direction}-${suffix}`, screenshot: `default-account-${direction}-${suffix}.png`, viewport, scenario: "default-account", interaction: `default-account-${direction}` })),
     { name: `default-account-${direction}-ru-360`, screenshot: `default-account-${direction}-ru-360.png`, viewport: { width: 360, height: 900 }, scenario: "default-account-ru", interaction: `default-account-${direction}` },
@@ -473,7 +501,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse({ ...authUser, languageCode: (scenario === "transfer-requests-ru" || scenario === "correction-ru" || scenario === "default-account-ru") ? "ru" : "en" });
+        return jsonResponse({ ...authUser, languageCode: scenario.endsWith("-ru") ? "ru" : "en" });
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET" && (scenario === "linked" || scenario === "transfer-requests-create")) {
         return jsonResponse({
@@ -507,7 +535,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ data, totalItems: data.length, totalPending: request.status === "Pending" ? data.length : 0, page: 1, pageSize: 10 });
       }
       if (url.pathname === "/api/accounts" && method === "GET") {
-        return jsonResponse({ data: fixture.transactionsVisualFixtureAccounts });
+        return jsonResponse({ data: overviewAccounts(fixture, scenario) });
       }
       if (url.pathname === "/api/accounts/details" && method === "GET") {
         const requestKey = "account-balances";
@@ -524,7 +552,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         const response = jsonResponse({
           data: scenario === "account-balances-empty"
             ? []
-            : fixture.transactionsVisualFixtureAccountSummaries.filter((account) => requestedIds.includes(account.id)),
+            : overviewSummaries(fixture, scenario).filter((account) => requestedIds.includes(account.id)),
         });
         return scenario === "account-balances-loading" ? delayedResponse(response, 2200) : response;
       }
@@ -697,29 +725,50 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Filters"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Advanced filters')");
       return;
+    case "escape-account-menu":
     case "open-account-overview-drawer":
-      await evaluate(client, clickButtonByTextExpression("Account balances"));
+      await evaluate(client, clickButtonByTextExpression(state.scenario.endsWith("-ru") ? "Избранные счета" : "Favorite accounts"));
       if (state.scenario === "account-balances-loading") {
         await waitFor(client, "document.body.innerText.includes('Loading account balances')");
       } else if (state.scenario === "account-balances-empty") {
-        await waitFor(client, "document.body.innerText.includes('No active accounts to display')");
+        await waitFor(client, "document.body.innerText.includes('Add accounts to favorites')");
       } else if (state.scenario === "account-balances-error") {
         await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
       } else {
         await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       }
+      if (state.interaction === "escape-account-menu") {
+        await evaluate(client, "document.getElementById('transactions-account-balances-pin-control').click()");
+        await waitFor(client, "document.activeElement?.getAttribute('role') === 'menu' || document.activeElement?.getAttribute('role') === 'menuitem'");
+        await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+        await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+        await waitFor(client, "document.activeElement?.id === 'transactions-account-balances-pin-control' && Boolean(document.querySelector('.ant-drawer-open')) && document.activeElement.getAttribute('aria-expanded') === 'false'");
+      }
       return;
     case "open-account-overview-drawer-and-retry":
-      await evaluate(client, clickButtonByTextExpression("Account balances"));
+      await evaluate(client, clickButtonByTextExpression(state.scenario.endsWith("-ru") ? "Избранные счета" : "Favorite accounts"));
       await waitFor(client, "document.body.innerText.includes('Could not load account balances')");
       await activateRetryButton(client);
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
       return;
+    case "select-favorite":
+    case "pin-favorites-stress":
     case "open-and-pin-account-overview":
-      await evaluate(client, clickButtonByTextExpression("Account balances"));
+      await evaluate(client, clickButtonByTextExpression(state.scenario.endsWith("-ru") ? "Избранные счета" : "Favorite accounts"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
-      await evaluate(client, clickButtonByTextExpression("Pin overview"));
+      await evaluate(client, "document.getElementById('transactions-account-balances-pin-control').click()");
+      await waitFor(client, "Boolean(document.querySelector('[role=menuitem]'))");
+      await evaluate(client, "document.querySelector('[role=menuitem]').click()");
       await waitFor(client, "document.body.innerText.includes('Emergency reserve for long-term household commitments')");
+      if (state.interaction === "select-favorite") {
+        await waitFor(client, "Boolean(document.querySelector('.transactions-account-balances__total [role=text]'))");
+        const before = await evaluate(client, "document.querySelector('.transactions-account-balances__total').textContent");
+        await evaluate(client, "document.querySelector('.transactions-account-balances__list button').click()");
+        await waitFor(client, "document.querySelector('.transactions-account-balances__list button')?.getAttribute('aria-pressed') === 'true'");
+        const after = await evaluate(client, "document.querySelector('.transactions-account-balances__total').textContent");
+        if (before !== after) throw new Error("Favorite selection changed the balance total");
+        await evaluate(client, "document.querySelector('.transactions-account-balances__list button').focus()");
+      }
       return;
     case "open-row-edit":
       await openRowEdit(client);
@@ -836,6 +885,10 @@ async function activateRetryButton(client) {
 }
 
 async function waitForTransactionsReady(client, state) {
+  if (state.scenario === "favorites-stress-ru") {
+    await waitFor(client, "Boolean(document.querySelector('.transactions-ledger-row')) && document.body.innerText.includes('Избранные счета')");
+    return;
+  }
   if (state.scenario.startsWith("default-account")) {
     await waitFor(client, "Boolean(document.querySelector('.transactions-ledger-row'))");
     return;
@@ -923,7 +976,17 @@ async function collectMetrics(client, state, apiRequestCount) {
       accountBalancesDrawerVisible: Boolean(document.querySelector(".transactions-account-balances--drawer")),
       accountBalancesRailVisible: Boolean(document.querySelector(".transactions-account-balances--rail")),
       accountBalancesExpanded: Boolean(document.querySelector(".transactions-account-balances__list, .transactions-account-balances__state")),
-      accountBalancesPinned: Boolean(document.querySelector(".transactions-account-balances [aria-pressed='true']")),
+      accountBalancesPinned: Boolean(document.querySelector(".transactions-account-balances[data-pinned='true']")),
+      favoriteCount: accountBalanceList?.querySelectorAll("li").length ?? 0,
+      selectedFavoriteCount: accountBalanceList?.querySelectorAll("button[aria-pressed='true']").length ?? 0,
+      favoriteListScrolls: Boolean(accountBalanceList && accountBalanceList.scrollHeight > accountBalanceList.clientHeight),
+      favoriteRowsWithinBounds: Array.from(accountBalanceList?.querySelectorAll("button") ?? []).every(button => {
+        const rect = button.getBoundingClientRect();
+        return button.scrollWidth <= button.clientWidth + 1 && Array.from(button.querySelectorAll('[role=text]')).every(amount => {
+          const amountRect = amount.getBoundingClientRect();
+          return amountRect.left >= rect.left - 1 && amountRect.right <= rect.right + 1;
+        });
+      }),
       accountBalancesRailSticky: (() => {
         const rail = document.querySelector(".transactions-account-balances-rail");
         return rail ? window.getComputedStyle(rail).position === "sticky" : false;
@@ -933,7 +996,7 @@ async function collectMetrics(client, state, apiRequestCount) {
         && (accountBalanceList.compareDocumentPosition(accountBalanceTotal) & Node.DOCUMENT_POSITION_FOLLOWING)),
       accountBalancesTotalEmphasized: Boolean(accountBalanceTotalStyle && accountBalanceRowStyle
         && accountBalanceTotalStyle.backgroundColor !== "rgba(0, 0, 0, 0)"
-        && Number.parseFloat(accountBalanceTotalStyle.fontSize) >= Number.parseFloat(accountBalanceRowStyle.fontSize)),
+        && Number.parseFloat(accountBalanceTotalStyle.fontWeight) >= 500),
       hiddenOverviewAccountVisible: Array.from(document.querySelectorAll(".transactions-account-balances__list li"))
         .some((item) => item.textContent?.includes("UZS cash")),
       accountBalancesZeroVisible: document.body.innerText.includes("0.00 PLN"),
@@ -1001,10 +1064,11 @@ async function collectMetrics(client, state, apiRequestCount) {
 }
 
 function runState(args) {
+  console.log(`Transactions visual QA: ${args.state.name}`);
   return runBrowserState({
     ...args,
     routePath: args.state.routePath ?? "/transactions",
-    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, (args.state.scenario === "transfer-requests-ru" || args.state.scenario === "correction-ru" || args.state.scenario === "default-account-ru") ? "ru" : "en")}
+    initScript: `${fixedDateInitScript(args.fixture.transactionsVisualFixtureMeta.fixedNow, (args.state.scenario === "transfer-requests-ru" || args.state.scenario === "correction-ru" || args.state.scenario === "default-account-ru" || args.state.scenario.endsWith("-ru")) ? "ru" : "en")}
       localStorage.removeItem("inex.transactions.account-balances-pinned");`,
     waitForReady: waitForTransactionsReady,
     applyInteraction,
@@ -1146,6 +1210,9 @@ export const visualQaConfig = {
     }
 
     for (const state of stateResults.filter((item) => item.name.startsWith("account-overview-"))) {
+      if (!state.favoriteRowsWithinBounds) failures.push(`${state.name}: favorite row content overflows`);
+      if (state.interaction === "select-favorite" && (state.selectedFavoriteCount !== 1 || state.favoriteCount !== 3)) failures.push(`${state.name}: favorite selection or collection changed unexpectedly`);
+      if (state.scenario.startsWith("favorites-stress") && (state.favoriteCount !== 17 || !state.favoriteListScrolls)) failures.push(`${state.name}: long favorite list is missing accounts or does not scroll`);
       if (state.hasHorizontalOverflow) {
         failures.push(`${state.name}: account overview introduces horizontal overflow`);
       }
