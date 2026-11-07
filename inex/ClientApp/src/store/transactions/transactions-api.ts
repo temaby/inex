@@ -11,6 +11,13 @@ import { normalizeTransactionFilter, type NormalizedTransactionFilter, type Tran
 
 export type TransactionFilterParams = TransactionFilter;
 
+export interface CommentSuggestionsArgs {
+  userId: number;
+  type: "tag" | "ref";
+  query: string;
+}
+export interface CommentSuggestionsResponse { suggestions: string[] }
+
 export interface GetTransactionsArgs {
   pageSize: number;
   page: number;
@@ -193,6 +200,7 @@ const invalidateTransactionDependents = async (
 };
 
 const invalidateTransactionDependentCaches = (dispatch: ThunkDispatch<unknown, unknown, AnyAction>) => {
+  dispatch(transactionsApi.util.invalidateTags([{ type: "Transaction", id: "COMMENTS" }]));
   dispatch(accountsApi.util.invalidateTags([{ type: "Account", id: "SUMMARY" }]));
   dispatch(budgetReportApi.util.invalidateTags(["BudgetReport"]));
   dispatch(reportApi.util.invalidateTags(["CategoryReport", "HistoryReport"]));
@@ -208,6 +216,23 @@ export const transactionsApi = createApi({
   baseQuery: axiosBaseQuery,
   tagTypes: ["Transaction"],
   endpoints: (builder) => ({
+    getCommentSuggestions: builder.query<CommentSuggestionsResponse, CommentSuggestionsArgs>({
+      async queryFn(args, api, _options, baseQuery) {
+        const currentUser = () => (api.getState() as { auth?: { user?: { id: number } | null } }).auth?.user?.id;
+        const obsolete = () => ({ error: { status: 499, data: "comment_suggestions.obsolete" } });
+        if (currentUser() !== args.userId) return obsolete();
+        const result = await baseQuery({ url: "/transactions/comment-suggestions", params: {
+          type: args.type, query: args.query.trim().toLowerCase(),
+        } });
+        if (currentUser() !== args.userId) return obsolete();
+        if (result.error) return { error: result.error };
+        return { data: result.data as CommentSuggestionsResponse };
+      },
+      serializeQueryArgs: ({ endpointName, queryArgs }) => typeof queryArgs === "object" && queryArgs !== null
+        ? { ...queryArgs, query: queryArgs.query.trim().toLowerCase() } : { endpointName },
+      keepUnusedDataFor: 60,
+      providesTags: [{ type: "Transaction", id: "COMMENTS" }],
+    }),
     getInternalTransferRequests: builder.query<InternalTransferRequestPage, { userId: number; page: number }>({
       query: ({ page }) => ({ url: `/internal-transfer-requests?page=${page}&pageSize=10` }),
       providesTags: [{ type: "Transaction", id: "REQUESTS" }],
@@ -317,6 +342,7 @@ export const transactionsApi = createApi({
 });
 
 export const {
+  useGetCommentSuggestionsQuery,
   useGetInternalTransferRequestsQuery,
   useCreateLinkedInternalTransferMutation,
   useDecideInternalTransferMutation,

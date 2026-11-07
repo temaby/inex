@@ -33,6 +33,13 @@ public class TransactionService : InExService, ITransactionService
 
     #region Public Interface
 
+    public async Task<TransactionCommentSuggestionsResponse> GetCommentSuggestionsAsync(TransactionCommentSuggestionsQuery query, int userId, CancellationToken ct)
+    {
+        var suggestions = await TransactionCommentSuggestions.Query(DbInEx.TagRepository.Get(true), userId,
+            query.Type == "tag" ? TagType.TAG : TagType.REF, query.Query ?? string.Empty).ToListAsync(ct);
+        return new TransactionCommentSuggestionsResponse { Suggestions = suggestions };
+    }
+
     public async Task<TransactionDefaultAccountsResponse> GetDefaultAccountsAsync(int userId, CancellationToken ct = default)
     {
         var usage = await DefaultAccountRecommendations.Query(

@@ -51,6 +51,12 @@
 .transaction-creation-date .ant-btn { padding-inline: 0; min-height: 40px; height: auto; white-space: normal; }
 .transaction-creation-date .ant-picker { min-width: 0; }
 .transaction-comment-toggle.ant-btn { min-height: 40px; padding-inline: 0; color: var(--fg-3); }
+.transaction-comment-popup { max-width: calc(100vw - 24px); }
+.transaction-comment-popup .ant-popover-inner { padding: 4px; }
+.transaction-comment-suggestions { position: relative; width: 280px; max-width: calc(100vw - 40px); max-height: min(320px, calc(100dvh - 96px)); overflow-y: auto; overscroll-behavior: contain; }
+.transaction-comment-option { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: var(--radius-2); color: var(--fg-1); cursor: pointer; overflow-wrap: anywhere; }
+.transaction-comment-option[aria-selected="true"] { background: var(--bg-muted); color: var(--income-fg); }
+.transaction-comment-status { padding: 10px 12px; color: var(--fg-3); font-size: var(--fs-13); }
 .transactions-create-form .transactions-drawer-actions { position: sticky; bottom: -24px; padding-block: 16px; background: var(--bg-surface); z-index: 2; }
 
 @media (min-width: 480px) {

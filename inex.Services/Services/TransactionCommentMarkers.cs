@@ -45,7 +45,7 @@ internal static class TransactionCommentMarkers
 
         foreach (string item in tagsAdd)
         {
-            Tag tag = tagsAll.First(i => i.Key == item);
+            Tag tag = tagsAll.First(i => string.Equals(i.Key, item, StringComparison.OrdinalIgnoreCase));
             if (tag.Id > 0)
             {
                 transaction.TransactionTagDetails.Add(new TransactionTagMap() { TagId = tag.Id, CreatedBy = userId });
@@ -59,7 +59,8 @@ internal static class TransactionCommentMarkers
         // remove obsolete tags from the map
         foreach (string item in tagsRemove)
         {
-            transaction.TransactionTagDetails.Remove(transaction.TransactionTagDetails.First(i => i.TagId == tagsAll.First(i => i.Key == item).Id));
+            transaction.TransactionTagDetails.Remove(transaction.TransactionTagDetails.First(i =>
+                i.Tag != null && i.Tag.Type == type && string.Equals(i.Tag.Key, item, StringComparison.OrdinalIgnoreCase)));
         }
     }
 

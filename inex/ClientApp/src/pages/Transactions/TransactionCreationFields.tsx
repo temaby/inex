@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Button, DatePicker, Form, Input } from "antd";
+import { Button, DatePicker, Form } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import enDate from "antd/es/date-picker/locale/en_US";
 import ruDate from "antd/es/date-picker/locale/ru_RU";
 import { useTranslation } from "react-i18next";
 
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
+import TransactionCommentInput from "./TransactionCommentInput";
 
 export function CreationAmount({ currency, value, onChange, id }: {
     currency?: string; value: number; onChange: (value: number | null) => void; id: string;
@@ -83,7 +84,7 @@ export function CreationComment({ comment, onChange, required = false, error }: 
             aria-controls={inputId} onClick={() => setExpanded(value => !value)}>
             {t(expanded ? "transactions.hideComment" : "transactions.addComment")}
         </Button>}
-        {(expanded || required) && <Input id={inputId} aria-label={t(required ? "transactions.correctionReason" : "transactions.comment")}
+        {(expanded || required) && <TransactionCommentInput id={inputId} aria-label={t(required ? "transactions.correctionReason" : "transactions.comment")}
             maxLength={required ? 255 : undefined} onChange={onChange}
             placeholder={t("transactions.shortCommentPlaceholder")} size="large" value={comment} />}
     </Form.Item>;

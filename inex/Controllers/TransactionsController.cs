@@ -54,6 +54,15 @@ public class TransactionsController : ApiControllerBase
 
     #endregion Constructors
 
+    /// <summary>Find up to five existing comment markers belonging to the current user.</summary>
+    [HttpGet("comment-suggestions")]
+    [ProducesResponseType(typeof(TransactionCommentSuggestionsResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<TransactionCommentSuggestionsResponse>> CommentSuggestions(
+        [FromQuery] TransactionCommentSuggestionsQuery suggestions, CancellationToken ct)
+    {
+        return Ok(await _transactionService.GetCommentSuggestionsAsync(suggestions, CurrentUserId, ct));
+    }
+
     /// <summary>Get the current user's recommended accounts for expense and income creation.</summary>
     [HttpGet(GetDefaultAccountsRoute)]
     [ProducesResponseType(typeof(TransactionDefaultAccountsResponse), StatusCodes.Status200OK)]
