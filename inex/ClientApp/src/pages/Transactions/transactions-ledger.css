@@ -197,11 +197,7 @@
 .transactions-account-balances__list {
     list-style: none;
     margin: 0;
-    max-height: min(44vh, 380px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
     padding: 0 10px 4px;
-    scrollbar-width: thin;
 }
 
 .transactions-account-balances__account {
