@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T13:15:47.742Z",
+  "generatedAt": "2026-11-07T14:31:29.128Z",
   "page": "transactions",
   "dataMode": "fixture",
   "harness": {
@@ -728,7 +728,7 @@
       "bottomNavVisible": false,
       "bottomNavOccludesLastContent": false,
       "bottomNavTop": null,
-      "lastContentBottom": 768.09375,
+      "lastContentBottom": 768.296875,
       "drawerOpen": false,
       "drawerWithinViewport": null,
       "drawerBounds": null,
@@ -745,7 +745,7 @@
       "accountBalancesPinned": true,
       "favoriteCount": 17,
       "selectedFavoriteCount": 0,
-      "favoriteListScrolls": true,
+      "favoriteListScrolls": false,
       "favoriteRowsWithinBounds": true,
       "accountBalancesRailSticky": true,
       "accountBalancesTotalVisible": true,
@@ -789,7 +789,7 @@
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 1425,
-        "height": 1195,
+        "height": 1356,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -848,7 +848,7 @@
       "accountBalancesPinned": true,
       "favoriteCount": 17,
       "selectedFavoriteCount": 0,
-      "favoriteListScrolls": true,
+      "favoriteListScrolls": false,
       "favoriteRowsWithinBounds": true,
       "accountBalancesRailSticky": false,
       "accountBalancesTotalVisible": true,
@@ -892,7 +892,7 @@
       "routePath": "/transactions",
       "pngDimensions": {
         "width": 345,
-        "height": 2917,
+        "height": 3375,
         "mode": "fullPage"
       },
       "requestLog": [
@@ -955,7 +955,7 @@
       "accountBalancesPinned": false,
       "favoriteCount": 17,
       "selectedFavoriteCount": 0,
-      "favoriteListScrolls": true,
+      "favoriteListScrolls": false,
       "favoriteRowsWithinBounds": true,
       "accountBalancesRailSticky": false,
       "accountBalancesTotalVisible": true,

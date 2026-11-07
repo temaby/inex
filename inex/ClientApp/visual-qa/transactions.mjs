@@ -1212,7 +1212,8 @@ export const visualQaConfig = {
     for (const state of stateResults.filter((item) => item.name.startsWith("account-overview-"))) {
       if (!state.favoriteRowsWithinBounds) failures.push(`${state.name}: favorite row content overflows`);
       if (state.interaction === "select-favorite" && (state.selectedFavoriteCount !== 1 || state.favoriteCount !== 3)) failures.push(`${state.name}: favorite selection or collection changed unexpectedly`);
-      if (state.scenario.startsWith("favorites-stress") && (state.favoriteCount !== 17 || !state.favoriteListScrolls)) failures.push(`${state.name}: long favorite list is missing accounts or does not scroll`);
+      if (state.favoriteListScrolls) failures.push(`${state.name}: favorite list has internal scrolling`);
+      if (state.scenario.startsWith("favorites-stress") && state.favoriteCount !== 17) failures.push(`${state.name}: long favorite list is missing accounts`);
       if (state.hasHorizontalOverflow) {
         failures.push(`${state.name}: account overview introduces horizontal overflow`);
       }
