@@ -430,3 +430,6 @@ describe("TransactionCreate account recommendations", () => {
         expect(screen.getByTestId("expense-account")).toHaveTextContent("2");
     });
 });
+
+// Autocomplete has its own authenticated component coverage.
+vi.mock("./TransactionCommentInput", async () => ({ default: (await import("antd")).Input }));

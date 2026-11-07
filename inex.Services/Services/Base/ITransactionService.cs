@@ -9,6 +9,7 @@ namespace inex.Services.Services.Base;
 
 public interface ITransactionService : IInExService
 {
+    Task<TransactionCommentSuggestionsResponse> GetCommentSuggestionsAsync(TransactionCommentSuggestionsQuery query, int userId, CancellationToken ct);
     Task<TransactionDefaultAccountsResponse> GetDefaultAccountsAsync(int userId, CancellationToken ct = default);
     Task<CreatedResponse> CreateAsync(CreateCorrectionRequest request, int userId, CancellationToken ct = default);
     Task<TransactionResponse> GetAsync(int id, int userId, CancellationToken ct = default);

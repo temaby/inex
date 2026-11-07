@@ -102,3 +102,6 @@ describe("Transaction creation fields", () => {
         expect(screen.getByRole("textbox", { name: "Next field" })).toHaveFocus();
     });
 });
+
+// Autocomplete has its own authenticated component coverage.
+vi.mock("./TransactionCommentInput", async () => ({ default: (await import("antd")).Input }));

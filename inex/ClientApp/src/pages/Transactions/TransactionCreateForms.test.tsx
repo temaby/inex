@@ -245,3 +245,6 @@ describe("Transaction create mode forms", () => {
         expect(screen.queryByText("USD")).not.toBeInTheDocument();
     });
 });
+
+// Autocomplete has its own authenticated component coverage.
+vi.mock("./TransactionCommentInput", async () => ({ default: (await import("antd")).Input }));
