@@ -1,5 +1,6 @@
 import * as React from "react";
-import { ChevronDown, ChevronUp, Pin, PinOff, RefreshCw } from "lucide-react";
+import { Dropdown } from "antd";
+import { ArrowRight, Check, ChevronDown, ChevronUp, MoreHorizontal, Pin, PinOff, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
@@ -16,6 +17,10 @@ export interface AccountBalancesCompanionProps {
     isExpanded: boolean;
     isLoading: boolean;
     isPinned: boolean;
+    selectedAccountIds: number[];
+    onAccountToggle: (id: number) => void;
+    isConversionLoading?: boolean;
+    onConversionRetry?: () => void;
     onExpandedChange: () => void;
     onFocusChange?: (hasFocus: boolean) => void;
     onPinChange: () => void;
@@ -32,21 +37,61 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
     isExpanded,
     isLoading,
     isPinned,
+    selectedAccountIds,
+    onAccountToggle,
+    isConversionLoading = false,
+    onConversionRetry,
     onExpandedChange,
     onFocusChange,
     onPinChange,
     onRetry,
     variant = "inline",
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const [menuOpen, setMenuOpen] = React.useState(false);
     const headingId = `transactions-account-balances-heading-${variant}`;
     const contentId = `transactions-account-balances-content-${variant}`;
     const canCollapse = variant === "inline";
     const showHeading = variant !== "drawer";
-    const pinButton = (
-        <InExButton aria-pressed={isPinned} id="transactions-account-balances-pin-control" icon={isPinned ? <PinOff size={15} /> : <Pin size={15} />} kind="ghost" onClick={onPinChange} size="sm">
-            {isPinned ? t("transactions.accountBalancesUnpin") : t("transactions.accountBalancesPin")}
-        </InExButton>
+    const actionsMenu = (
+        <Dropdown
+            autoFocus
+            menu={{ onKeyDown: (event) => {
+                if (event.key === "Escape") {
+                    event.stopPropagation();
+                    setMenuOpen(false);
+                    document.getElementById("transactions-account-balances-pin-control")?.focus();
+                }
+            }, items: [{
+                key: "pin",
+                icon: isPinned ? <PinOff size={15} aria-hidden="true" /> : <Pin size={15} aria-hidden="true" />,
+                label: isPinned ? t("transactions.accountBalancesUnpin") : t("transactions.accountBalancesPin"),
+                onClick: () => {
+                    setMenuOpen(false);
+                    onFocusChange?.(true);
+                    onPinChange();
+                },
+            }] }}
+            onOpenChange={setMenuOpen}
+            open={menuOpen}
+            placement="bottomRight"
+            trigger={["click"]}>
+            <button
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                aria-label={t("transactions.accountBalancesActions")}
+                className="transactions-account-balances__menu-trigger"
+                id="transactions-account-balances-pin-control"
+                onKeyDown={(event) => {
+                    if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        setMenuOpen(true);
+                    }
+                }}
+                type="button">
+                <MoreHorizontal size={19} aria-hidden="true" />
+            </button>
+        </Dropdown>
     );
 
     return (
@@ -54,6 +99,7 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
             aria-label={showHeading ? undefined : t("transactions.accountBalances")}
             aria-labelledby={showHeading ? headingId : undefined}
             className={`transactions-account-balances transactions-account-balances--${variant}`}
+            data-pinned={isPinned}
             data-qa={`account-balances-${variant}`}
             onBlurCapture={(event) => {
                 if (!event.currentTarget.contains(event.relatedTarget)) onFocusChange?.(false);
@@ -71,10 +117,10 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                                 {isExpanded ? t("transactions.accountBalancesCollapse") : t("transactions.accountBalancesExpand")}
                             </InExButton>
                         )}
-                        {pinButton}
+                        {actionsMenu}
                     </div>
                 </div>
-            ) : <div className="transactions-account-balances__drawer-actions">{pinButton}</div>}
+            ) : <div className="transactions-account-balances__drawer-actions"><span>{t("transactions.accountBalancesSummary", { count: visibleAccountCount })}</span>{actionsMenu}</div>}
             {isExpanded && (
                 <div id={contentId}>
                     {isLoading ? (
@@ -91,29 +137,43 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                             <ul className="transactions-account-balances__list">
                                 {accounts.map((account) => (
                                     <li key={account.id}>
-                                        <span className="transactions-account-balances__name">{account.name}</span>
-                                        <Num currency={account.currency} kind="neutral" signage="signed" value={account.value} />
+                                        <button
+                                            aria-pressed={selectedAccountIds.includes(account.id)}
+                                            className="transactions-account-balances__account"
+                                            onClick={() => onAccountToggle(account.id)}
+                                            type="button">
+                                            <span className="transactions-account-balances__account-label">
+                                                <Check aria-hidden="true" className="transactions-account-balances__selected" size={13} />
+                                                <span className="transactions-account-balances__name">{account.name}</span>
+                                            </span>
+                                            <span className={`transactions-account-balances__amount${account.value === 0 ? " transactions-account-balances__amount--zero" : ""}`}>
+                                                <Num currency={account.currency} kind="neutral" locale={i18n?.language} signage="negative-only" value={account.value} />
+                                            </span>
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
                             <div className="transactions-account-balances__total">
-                                <span>{t("transactions.summaryTotal")}</span>
-                                {conversion.isComplete ? (
-                                    <Num currency={baseCurrency} kind="neutral" signage="signed" value={conversion.value} />
+                                <span>{t("transactions.accountBalancesTotal")}</span>
+                                {isConversionLoading ? (
+                                    <span role="status">{t("transactions.accountBalancesConversionLoading")}</span>
+                                ) : conversion.isComplete ? (
+                                    <span className="transactions-account-balances__amount"><Num currency={baseCurrency} kind="neutral" locale={i18n?.language} signage="negative-only" value={conversion.value} /></span>
                                 ) : (
                                     <span aria-label={t("transactions.accountBalancesConversionUnavailable")}>{t("transactions.kpi.notAvailable")}</span>
                                 )}
                             </div>
-                            {!conversion.isComplete && conversion.unavailableCurrencies.length > 0 && (
+                            {!isConversionLoading && !conversion.isComplete && conversion.unavailableCurrencies.length > 0 && (
                                 <p className="transactions-account-balances__conversion-warning" role="status">
                                     {t("transactions.accountBalancesConversionDetail", { currencies: conversion.unavailableCurrencies.join(", ") })}
+                                    {onConversionRetry && <InExButton icon={<RefreshCw size={13} />} kind="link" onClick={onConversionRetry} size="sm">{t("transactions.error.retry")}</InExButton>}
                                 </p>
                             )}
                         </>
                     )}
                 </div>
             )}
-            {variant === "rail" && <Link className="transactions-account-balances__accounts-link" to="/accounts">{t("transactions.accountBalancesOpenAccounts")}</Link>}
+            <Link className="transactions-account-balances__accounts-link" to="/accounts">{t("transactions.accountBalancesOpenAccounts")}<ArrowRight size={14} aria-hidden="true" /></Link>
         </section>
     );
 };
