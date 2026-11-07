@@ -1,0 +1,64 @@
+.transaction-type-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 4px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-3);
+}
+
+.transaction-type-buttons .ant-btn {
+  min-height: 42px;
+  height: auto;
+  padding: 8px 10px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--fg-2);
+  white-space: normal;
+}
+
+.transaction-type-buttons .ant-btn[aria-pressed="true"] {
+  color: var(--income-fg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-1);
+  font-weight: 600;
+}
+
+.transaction-type-buttons .transaction-type-more { grid-column: 1 / -1; }
+.transactions-create-form > .ant-form { display: grid; gap: 18px; }
+
+.transaction-creation-amount .ant-input {
+  min-height: 52px;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+
+.transaction-creation-amount .ant-input-group-addon {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg-2);
+  background: var(--bg-stripe);
+}
+
+.transaction-currency-feedback { color: var(--transfer-fg); font-size: 12px; }
+.transaction-currency-feedback:not(:empty) { margin-top: 6px; }
+
+.transaction-category-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.transaction-category-shortcuts .ant-btn { height: auto; min-height: 40px; max-width: 100%; white-space: normal; }
+.transaction-creation-date { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.transaction-creation-date .ant-btn { padding-inline: 0; min-height: 40px; height: auto; white-space: normal; }
+.transaction-creation-date .ant-picker { min-width: 0; }
+.transaction-comment-toggle.ant-btn { min-height: 40px; padding-inline: 0; color: var(--fg-3); }
+.transactions-create-form .transactions-drawer-actions { position: sticky; bottom: -24px; padding-block: 16px; background: var(--bg-surface); z-index: 2; }
+
+@media (min-width: 480px) {
+  .transaction-type-buttons { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .transaction-type-buttons .transaction-type-more { grid-column: auto; }
+}
+
+@media (max-width: 479px) {
+  .transactions-create-form .ant-form-item { margin-bottom: 18px; }
+  .transactions-create-form .transaction-type-buttons .ant-btn { padding-inline: 6px; }
+}

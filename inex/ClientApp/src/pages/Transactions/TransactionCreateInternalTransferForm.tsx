@@ -1,11 +1,11 @@
 import * as React from "react";
 import type { MenuProps } from "antd";
-import { Alert, DatePicker, Form, Input } from "antd";
+import { Alert, Form } from "antd";
 import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
 import Dropdown from "../../components/Dropdown";
-import ExpressionInputNumber from "../../components/ExpressionInputNumber";
+import { CreationAmount, CreationDate, CreationComment } from "./TransactionCreationFields";
 import { SegmentedControl } from "../../components/primitives";
 import type { AccountDetails } from "../../model/Account/AccountDetails";
 import type { InternalTransferDirection } from "../../model/Transaction/InternalTransferDirection";
@@ -64,11 +64,13 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
             <Form.Item
                 help={validationErrors.fromAccount}
                 label={t("transactions.account")}
+                htmlFor="internal_transfer_account"
                 validateStatus={validationErrors.fromAccount ? "error" : undefined}
             >
                 <Dropdown
                     id="internal_transfer_account"
                     items={accounts}
+                    showCurrency
                     multiple={false}
                     onChange={onSetAccount}
                     placeholder={t("transactions.selectAccount")}
@@ -78,35 +80,18 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
             <Form.Item
                 help={validationErrors.fromAmount}
                 label={t("transactions.amount")}
+                htmlFor="internal_transfer_amount"
                 validateStatus={validationErrors.fromAmount ? "error" : undefined}
             >
-                <ExpressionInputNumber
-                    addonAfter={account.id > 0 ? account.currency : undefined}
-                    key="internal_transfer_amount"
+                <CreationAmount
+                    currency={account.id > 0 ? account.currency : undefined}
+                    id="internal_transfer_amount"
                     onChange={onSetAmount}
-                    placeholder={t("common.enterAmount")}
-                    precision={2}
-                    size="large"
                     value={amount}
                 />
             </Form.Item>
-            <Form.Item
-                help={validationErrors.date}
-                label={t("transactions.date")}
-                validateStatus={validationErrors.date ? "error" : undefined}
-            >
-                <DatePicker mode="date" onChange={onSetDate} value={date} />
-            </Form.Item>
-            <Form.Item required={correction} help={validationErrors.comment} validateStatus={validationErrors.comment ? "error" : undefined} label={t(correction ? "transactions.correctionReason" : "transactions.comment")}>
-                <Input
-                    maxLength={correction ? 255 : undefined}
-                    key="internal_transfer_comment"
-                    onChange={onSetComment}
-                    placeholder={t(correction ? "transactions.correctionReason" : "transactions.commentPlaceholder")}
-                    size="large"
-                    value={comment}
-                />
-            </Form.Item>
+            <CreationDate date={date} onChange={onSetDate} error={validationErrors.date} />
+            <CreationComment comment={comment} onChange={onSetComment} required={correction} error={validationErrors.comment} />
         </Form>
     );
 };

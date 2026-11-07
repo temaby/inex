@@ -1,5 +1,6 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AccountDetails } from "../../model/Account/AccountDetails";
@@ -79,6 +80,26 @@ const unselectedCategory: CategoryDetails = {
 const noop = vi.fn();
 
 describe("Transaction create mode forms", () => {
+    it("keeps shortcut and picker selection consistent without changing the account", async () => {
+        const user = userEvent.setup(); const accountChanged = vi.fn();
+        const eligible = [categories[0], { ...categories[0], id: 11, key: "transport", name: "Transport" }];
+        function Form() {
+            const [category, setCategory] = React.useState(unselectedCategory);
+            return <TransactionCreateExpenseForm accounts={accounts} categories={eligible} recentCategories={eligible}
+                category={category} comment="" date={null} fromAccount={unselectedAccount} fromAmount={0}
+                onSetFromAccount={accountChanged} onSetFromAmount={noop} onSetDate={noop} onSetComment={noop}
+                onSelectRecentCategory={setCategory} onSetCategory={info => setCategory(eligible.find(item => item.id === Number(info.key)) ?? unselectedCategory)} validationErrors={{}} />;
+        }
+        render(<Form />);
+        expect(screen.getByRole("button", { name: "Groceries" })).toHaveAttribute("aria-pressed", "false");
+        await user.click(screen.getByRole("button", { name: "Groceries" }));
+        expect(screen.getByRole("button", { name: "Groceries" })).toHaveAttribute("aria-pressed", "true");
+        await user.click(screen.getByRole("button", { name: "Select category: Groceries" }));
+        await user.click(await screen.findByRole("menuitem", { name: "Transport" }));
+        expect(screen.getByRole("button", { name: "Transport" })).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByRole("button", { name: "Groceries" })).toHaveAttribute("aria-pressed", "false");
+        expect(accountChanged).not.toHaveBeenCalled();
+    });
     beforeEach(() => {
         Object.defineProperty(window, "matchMedia", {
             writable: true,
@@ -95,7 +116,7 @@ describe("Transaction create mode forms", () => {
         });
     });
 
-    it("renders expense account before category and amount without a default currency or separate tags field", () => {
+    it("renders expense account before amount and category without a default currency or separate tags field", () => {
         const { container } = render(
             <TransactionCreateExpenseForm
                 accounts={accounts}
@@ -116,13 +137,13 @@ describe("Transaction create mode forms", () => {
 
         const text = container.textContent ?? "";
         expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Category"));
-        expect(text.indexOf("Category")).toBeLessThan(text.indexOf("Amount"));
+        expect(text.indexOf("Amount")).toBeLessThan(text.indexOf("Category"));
         expect(screen.getByText("Select account")).toBeInTheDocument();
         expect(screen.queryByText("Tags")).not.toBeInTheDocument();
         expect(screen.queryByText("USD")).not.toBeInTheDocument();
     });
 
-    it("renders income account before category and amount without a default currency or separate tags field", () => {
+    it("renders income account before amount and category without a default currency or separate tags field", () => {
         const { container } = render(
             <TransactionCreateIncomeForm
                 accounts={accounts}
@@ -143,7 +164,7 @@ describe("Transaction create mode forms", () => {
 
         const text = container.textContent ?? "";
         expect(text.indexOf("Account")).toBeLessThan(text.indexOf("Category"));
-        expect(text.indexOf("Category")).toBeLessThan(text.indexOf("Amount"));
+        expect(text.indexOf("Amount")).toBeLessThan(text.indexOf("Category"));
         expect(screen.getByText("Select account")).toBeInTheDocument();
         expect(screen.queryByText("Tags")).not.toBeInTheDocument();
         expect(screen.queryByText("USD")).not.toBeInTheDocument();

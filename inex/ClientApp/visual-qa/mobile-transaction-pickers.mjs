@@ -1,5 +1,5 @@
 import path from "node:path";
-import { visualQaConfig as transactions } from "./transactions.mjs";
+import { visualQaConfig as transactions, selectTransactionType } from "./transactions.mjs";
 import { visualQaConfig as budgets } from "./budgets.mjs";
 import {
   buildCommonChecks, evaluate, fixedDateInitScript, resolveVisualQaPaths,
@@ -39,13 +39,14 @@ const states = [
   { name: "transfer-account-360", kind: "account", mode: "Transfer", viewport: { width: 360, height: 900 } },
   { name: "edit-category-360", kind: "category", edit: true, viewport: { width: 360, height: 900 } },
   ...[1440, 360].map(width => ({ name: `budget-multiple-${width}`, kind: "category", budget: true, viewport: { width, height: 900 } })),
-].map(state => ({ ...state, screenshot: `${state.name}.png`, screenshotMode: "viewport", scenario: state.russian ? "correction-ru" : "populated" }));
+].filter(state => !process.env.INEX_PICKER_QA_STATE_FILTER || state.name.includes(process.env.INEX_PICKER_QA_STATE_FILTER))
+  .map(state => ({ ...state, screenshot: `${state.name}.png`, screenshotMode: "viewport", scenario: state.russian ? "correction-ru" : "populated" }));
 
 async function click(client, selector) {
   const point = await evaluate(client, `(() => {
     const element = document.querySelector(${JSON.stringify(selector)});
     if (!element) throw new Error('Missing click target: ' + ${JSON.stringify(selector)});
-    element.scrollIntoView({ block: 'nearest' });
+    element.scrollIntoView({ block: 'center' });
     const r = element.getBoundingClientRect();
     return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
   })()`);
@@ -75,9 +76,7 @@ async function applyInteraction(client, state) {
   await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
   await wait(350);
   if (state.mode) {
-    await click(client, ".transactions-create-form .ant-select-selector");
-    await waitFor(client, "Boolean(document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'))");
-    await evaluate(client, `Array.from(document.querySelectorAll('.ant-select-item-option')).find(item => item.textContent.trim() === ${JSON.stringify(state.mode)}).click()`);
+    await selectTransactionType(client, state.mode);
   }
   const pickerId = state.budget ? "category-dropdown" : state.edit ? "category" :
     state.kind === "category" ? "expense_category" : state.mode === "Income" ? "income_account" : state.mode === "Transfer" ? "transfer_from_account" : "expense_account";

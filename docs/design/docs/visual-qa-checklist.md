@@ -295,3 +295,14 @@ Data mode: fixture. PASS: all 89 Visual Dashboard states at 1440, 1024, 390 and 
 Inspected desktop, compact desktop, narrow Russian, long-income inspection and mobile evidence under `docs/implementation/visual-qa/visual-dashboard/`. The enlarged income-donut hole keeps the Russian share inside the ring; independent review found and verified this correction. No horizontal overflow, missing chart, clipped controls or final-content bottom-navigation occlusion was reported. All API traffic was intercepted; no backend or exchange-rate provider was called. Build/typecheck, lint and all 66 Dashboard tests passed.
 
 Suggested tooling follow-up: add an optional named-state filter to the visual QA runner so a geometry correction can be checked before replacing the full screenshot baseline.
+
+
+## 2026-11-07 - Transaction creation quick entry
+
+Data mode: fixture. PASS: 20 feature states in `docs/implementation/visual-qa/transaction-quick-entry/qa-summary.json`. Expense and Income at 1440/1024/390/360px; Russian Expense/Income/Correction/Internal transfer at 360px; 390px transfer, correction, internal transfer, nested category search, date picker, expanded comment, currency change and successful expense save. The browser intercepted every API request and verified the expense POST account/category/sign/date. No backend or exchange provider was called.
+
+Inspected the contact sheet and individual desktop, narrow Russian, correction, transfer and date screenshots. No page overflow, clipped type buttons, out-of-bounds controls or popup overflow. Account precedes amount, category suggestions remain unselected until chosen, selected shortcuts match the picker, required correction reason stays visible, and currency feedback preserves the entered number. Keyboard More-menu and picker behavior are covered by component tests. Existing edit/default-account regression tests pass.
+
+History recommendations use one bounded 500-row request for today and the previous 29 local calendar dates. Suggestions are hidden if the result is incomplete or fails; the category selector remains available. Save and add another was omitted because the existing success callback closes the drawer.
+
+Build/typecheck, lint and the full 430-test suite passed. Independent follow-up review found no remaining blocking defects. The complete shared-picker regression matrix also passed 17 states, including editing and budget multiple selection. The aggregate summary verifier reports FAIL only for ten stale canonical page baselines (over 24 hours); this feature summary has zero failures. The default QA port was blocked; the documented alternate port 53147 worked. The fixture interactions now wait for picker close animations before selecting from another overlay, preventing stale-popup selection in future runs.

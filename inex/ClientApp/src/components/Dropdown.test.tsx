@@ -20,6 +20,18 @@ beforeEach(() => {
 });
 
 describe("Dropdown", () => {
+    it("searches nested categories and retains ancestor context and selection identity", async () => {
+        const user = userEvent.setup(); const onChange = vi.fn();
+        render(<Dropdown id="category" searchPlaceholder="Search categories" onChange={onChange} placeholder="Select category"
+            items={[{ id: 10, name: "Household", children: [{ id: 11, name: "Groceries" }, { id: 12, name: "Utilities" }] }, { id: 20, name: "Travel" }]} />);
+        await user.click(screen.getByRole("button", { name: "Select category" }));
+        await user.type(await screen.findByRole("textbox", { name: "Search categories" }), "grocer");
+        expect(screen.getByRole("menuitem", { name: "Household" })).toHaveAttribute("aria-expanded", "true");
+        expect(screen.queryByRole("menuitem", { name: "Travel" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("menuitem", { name: "Utilities" })).not.toBeInTheDocument();
+        await user.click(screen.getByRole("menuitem", { name: "Groceries" }));
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ key: "11", keyPath: ["11", "10", "category"] }));
+    });
     it("selects an account and closes even when the same selected account is clicked again", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();

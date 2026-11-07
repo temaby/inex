@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useMemo, useReducer } from "react";
-import { Form, Select, Alert, type MenuProps } from "antd";
+import { Form, Select, Alert, Button, Dropdown as AntDropdown, type MenuProps } from "antd";
+import { ChevronDown } from "lucide-react";
 import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +22,8 @@ import TransactionCreateExpenseForm from "./TransactionCreateExpenseForm";
 import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
 import TransactionCreateInternalTransferForm from "./TransactionCreateInternalTransferForm";
+import { useRecentCategories } from "./useRecentCategories";
+import "./transaction-creation.css";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 
@@ -158,6 +161,15 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const [createLinkedInternalTransfer, { isLoading: isCreatingLinked }] = useCreateLinkedInternalTransferMutation();
     const [state, dispatchTransactionAction] = useReducer(reducer, undefined, createDefaultState);
     const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
+    const [moreOpen, setMoreOpen] = React.useState(false);
+    const moreButton = React.useRef<HTMLButtonElement>(null);
+    React.useEffect(() => {
+        if (!moreOpen) return;
+        const timer = window.setTimeout(() => {
+            document.getElementById("transaction-additional-types")?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+        }, 0);
+        return () => window.clearTimeout(timer);
+    }, [moreOpen]);
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
     const [createCorrectionMutation, { isLoading: isCreatingCorrection }] = useCreateCorrectionMutation();
@@ -183,6 +195,11 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         () => getCategoriesTree(categories.map(toCategoryDetails), false, t("categories.systemGroup")) as CategoryDetails[],
         [categories, t],
     );
+    const recentCategories = useRecentCategories(categoryTree, state.mode);
+    const selectRecentCategory = (category: CategoryDetails) => {
+        dispatchTransactionAction({ type: "SET_CATEGORY", value: category });
+        clearValidationError("category");
+    };
 
     const setModeHandler = (mode: TransactionType) => {
         dispatchTransactionAction({ type: "SET_MODE", value: mode });
@@ -292,6 +309,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     };
 
     const saveTransactionHandler = async () => {
+        if (savingRef.current) return;
         const nextValidationErrors = validateCurrentState();
 
         if (Object.keys(nextValidationErrors).length > 0 || !state.date) {
@@ -303,6 +321,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         const comment = state.comment;
         const created = state.date.format("YYYY-MM-DD");
 
+        savingRef.current = true;
         try {
             if (state.mode === TransactionType.EXPENSE) {
                 await createTransactionMutation({
@@ -366,6 +385,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                 ),
             }));
             return;
+        } finally {
+            savingRef.current = false;
         }
 
         resetAndClose(onSubmit);
@@ -379,32 +400,54 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         [TransactionType.CORRECTION]: t("transactions.saveCorrection"),
     }[state.mode];
     const isSaving = isCreatingCorrection || isCreating || isCreatingTransfer || isCreatingInternalTransfer || isCreatingLinked;
+    const savingRef = React.useRef(false);
+    const primaryTypes = [TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER];
+    const typeLabels = {
+        [TransactionType.EXPENSE]: t("transactions.expense"),
+        [TransactionType.INCOME]: t("transactions.income"),
+        [TransactionType.TRANSFER]: t("transactions.transfer"),
+        [TransactionType.CORRECTION]: t("transactions.correction"),
+        [TransactionType.INTERNAL_TRANSFER]: t("transactions.internalTransfer"),
+    };
+    const additionalType = !primaryTypes.includes(state.mode);
 
     return (
         <div className="transactions-create-form">
-            <Form layout="vertical">
-                <Form.Item label={t("transactions.type")} htmlFor="transaction-create-type">
-                    <Select<TransactionType>
-                        id="transaction-create-type"
-                        onChange={setModeHandler}
-                        options={[
-                            { value: TransactionType.EXPENSE, label: t("transactions.expense") },
-                            { value: TransactionType.INCOME, label: t("transactions.income") },
-                            { value: TransactionType.TRANSFER, label: t("transactions.transfer") },
-                            { value: TransactionType.INTERNAL_TRANSFER, label: t("transactions.internalTransfer") },
-                            { value: TransactionType.CORRECTION, label: t("transactions.correction") },
-                        ]}
-                        style={{ width: "100%" }}
-                        value={state.mode}
-                    />
-                </Form.Item>
-            </Form>
+            <div className="transaction-type-buttons" role="group" aria-label={t("transactions.type")}
+                onKeyDownCapture={event => {
+                    if (moreOpen && event.key === "Escape") {
+                        event.preventDefault(); event.stopPropagation(); setMoreOpen(false); moreButton.current?.focus();
+                    }
+                }}>
+                {primaryTypes.map(mode => <Button key={mode} aria-pressed={state.mode === mode}
+                    disabled={isSaving} onClick={() => { if (mode !== state.mode) setModeHandler(mode); }}>
+                    {typeLabels[mode]}
+                </Button>)}
+                <AntDropdown trigger={["click"]} open={moreOpen} onOpenChange={setMoreOpen} menu={{
+                    id: "transaction-additional-types",
+                    selectable: true, selectedKeys: additionalType ? [state.mode] : [],
+                    items: [TransactionType.CORRECTION, TransactionType.INTERNAL_TRANSFER].map(mode => ({ key: mode, label: typeLabels[mode] })),
+                    onClick: ({ key }) => {
+                        setMoreOpen(false); moreButton.current?.focus();
+                        if (key !== state.mode) setModeHandler(key as TransactionType);
+                    },
+                }} getPopupContainer={trigger => trigger.closest<HTMLElement>(".ant-drawer-content") ?? document.body}>
+                    <Button disabled={isSaving} ref={moreButton} aria-pressed={additionalType} aria-haspopup="menu"
+                        aria-expanded={moreOpen} aria-controls={moreOpen ? "transaction-additional-types" : undefined}
+                        onKeyDown={event => { if (event.key === "ArrowDown") { event.preventDefault(); setMoreOpen(true); } }}
+                        className="transaction-type-more">
+                        {additionalType ? typeLabels[state.mode] : t("transactions.moreTypes")} <ChevronDown size={14} aria-hidden="true" />
+                    </Button>
+                </AntDropdown>
+            </div>
 
             {state.mode === TransactionType.EXPENSE && (
                 <TransactionCreateExpenseForm
                     accounts={accounts}
                     category={state.category}
                     categories={categoryTree}
+                    recentCategories={recentCategories}
+                    onSelectRecentCategory={selectRecentCategory}
                     comment={state.comment}
                     date={state.date}
                     fromAccount={state.fromAccount}
@@ -423,6 +466,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     accounts={accounts}
                     category={state.category}
                     categories={categoryTree}
+                    recentCategories={recentCategories}
+                    onSelectRecentCategory={selectRecentCategory}
                     comment={state.comment}
                     date={state.date}
                     onSetCategory={setCategoryHandler}

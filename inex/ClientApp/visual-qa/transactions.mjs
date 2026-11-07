@@ -607,7 +607,7 @@ async function applyInteraction(client, state) {
     case "default-account-income": {
       const russian = state.scenario === "default-account-ru";
       await evaluate(client, clickButtonByTextExpression(russian ? "Добавить" : "Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('#transaction-create-type'))");
+      await waitFor(client, "Boolean(document.querySelector('.transaction-type-buttons'))");
       if (state.interaction === "default-account-income") {
         await selectTransactionType(client, russian ? "Доход" : "Income");
       }
@@ -618,14 +618,14 @@ async function applyInteraction(client, state) {
     case "open-type-dropdown": {
       const russian = state.scenario === "correction-ru";
       await evaluate(client, clickButtonByTextExpression(russian ? "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c" : "Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('#transaction-create-type'))");
+      await waitFor(client, "Boolean(document.querySelector('.transaction-type-buttons'))");
       const labels = russian ? ["\u0414\u043e\u0445\u043e\u0434", "\u041f\u0435\u0440\u0435\u0432\u043e\u0434", "\u0412\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0438\u0439 \u043f\u0435\u0440\u0435\u0432\u043e\u0434", "\u041a\u043e\u0440\u0440\u0435\u043a\u0442\u0438\u0440\u043e\u0432\u043a\u0430", "\u0420\u0430\u0441\u0445\u043e\u0434"] : ["Income", "Transfer", "Internal transfer", "Correction", "Expense"];
       for (const label of labels) {
         await selectTransactionType(client, label);
-        await waitFor(client, `document.querySelector('.transactions-create-form .ant-select-selection-item')?.textContent === ${JSON.stringify(label)}`);
+        await waitFor(client, `document.querySelector('.transaction-type-buttons button[aria-pressed=true]')?.textContent.trim() === ${JSON.stringify(label)}`);
       }
-      await evaluate(client, "document.querySelector('#transaction-create-type').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))");
-      await waitFor(client, "document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option').length === 5");
+      await evaluate(client, "document.querySelector('.transaction-type-more').click()");
+      await waitFor(client, "document.querySelectorAll('.ant-dropdown:not(.ant-dropdown-hidden) .ant-dropdown-menu-item').length === 2");
       return;
     }
     case "select-linked-account":
@@ -661,11 +661,11 @@ async function applyInteraction(client, state) {
       return;
     case "open-add-drawer":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New expense')");
       return;
     case "open-add-drawer-and-select-account":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New expense')");
       await evaluate(client, `(() => {
         const trigger = Array.from(document.querySelectorAll("[data-picker-id]")).find((item) => item.textContent?.includes("Select account"));
         if (!trigger) return false;
@@ -689,7 +689,7 @@ async function applyInteraction(client, state) {
       return;
     case "open-internal-transfer-drawer":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New transaction')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New expense')");
       await selectTransactionType(client, "Internal transfer");
       await waitFor(client, "document.body.innerText.includes('Direction') && document.body.innerText.includes('Sent') && document.body.innerText.includes('Received')");
       return;
@@ -777,18 +777,22 @@ async function applyInteraction(client, state) {
   }
 }
 
-async function selectTransactionType(client, label) {
-  await evaluate(client, `(() => {
-    const input = document.querySelector('#transaction-create-type');
-    if (!input) throw new Error("Transaction type select missing");
-    input.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+export async function selectTransactionType(client, label) {
+  const primary = await evaluate(client, `(() => {
+    const button = Array.from(document.querySelectorAll('.transaction-type-buttons button:not(.transaction-type-more)')).find(item=>item.textContent.trim() === ${JSON.stringify(label)});
+    if (!button) return false;
+    button.click(); return true;
   })()`);
-  await waitFor(client, "Boolean(document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'))");
-  await evaluate(client, `(() => {
-    const option = Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')).find(item => item.textContent?.trim() === ${JSON.stringify(label)});
-    if (!option) throw new Error("Transaction type option missing");
-    option.click();
-  })()`);
+  if (!primary) {
+    await evaluate(client, "document.querySelector('.transaction-type-more').click()");
+    await waitFor(client, "Boolean(document.querySelector('.ant-dropdown:not(.ant-dropdown-hidden)'))");
+    await evaluate(client, `(() => {
+      const option = Array.from(document.querySelectorAll('.ant-dropdown:not(.ant-dropdown-hidden) .ant-dropdown-menu-item')).find(item => item.textContent.trim() === ${JSON.stringify(label)});
+      if (!option) throw new Error('Transaction type option missing');
+      option.click();
+    })()`);
+  }
+  await wait(350);
 }
 
 async function openRowEdit(client) {
