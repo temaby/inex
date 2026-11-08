@@ -255,6 +255,11 @@
       "retry": "Повторить загрузку курсов"
     },
     "visual": {
+      "transfersTitle": "Переводы между пользователями",
+      "transfersSent": "Отправлено",
+      "transfersReceived": "Получено",
+      "transfersNet": "Разница переводов",
+      "transfersDetails": "Посмотреть переводы",
       "incomeTitle": "Откуда пришли деньги",
       "incomeTotal": "Доходы за месяц",
       "incomeShare": "{{percentage}} от доходов",
@@ -284,6 +289,7 @@
       "resultNegative": "Расходов больше на {{amount}}",
       "resultEqual": "Доходы и расходы равны",
       "resultNoActivity": "За этот период нет операций.",
+      "resultTransfersOnly": "За этот период нет доходов и расходов.",
       "monthLabel": "Месяц на дашборде",
       "previousMonth": "Предыдущий месяц",
       "nextMonth": "Следующий месяц",

@@ -11,7 +11,7 @@ export { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard/C
 const PersonalDashboard = () => {
     const userId = useAppSelector((state) => state.auth.user?.id);
     const [variant] = useDashboardVariant(userId);
-    const data = useDashboardData({ autoExpandSingleParent: variant === "visual", requireExplicitFavourites: variant === "visual", monthSelection: variant === "visual" });
+    const data = useDashboardData({ autoExpandSingleParent: variant === "visual", requireExplicitFavourites: variant === "visual", monthSelection: variant === "visual", includeInternalTransfers: variant === "visual" });
     return variant === "visual" ? <VisualDashboard data={data} /> : <ClassicDashboard data={data} />;
 };
 

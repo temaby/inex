@@ -101,3 +101,9 @@ Items surfaced during review but out of scope for the originating story. Each en
 ## Deferred from: code review of GitHub issue #401 (2026-09-25)
 
 - **Configured monthly PDF can silently include all master accounts when only linked aggregation participants remain selected** — the self-mode dialog permits deselecting every master account while retaining `linkedUserIds`, but an empty `accountIds` array is omitted by Axios serialization and the backend interprets omission as all active master accounts. This predates linked view-as mode; define explicit linked-only aggregation semantics in a separate report-export change.
+
+---
+
+## From: Personal dashboard internal transfers (2026-11-08)
+
+- **Existing Visual Dashboard geometry checks fail on the unchanged baseline** — `month-picker-open-360` and `wallet-tiny-selected-360` measure a 313px frame with a 360px viewport because the available layout width excludes a scrollbar; investigate the harness's use of viewport width before changing product layout. `single-parent-1440-800` and `linked-russian-1440-900` exceed their viewport heights by 4px and 16px respectively. All four failures reproduce with identical dimensions on baseline `a53194d` and the feature implementation. Evidence: `docs/implementation/visual-qa/personal-dashboard-transfers-regression/regression-comparison.json`. Handle baseline layout/harness corrections separately from transfer visualization.

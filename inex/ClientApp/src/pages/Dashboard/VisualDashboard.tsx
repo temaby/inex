@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Alert, DatePicker, Spin } from "antd";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, ArrowLeftRight, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
@@ -24,7 +24,8 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts, hasReportingAccounts,
         baseCurrency, accountConversion, balancePanelLoading, balancePanelError,
         categoryPanelLoading, categoriesQuery,
-        categoryTransactionsQuery, summaryQuery, ratesLoading, missingCashFlowRates,
+        categoryTransactionsQuery, summaryQuery, cashFlowRatesLoading, missingCashFlowRates,
+        internalTransfers, transferRatesLoading, openInternalTransfers,
         cashFlowConversion, hasCashFlow, cashFlowChartData, openFlow, categoryMode,
         setCategoryMode, expenseParentName, expenseAutoExpanded, expenseSlices, setExpenseParentId,
         selectCategory, categoryConversion, retryRates, effectiveDate,
@@ -88,7 +89,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
         || (accountBalancesQuery.isFetching && !accountBalancesQuery.currentData);
     const moneyError = accountsQuery.isError || accountBalancesQuery.isError
         || (!moneyPending && balancePanelError);
-    const flowPending = scopePending || summaryQuery.isLoading || ratesLoading
+    const flowPending = scopePending || summaryQuery.isLoading || cashFlowRatesLoading
         || (summaryQuery.isFetching && !summaryQuery.currentData);
     const categoryError = accountsQuery.isError || categoriesQuery.isError || categoryTransactionsQuery.isError || (!baseCurrency && summaryQuery.isError);
     const expenseMissingRates = categoryConversion.expenseMissingRates;
@@ -97,7 +98,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
     const monthlyResult = cashFlowConversion?.isComplete
         ? Math.round((displayedDashboardAmount(cashFlowConversion.income) - displayedDashboardAmount(Math.abs(cashFlowConversion.expense))) * 100) / 100
         : 0;
-    const resultKey = !hasCashFlow ? "resultNoActivity" : monthlyResult > 0 ? "resultPositive"
+    const resultKey = !hasCashFlow ? internalTransfers && internalTransfers.recordCount > 0 ? "resultTransfersOnly" : "resultNoActivity" : monthlyResult > 0 ? "resultPositive"
         : monthlyResult < 0 ? "resultNegative" : "resultEqual";
 
     const unavailable = (currencies: string[], onRetry = retryRates) => (
@@ -339,6 +340,36 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                                     </div>
                                 )}
                         </Spin>
+                        {!scopePending && !accountsQuery.isError && !summaryQuery.isError && !summaryQuery.isLoading
+                            && !(summaryQuery.isFetching && !summaryQuery.currentData)
+                            && internalTransfers && internalTransfers.recordCount > 0 ? (
+                            <section className="visual-dashboard-transfers" data-qa="visual-internal-transfers" aria-labelledby="visual-transfers-title">
+                                <div className="visual-dashboard-transfers__header">
+                                    <h3 id="visual-transfers-title"><ArrowLeftRight size={17} aria-hidden="true" />{t("dashboard.visual.transfersTitle")}</h3>
+                                    <InExButton kind="ghost" size="sm" onClick={openInternalTransfers}>{t("dashboard.visual.transfersDetails")}</InExButton>
+                                </div>
+                                {transferRatesLoading ? <span role="status">{t("dashboard.cashFlow.loading")}</span>
+                                    : !internalTransfers.isComplete ? (
+                                        <div className="visual-dashboard-transfers__unavailable" role="status">
+                                            <span>{t("dashboard.visual.ratesMissing", { currencies: Array.from(new Set(internalTransfers.warnings.map((warning) => `${warning.currency} (${warning.date})`))).join(", ") })}</span>
+                                            <InExButton kind="ghost" size="sm" onClick={retryRates}>{t("dashboard.unavailable.retry")}</InExButton>
+                                        </div>
+                                    ) : (
+                                        <dl className="visual-dashboard-transfers__totals">
+                                            {([
+                                                ["sent", "transfersSent", internalTransfers.amountSent],
+                                                ["received", "transfersReceived", internalTransfers.amountReceived],
+                                                ["net", "transfersNet", internalTransfers.netChange],
+                                            ] as const).map(([key, label, value]) => (
+                                                <div key={key}>
+                                                    <dt>{t(`dashboard.visual.${label}`)}</dt>
+                                                    <dd><Num currency={baseCurrency} currencySize="sm" dataQa={`visual-transfers-${key}`} fractionDigits={2} kind="transfer" locale={locale} signage={key === "net" ? "signed" : "negative-only"} value={key === "net" ? Number(value.toFixed(2)) : value} /></dd>
+                                                </div>
+                                            ))}
+                                        </dl>
+                                    )}
+                            </section>
+                        ) : null}
                     </section>
                 </div>
             </div>

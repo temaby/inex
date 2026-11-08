@@ -1,0 +1,92 @@
+{
+  "baselineCommit": "a53194d",
+  "comparisonMethod": "Baseline source modules supplied from git HEAD to an isolated in-memory Vite loader; working sources were not replaced. All API calls intercepted.",
+  "personalTransfers": {
+    "states": 17,
+    "hasFailures": false
+  },
+  "classic": {
+    "states": 17,
+    "hasFailures": false
+  },
+  "visual": {
+    "states": 94,
+    "failures": [
+      "month-picker-open-360: dashboard frame differs from management pages",
+      "wallet-tiny-selected-360: dashboard frame differs from management pages",
+      "single-parent-1440-800: dashboard exceeds viewport (804px)",
+      "linked-russian-1440-900: dashboard exceeds viewport (916px)"
+    ]
+  },
+  "baseline": {
+    "states": 4,
+    "failures": [
+      "month-picker-open-360: dashboard frame differs from management pages",
+      "wallet-tiny-selected-360: dashboard frame differs from management pages",
+      "single-parent-1440-800: dashboard exceeds viewport (804px)",
+      "linked-russian-1440-900: dashboard exceeds viewport (916px)"
+    ]
+  },
+  "comparisons": [
+    {
+      "name": "month-picker-open-360",
+      "baselinePageHeight": 2287,
+      "currentPageHeight": 2287,
+      "baselineFrame": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "currentFrame": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      }
+    },
+    {
+      "name": "wallet-tiny-selected-360",
+      "baselinePageHeight": 3177,
+      "currentPageHeight": 3177,
+      "baselineFrame": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      },
+      "currentFrame": {
+        "left": 16,
+        "right": 329,
+        "width": 313
+      }
+    },
+    {
+      "name": "single-parent-1440-800",
+      "baselinePageHeight": 804,
+      "currentPageHeight": 804,
+      "baselineFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "currentFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      }
+    },
+    {
+      "name": "linked-russian-1440-900",
+      "baselinePageHeight": 916,
+      "currentPageHeight": 916,
+      "baselineFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      },
+      "currentFrame": {
+        "left": 40,
+        "right": 1400,
+        "width": 1360
+      }
+    }
+  ]
+}

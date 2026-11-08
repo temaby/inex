@@ -253,6 +253,11 @@
       "retry": "Retry rates"
     },
     "visual": {
+      "transfersTitle": "Transfers between users",
+      "transfersSent": "Sent",
+      "transfersReceived": "Received",
+      "transfersNet": "Net transfers",
+      "transfersDetails": "View transfers",
       "incomeTitle": "Where the money came from",
       "incomeTotal": "Monthly income",
       "incomeShare": "{{percentage}} of income",
@@ -282,6 +287,7 @@
       "resultNegative": "Expenses are higher by {{amount}}",
       "resultEqual": "Income and expenses are equal",
       "resultNoActivity": "No transactions for this period.",
+      "resultTransfersOnly": "No income or expenses for this period.",
       "monthLabel": "Dashboard month",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",

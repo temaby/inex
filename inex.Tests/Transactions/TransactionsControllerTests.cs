@@ -308,6 +308,66 @@ public class TransactionsControllerTests : IClassFixture<InExWebApplicationFacto
     }
 
     [Fact]
+    public async Task Summary_InternalTransferBucketsPreserveCashFlowAndAuthorizedAccountPeriodScope()
+    {
+        var master = await CreateAuthenticatedClientAsync();
+        var linked = await CreateAuthenticatedClientAsync();
+        var unrelated = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(master);
+        int linkedId = await GetCurrentUserIdAsync(linked);
+        int linkedAccount = await CreateAccountAsync(linked, "transfer-summary-linked");
+        int otherLinkedAccount = await CreateAccountAsync(linked, "transfer-summary-excluded");
+        int foreignAccount = await CreateAccountAsync(unrelated, "transfer-summary-foreign");
+        int ordinaryCategory = await CreateCategoryAsync(linked, "transfer-summary-ordinary");
+        await AddUserAccountLinkAsync(masterId, linkedId, UserAccountLinkStatus.Active);
+
+        foreach (var (client, account, amount, direction, date) in new[]
+        {
+            (linked, linkedAccount, 25m, "outgoing", new DateTime(2026, 10, 10)),
+            (linked, linkedAccount, 25m, "incoming", new DateTime(2026, 10, 10)),
+            (linked, linkedAccount, 77m, "incoming", new DateTime(2026, 9, 10)),
+            (linked, otherLinkedAccount, 888m, "incoming", new DateTime(2026, 10, 10)),
+            (unrelated, foreignAccount, 999m, "incoming", new DateTime(2026, 10, 10)),
+        })
+        {
+            var created = await client.PostAsJsonAsync("/api/transactions/internal-transfer", new
+            {
+                accountId = account, created = date, amount, direction,
+            });
+            created.EnsureSuccessStatusCode();
+        }
+        await CreateTransactionWithAmountAndCommentAsync(linked, linkedAccount, ordinaryCategory, 100m,
+            "salary", new DateTime(2026, 10, 10));
+        await CreateTransactionWithAmountAndCommentAsync(linked, linkedAccount, ordinaryCategory, -30m,
+            "food", new DateTime(2026, 10, 10));
+
+        string filter = $"accountId={linkedAccount}&startDate=2026-10-01&endDate=2026-10-31T23:59:59";
+        var own = await linked.GetFromJsonAsync<TransactionSummaryResponse>($"/api/transactions/summary?{filter}");
+        var viewed = await master.GetFromJsonAsync<TransactionSummaryResponse>($"/api/transactions/summary?linkedUserId={linkedId}&{filter}");
+        Assert.NotNull(own);
+        Assert.NotNull(viewed);
+        var bucket = Assert.Single(own.CurrentScope.InternalTransferBuckets);
+        Assert.Equal(new DateTime(2026, 10, 10), bucket.Date);
+        Assert.Equal("USD", bucket.Currency);
+        Assert.Equal(25m, bucket.AmountSent);
+        Assert.Equal(25m, bucket.AmountReceived);
+        Assert.Equal(2, bucket.RecordCount);
+        Assert.Equal(bucket, Assert.Single(viewed.CurrentScope.InternalTransferBuckets));
+        var cashFlow = Assert.Single(viewed.CurrentScope.CashFlowBuckets);
+        Assert.Equal(100m, cashFlow.Income);
+        Assert.Equal(-30m, cashFlow.Expense);
+        Assert.Equal(70m, Assert.Single(viewed.CurrencySummaries).Net);
+        Assert.NotNull(viewed.PreviousScope);
+        Assert.Equal(77m, Assert.Single(viewed.PreviousScope.InternalTransferBuckets).AmountReceived);
+
+        var defaultMasterScope = await master.GetFromJsonAsync<TransactionSummaryResponse>("/api/transactions/summary");
+        Assert.NotNull(defaultMasterScope);
+        Assert.Empty(defaultMasterScope.CurrentScope.InternalTransferBuckets);
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await unrelated.GetAsync(
+            $"/api/transactions/summary?linkedUserId={linkedId}&{filter}"));
+    }
+
+    [Fact]
     public async Task CreateInternalTransfer_RecordsSignedUserOwnedTransactionAndExcludesCashFlowTotals()
     {
         var sender = await CreateAuthenticatedClientAsync();

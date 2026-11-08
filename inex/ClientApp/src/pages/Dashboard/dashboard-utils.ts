@@ -41,7 +41,7 @@ const findRoot = (
   return current;
 };
 
-const hasSystemAncestor = (
+export const hasSystemAncestor = (
   category: DashboardCategorySource,
   categoriesById: Map<number, DashboardCategorySource>,
 ) => {
