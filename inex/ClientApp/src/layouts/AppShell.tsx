@@ -84,6 +84,12 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
         || currentPage === "reports";
     const initials = getInitials(username);
 
+    React.useEffect(() => {
+        if (currentPage !== "dashboard" && linkedAccount.dashboardFamilySelected) {
+            dispatch(linkedAccountActions.selectLinkedUser(null));
+        }
+    }, [currentPage, dispatch, linkedAccount.dashboardFamilySelected]);
+
     const handleNavigate = (path: string) => {
         navigate(path);
     };
@@ -94,6 +100,8 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
 
     const linkedAccountOptions = [
         { label: t("linkedAccount.myData"), value: "self" },
+        ...(currentPage === "dashboard" && linkedAccount.linkState?.linkedAccounts.length
+            ? [{ label: t("dashboard.family.option"), value: "family" }] : []),
         ...(linkedAccount.linkState?.linkedAccounts.map((account) => ({
             label: t("linkedAccount.linkedOption", {
                 username: account.username,
@@ -162,12 +170,13 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
                             aria-label={t("linkedAccount.selectorLabel")}
                             className="inex-linked-account-select"
                             loading={linkedAccount.loading}
-                            onChange={(value) => dispatch(linkedAccountActions.selectLinkedUser(
-                                value === "self" ? null : Number(value),
-                            ))}
+                            onChange={(value) => dispatch(value === "family"
+                                ? linkedAccountActions.selectFamily()
+                                : linkedAccountActions.selectLinkedUser(value === "self" ? null : Number(value)))}
                             options={linkedAccountOptions}
                             popupMatchSelectWidth={false}
-                            value={selectedLinkedAccount ? String(selectedLinkedAccount.id) : "self"}
+                            value={currentPage === "dashboard" && linkedAccount.dashboardFamilySelected ? "family"
+                                : selectedLinkedAccount ? String(selectedLinkedAccount.id) : "self"}
                         />
                     ) : null}
                     <Dropdown

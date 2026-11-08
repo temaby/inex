@@ -29,6 +29,7 @@ public class ReportsController : ApiControllerBase
     public const string GetMonthlyHistoryRoute = "history/{year}";
     public const string GetNetWorthRoute = "net-worth";
     public const string GetMonthlyFinancialPdfRoute = "monthly-pdf";
+    public const string GetFamilyStatisticsRoute = "family";
 
     #endregion Routes
 
@@ -43,6 +44,17 @@ public class ReportsController : ApiControllerBase
     }
 
     #endregion Constructors
+
+    /// <summary>Read the master's combined family dashboard using current active direct links.</summary>
+    [HttpGet(GetFamilyStatisticsRoute)]
+    [ProducesResponseType(typeof(FamilyStatisticsResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FamilyStatisticsResponse>> GetFamilyStatistics(
+        [Range(2, 9998)] int? year = null,
+        [Range(1, 12)] int? month = null,
+        CancellationToken ct = default)
+    {
+        return Ok(await _reportService.GetFamilyStatistics(CurrentUserId, year, month, ct));
+    }
 
     /// <summary>Get category report details</summary>
     /// <param name="currency">Currency for report</param>

@@ -19,6 +19,7 @@ interface LinkedAccountState {
   sessionUserId: number | null;
   linkState: LinkedAccountLinkState | null;
   selectedLinkedUserId: number | null;
+  dashboardFamilySelected?: boolean;
   loading: boolean;
   unavailable: boolean;
 }
@@ -27,6 +28,7 @@ const initialState: LinkedAccountState = {
   sessionUserId: null,
   linkState: null,
   selectedLinkedUserId: null,
+  dashboardFamilySelected: false,
   loading: false,
   unavailable: false,
 };
@@ -40,6 +42,7 @@ const linkedAccountSlice = createSlice({
         state.sessionUserId = action.payload;
         state.linkState = null;
         state.selectedLinkedUserId = null;
+        state.dashboardFamilySelected = false;
         state.unavailable = false;
       }
       state.loading = true;
@@ -52,6 +55,10 @@ const linkedAccountSlice = createSlice({
 
       state.linkState = action.payload.linkState;
       state.loading = false;
+
+      if (action.payload.linkState.state !== "master" || action.payload.linkState.linkedAccounts.length === 0) {
+        state.dashboardFamilySelected = false;
+      }
 
       if (
         state.selectedLinkedUserId !== null &&
@@ -66,12 +73,24 @@ const linkedAccountSlice = createSlice({
       state.loading = false;
     },
     selectLinkedUser(state, action: PayloadAction<number | null>) {
+      state.dashboardFamilySelected = false;
       const requestedId = action.payload;
       state.selectedLinkedUserId = requestedId !== null &&
         state.linkState?.linkedAccounts.some((account) => account.id === requestedId)
         ? requestedId
         : null;
       state.unavailable = false;
+    },
+    selectFamily(state) {
+      if (state.linkState?.state !== "master" || state.linkState.linkedAccounts.length === 0) return;
+      state.dashboardFamilySelected = true;
+      state.selectedLinkedUserId = null;
+      state.unavailable = false;
+    },
+    familyScopeUnavailable(state) {
+      state.dashboardFamilySelected = false;
+      state.selectedLinkedUserId = null;
+      state.unavailable = true;
     },
     linkedScopeUnavailable(state, action: PayloadAction<number>) {
       const unavailableId = action.payload;

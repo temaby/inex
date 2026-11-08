@@ -7,6 +7,9 @@ import { fetchRatesForRange, requestRatesForRange } from "../store/rates/rates-a
 import type { ExchangeRateItem } from "../store/rates/rates-slice";
 import Dashboard, { DASHBOARD_EXPENSE_COLORS, DASHBOARD_INCOME_COLORS } from "./Dashboard";
 
+// Family requests have separate coverage; avoid initializing the application store in personal-view fixtures.
+vi.mock("../utils/apiClient", () => ({ default: vi.fn() }));
+
 const apiMocks = vi.hoisted(() => ({
   accounts: vi.fn(),
   accountSummaries: vi.fn(),

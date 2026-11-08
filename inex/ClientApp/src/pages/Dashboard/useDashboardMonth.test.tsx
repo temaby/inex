@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { parseDashboardMonth, useDashboardMonth } from "./useDashboardMonth";
 
-const Probe = ({ enabled = true }: { enabled?: boolean }) => {
-    const month = useDashboardMonth(enabled);
+const Probe = ({ enabled = true, utcCalendar = false }: { enabled?: boolean; utcCalendar?: boolean }) => {
+    const month = useDashboardMonth(enabled, utcCalendar);
     const location = useLocation();
     const navigate = useNavigate();
     return <>
@@ -76,5 +76,20 @@ describe("visual dashboard month navigation", () => {
         open("/dashboard?month=2025-12", false);
         expect(screen.getByTestId("month")).toHaveTextContent("2026-01");
         expect(screen.getByTestId("url")).toHaveTextContent("?month=2025-12");
+    });
+
+    it("keeps family month aligned with the server UTC calendar before rollover", () => {
+        vi.setSystemTime(new Date("2026-02-01T00:30:00+02:00"));
+        render(<MemoryRouter><Probe utcCalendar /></MemoryRouter>);
+        expect(screen.getByTestId("month")).toHaveTextContent("2026-01");
+        fireEvent.click(screen.getByText("Next"));
+        expect(screen.getByTestId("month")).toHaveTextContent("2026-01");
+    });
+
+    it("advances family current mode at UTC rollover", () => {
+        vi.setSystemTime(new Date("2026-01-31T23:59:59Z"));
+        render(<MemoryRouter><Probe utcCalendar /></MemoryRouter>);
+        act(() => { vi.advanceTimersByTime(3000); });
+        expect(screen.getByTestId("month")).toHaveTextContent("2026-02");
     });
 });

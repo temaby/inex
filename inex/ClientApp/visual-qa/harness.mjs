@@ -572,6 +572,9 @@ export async function runBrowserState({
   try {
     await client.send("Page.enable");
     await client.send("Runtime.enable");
+    if (state.timezoneId) {
+      await client.send("Emulation.setTimezoneOverride", { timezoneId: state.timezoneId });
+    }
     await client.send("Fetch.enable", {
       patterns: [{ urlPattern: "*", requestStage: "Request" }],
     });
