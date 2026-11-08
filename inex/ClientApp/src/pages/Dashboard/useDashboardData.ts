@@ -9,12 +9,13 @@ import { useGetTransactionsQuery, useGetTransactionsSummaryQuery } from "../../s
 import { transactionsDefaultFilter } from "../../store/transactions/transactions-slice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { getAccountBalanceConversionResult, getBaseCurrencyEquivalent, getCashFlowConversionResult } from "../Transactions/transaction-ledger-utils";
-import { buildDashboardCategorySlices, buildDashboardTransactionFilter, type DashboardCategoryMode, type DashboardFlow, type DashboardCategorySlice } from "./dashboard-utils";
+import { buildDashboardCategorySlices, buildDashboardTransactionFilter, hasSystemAncestor, type DashboardCategoryMode, type DashboardFlow, type DashboardCategorySlice } from "./dashboard-utils";
 import { useDashboardMonth } from "./useDashboardMonth";
 import { useCurrentBalanceRates } from "./useCurrentBalanceRates";
 import { formatDashboardMoney } from "./dashboard-money";
+import { convertInternalTransferSummary } from "./internal-transfer-summary";
 
-export const useDashboardData = ({ autoExpandSingleParent = false, requireExplicitFavourites = false, monthSelection = false } = {}) => {
+export const useDashboardData = ({ autoExpandSingleParent = false, requireExplicitFavourites = false, monthSelection = false, includeInternalTransfers = false } = {}) => {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -85,6 +86,13 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
         ?? summaryQuery.currentData?.baseCurrency
         ?? dailyRates[0]?.currencyFrom
         ?? "";
+    const categorySource = categoriesQuery.currentData ?? [];
+    // System activity belongs to balances/transfer summaries, including its FX requirements.
+    const categoryTransactions = useMemo(() => {
+        const categoriesById = new Map((categoriesQuery.currentData ?? []).map((category) => [category.id, category]));
+        return hasReportingAccounts ? (categoryTransactionsQuery.currentData?.data ?? []).filter((transaction) =>
+            !hasSystemAncestor(categoriesById.get(transaction.categoryId) ?? { id: transaction.categoryId }, categoriesById)) : [];
+    }, [categoriesQuery.currentData, categoryTransactionsQuery.currentData, hasReportingAccounts]);
 
     const accountNeedsRate = accountBalances.some(
         (account) => account.value !== 0 && account.currency !== baseCurrency,
@@ -92,22 +100,28 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
     const cashFlowNeedsRate = (summaryQuery.currentData?.currentScope.cashFlowBuckets ?? []).some(
         (bucket) => (bucket.income !== 0 || bucket.expense !== 0) && bucket.currency !== baseCurrency,
     );
-    const categoryNeedsRate = (categoryTransactionsQuery.currentData?.data ?? []).some(
+    const categoryNeedsRate = categoryTransactions.some(
         (transaction) => transaction.amount !== 0 && transaction.accountCurrency !== baseCurrency,
     );
+    const transferBuckets = includeInternalTransfers && hasReportingAccounts
+        ? summaryQuery.currentData?.currentScope.internalTransferBuckets ?? [] : [];
+    const transfersNeedRate = transferBuckets.some(
+        (bucket) => (bucket.amountReceived !== 0 || bucket.amountSent !== 0) && bucket.currency !== baseCurrency,
+    );
     const needsCachedRates = (!isHistoricalMonth && accountNeedsRate) || cashFlowNeedsRate || categoryNeedsRate;
+    const needsAnyRates = needsCachedRates || transfersNeedRate;
     const cachedRateKey = `${selectedLinkedUserId ?? "self"}:${startDate}:${endDate}`;
 
     const attemptedRateKey = useRef<string | null>(null);
     useEffect(() => {
-        if (!needsCachedRates) {
+        if (!needsAnyRates) {
             attemptedRateKey.current = null;
             return;
         }
         if (attemptedRateKey.current === cachedRateKey) return;
         attemptedRateKey.current = cachedRateKey;
         void dispatch(fetchRatesForRange(startDate, endDate, selectedLinkedUserId));
-    }, [cachedRateKey, dispatch, endDate, needsCachedRates, selectedLinkedUserId, startDate]);
+    }, [cachedRateKey, dispatch, endDate, needsAnyRates, selectedLinkedUserId, startDate]);
 
     useEffect(() => {
         setExpenseParentId(undefined);
@@ -128,6 +142,10 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
         cachedRates?.completedKey !== cachedRateKey
         || (cachedRates?.requestKey === cachedRateKey && cachedRates.loading)
     );
+    const rangeRatesPending = cachedRates?.completedKey !== cachedRateKey
+        || (cachedRates?.requestKey === cachedRateKey && cachedRates.loading);
+    const cashFlowRatesLoading = cashFlowNeedsRate && rangeRatesPending;
+    const transferRatesLoading = transfersNeedRate && rangeRatesPending;
     const retryRates = () => {
         void dispatch(fetchRatesForRange(startDate, endDate, selectedLinkedUserId));
     };
@@ -144,13 +162,14 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
             : null,
         [baseCurrency, exchangeRates, hasReportingAccounts, summaryQuery.currentData],
     );
+    const internalTransfers = includeInternalTransfers && baseCurrency
+        ? convertInternalTransferSummary(transferBuckets, baseCurrency, exchangeRates) : null;
 
-    const categorySource = categoriesQuery.currentData ?? [];
     const categoryConversion = useMemo(() => {
         const rows: Array<{ id: number; value: number }> = [];
         const missing: Record<DashboardFlow, string[]> = { income: [], expense: [] };
 
-        for (const transaction of hasReportingAccounts ? categoryTransactionsQuery.currentData?.data ?? [] : []) {
+        for (const transaction of categoryTransactions) {
             const flow: DashboardFlow = transaction.amount >= 0 ? "income" : "expense";
             let value = transaction.amount;
             if (transaction.accountCurrency !== baseCurrency) {
@@ -175,7 +194,7 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
             incomeMissingRates: Array.from(new Set(missing.income)),
             expenseMissingRates: Array.from(new Set(missing.expense)),
         };
-    }, [baseCurrency, categoryTransactionsQuery.currentData, exchangeRates, hasReportingAccounts]);
+    }, [baseCurrency, categoryTransactions, exchangeRates]);
     const defaultParentIds = useMemo(() => {
         const singleParent = (flow: DashboardFlow) => {
             const parents = buildDashboardCategorySlices({
@@ -241,6 +260,10 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
     const openFlow = (flow: DashboardFlow) => {
         if (!hasReportingAccounts) return;
         navigate(`/transactions?filter=accountIds:${reportingAccountIds.join(",")};start:${startDate};end:${endDate};type:${flow};`);
+    };
+    const openInternalTransfers = () => {
+        if (!hasReportingAccounts) return;
+        navigate(`/transactions?filter=accountIds:${reportingAccountIds.join(",")};start:${startDate};end:${endDate};type:internalTransfer;`);
     };
 
     const selectCategory = (flow: DashboardFlow, slice: DashboardCategorySlice) => {
@@ -317,6 +340,10 @@ export const useDashboardData = ({ autoExpandSingleParent = false, requireExplic
         categoryTransactionsQuery,
         summaryQuery,
         ratesLoading,
+        cashFlowRatesLoading,
+        transferRatesLoading,
+        internalTransfers,
+        openInternalTransfers,
         missingCashFlowRates,
         cashFlowConversion,
         hasCashFlow,

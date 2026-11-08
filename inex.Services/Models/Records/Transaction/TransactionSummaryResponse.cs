@@ -35,12 +35,22 @@ public record TransactionCashFlowBucket
     public int RecordCount { get; init; }
 }
 
+public record TransactionInternalTransferBucket
+{
+    public DateTime Date { get; init; }
+    public string Currency { get; init; } = string.Empty;
+    public decimal AmountReceived { get; init; }
+    public decimal AmountSent { get; init; }
+    public int RecordCount { get; init; }
+}
+
 public record TransactionSummaryScope
 {
     public int TotalCount { get; init; }
     public TransactionTypeCounts TypeCounts { get; init; } = new();
     public TransactionSummaryPeriod? Period { get; init; }
     public IEnumerable<TransactionCashFlowBucket> CashFlowBuckets { get; init; } = new List<TransactionCashFlowBucket>();
+    public IEnumerable<TransactionInternalTransferBucket> InternalTransferBuckets { get; init; } = new List<TransactionInternalTransferBucket>();
 }
 
 public record TransactionSummaryResponse

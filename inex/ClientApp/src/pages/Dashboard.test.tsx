@@ -1217,4 +1217,138 @@ describe("Dashboard", () => {
     expect(container.querySelector('[data-qa="visual-account-selection"]')).toHaveTextContent("dashboard.visual.positiveShare:40%");
     expect(container.querySelector('[data-qa="visual-favorite-accounts"] [data-account-id="3"] [data-kind]')).toHaveAttribute("data-kind", "expense");
   });
+
+  const showInternalTransfers = (amountReceived = 500, amountSent = 2500, currency = "USD", recordCount = 2) => {
+    const summary = apiMocks.transactionSummary().currentData;
+    apiMocks.transactionSummary.mockReturnValue({
+      currentData: { ...summary, currentScope: { ...summary.currentScope, internalTransferBuckets: [
+        { date: "2024-02-01", currency, amountReceived, amountSent, recordCount },
+      ] } }, isLoading: false, isError: false,
+    });
+  };
+
+  it.each([
+    [500, 2500, -2000], [2500, 500, 2000], [500, 500, 0], [500, 0, 500], [0, 500, -500],
+  ])("shows transfer direction separately from monthly result: received=%s sent=%s", (received, sent, net) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    showInternalTransfers(received, sent);
+    const { container } = render(<Dashboard />);
+    const flow = container.querySelector('[data-qa="visual-flow"]')!;
+    const transfer = within(flow as HTMLElement).getByRole("region", { name: "dashboard.visual.transfersTitle" });
+    expect(transfer.querySelector('[data-qa="visual-transfers-sent"]')).toHaveAttribute("data-kind", "transfer");
+    expect(transfer.querySelector('[data-qa="visual-transfers-sent"]')).toHaveTextContent(`USD ${sent}`);
+    expect(transfer.querySelector('[data-qa="visual-transfers-received"]')).toHaveTextContent(`USD ${received}`);
+    expect(transfer.querySelector('[data-qa="visual-transfers-net"]')).toHaveTextContent(`USD ${net}`);
+    expect(transfer.querySelector('[data-qa="visual-transfers-net"]')).toHaveAttribute("data-signage", "signed");
+    expect(flow.querySelector('[data-qa="visual-flow-result"]')).toHaveTextContent("dashboard.visual.resultPositive:$1,250");
+    expect(flow.querySelectorAll('[data-qa="visual-flow-bar"]')).toHaveLength(2);
+    expect(container.querySelectorAll(".visual-dashboard-grid > section")).toHaveLength(2);
+  });
+
+  it.each(["classic", "visual"])("omits transfer content with zero postings in %s", (variant) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", variant);
+    showInternalTransfers(0, 0, "USD", 0);
+    const { container } = render(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-internal-transfers"]')).not.toBeInTheDocument();
+  });
+
+  it("shows transfer activity even when there is no ordinary income or expense", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    showInternalTransfers(0, 500);
+    const summary = apiMocks.transactionSummary().currentData;
+    summary.currentScope.cashFlowBuckets = [];
+    const { container } = render(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-flow-result"]')).toHaveTextContent("dashboard.visual.resultTransfersOnly");
+    expect(container.querySelector('[data-qa="visual-transfers-net"]')).toHaveTextContent("USD -500");
+  });
+
+  it("keeps Classic presentation and rate reads unchanged with transfer-only FX", () => {
+    showInternalTransfers(200, 0, "EUR");
+    const { container } = render(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-internal-transfers"]')).not.toBeInTheDocument();
+    expect(fetchRatesForRange).not.toHaveBeenCalled();
+  });
+
+  it.each([null, 2])("opens enabled-account transfer history for selected month/user %s", (linkedUserId) => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    linkedState.linkedAccount.selectedLinkedUserId = linkedUserId;
+    apiMocks.search = new URLSearchParams("month=2024-02");
+    showInternalTransfers();
+    render(<Dashboard />);
+    fireEvent.click(screen.getByRole("button", { name: "dashboard.visual.transfersDetails" }));
+    expect(apiMocks.navigate).toHaveBeenCalledWith("/transactions?filter=accountIds:1,2;start:2024-02-01;end:2024-02-29;type:internalTransfer;");
+    expect(apiMocks.transactionSummary).toHaveBeenCalledWith(expect.objectContaining({ linkedUserId, filter: expect.objectContaining({ accountIds: [1, 2] }) }), { skip: false });
+    expect(linkedState.linkedAccount.selectedLinkedUserId).toBe(linkedUserId);
+  });
+
+  it("displays balanced fractional transfers as zero without a residual positive sign", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    const summary = apiMocks.transactionSummary().currentData;
+    apiMocks.transactionSummary.mockReturnValue({ currentData: {
+      ...summary, currentScope: { ...summary.currentScope, internalTransferBuckets: [
+        { date: "2024-02-01", currency: "USD", amountReceived: 0.1, amountSent: 0.3, recordCount: 2 },
+        { date: "2024-02-02", currency: "USD", amountReceived: 0.2, amountSent: 0, recordCount: 1 },
+      ] },
+    }, isLoading: false, isError: false });
+    const { container } = render(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-transfers-net"]')).toHaveTextContent("USD 0");
+  });
+
+  it("keeps ordinary flow visible while transfer rates load or are unavailable, and retries the selected period", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.search = new URLSearchParams("month=2024-02");
+    showInternalTransfers(500, 2500, "EUR");
+    const view = render(<Dashboard />);
+    expect(view.container.querySelector('[data-qa="visual-flow-result"]')).toHaveTextContent("dashboard.visual.resultPositive:$1,250");
+    expect(fetchRatesForRange).toHaveBeenCalledWith("2024-02-01", "2024-02-29", 2);
+    expect(view.container.querySelector('[data-qa="visual-transfers-net"]')).not.toBeInTheDocument();
+    linkedState.rates.range = { items: [], requestKey: "2:2024-02-01:2024-02-29", completedKey: "2:2024-02-01:2024-02-29", loading: false, error: null };
+    view.rerender(<Dashboard />);
+    const section = screen.getByRole("region", { name: "dashboard.visual.transfersTitle" });
+    expect(within(section).getByText("dashboard.visual.ratesMissing")).toBeInTheDocument();
+    expect(view.container.querySelector('[data-qa="visual-flow-result"]')).toHaveTextContent("dashboard.visual.resultPositive:$1,250");
+    fireEvent.click(within(section).getByRole("button", { name: "dashboard.unavailable.retry" }));
+    expect(fetchRatesForRange).toHaveBeenLastCalledWith("2024-02-01", "2024-02-29", 2);
+    linkedState.rates.range.items = [{ id: 1, isTemporary: false, date: "2024-02-01", currencyFrom: "USD", currencyTo: "EUR", rate: 2 }];
+    view.rerender(<Dashboard />);
+    expect(section.querySelector('[data-qa="visual-transfers-net"]')).toHaveTextContent("USD -1000");
+  });
+
+  it("removes previous transfer totals while a different user/month summary is pending", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    showInternalTransfers();
+    const view = render(<Dashboard />);
+    expect(screen.getByRole("region", { name: "dashboard.visual.transfersTitle" })).toBeInTheDocument();
+    linkedState.linkedAccount.selectedLinkedUserId = null;
+    apiMocks.search = new URLSearchParams("month=2024-02");
+    apiMocks.transactionSummary.mockReturnValue({ currentData: undefined, isFetching: true, isLoading: false, isError: false });
+    view.rerender(<Dashboard />);
+    expect(screen.queryByRole("region", { name: "dashboard.visual.transfersTitle" })).not.toBeInTheDocument();
+  });
+
+  it("does not let actual system transfer rows with missing FX invalidate ordinary category charts", () => {
+    localStorage.setItem("inex.dashboard.variant.user-1", "visual");
+    apiMocks.search = new URLSearchParams("month=2024-02");
+    showInternalTransfers(500, 2500, "EUR");
+    apiMocks.categories.mockReturnValue({ currentData: [
+      { id: 10, name: "Food" }, { id: 20, name: "Salary" },
+      { id: 30, name: "Internal transfers", isSystem: true, systemCode: "internal-transfer" },
+      { id: 31, name: "System child", parentId: 30 },
+    ], isLoading: false, isError: false });
+    apiMocks.transactions.mockReturnValue({ currentData: { data: [
+      { categoryId: 10, accountCurrency: "USD", amount: -750, created: "2024-02-01" },
+      { categoryId: 20, accountCurrency: "USD", amount: 2000, created: "2024-02-01" },
+      { categoryId: 30, accountCurrency: "EUR", amount: -2500, created: "2024-02-01" },
+      { categoryId: 31, accountCurrency: "EUR", amount: 500, created: "2024-02-01" },
+    ] }, isLoading: false, isError: false });
+    const { container, rerender } = render(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-expense-total"]')).toHaveTextContent("USD 750");
+    expect(container.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 2000");
+    linkedState.rates.range = { items: [], requestKey: "2:2024-02-01:2024-02-29", completedKey: "2:2024-02-01:2024-02-29", loading: false, error: null };
+    rerender(<Dashboard />);
+    expect(container.querySelector('[data-qa="visual-expense-total"]')).toHaveTextContent("USD 750");
+    expect(container.querySelector('[data-qa="visual-income-total"]')).toHaveTextContent("USD 2000");
+    expect(container.querySelector('[data-qa="visual-flow-result"]')).toHaveTextContent("dashboard.visual.resultPositive:$1,250");
+    expect(container.querySelector('[data-qa="visual-internal-transfers"]')).toHaveTextContent("dashboard.visual.ratesMissing");
+  });
 });

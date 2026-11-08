@@ -8,6 +8,11 @@ import { dashboardFractionDigits, displayedDashboardAmount, formatDashboardMoney
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
 describe("dashboard monetary presentation", () => {
+    it.each([[12.34, "+12.34"], [-12.34, "-12.34"], [0, "0.00"]])("keeps explicit transfer direction for %s", (value, visible) => {
+        render(<Num value={Number(value)} currency="USD" locale="en" kind="transfer" signage="signed" />);
+        expect(screen.getByRole("text")).toHaveTextContent(String(visible));
+        expect(screen.getByRole("text").querySelector('[aria-hidden="true"]')).toHaveStyle({ color: "var(--transfer-fg)" });
+    });
     it.each([
         [12458.37, 12458], [12458.68, 12459], [-12458.5, -12459],
         [0, 0], [0.42, 0.42], [-0.42, -0.42], [0.995, 1],

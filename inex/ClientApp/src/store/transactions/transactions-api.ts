@@ -64,11 +64,20 @@ export interface TransactionCashFlowBucket {
   recordCount: number;
 }
 
+export interface TransactionInternalTransferBucket {
+  date: string;
+  currency: string;
+  amountReceived: number;
+  amountSent: number;
+  recordCount: number;
+}
+
 export interface TransactionSummaryScope {
   totalCount: number;
   typeCounts: TransactionTypeCounts;
   period: TransactionSummaryPeriod | null;
   cashFlowBuckets: TransactionCashFlowBucket[];
+  internalTransferBuckets?: TransactionInternalTransferBucket[];
 }
 
 export interface TransactionSummaryResult {

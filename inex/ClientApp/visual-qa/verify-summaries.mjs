@@ -10,6 +10,17 @@ const defaultMaxAgeHours = 24;
 
 const canonicalSummaries = [
   {
+    folder: "personal-dashboard-transfers",
+    page: "personal-dashboard-transfers",
+    routes: ["/dashboard", "/dashboard?month=2026-03&keep=1"],
+    screenshots: [
+      "both-1440.png", "both-1024.png", "both-390.png", "both-360.png",
+      "incoming-390.png", "outgoing-390.png", "balanced-390.png", "fractional-390.png", "empty-390.png",
+      "transfer-only-390.png", "missing-rate-390.png", "russian-360.png", "long-amounts-360.png",
+      "linked-390.png", "historical-390.png", "flow-russian-360.png", "flow-1440.png",
+    ],
+  },
+  {
     folder: "family-dashboard",
     page: "family-dashboard",
     routes: ["/dashboard"],

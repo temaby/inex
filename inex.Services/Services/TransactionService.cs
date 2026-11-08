@@ -483,9 +483,24 @@ public class TransactionService : InExService, ITransactionService
             Period = startDate is not null && endDate is not null
                 ? new TransactionSummaryPeriod { StartDate = startDate.Value, EndDate = endDate.Value }
                 : null,
-            CashFlowBuckets = cashFlowBuckets
+            CashFlowBuckets = cashFlowBuckets,
+            InternalTransferBuckets = QueryInternalTransferBuckets(items).ToList()
         };
     }
+
+    internal static IQueryable<TransactionInternalTransferBucket> QueryInternalTransferBuckets(IQueryable<Transaction> items) => items
+        .Where(item => item.Category.IsSystem && item.Category.SystemCode == "internal-transfer")
+        .GroupBy(item => new { Date = item.Created.Date, Currency = item.Account.Currency.Key })
+        .Select(group => new TransactionInternalTransferBucket
+        {
+            Date = group.Key.Date,
+            Currency = group.Key.Currency,
+            AmountReceived = group.Sum(item => item.Value > 0 ? item.Value : 0),
+            AmountSent = group.Sum(item => item.Value < 0 ? -item.Value : 0),
+            RecordCount = group.Count()
+        })
+        .OrderBy(bucket => bucket.Date)
+        .ThenBy(bucket => bucket.Currency);
 
     private static TransactionTypeCounts BuildTypeCounts(IQueryable<Transaction> items) => new()
     {

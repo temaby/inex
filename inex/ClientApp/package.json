@@ -54,6 +54,7 @@
     "visual-qa:dashboard": "node visual-qa/dashboard.mjs",
     "visual-qa:family-dashboard": "node visual-qa/family-dashboard.mjs",
     "visual-qa:visual-dashboard": "node visual-qa/visual-dashboard.mjs",
+    "visual-qa:personal-transfers": "node visual-qa/personal-dashboard-transfers.mjs",
     "visual-qa:hero-consistency": "node visual-qa/hero-consistency.mjs",
     "visual-qa:profile": "node visual-qa/profile.mjs",
     "visual-qa:reports": "node visual-qa/reports.mjs",

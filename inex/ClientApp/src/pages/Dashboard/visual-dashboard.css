@@ -151,6 +151,16 @@
 .visual-dashboard-card .visual-dashboard-income__empty p { margin: 0; }
 .visual-dashboard-flow { grid-column: 1 / -1; }
 .visual-dashboard-flow__layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+.visual-dashboard-transfers { border-top: 1px solid var(--border-1); margin-top: 4px; padding-top: 12px; min-width: 0; }
+.visual-dashboard-transfers__header { align-items: center; display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; }
+.visual-dashboard-transfers h3 { align-items: center; color: var(--transfer-fg); display: flex; font-size: 14px; font-weight: 600; gap: 7px; margin: 0; }
+.visual-dashboard-transfers h3 svg { flex-shrink: 0; }
+.visual-dashboard-transfers__totals { display: grid; gap: 8px 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 8px 0 0; }
+.visual-dashboard-transfers__totals > div { min-width: 0; }
+.visual-dashboard-transfers__totals dt { color: var(--fg-3); font-size: 12px; }
+.visual-dashboard-transfers__totals dd { font-size: 14px; margin: 3px 0 0; }
+.visual-dashboard-transfers__totals [aria-hidden="true"] { white-space: normal !important; flex-wrap: wrap; overflow-wrap: anywhere; }
+.visual-dashboard-transfers__unavailable { align-items: center; color: var(--fg-3); display: flex; flex-wrap: wrap; font-size: 13px; gap: 4px 10px; }
 .visual-dashboard-flow__bars { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .visual-dashboard-flow__row { align-items: center; background: none; border: 0; color: var(--fg-1); cursor: pointer; display: grid; font-family: inherit; gap: 10px; grid-template-columns: minmax(0, 1fr) auto; min-width: 0; padding: 0; text-align: left; }
 .visual-dashboard-flow__label { display: inline-flex; align-items: center; gap: 7px; font-size: var(--fs-16); }
@@ -219,6 +229,9 @@
 }
 
 @media (max-width: 600px) {
+  .visual-dashboard-transfers__totals { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .visual-dashboard-transfers__totals > div { align-items: baseline; display: flex; gap: 8px; justify-content: space-between; }
+  .visual-dashboard-transfers__totals dd { text-align: right; min-width: 0; }
   .visual-dashboard-right-column { display: flex; align-items: stretch; }
   .visual-dashboard-right-column > .visual-dashboard-card { padding: 20px; }
   .visual-dashboard-card { padding: 20px; border-radius: 20px; gap: 20px; }

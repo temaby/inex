@@ -11,6 +11,7 @@ import { visualQaConfig as profile } from "./profile.mjs";
 import { visualQaConfig as reports } from "./reports.mjs";
 import { visualQaConfig as transactions } from "./transactions.mjs";
 import { visualQaConfig as visualDashboard } from "./visual-dashboard.mjs";
+import { visualQaConfig as personalTransfers } from "./personal-dashboard-transfers.mjs";
 
 const configs = [
   accounts,
@@ -24,6 +25,7 @@ const configs = [
   reports,
   transactions,
   visualDashboard,
+  personalTransfers,
 ];
 
 const environment = await createVisualQaEnvironment({
