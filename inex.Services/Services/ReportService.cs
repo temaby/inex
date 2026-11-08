@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace inex.Services.Services;
 
-public class ReportService : Service, IReportService
+public partial class ReportService : Service, IReportService
 {
     private const int MaxNetWorthRateCarryForwardDays = 7;
 

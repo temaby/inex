@@ -12,6 +12,7 @@ import { inexTheme } from "./styles/antd-theme";
 import { restoreSession } from './store/auth/auth-actions';
 import { fetchRatesForDate } from './store/rates/rates-action';
 import { fetchLinkedAccountContext } from "./store/linkedAccount/linked-account-actions";
+import { linkedAccountActions } from "./store/linkedAccount/linked-account-slice";
 
 import "antd/dist/reset.css";
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
@@ -45,8 +46,10 @@ const App = () => {
     const accessToken = useAppSelector(s => s.auth.accessToken);
     const userId = useAppSelector(s => s.auth.user?.id);
     const selectedLinkedUserId = useAppSelector(s => s.linkedAccount.selectedLinkedUserId);
+    const familySelected = useAppSelector(s => s.linkedAccount.dashboardFamilySelected);
     const { i18n } = useTranslation();
     const location = useLocation();
+    const isDashboardRoute = location.pathname.replace(/\/+$/, "") === "/dashboard";
     const antdLocale = i18n.language === "ru" ? ruRU : enUS;
 
     useEffect(() => {
@@ -54,6 +57,12 @@ const App = () => {
     }, [i18n.language]);
 
     const date: Date = useMemo(() => new Date(), []);
+
+    useEffect(() => {
+        if (familySelected && !isDashboardRoute) {
+            dispatch(linkedAccountActions.selectLinkedUser(null));
+        }
+    }, [dispatch, familySelected, isDashboardRoute]);
 
     /**
      * On every page load, attempt to restore the session from the httpOnly
@@ -72,11 +81,12 @@ const App = () => {
      * the same tab, the data is re-fetched automatically.
      */
     useEffect(() => {
-        if (!accessToken || location.pathname === "/transactions") return;
+        if (!accessToken || location.pathname === "/transactions"
+            || (familySelected && isDashboardRoute)) return;
         const currentPage = location.pathname.slice(1).split("/", 1)[0];
         const supportsLinkedContext = currentPage === "accounts" || currentPage === "categories";
         dispatch(fetchRatesForDate(date, supportsLinkedContext ? selectedLinkedUserId : null));
-    }, [accessToken, date, dispatch, location.pathname, selectedLinkedUserId]);
+    }, [accessToken, date, dispatch, familySelected, isDashboardRoute, location.pathname, selectedLinkedUserId]);
 
     useEffect(() => {
         if (!accessToken || !userId) return;

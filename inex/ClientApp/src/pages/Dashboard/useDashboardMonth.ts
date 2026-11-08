@@ -12,9 +12,10 @@ export const parseDashboardMonth = (value: string | null, currentMonth: string):
     return isSupportedDashboardMonth(month) && month.format("YYYY-MM") === value && value < currentMonth ? value : null;
 };
 
-export const useDashboardMonth = (enabled: boolean) => {
+export const useDashboardMonth = (enabled: boolean, utcCalendar = false) => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [currentMonth, setCurrentMonth] = useState(() => dayjs().format("YYYY-MM"));
+    const readCurrentMonth = () => utcCalendar ? new Date().toISOString().slice(0, 7) : dayjs().format("YYYY-MM");
+    const [currentMonth, setCurrentMonth] = useState(readCurrentMonth);
     const requestedMonth = searchParams.get("month");
     const historicalMonth = enabled ? parseDashboardMonth(requestedMonth, currentMonth) : null;
     const selectedMonth = historicalMonth ?? currentMonth;
@@ -22,15 +23,19 @@ export const useDashboardMonth = (enabled: boolean) => {
     useEffect(() => {
         let timeoutId: number;
         const schedule = () => {
-            const delay = Math.min(Math.max(dayjs().add(1, "month").startOf("month").diff(dayjs()) + 1000, 1000), 86400000);
+            const now = new Date();
+            const untilNextMonth = utcCalendar
+                ? Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1) - now.getTime()
+                : dayjs().add(1, "month").startOf("month").diff(dayjs());
+            const delay = Math.min(Math.max(untilNextMonth + 1000, 1000), 86400000);
             timeoutId = window.setTimeout(() => {
-                setCurrentMonth(dayjs().format("YYYY-MM"));
+                setCurrentMonth(utcCalendar ? new Date().toISOString().slice(0, 7) : dayjs().format("YYYY-MM"));
                 schedule();
             }, delay);
         };
         schedule();
         return () => window.clearTimeout(timeoutId);
-    }, []);
+    }, [utcCalendar]);
 
     // Canonical current mode keeps following calendar rollover, including an explicit current URL.
     useEffect(() => {

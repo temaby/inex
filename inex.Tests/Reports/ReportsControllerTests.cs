@@ -18,6 +18,87 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Family_AnonymousRequestReturns401()
+    {
+        var response = await _factory.CreateClient().GetAsync("/api/reports/family");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("year=1&month=5")]
+    [InlineData("year=9999&month=5")]
+    [InlineData("year=2026&month=0")]
+    [InlineData("year=2026&month=13")]
+    public async Task Family_InvalidPeriodReturnsValidationProblem(string period)
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var response = await client.GetAsync($"/api/reports/family?{period}");
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Family_DerivesParticipantsAndIgnoresClientOwnershipFields()
+    {
+        var master = await CreateAuthenticatedClientAsync();
+        var linked = await CreateAuthenticatedClientAsync();
+        var unrelated = await CreateAuthenticatedClientAsync();
+        int masterId = await GetCurrentUserIdAsync(master);
+        int linkedId = await GetCurrentUserIdAsync(linked);
+        int unrelatedId = await GetCurrentUserIdAsync(unrelated);
+        await AddLinkAsync(masterId, linkedId, UserAccountLinkStatus.Active);
+        int masterAccount = await CreateAccountAsync(master, "family-master");
+        int linkedAccount = await CreateAccountAsync(linked, "family-linked");
+        int unrelatedAccount = await CreateAccountAsync(unrelated, "family-unrelated");
+        int masterCategory = await CreateCategoryAsync(master, "family-food");
+        int linkedCategory = await CreateCategoryAsync(linked, "family-food");
+        int unrelatedCategory = await CreateCategoryAsync(unrelated, "family-secret");
+        DateTime today = DateTime.UtcNow.Date;
+        DateTime historicalDate = today.AddMonths(-1);
+        await CreateTransactionAsync(master, masterAccount, masterCategory, historicalDate, 100m);
+        await CreateTransactionAsync(master, masterAccount, masterCategory, today, 20m);
+        await CreateTransactionAsync(linked, linkedAccount, linkedCategory, historicalDate, -25m);
+        await CreateTransactionAsync(unrelated, unrelatedAccount, unrelatedCategory, historicalDate, 999m);
+
+        var response = await master.GetAsync($"/api/reports/family?year={historicalDate.Year}&month={historicalDate.Month}&linkedUserId={unrelatedId}&linkedUserIds={unrelatedId}&userId={unrelatedId}&currency=EUR");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("USD", body.GetProperty("currency").GetString());
+        var totals = body.GetProperty("totals");
+        Assert.Equal(100m, totals.GetProperty("income").GetDecimal());
+        Assert.Equal(25m, totals.GetProperty("expenses").GetDecimal());
+        Assert.Equal(75m, totals.GetProperty("surplus").GetDecimal());
+        Assert.Equal(95m, totals.GetProperty("balance").GetDecimal());
+        Assert.True(totals.GetProperty("balanceComplete").GetBoolean());
+        var participants = body.GetProperty("participants").EnumerateArray().ToArray();
+        Assert.Equal(new[] { masterId, linkedId }.Order(), participants.Select(item => item.GetProperty("userId").GetInt32()).Order());
+        Assert.Equal(linkedId, Assert.Single(body.GetProperty("expenseCategories").EnumerateArray()).GetProperty("userId").GetInt32());
+        Assert.Empty(body.GetProperty("missingRates").EnumerateArray());
+        await AssertGenericNotFound(await linked.GetAsync("/api/reports/family"));
+        await AssertGenericNotFound(await unrelated.GetAsync("/api/reports/family"));
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+        var link = await db.UserAccountLinks.SingleAsync(item => item.MasterUserId == masterId && item.LinkedUserId == linkedId);
+        link.Status = UserAccountLinkStatus.Revoked;
+        await db.SaveChangesAsync();
+        await AssertGenericNotFound(await master.GetAsync("/api/reports/family"));
+    }
+
+    [Theory]
+    [InlineData(UserAccountLinkStatus.Pending)]
+    [InlineData(UserAccountLinkStatus.Rejected)]
+    [InlineData(UserAccountLinkStatus.Revoked)]
+    public async Task Family_NonActiveLinkDoesNotGrantAccess(UserAccountLinkStatus status)
+    {
+        var master = await CreateAuthenticatedClientAsync();
+        var linked = await CreateAuthenticatedClientAsync();
+        await AddLinkAsync(await GetCurrentUserIdAsync(master), await GetCurrentUserIdAsync(linked), status);
+        await AssertGenericNotFound(await master.GetAsync("/api/reports/family"));
+    }
+
+    [Fact]
     public async Task CategoryReport_AuthenticatedRequestReturnsInternalTransferSummaryOutsideOrdinaryTotals()
     {
         var client = await CreateAuthenticatedClientAsync();
@@ -286,6 +367,14 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    private static async Task AssertGenericNotFound(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(404, body.GetProperty("status").GetInt32());
     }
 
     private Task<HttpClient> CreateAuthenticatedClientAsync() =>

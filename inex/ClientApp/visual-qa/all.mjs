@@ -5,6 +5,7 @@ import { visualQaConfig as auth } from "./auth.mjs";
 import { visualQaConfig as budgets } from "./budgets.mjs";
 import { visualQaConfig as categories } from "./categories.mjs";
 import { visualQaConfig as dashboard } from "./dashboard.mjs";
+import { visualQaConfig as familyDashboard } from "./family-dashboard.mjs";
 import { visualQaConfig as heroConsistency } from "./hero-consistency.mjs";
 import { visualQaConfig as profile } from "./profile.mjs";
 import { visualQaConfig as reports } from "./reports.mjs";
@@ -17,6 +18,7 @@ const configs = [
   budgets,
   categories,
   dashboard,
+  familyDashboard,
   heroConsistency,
   profile,
   reports,

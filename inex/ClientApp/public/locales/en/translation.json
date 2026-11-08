@@ -301,6 +301,26 @@
       "accountsEmpty": "Add accounts to favorites to see their balances here.",
       "totalBalance": "Total balance in {{currency}}",
       "ratesMissing": "Exchange rates are missing for: {{currencies}}."
+    },
+    "family": {
+      "option": "Family",
+      "title": "Family overview",
+      "readOnly": "Combined family statistics · Read-only",
+      "loading": "Loading family statistics…",
+      "error": "Could not load family statistics.",
+      "refresh": "Refresh statistics",
+      "unavailable": "Unavailable",
+      "currency": "Reporting currency: {{currency}}",
+      "balance": "Money in accounts",
+      "balanceScope": "Now · All active accounts · {{date}}",
+      "cashFlow": "Income and expenses",
+      "income": "Income",
+      "expenses": "Expenses",
+      "surplus": "Income minus expenses",
+      "participants": "By family member",
+      "master": "Master account",
+      "categoryScope": "Categories stay separate for each family member.",
+      "transferNote": "Internal transfers are excluded from income and expenses. Balances reflect posted transactions; a transfer awaiting acceptance may appear on only one side."
     }
   },
   "transactions": {

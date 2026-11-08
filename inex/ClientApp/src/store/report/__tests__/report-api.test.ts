@@ -84,6 +84,23 @@ describe("reportApi", () => {
     mockApiClient.mockReset();
   });
 
+  it("requests family statistics with server-derived membership and isolates session/month caches", async () => {
+    const store = createTestStore();
+    mockApiClient.mockResolvedValue(axiosResponse({ currency: "USD", participants: [] }));
+    const first = { year: 2026, month: 11, sessionUserId: 1, membershipKey: "2,3" };
+    const subscription = store.dispatch(reportApi.endpoints.getFamilyStatistics.initiate(first));
+    await subscription;
+    expect(mockApiClient).toHaveBeenCalledWith({
+      url: "/reports/family", method: "get", data: undefined,
+      params: { year: 2026, month: 11 }, signal: expect.any(AbortSignal),
+    });
+    expect(reportApi.endpoints.getFamilyStatistics.select({ ...first, sessionUserId: 4 })(store.getState()).data).toBeUndefined();
+    expect(reportApi.endpoints.getFamilyStatistics.select({ ...first, month: 10 })(store.getState()).data).toBeUndefined();
+    expect(reportApi.endpoints.getFamilyStatistics.select({ ...first, membershipKey: "2" })(store.getState()).data).toBeUndefined();
+    subscription.unsubscribe();
+    store.dispatch(reportApi.util.resetApiState());
+  });
+
   it("getCategoryReport: typed date-range args select cache while request uses legacy filter DSL", async () => {
     const store = createTestStore();
     mockApiClient.mockResolvedValue(axiosResponse(categoryReport));

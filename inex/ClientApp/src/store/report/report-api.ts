@@ -2,6 +2,14 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 
 import { ReportCategoryDetails } from "../../model/Report/ReportCategoryDetails";
 import axiosBaseQuery from "../axiosBaseQuery";
+import type { FamilyStatistics } from "../../model/Report/FamilyStatistics";
+
+export interface FamilyStatisticsParams {
+  year: number;
+  month: number;
+  sessionUserId: number;
+  membershipKey: string;
+}
 
 export interface CategoryReportParams {
   startDate: string;
@@ -49,6 +57,10 @@ export const reportApi = createApi({
   baseQuery: axiosBaseQuery,
   tagTypes: ["CategoryReport", "HistoryReport"],
   endpoints: (builder) => ({
+    getFamilyStatistics: builder.query<FamilyStatistics, FamilyStatisticsParams>({
+      query: ({ year, month }) => ({ url: "/reports/family", params: { year, month } }),
+      keepUnusedDataFor: 0,
+    }),
     getCategoryReport: builder.query<CategoryReportResponse, CategoryReportParams>({
       query: ({ startDate, endDate, currency, linkedUserId }) => ({
         url: `/reports/category?filter=Start:${startDate};End:${endDate};`,
@@ -70,4 +82,4 @@ export const reportApi = createApi({
   }),
 });
 
-export const { useGetCategoryReportQuery, useGetHistoryReportQuery } = reportApi;
+export const { useGetCategoryReportQuery, useGetHistoryReportQuery, useGetFamilyStatisticsQuery } = reportApi;

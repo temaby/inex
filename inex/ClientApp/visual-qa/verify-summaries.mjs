@@ -10,6 +10,18 @@ const defaultMaxAgeHours = 24;
 
 const canonicalSummaries = [
   {
+    folder: "family-dashboard",
+    page: "family-dashboard",
+    routes: ["/dashboard"],
+    screenshots: [
+      "populated-1440.png", "populated-1024.png", "populated-390.png", "populated-360.png",
+      "classic-1440.png", "russian-360.png", "historical-390.png", "empty-390.png",
+      "west-1440.png", "month-boundary-390.png", "trailing-slash-390.png",
+      "balance-missing-390.png", "flow-missing-390.png", "error-390.png", "loading-390.png",
+      "self-390.png", "individual-390.png", "route-reset-390.png", "revoked-390.png",
+    ],
+  },
+  {
     folder: "visual-dashboard",
     page: "visual-dashboard",
     routes: ["/dashboard"],

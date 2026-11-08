@@ -26,6 +26,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
             "linkedAccount.myData": "My data",
             "linkedAccount.selectorLabel": "Financial workspace",
             "linkedAccount.linkedOption": `${String(options?.username)} · ${String(options?.currency)}`,
+            "dashboard.family.option": "Family",
         }[key] ?? key),
     }),
 }));
@@ -148,5 +149,24 @@ describe("AppShell keyboard navigation", () => {
         renderShell(true, "/profile");
 
         expect(screen.queryByRole("combobox", { name: "Financial workspace" })).toBeNull();
+    });
+
+    it("offers Family on dashboard and returns to self when navigating away", async () => {
+        const user = userEvent.setup();
+        const { store } = renderShell(true);
+        await user.click(screen.getByRole("combobox", { name: "Financial workspace" }));
+        await user.click(await screen.findByText("Family"));
+        expect(store.getState().linkedAccount.dashboardFamilySelected).toBe(true);
+        expect(store.getState().linkedAccount.selectedLinkedUserId).toBeNull();
+        await user.click(screen.getAllByRole("button", { name: "Accounts" })[0]);
+        expect(store.getState().linkedAccount.dashboardFamilySelected).toBe(false);
+        expect(store.getState().linkedAccount.selectedLinkedUserId).toBeNull();
+    });
+
+    it("does not offer Family outside dashboard", async () => {
+        const user = userEvent.setup();
+        renderShell(true, "/accounts");
+        await user.click(screen.getByRole("combobox", { name: "Financial workspace" }));
+        expect(screen.queryByText("Family")).toBeNull();
     });
 });
