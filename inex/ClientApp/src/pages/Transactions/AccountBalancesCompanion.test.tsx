@@ -60,14 +60,14 @@ describe("AccountBalancesCompanion", () => {
             { ...accounts[0], id: 3, name: "Credit", currency: "EUR", value: -42.5 },
         ], visibleAccountCount: 3 });
         expect(screen.getByRole("region", { name: "Favorite accounts" })).toBeInTheDocument();
-        expect(screen.getByText("3 accounts")).toBeVisible();
+        expect(screen.getByLabelText("3 accounts")).toHaveTextContent("3");
         expect(screen.getByRole("text", { name: "Amount: 0.00 PLN" })).toBeVisible();
         expect(screen.getByRole("text", { name: "Amount: 100.00 USD" })).toBeVisible();
         expect(screen.getByRole("text", { name: "Amount: -42.50 EUR" })).toBeVisible();
         expect(screen.getByText("Total in favorites")).toBeVisible();
         expect(screen.getByRole("text", { name: "Amount: 0.00 USD" })).toBeVisible();
         expect(screen.getByRole("list").nextElementSibling).toHaveTextContent("Total in favorites");
-        expect(screen.getByText("0.00 PLN").closest(".transactions-account-balances__amount--zero")).toBeInTheDocument();
+        expect(screen.getByRole("text", { name: "Amount: 0.00 PLN" }).closest(".transactions-account-balances__amount--zero")).toBeInTheDocument();
     });
 
     it("keeps account selection controlled and uses the same callback for pointer and keyboard", async () => {
@@ -111,7 +111,7 @@ describe("AccountBalancesCompanion", () => {
     it("offers pinning from an unpinned drawer and shows its count", async () => {
         const user = userEvent.setup();
         const { props } = renderCompanion({ variant: "drawer" });
-        expect(screen.getByText("1 account")).toBeVisible();
+        expect(screen.getByLabelText("1 account")).toHaveTextContent("1");
         expect(screen.queryByRole("button", { name: "Collapse" })).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Favorite accounts actions" }));
         await user.click(await screen.findByRole("menuitem", { name: "Pin panel" }));
@@ -177,7 +177,7 @@ describe("AccountBalancesCompanion", () => {
         await translations.changeLanguage("ru");
         renderCompanion({ visibleAccountCount: Number(count) });
         expect(screen.getByRole("region", { name: "Избранные счета" })).toBeVisible();
-        expect(screen.getByText(label)).toBeVisible();
+        expect(screen.getByLabelText(label)).toHaveTextContent(String(count));
         expect(screen.getByText("Всего на избранных")).toBeVisible();
         expect(screen.getByRole("link", { name: "Все счета" })).toHaveAttribute("href", "/accounts");
     });

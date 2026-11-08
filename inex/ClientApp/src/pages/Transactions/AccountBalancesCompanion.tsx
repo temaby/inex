@@ -53,6 +53,11 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
     const contentId = `transactions-account-balances-content-${variant}`;
     const canCollapse = variant === "inline";
     const showHeading = variant !== "drawer";
+    const countBadge = (
+        <span aria-label={t("transactions.accountBalancesSummary", { count: visibleAccountCount })} className="transactions-account-balances__count" role="note">
+            {visibleAccountCount.toLocaleString(i18n?.language)}
+        </span>
+    );
     const actionsMenu = (
         <Dropdown
             autoFocus
@@ -109,7 +114,7 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                 <div className="transactions-account-balances__header">
                     <div className="transactions-account-balances__heading">
                         <h2 id={headingId}>{t("transactions.accountBalances")}</h2>
-                        <span>{t("transactions.accountBalancesSummary", { count: visibleAccountCount })}</span>
+                        {countBadge}
                     </div>
                     <div className="transactions-account-balances__actions">
                         {canCollapse && (
@@ -120,7 +125,7 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                         {actionsMenu}
                     </div>
                 </div>
-            ) : <div className="transactions-account-balances__drawer-actions"><span>{t("transactions.accountBalancesSummary", { count: visibleAccountCount })}</span>{actionsMenu}</div>}
+            ) : <div className="transactions-account-balances__drawer-actions">{countBadge}{actionsMenu}</div>}
             {isExpanded && (
                 <div id={contentId}>
                     {isLoading ? (
@@ -147,7 +152,7 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                                                 <span className="transactions-account-balances__name">{account.name}</span>
                                             </span>
                                             <span className={`transactions-account-balances__amount${account.value === 0 ? " transactions-account-balances__amount--zero" : ""}`}>
-                                                <Num currency={account.currency} kind="neutral" locale={i18n?.language} signage="negative-only" value={account.value} />
+                                                <Num currency={account.currency} currencySize="sm" kind="neutral" locale={i18n?.language} signage="negative-only" value={account.value} />
                                             </span>
                                         </button>
                                     </li>
@@ -158,7 +163,7 @@ const AccountBalancesCompanion: React.FC<AccountBalancesCompanionProps> = ({
                                 {isConversionLoading ? (
                                     <span role="status">{t("transactions.accountBalancesConversionLoading")}</span>
                                 ) : conversion.isComplete ? (
-                                    <span className="transactions-account-balances__amount"><Num currency={baseCurrency} kind="neutral" locale={i18n?.language} signage="negative-only" value={conversion.value} /></span>
+                                    <span className="transactions-account-balances__amount"><Num currency={baseCurrency} currencySize="sm" kind="neutral" locale={i18n?.language} signage="negative-only" value={conversion.value} /></span>
                                 ) : (
                                     <span aria-label={t("transactions.accountBalancesConversionUnavailable")}>{t("transactions.kpi.notAvailable")}</span>
                                 )}
