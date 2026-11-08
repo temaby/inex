@@ -141,10 +141,10 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
 
 function overviewAccounts(fixture, scenario) {
   if (scenario === "account-balances-empty") return fixture.transactionsVisualFixtureAccounts.map(account => ({ ...account, isFavourite: false }));
-  if (!scenario.startsWith("favorites-stress")) return fixture.transactionsVisualFixtureAccounts;
+  if (!scenario.startsWith("favorites-stress") && !scenario.startsWith("favorites-soft")) return fixture.transactionsVisualFixtureAccounts;
   return [
     ...fixture.transactionsVisualFixtureAccounts,
-    ...Array.from({ length: 14 }, (_, index) => ({
+    ...Array.from({ length: scenario.startsWith("favorites-soft") ? 6 : 14 }, (_, index) => ({
       ...fixture.transactionsVisualFixtureAccounts[0], id: 800 + index, key: `favorite-${index}`,
       name: index === 0 ? "Проценты с Visa UZS — семейный накопительный счёт" : `Favorite account ${index + 1}`,
       currency: index === 0 ? "UZS" : "USD", isFavourite: true,
@@ -153,7 +153,7 @@ function overviewAccounts(fixture, scenario) {
 }
 
 function overviewSummaries(fixture, scenario) {
-  if (!scenario.startsWith("favorites-stress")) return fixture.transactionsVisualFixtureAccountSummaries;
+  if (!scenario.startsWith("favorites-stress") && !scenario.startsWith("favorites-soft")) return fixture.transactionsVisualFixtureAccountSummaries;
   return [
     ...fixture.transactionsVisualFixtureAccountSummaries,
     ...overviewAccounts(fixture, scenario).filter(account => account.id >= 800).map((account, index) => ({
@@ -163,6 +163,9 @@ function overviewSummaries(fixture, scenario) {
 }
 
 const states = [
+  ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `account-overview-soft-nine-${suffix}`, screenshot: `account-overview-soft-nine-${suffix}.png`, viewport, scenario: "favorites-soft", interaction: "pin-favorites-stress" })),
+  ...[1440, 360].map(width => ({ name: `account-overview-soft-nine-ru-${width}`, screenshot: `account-overview-soft-nine-ru-${width}.png`, viewport: { width, height: 1000 }, scenario: "favorites-soft-ru", interaction: "pin-favorites-stress" })),
+  ...["hover", "focus", "selected", "reduced-motion"].map(treatment => ({ name: `account-overview-soft-${treatment}`, screenshot: `account-overview-soft-${treatment}.png`, screenshotMode: treatment === "focus" ? "viewport" : "selector", screenshotSelector: ".transactions-account-balances", viewport: { width: 1440, height: 1000 }, scenario: "favorites-soft", interaction: "pin-favorites-stress", treatment })),
   ...visualQaViewports.map(({ suffix, viewport }) => ({ name: `account-overview-selected-${suffix}`, screenshot: `account-overview-selected-${suffix}.png`, viewport, scenario: "populated", interaction: "select-favorite" })),
   { name: "account-overview-stress-1440", screenshot: "account-overview-stress-1440.png", viewport: { width: 1440, height: 800 }, scenario: "favorites-stress", interaction: "pin-favorites-stress" },
   { name: "account-overview-stress-ru-360", screenshot: "account-overview-stress-ru-360.png", viewport: { width: 360, height: 900 }, scenario: "favorites-stress-ru", interaction: "pin-favorites-stress" },
@@ -769,6 +772,34 @@ async function applyInteraction(client, state) {
         if (before !== after) throw new Error("Favorite selection changed the balance total");
         await evaluate(client, "document.querySelector('.transactions-account-balances__list button').focus()");
       }
+      if (state.treatment) {
+        await waitFor(client, "!document.querySelector('.ant-drawer-open')");
+        await wait(1000);
+        const rowSelector = ".transactions-account-balances__list li:nth-child(2) button";
+        const headingPoint = await evaluate(client, "(() => { const rect = document.querySelector('.transactions-account-balances__heading').getBoundingClientRect(); return { x: rect.left + 4, y: rect.top + 4 }; })()");
+        await client.send("Input.dispatchMouseEvent", { type: "mousePressed", button: "left", clickCount: 1, ...headingPoint });
+        await client.send("Input.dispatchMouseEvent", { type: "mouseReleased", button: "left", clickCount: 1, ...headingPoint });
+        if (state.treatment === "selected") {
+          await evaluate(client, `document.querySelector('${rowSelector}').click()`);
+          await waitFor(client, `document.querySelector('${rowSelector}').getAttribute('aria-pressed') === 'true'`);
+        }
+        if (state.treatment === "focus") {
+          await evaluate(client, `document.querySelector('${rowSelector}').focus()`);
+          await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+          await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+          await waitFor(client, "Boolean(document.querySelector('.transactions-account-balances__account:focus-visible'))");
+        }
+        if (state.treatment === "reduced-motion") {
+          await client.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+          await waitFor(client, "getComputedStyle(document.querySelector('.transactions-account-balances__account')).transitionDuration === '0s'");
+        }
+        const point = state.treatment === "hover" ? await evaluate(client, `(() => { const rect = document.querySelector('${rowSelector}').getBoundingClientRect(); return { x: rect.left + 12, y: rect.top + 12 }; })()`) : { x: 0, y: 0 };
+        if (state.treatment !== "focus") await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
+        if (state.treatment === "hover") {
+          await waitFor(client, `document.querySelector('${rowSelector}').matches(':hover') && getComputedStyle(document.querySelector('${rowSelector}')).backgroundColor !== 'rgba(0, 0, 0, 0)'`);
+          state.hoverFeedbackVisible = true;
+        }
+      }
       return;
     case "open-row-edit":
       await openRowEdit(client);
@@ -885,7 +916,7 @@ async function activateRetryButton(client) {
 }
 
 async function waitForTransactionsReady(client, state) {
-  if (state.scenario === "favorites-stress-ru") {
+  if (state.scenario.endsWith("-ru")) {
     await waitFor(client, "Boolean(document.querySelector('.transactions-ledger-row')) && document.body.innerText.includes('Избранные счета')");
     return;
   }
@@ -953,6 +984,11 @@ async function collectMetrics(client, state, apiRequestCount) {
     const accountBalanceRow = accountBalanceList?.querySelector("li");
     const accountBalanceTotalStyle = accountBalanceTotal ? window.getComputedStyle(accountBalanceTotal) : null;
     const accountBalanceRowStyle = accountBalanceRow ? window.getComputedStyle(accountBalanceRow) : null;
+    const favoriteButtons = Array.from(accountBalanceList?.querySelectorAll("button") ?? []);
+    const badge = document.querySelector(".transactions-account-balances__count");
+    const totalLabelRect = accountBalanceTotal?.firstElementChild?.getBoundingClientRect();
+    const totalAmountRect = accountBalanceTotal?.querySelector("[role=text]")?.getBoundingClientRect();
+    const focusedFavorite = document.querySelector(".transactions-account-balances__account:focus-visible");
     return {
       title: document.title,
       scrollWidth: documentElement.scrollWidth,
@@ -979,6 +1015,22 @@ async function collectMetrics(client, state, apiRequestCount) {
       accountBalancesPinned: Boolean(document.querySelector(".transactions-account-balances[data-pinned='true']")),
       favoriteCount: accountBalanceList?.querySelectorAll("li").length ?? 0,
       selectedFavoriteCount: accountBalanceList?.querySelectorAll("button[aria-pressed='true']").length ?? 0,
+      favoriteBadgeCompact: Boolean(badge && badge.textContent.trim() === String(favoriteButtons.length) && badge.getAttribute("aria-label") && badge.getBoundingClientRect().height <= 28),
+      favoriteTouchTargets: favoriteButtons.every(button => button.getBoundingClientRect().height >= 44),
+      favoriteNamesAndAmountsSeparate: favoriteButtons.every(button => {
+        const name = button.querySelector(".transactions-account-balances__account-label").getBoundingClientRect();
+        const amount = button.querySelector(".transactions-account-balances__amount").getBoundingClientRect();
+        return amount.left >= name.right - 1 || amount.top >= name.bottom - 1;
+      }),
+      favoriteSummaryStacked: Boolean(totalLabelRect && totalAmountRect && totalAmountRect.top >= totalLabelRect.bottom - 1),
+      favoriteSummaryHeight: accountBalanceTotal?.getBoundingClientRect().height ?? null,
+      favoriteFocusVisible: Boolean(focusedFavorite && (getComputedStyle(focusedFavorite).boxShadow !== "none" || getComputedStyle(focusedFavorite).outlineStyle !== "none")),
+      favoriteSelectedIndicator: favoriteButtons.filter(button => button.getAttribute("aria-pressed") === "true").every(button => {
+        const check = button.querySelector(".transactions-account-balances__selected");
+        const accent = getComputedStyle(button, "::before");
+        return check && getComputedStyle(check).display !== "none" && accent.content !== "none" && parseFloat(accent.width) > 0 && accent.backgroundColor !== "rgba(0, 0, 0, 0)";
+      }),
+      favoriteReducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches && favoriteButtons.every(button => getComputedStyle(button).transitionDuration === "0s"),
       favoriteListScrolls: Boolean(accountBalanceList && accountBalanceList.scrollHeight > accountBalanceList.clientHeight),
       favoriteRowsWithinBounds: Array.from(accountBalanceList?.querySelectorAll("button") ?? []).every(button => {
         const rect = button.getBoundingClientRect();
@@ -1059,6 +1111,8 @@ async function collectMetrics(client, state, apiRequestCount) {
     viewport: state.viewport,
     scenario: state.scenario,
     interaction: state.interaction ?? null,
+    treatment: state.treatment ?? null,
+    favoriteHoverVisible: state.hoverFeedbackVisible ?? false,
     ...metrics,
   };
 }
@@ -1211,6 +1265,16 @@ export const visualQaConfig = {
 
     for (const state of stateResults.filter((item) => item.name.startsWith("account-overview-"))) {
       if (!state.favoriteRowsWithinBounds) failures.push(`${state.name}: favorite row content overflows`);
+      if (!state.favoriteNamesAndAmountsSeparate) failures.push(`${state.name}: favorite names and balances overlap`);
+      if (!state.favoriteTouchTargets) failures.push(`${state.name}: favorite row touch target is under 44px`);
+      if (!state.favoriteSelectedIndicator) failures.push(`${state.name}: selected favorite lacks a persistent non-color indicator`);
+      if (state.favoriteCount > 0 && !state.favoriteBadgeCompact) failures.push(`${state.name}: favorite count is not a compact accessible badge`);
+      if (state.accountBalancesTotalVisible && !state.favoriteSummaryStacked && state.scenario !== "missing-rate") failures.push(`${state.name}: total label is not above the amount`);
+      if (state.scenario.startsWith("favorites-soft") && (state.favoriteCount !== 9 || state.favoriteSummaryHeight < 70 || state.favoriteSummaryHeight > 80)) failures.push(`${state.name}: nine-account compact summary geometry changed`);
+      if (state.treatment === "hover" && !state.favoriteHoverVisible) failures.push(`${state.name}: hover feedback is missing`);
+      if (state.treatment === "focus" && !state.favoriteFocusVisible) failures.push(`${state.name}: keyboard focus feedback is missing`);
+      if (state.treatment === "selected" && state.selectedFavoriteCount !== 1) failures.push(`${state.name}: selected visual state is missing`);
+      if (state.treatment === "reduced-motion" && !state.favoriteReducedMotion) failures.push(`${state.name}: reduced motion is not respected`);
       if (state.interaction === "select-favorite" && (state.selectedFavoriteCount !== 1 || state.favoriteCount !== 3)) failures.push(`${state.name}: favorite selection or collection changed unexpectedly`);
       if (state.favoriteListScrolls) failures.push(`${state.name}: favorite list has internal scrolling`);
       if (state.scenario.startsWith("favorites-stress") && state.favoriteCount !== 17) failures.push(`${state.name}: long favorite list is missing accounts`);
