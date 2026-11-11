@@ -48,6 +48,29 @@ const states = [
     routePath: report === "hub" ? "/reports" : report === "history" ? "/reports/history?year=2026" : `/reports/${report}?interval=2026-04`,
   })),
   ...[
+    [320, undefined],
+    [430, "cash-flow-touch"],
+    [768, undefined],
+    [1280, "cash-flow-hover"],
+  ].map(([width, interaction]) => ({
+    name: `history-chart-${width}`,
+    screenshot: `history-chart-${width}.png`,
+    viewport: { width, height: interaction === "cash-flow-touch" ? 700 : defaultViewportHeight },
+    scenario: "populated",
+    routePath: "/reports/history?year=2026",
+    interaction,
+  })),
+  ...[
+    ["history-skewed", 320],
+    ["history-sub-cent", 390],
+  ].map(([scenario, width]) => ({
+    name: `${scenario}-${width}`,
+    screenshot: `${scenario}-${width}.png`,
+    viewport: { width, height: defaultViewportHeight },
+    scenario,
+    routePath: "/reports/history?year=2026",
+  })),
+  ...[
     ["hub", "/reports"],
     ["category", "/reports/category?interval=2026-04"],
     ["budget", "/reports/budget?interval=2026-04"],
@@ -219,7 +242,23 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         } : fixture.reportsVisualFixtureBudgetReport);
       }
       if (url.pathname.startsWith("/api/reports/history/") && method === "GET") {
-        return jsonResponse(fixture.reportsVisualFixtureHistoryReport);
+        const report = fixture.reportsVisualFixtureHistoryReport;
+        if (scenario === "history-skewed" || scenario === "history-sub-cent") {
+          const amounts = scenario === "history-skewed" ? [
+            { income: 1000, expense: 0, savings: 1000 },
+            { income: 50, expense: -55, savings: -5 },
+            { income: 7.216494845360825, expense: 0, savings: 7.216494845360825 },
+          ] : [
+            { income: 0.003, expense: -0.004, savings: -0.001 },
+          ];
+          return jsonResponse({
+            data: report.data.map((month, index) => ({
+              ...month,
+              ...(amounts[index] ?? { income: 0, expense: 0, savings: 0 }),
+            })),
+          });
+        }
+        return jsonResponse(report);
       }
       if (url.pathname === "/api/reports/monthly-pdf" && method === "GET") {
         return jsonResponse({ generated: true });
@@ -230,6 +269,59 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "cash-flow-hover") {
+    const point = await evaluate(client, `(() => {
+      const mark = document.querySelectorAll('.cash-flow-chart__values > g')[3].querySelector('text');
+      const bounds = mark.getBoundingClientRect();
+      return { x: Math.round(bounds.x + bounds.width / 2), y: Math.round(bounds.y + 30) };
+    })()`);
+    await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
+    await waitFor(client, "document.querySelector('.cash-flow-chart__detail')?.textContent.includes('1,094.75')");
+    await client.send("Input.dispatchMouseEvent", { type: "mousePressed", ...point, button: "left", clickCount: 1 });
+    await client.send("Input.dispatchMouseEvent", { type: "mouseReleased", ...point, button: "left", clickCount: 1 });
+    await waitFor(client, "location.pathname.endsWith('/reports/category') && location.search === '?interval=2026-04'");
+    await evaluate(client, "history.back()");
+    await waitFor(client, "document.querySelectorAll('.cash-flow-chart__values text').length === 36");
+    return;
+  }
+
+  if (state.interaction === "cash-flow-touch") {
+    await client.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+    await evaluate(client, "document.querySelector('.cash-flow-actions__more').click()");
+    await waitFor(client, "Array.from(document.querySelectorAll('[role=menuitem]')).map((item) => item.textContent).join(',') === 'Share,Export,Print'");
+    await evaluate(client, "document.querySelector('.cash-flow-actions__more').click()");
+    await evaluate(client, "document.querySelector('.cash-flow-chart__scroll').scrollIntoView({ block: 'center' })");
+    const point = await evaluate(client, `(() => {
+      const viewport = document.querySelector('.cash-flow-chart__scroll').getBoundingClientRect();
+      return { x: Math.round(viewport.right - 35), y: Math.round(viewport.top + 110) };
+    })()`);
+    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+    for (const distance of [35, 90, 155, 230]) {
+      await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...point, x: point.x - distance }] });
+      await wait(35);
+    }
+    await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await waitFor(client, "document.querySelector('.cash-flow-chart__scroll').scrollLeft > 80");
+    if (await evaluate(client, "Boolean(document.querySelector('.cash-flow-chart__detail'))")) {
+      throw new Error("A chart swipe opened month details");
+    }
+
+    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+    await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await waitFor(client, "Boolean(document.querySelector('.cash-flow-chart__detail a[href*=\"/reports/category?interval=2026-\"]'))");
+    await waitFor(client, `(() => {
+      const detail = document.querySelector('.cash-flow-chart__detail')?.getBoundingClientRect();
+      const bottomNav = document.querySelector('.r-bottom-nav')?.getBoundingClientRect();
+      return detail?.top >= 0 && detail.bottom <= bottomNav.top;
+    })()`);
+
+    await evaluate(client, "document.querySelectorAll('.cash-flow-chart__legend button')[1].click()");
+    await waitFor(client, "document.querySelectorAll('.cash-flow-chart__values text').length === 24");
+    await evaluate(client, "document.querySelectorAll('.cash-flow-chart__legend button')[1].click()");
+    await waitFor(client, "document.querySelectorAll('.cash-flow-chart__values text').length === 36");
+    return;
+  }
+
   if (state.interaction === "select-linked-account") {
     await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
     await evaluate(client, `(() => {
@@ -282,6 +374,16 @@ async function applyInteraction(client, state) {
 }
 
 async function waitForReportsReady(client, state) {
+  if (state.routePath.startsWith("/reports/history")) {
+    await waitFor(client, `(() => {
+      const plot = document.querySelector('.cash-flow-chart__plot');
+      const surface = plot?.querySelector('svg');
+      return surface && Math.abs(surface.getBoundingClientRect().width - plot.getBoundingClientRect().width) <= 1 &&
+        Math.abs(surface.getBoundingClientRect().height - plot.getBoundingClientRect().height) <= 1 &&
+        document.querySelectorAll('.cash-flow-chart__values text').length === 36;
+    })()`);
+    return;
+  }
   if (state.language === "ru") {
     await waitFor(client, state.routePath === "/reports"
       ? "document.querySelectorAll('.reports-hub-card').length === 3"
@@ -310,10 +412,6 @@ async function waitForReportsReady(client, state) {
     await waitFor(client, "document.body.innerText.includes('Groceries') && document.body.innerText.includes('Budget report data summary')");
     return;
   }
-  if (state.routePath.startsWith("/reports/history")) {
-    await waitFor(client, "document.body.innerText.includes('Cash flow chart data summary') && document.body.innerText.includes('Apr')");
-    return;
-  }
 }
 
 async function collectMetrics(client, state, apiRequestCount) {
@@ -339,6 +437,43 @@ async function collectMetrics(client, state, apiRequestCount) {
     const tableRows = Array.from(document.querySelectorAll(".report-table .ant-table-row"));
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
     const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary"));
+    const cashFlowScroll = document.querySelector(".cash-flow-chart__scroll");
+    const cashFlowValues = Array.from(document.querySelectorAll(".cash-flow-chart__values text"));
+    const labelBoxes = cashFlowValues.map((label) => label.getBoundingClientRect());
+    const chartBounds = cashFlowScroll?.querySelector("svg")?.getBoundingClientRect();
+    const monthBounds = Array.from(cashFlowScroll?.querySelectorAll(".cash-flow-chart__months button") ?? [],
+      (button) => button.getBoundingClientRect());
+    const netPath = cashFlowScroll?.querySelector(".recharts-line-curve")?.getAttribute("d");
+    const overlaps = labelBoxes.flatMap((label, index) => labelBoxes.slice(index + 1).flatMap((other, nextIndex) =>
+      label.right > other.left && label.left < other.right && label.bottom > other.top && label.top < other.bottom
+        ? [[cashFlowValues[index].textContent, cashFlowValues[index + 1 + nextIndex].textContent]] : []));
+    const baseline = cashFlowScroll?.querySelector(".recharts-reference-line-line")?.getBoundingClientRect().top;
+    const monthButtons = cashFlowScroll?.querySelector(".cash-flow-chart__months")?.getBoundingClientRect();
+    const axisTicks = Array.from(cashFlowScroll?.querySelectorAll(".recharts-yAxis text") ?? []);
+    const bars = cashFlowScroll?.querySelectorAll(".recharts-bar");
+    const barBounds = (bar) => Array.from(bar?.querySelectorAll(".recharts-bar-rectangle path") ?? [], (path) => path.getBoundingClientRect());
+    const cashFlow = cashFlowScroll ? {
+      labels: cashFlowValues.length,
+      months: monthBounds.length,
+      labelsAlignWithMonths: monthBounds.every((bounds, index) => {
+        const label = labelBoxes[index * 3];
+        return label && Math.abs(label.left + label.width / 2 - bounds.left - bounds.width / 2) <= 1;
+      }),
+      overlappingLabels: overlaps,
+      clippedLabels: chartBounds ? labelBoxes.some((label) =>
+        label.left < chartBounds.left || label.right > chartBounds.right || label.top < chartBounds.top ||
+        label.bottom > Math.min(chartBounds.bottom, monthButtons.top)) : true,
+      axisClips: chartBounds ? axisTicks.some((tick) => tick.getBoundingClientRect().left < chartBounds.left) : true,
+      uniqueTicks: new Set(axisTicks.map((tick) => tick.textContent)).size === axisTicks.length,
+      signedBars: baseline !== undefined && barBounds(bars[0]).length > 0 && barBounds(bars[1]).length > 0 &&
+        barBounds(bars[0]).every((bar) => bar.bottom <= baseline + 1) && barBounds(bars[1]).every((bar) => bar.top >= baseline - 1),
+      linearPath: /^M[^CQS]+$/.test(netPath ?? "") && (netPath?.match(/L/g)?.length === 11),
+      scrolls: cashFlowScroll.scrollWidth > cashFlowScroll.clientWidth,
+      summaryHeight: document.querySelector(".cash-flow-summary").getBoundingClientRect().height,
+      localizedMonths: cashFlowScroll.querySelector(".cash-flow-chart__months button").textContent,
+      titles: document.querySelectorAll(".cash-flow-report h2").length,
+      controlsFit: document.querySelector(".cash-flow-actions").getBoundingClientRect().right <= window.innerWidth,
+    } : null;
 
     return {
       title: document.title,
@@ -364,6 +499,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       chartSurfaceCount: chartSurfaces.length,
       accessibleSummaryCount: accessibleSummaries.length,
       visibleBottomSummaryCount: accessibleSummaries.filter((summary) => summary.getBoundingClientRect().height > 1).length,
+      cashFlow,
       reportCardHeights: reportCards.map((card) => card.getBoundingClientRect().height),
       statLabelSizes: statCards.map((card) => getComputedStyle(card.querySelector(':scope > span')).fontSize),
       statValueSizes: statCards.map((card) => getComputedStyle(card.querySelector('strong [aria-hidden="true"]') ?? card.querySelector('strong')).fontSize),
@@ -405,10 +541,14 @@ async function collectMetrics(client, state, apiRequestCount) {
 }
 
 function runState(args) {
+  const { state } = args;
   return runBrowserState({
     ...args,
-    routePath: args.state.routePath,
-    initScript: fixedDateInitScript(args.fixture.reportsVisualFixtureMeta.fixedNow, args.state.language ?? "en"),
+    state: state.routePath.startsWith("/reports/history") && state.viewport.width >= 1024
+      ? { ...state, screenshotMode: "viewport" }
+      : state,
+    routePath: state.routePath,
+    initScript: fixedDateInitScript(args.fixture.reportsVisualFixtureMeta.fixedNow, state.language ?? "en"),
     waitForReady: waitForReportsReady,
     applyInteraction,
     collectMetrics,
@@ -425,6 +565,20 @@ function collectAdditionalFailures(stateResults) {
     if (state.statValueSizes.some((size) => size !== "30px")) failures.push(`${state.name}: summary value size differs from Transactions`);
     if (state.statValueMargins.some((margin) => margin !== "0px")) failures.push(`${state.name}: label spacing leaks into summary values`);
     if (state.reportCardHeights.some((height) => height >= 190)) failures.push(`${state.name}: report list card is not compact`);
+    if (state.routePath.startsWith("/reports/history")) {
+      const chart = state.cashFlow;
+      if (!chart || chart.labels !== 36 || chart.months !== 12) failures.push(`${state.name}: monthly chart values are missing`);
+      if (!chart) continue;
+      if (!chart.labelsAlignWithMonths) failures.push(`${state.name}: chart labels do not align with their months`);
+      if (chart.overlappingLabels.length || chart.clippedLabels || chart.axisClips) failures.push(`${state.name}: chart or axis labels overlap or are clipped (${JSON.stringify(chart.overlappingLabels)})`);
+      if (!chart.signedBars) failures.push(`${state.name}: bars do not extend in the correct direction from zero`);
+      if (!chart.linearPath) failures.push(`${state.name}: net cash flow path does not contain 11 straight segments`);
+      if (!chart.uniqueTicks) failures.push(`${state.name}: y-axis tick labels repeat`);
+      if (state.viewport.width >= 1024 && chart.scrolls) failures.push(`${state.name}: desktop chart requires horizontal scrolling`);
+      if (state.viewport.width < 500 && !chart.scrolls) failures.push(`${state.name}: mobile chart does not scroll`);
+      if (chart.summaryHeight > 140 || chart.titles > 0 || !chart.controlsFit) failures.push(`${state.name}: summary or report chrome exceeds its layout`);
+      if (state.scenario === "russian" && !/янв/i.test(chart.localizedMonths)) failures.push(`${state.name}: chart months are not localized`);
+    }
   }
   for (const state of stateResults.filter((candidate) => candidate.scenario === "linked")) {
     if (!state.linkedSelectorVisible) failures.push(`${state.name}: linked-account selector is not visible`);
