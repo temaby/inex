@@ -348,3 +348,9 @@ Classic regression passes 17/17 states. The 94-state Visual regression completes
 The fixture-only Reports harness passed 42 states, including 14 Cash Flow states from 320px to 1440px. The chart checks cover all 36 monthly labels, label and axis bounds, signed bars, a straight net cash flow path, desktop fit, mobile scroll, series toggling, desktop drill-through, and exact amounts after tapping on a 430×700 viewport. Russian month labels, a 320px long FX amount, sub-cent axis ticks, and linked workspace scope also passed.
 
 Run `npm run visual-qa:reports` to regenerate `qa-summary.json` and the screenshots. Inspected captures include `history-typography-1440.png`, `history-russian-360.png`, `history-skewed-320.png` and `history-sub-cent-390.png`. Build, lint and nine focused report tests passed.
+
+### Follow-up for the Cash Flow area chart
+
+Fixture QA passed 43 area states and 42 bar states, including 15 and 14 Cash Flow states respectively. Both variants passed checks for 36 labels, signed geometry, compact axis ticks, month selection and drill-through, mobile scrolling, and selected details above the bottom navigation. The summary and selected details passed locale and precision checks for USD and PLN, including unsigned zero for sub-cent amounts. The fixture harness intercepted every API request.
+
+Run `npm run visual-qa:reports` for the default area chart. Set `VITE_CASH_FLOW_CHART=bar` before starting Vite to compare the bar chart or run the same fixtures against it. Review `history-typography-1440.png` for the selected desktop state and `history-russian-360.png` for the narrow Russian layout. The full-page mobile capture places the fixed bottom navigation at its initial position. The interaction check verifies that selection scrolls the details above it.
