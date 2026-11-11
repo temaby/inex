@@ -1,0 +1,326 @@
+.cash-flow-actions {
+  gap: var(--space-2);
+}
+
+.cash-flow-actions .ant-picker {
+  width: 100px;
+  height: 37px;
+}
+
+.cash-flow-actions .cash-flow-actions__more {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: var(--bg-surface);
+  color: var(--fg-1);
+  cursor: pointer;
+}
+
+.cash-flow-summary {
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+}
+
+.cash-flow-summary dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.cash-flow-summary dl > div {
+  container-type: inline-size;
+  min-width: 0;
+  padding: var(--space-3) var(--space-5);
+}
+
+.cash-flow-summary dl > div + div {
+  border-inline-start: 1px solid var(--border-1);
+}
+
+.cash-flow-summary__net {
+  background: var(--bg-stripe);
+}
+
+.cash-flow-summary dt,
+.cash-flow-chart__detail dt {
+  color: var(--fg-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+}
+
+.cash-flow-summary dd {
+  margin: var(--space-1) 0 0;
+  color: var(--fg-1);
+  font: var(--fw-semibold) var(--fs-24)/var(--lh-tight) var(--font-num);
+  font-size: clamp(12px, calc(100cqi / var(--amount-width)), var(--fs-24));
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.cash-flow-summary dd[data-tone="income"] { color: var(--income-fg); }
+.cash-flow-summary dd[data-tone="expense"] { color: var(--expense-fg); }
+.cash-flow-summary dd small { font-size: 0.68em; white-space: nowrap; }
+
+.cash-flow-chart.report-panel {
+  padding: var(--space-3) var(--space-4);
+  box-shadow: none;
+}
+
+.cash-flow-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+
+.cash-flow-chart__legend button,
+.cash-flow-chart__months button {
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--fg-2);
+  font: inherit;
+  font-size: var(--fs-12);
+  cursor: pointer;
+}
+
+.cash-flow-chart__legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 34px;
+  padding: 0 var(--space-2);
+  font-weight: var(--fw-medium);
+}
+
+.cash-flow-chart__legend button[aria-pressed="false"] {
+  border-color: var(--border-1);
+  color: var(--fg-3);
+  text-decoration: line-through;
+}
+
+.cash-flow-chart__legend button:hover,
+.cash-flow-chart__months button[data-active="true"] {
+  background: var(--bg-muted);
+}
+
+.cash-flow-chart__legend button:focus-visible,
+.cash-flow-chart__months button:focus-visible,
+.cash-flow-actions__more:focus-visible {
+  outline: 2px solid var(--income-500);
+  outline-offset: -2px;
+}
+
+.cash-flow-chart__swatch {
+  display: inline-block;
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.cash-flow-chart__swatch[data-series="income"] { background: var(--income-200); }
+.cash-flow-chart__swatch[data-series="expense"] { background: var(--expense-200); }
+.cash-flow-chart__swatch[data-series="savings"] { background: var(--brand-ink); height: 2px; }
+
+.cash-flow-chart__scroll {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.cash-flow-chart__scroll-hint {
+  display: none;
+}
+
+.cash-flow-chart__canvas {
+  min-width: calc(var(--plot-start) + var(--month-count) * 58px + var(--plot-end));
+}
+
+.cash-flow-chart__plot {
+  height: 332px;
+}
+
+.cash-flow-chart__plot .recharts-bar-rectangle {
+  cursor: pointer;
+}
+
+.cash-flow-chart__values,
+.cash-flow-chart__plot .recharts-yAxis {
+  font-variant-numeric: tabular-nums;
+}
+
+.cash-flow-chart__values text {
+  fill: var(--fg-2);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-semibold);
+  paint-order: stroke;
+  stroke: var(--bg-surface);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
+.cash-flow-chart__values text[data-tone="income"] { fill: var(--income-fg); }
+.cash-flow-chart__values text[data-tone="expense"] { fill: var(--expense-fg); }
+
+.cash-flow-chart__months {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0 var(--plot-end) 0 var(--plot-start);
+}
+
+.cash-flow-chart__months button {
+  min-height: 36px;
+  padding: 0;
+}
+
+.cash-flow-chart__detail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-2);
+  background: var(--bg-stripe);
+  color: var(--fg-1);
+}
+
+.cash-flow-chart__detail dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.cash-flow-chart__detail dd {
+  margin: 0;
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.cash-flow-chart__detail a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--income-fg);
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .reports-drill-actions.cash-flow-actions {
+    width: 100%;
+  }
+
+  .cash-flow-actions .ant-picker,
+  .cash-flow-actions > button {
+    min-height: 44px;
+  }
+
+  .cash-flow-actions .cash-flow-actions__secondary {
+    display: none !important;
+  }
+
+  .cash-flow-actions .cash-flow-actions__more {
+    display: inline-grid;
+    margin-inline-start: auto;
+  }
+
+  .cash-flow-report.reports-workspace {
+    gap: var(--space-3);
+  }
+
+  .cash-flow-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cash-flow-summary dl > div {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .cash-flow-summary dd {
+    font-size: clamp(11px, calc(100cqi / var(--amount-width)), clamp(13px, 4vw, 18px));
+  }
+
+  .cash-flow-summary dl > .cash-flow-summary__net {
+    grid-column: 1 / -1;
+    border-inline-start: 0;
+    border-top: 1px solid var(--border-1);
+  }
+
+  .cash-flow-chart.report-panel {
+    padding: var(--space-2);
+  }
+
+  .cash-flow-chart__legend {
+    gap: 0;
+  }
+
+  .cash-flow-chart__legend button,
+  .cash-flow-chart__months button {
+    min-height: 44px;
+  }
+
+  .cash-flow-chart__legend button {
+    padding-inline: var(--space-1);
+  }
+
+  .cash-flow-chart__scroll-hint {
+    display: block;
+    margin: 0 var(--space-2);
+    color: var(--fg-3);
+    font-size: var(--fs-11);
+  }
+
+  .cash-flow-chart__canvas {
+    min-width: calc(var(--plot-start) + var(--month-count) * clamp(56px, 15vw, 74px) + var(--plot-end));
+  }
+
+  .cash-flow-chart__plot {
+    height: 296px;
+  }
+
+  .cash-flow-chart__detail {
+    scroll-margin-bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+}
+
+@media print {
+  .cash-flow-actions > button,
+  .cash-flow-chart__legend,
+  .cash-flow-chart__scroll-hint,
+  .cash-flow-chart__detail {
+    display: none !important;
+  }
+
+  .cash-flow-chart__scroll {
+    overflow: visible;
+  }
+
+  .cash-flow-chart__canvas {
+    min-width: 0;
+  }
+
+  .cash-flow-chart__plot .recharts-wrapper {
+    max-width: 100%;
+  }
+
+  .cash-flow-chart__plot .recharts-surface {
+    width: 100%;
+  }
+
+  .cash-flow-report > .report-accessible-summary {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    clip-path: none;
+    white-space: normal;
+  }
+}

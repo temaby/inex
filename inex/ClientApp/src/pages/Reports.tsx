@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, DatePicker, message, Modal, Select } from "antd";
+import { Alert, DatePicker, Dropdown, message, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import { Download, Printer, Settings2, Share2, ArrowLeft } from "lucide-react";
+import { Download, Ellipsis, Printer, Settings2, Share2, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
@@ -16,6 +16,7 @@ import "./Reports/reports.css";
 export interface ReportsHubContext {
     period: Dayjs;
     periodLabel: string;
+    historyYear: number;
 }
 
 interface UserAccountSummary {
@@ -36,6 +37,7 @@ const Reports = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [hubPeriod, setHubPeriod] = useState(dayjs());
+    const [historyActionsOpen, setHistoryActionsOpen] = useState(false);
     const [isMonthlyPdfExporting, setIsMonthlyPdfExporting] = useState(false);
     const [isMonthlyPdfConfigurationOpen, setIsMonthlyPdfConfigurationOpen] = useState(false);
     const [selectedAccountIds, setSelectedAccountIds] = useState<number[]>([]);
@@ -53,7 +55,7 @@ const Reports = () => {
             : { mode: "active", linkedUserId: selectedLinkedUserId },
     );
     const activeAccounts = activeAccountsQuery.currentData ?? [];
-    const normalizedPath = location.pathname.replace(/\/+$/, "") || "/";
+    const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase() || "/";
 
     const reportTitles: Record<string, string> = {
         "/reports": t("reports.title"),
@@ -64,6 +66,11 @@ const Reports = () => {
 
     const title = reportTitles[normalizedPath] || t("reports.title");
     const isHub = normalizedPath === "/reports";
+    const isHistory = normalizedPath === "/reports/history";
+    const requestedYear = Number(new URLSearchParams(location.search).get("year"));
+    const historyYear = Number.isInteger(requestedYear) && requestedYear > 0 && requestedYear <= 9999
+        ? requestedYear
+        : dayjs().year();
     const periodLabel = useMemo(
         () => hubPeriod.toDate().toLocaleDateString(i18n.language, { month: "long", year: "numeric" }),
         [hubPeriod, i18n.language],
@@ -173,6 +180,12 @@ const Reports = () => {
         }
     };
 
+    const drillActions = [
+        { key: "share", label: t("reports.share"), icon: <Share2 size={16} aria-hidden="true" />, run: handleShare },
+        { key: "export", label: t("reports.export"), icon: <Download size={16} aria-hidden="true" />, run: handleExport },
+        { key: "print", label: t("reports.print"), icon: <Printer size={16} aria-hidden="true" />, run: () => window.print() },
+    ];
+
     const extra = isHub ? (
         <div className="reports-hub-controls">
             <DatePicker
@@ -205,7 +218,17 @@ const Reports = () => {
             </InExButton>
         </div>
     ) : (
-        <div className="reports-drill-actions">
+        <div className={`reports-drill-actions${isHistory ? " cash-flow-actions" : ""}`}>
+            {isHistory && (
+                <DatePicker
+                    picker="year"
+                    value={dayjs().year(historyYear)}
+                    onChange={(date) => date && navigate(`/reports/history?year=${date.year()}`)}
+                    allowClear={false}
+                    inputReadOnly
+                    aria-label={t("reports.yearControl")}
+                />
+            )}
             <InExButton
                 kind="ghost"
                 icon={<ArrowLeft size={16} aria-hidden="true" />}
@@ -213,21 +236,30 @@ const Reports = () => {
             >
                 {t("reports.allReports")}
             </InExButton>
-            <InExButton kind="default" icon={<Share2 size={16} aria-hidden="true" />} onClick={handleShare}>
-                {t("reports.share")}
-            </InExButton>
-            <InExButton kind="default" icon={<Download size={16} aria-hidden="true" />} onClick={handleExport}>
-                {t("reports.export")}
-            </InExButton>
-            <InExButton kind="default" icon={<Printer size={16} aria-hidden="true" />} onClick={() => window.print()}>
-                {t("reports.print")}
-            </InExButton>
+            {drillActions.map(({ key, label, icon, run }) => (
+                <InExButton key={key} className={isHistory ? "cash-flow-actions__secondary" : undefined} icon={icon} onClick={run}>
+                    {label}
+                </InExButton>
+            ))}
+            {isHistory && (
+                <Dropdown
+                    trigger={["click"]}
+                    autoFocus
+                    open={historyActionsOpen}
+                    onOpenChange={setHistoryActionsOpen}
+                    menu={{ items: drillActions.map(({ key, label, icon, run }) => ({ key, label, icon, onClick: run })) }}
+                >
+                    <button type="button" className="cash-flow-actions__more" aria-label={t("reports.reportActions")} aria-haspopup="menu" aria-expanded={historyActionsOpen}>
+                        <Ellipsis size={18} aria-hidden="true" />
+                    </button>
+                </Dropdown>
+            )}
         </div>
     );
 
     return (
         <>
-            <BasicPage frame="analytics" title={title} subtitle={isHub ? t("reports.subtitleHub") : t("reports.subtitleDrilldown")} extra={extra}>
+            <BasicPage frame="analytics" title={title} subtitle={isHub ? t("reports.subtitleHub") : isHistory ? undefined : t("reports.subtitleDrilldown")} extra={extra}>
                 <div className="reports-route">
                     {isLinkedMode ? (
                         <Alert
@@ -239,7 +271,7 @@ const Reports = () => {
                             type="info"
                         />
                     ) : null}
-                    <Outlet context={{ period: hubPeriod, periodLabel } satisfies ReportsHubContext} />
+                    <Outlet context={{ period: hubPeriod, periodLabel, historyYear } satisfies ReportsHubContext} />
                 </div>
             </BasicPage>
             <Modal
