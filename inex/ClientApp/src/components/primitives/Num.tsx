@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from "react-i18next";
+import { createFixedAmountFormatter } from "../../utils/formatAmount";
 
 import { useSignage } from "./SignageContext";
 import type { Signage } from "./SignageContext";
@@ -52,10 +53,7 @@ const formatAmount = (value: number, compact: boolean, fractionDigits: 0 | 1 | 2
         return Math.round(absoluteValue).toLocaleString(locale, { maximumFractionDigits: 0 });
     }
 
-    return absoluteValue.toLocaleString(locale, {
-        minimumFractionDigits: fractionDigits,
-        maximumFractionDigits: fractionDigits,
-    });
+    return createFixedAmountFormatter(locale, fractionDigits).format(absoluteValue);
 };
 
 const getPrefix = (value: number, kind: MoneyKind, signage: Signage) => {

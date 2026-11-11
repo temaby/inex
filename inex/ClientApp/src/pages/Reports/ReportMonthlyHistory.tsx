@@ -4,15 +4,12 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useGetHistoryReportQuery } from "../../store/report/report-api";
 import { useAppSelector } from "../../store/hooks";
+import { createFixedAmountFormatter } from "../../utils/formatAmount";
 import type { ReportsHubContext } from "../Reports";
 import CashFlowChart from "./CashFlowChart";
+import type { CashFlowSeries } from "./CashFlowChart";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
 import "./cash-flow.css";
-
-const decimalPlaces = (value: number) => {
-  const [coefficient, exponent = "0"] = String(value).split("e");
-  return (coefficient.split(".")[1]?.length ?? 0) - Number(exponent);
-};
 
 const ReportMonthlyHistory = () => {
   const { t, i18n } = useTranslation();
@@ -34,19 +31,21 @@ const ReportMonthlyHistory = () => {
     const minorDigits = currencyFormat.resolvedOptions().minimumFractionDigits ?? 2;
     return {
       minorDigits,
-      exact: new Intl.NumberFormat(locale, { minimumFractionDigits: minorDigits, maximumFractionDigits: 20 }),
+      amount: createFixedAmountFormatter(locale, minorDigits),
+      signedAmount: createFixedAmountFormatter(locale, minorDigits, "exceptZero"),
       shortMonth: new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" }),
-      longMonth: new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }),
+      longMonth: new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "UTC" }),
     };
   }, [locale, currency]);
   const history = useMemo(() => (historyResponse?.data ?? []).map((item) => {
-    const monthDate = Date.UTC(2000, item.month - 1, 1);
+    const monthDate = new Date(0);
+    monthDate.setUTCFullYear(year, item.month - 1, 1);
     return {
       ...item,
       shortMonth: formatters.shortMonth.format(monthDate),
       longMonth: formatters.longMonth.format(monthDate),
     };
-  }), [historyResponse, formatters]);
+  }), [historyResponse, formatters, year]);
 
   const totals = history.reduce(
     (acc, curr) => ({
@@ -56,29 +55,29 @@ const ReportMonthlyHistory = () => {
     }),
     { income: 0, expense: 0, savings: 0 },
   );
-  const formatMoney = (value: number) => `${formatters.exact.format(Math.abs(value) < 5e-21 ? 0 : value)} ${currency}`;
+  const formatMetric = (value: number, key: CashFlowSeries) => {
+    const normalized = Math.abs(value) < 0.5 / 10 ** formatters.minorDigits ? 0 : value;
+    if (key === "savings") {
+      return {
+        amount: formatters.signedAmount.format(normalized),
+        tone: normalized > 0 ? "income" : normalized < 0 ? "expense" : "neutral",
+      };
+    }
+    return { amount: formatters.amount.format(Math.abs(normalized)), tone: key };
+  };
+  const formatMoney = (value: number, key: CashFlowSeries) => `${formatMetric(value, key).amount} ${currency}`;
   const metrics = [
-    { key: "income", label: t("reports.income"), tone: "income" },
-    { key: "expense", label: t("reports.expenses"), tone: "expense" },
-    { key: "savings", label: t("reports.netCashFlow"), tone: totals.savings > 0 ? "income" : totals.savings < 0 ? "expense" : "neutral" },
+    { key: "income", label: t("reports.income") },
+    { key: "expense", label: t("reports.expenses") },
+    { key: "savings", label: t("reports.netCashFlow") },
   ] as const;
-  const summary = metrics.map(({ key, label, tone }) => {
-    // Show the precision of the reported months without exposing floating-point addition artifacts.
-    const digits = Math.min(20, Math.max(formatters.minorDigits, ...history.map((month) => decimalPlaces(month[key]))));
-    const value = key === "expense" ? Math.abs(totals[key]) : totals[key];
-    const normalized = Math.abs(value) < 0.5 / 10 ** digits ? 0 : value;
-    const amount = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: formatters.minorDigits,
-      maximumFractionDigits: digits,
-    }).format(normalized);
-    return { key, label, amount, tone: key === "savings" && normalized === 0 ? "neutral" : tone };
-  });
+  const summary = metrics.map(({ key, label }) => ({ key, label, ...formatMetric(totals[key], key) }));
   const getMonthPath = (month: number) => `/reports/category?interval=${year}-${String(month).padStart(2, "0")}`;
   const summaryRows = history.map((item) => ({
     key: item.month,
     label: item.longMonth,
-    value: formatMoney(item.savings),
-    detail: `${t("reports.income")}: ${formatMoney(item.income)} | ${t("reports.expenses")}: ${formatMoney(item.expense)}`,
+    value: formatMoney(item.savings, "savings"),
+    detail: `${t("reports.income")}: ${formatMoney(item.income, "income")} | ${t("reports.expenses")}: ${formatMoney(item.expense, "expense")}`,
   }));
 
   return (
@@ -101,7 +100,8 @@ const ReportMonthlyHistory = () => {
         history={history}
         locale={locale}
         isLoading={isLoading}
-        formatMoney={formatMoney}
+        currency={currency}
+        formatMetric={formatMetric}
         getMonthPath={getMonthPath}
         onOpenMonth={(month) => navigate(getMonthPath(month))}
       />
