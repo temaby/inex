@@ -132,16 +132,6 @@
 .cash-flow-chart__swatch[data-series="expense"] { background: var(--expense-200); }
 .cash-flow-chart__swatch[data-series="savings"] { background: var(--brand-ink); height: 2px; }
 
-.cash-flow-chart[data-variant="area"] .cash-flow-chart__swatch[data-series="income"] {
-  background: var(--income-bg);
-  border-top: 2px solid var(--income-500);
-}
-
-.cash-flow-chart[data-variant="area"] .cash-flow-chart__swatch[data-series="expense"] {
-  background: var(--expense-bg);
-  border-top: 2px solid var(--expense-500);
-}
-
 .cash-flow-chart__scroll {
   overflow-x: auto;
   overscroll-behavior-inline: contain;
@@ -167,8 +157,7 @@
 }
 
 @media (pointer: fine) {
-  .cash-flow-chart__plot .recharts-bar-rectangle,
-  .cash-flow-chart__plot .recharts-area {
+  .cash-flow-chart__plot .recharts-bar-rectangle {
     cursor: pointer;
   }
 }

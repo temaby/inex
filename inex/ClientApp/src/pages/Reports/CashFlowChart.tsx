@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Area, Bar, CartesianGrid, ComposedChart, Customized, Line, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, Customized, Line, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import type { HistoryReportItem } from "../../store/report/report-api";
 
 const series = ["income", "expense", "savings"] as const;
@@ -10,10 +10,8 @@ export type CashFlowSeries = typeof series[number];
 type CashFlowMonth = HistoryReportItem & { shortMonth: string; longMonth: string };
 type VisibleSeries = Record<CashFlowSeries, boolean>;
 
-const chartVariant = import.meta.env.VITE_CASH_FLOW_CHART === "bar" ? "bar" : "area";
 const chartMargin = { top: 28, right: 8, bottom: 26, left: 4 };
 const barColors = { income: "var(--income-200)", expense: "var(--expense-200)" };
-const areaColors = { income: "var(--income-500)", expense: "var(--expense-500)" };
 const legendLabels = { income: "reports.income", expense: "reports.expenses", savings: "reports.netCashFlow" };
 const dot = { r: 3, strokeWidth: 1.5, stroke: "var(--bg-surface)", fill: "var(--brand-ink)" };
 
@@ -52,7 +50,7 @@ function ValueLabels({ xAxisMap, yAxisMap, height, history, visible, formatCompa
         const expenseY = expensePoint + 12;
         const netPoint = yScale(month.savings);
         const direction = month.savings < 0 ? 1 : -1;
-        // Keep the income and expense labels outside their points and shift the net label when the series converge.
+        // Keep the labels outside their bars and shift the net label when the values converge.
         const netPositions = [13, -13, 31, -31, 47, -47].map((distance) => netPoint + distance * direction).filter((y) =>
           y >= 9 && y <= height - 9 &&
           (!visible.income || Math.abs(y - incomeY) >= 17) && (!visible.expense || Math.abs(y - expenseY) >= 17)
@@ -143,7 +141,7 @@ export default function CashFlowChart({ history, locale, isLoading, currency, fo
   };
 
   return (
-    <section className="report-panel cash-flow-chart" data-variant={chartVariant} aria-label={t("reports.monthlyCashFlow")} aria-busy={isLoading}>
+    <section className="report-panel cash-flow-chart" aria-label={t("reports.monthlyCashFlow")} aria-busy={isLoading}>
       <div className="cash-flow-chart__legend" role="group" aria-label={t("reports.chartSeries")}>
         {series.map((key) => (
           <button
@@ -177,7 +175,7 @@ export default function CashFlowChart({ history, locale, isLoading, currency, fo
                       const month = history[activeTooltipIndex ?? -1];
                       if (!month || activeTooltipIndex === undefined) return;
                       const target = event.target;
-                      if (target instanceof Element && target.closest(".recharts-bar-rectangle, .recharts-area") && canDrillFromMark(event)) {
+                      if (target instanceof Element && target.closest(".recharts-bar-rectangle") && canDrillFromMark(event)) {
                         onOpenMonth(month.month);
                       } else {
                         inspectMonth(activeTooltipIndex);
@@ -199,12 +197,7 @@ export default function CashFlowChart({ history, locale, isLoading, currency, fo
                       tickMargin={6}
                     />
                     {(["income", "expense"] as const).map((key) => visible[key] && (
-                      chartVariant === "bar" ? (
-                        <Bar key={key} dataKey={key} stackId="cash-flow" barSize={28} fill={barColors[key]} isAnimationActive={false} />
-                      ) : (
-                        <Area key={key} type="linear" dataKey={key} baseValue={0} stroke={areaColors[key]} strokeWidth={1.5}
-                          fill={areaColors[key]} fillOpacity={0.16} dot={{ ...dot, r: 2.5, fill: areaColors[key] }} isAnimationActive={false} />
-                      )
+                      <Bar key={key} dataKey={key} stackId="cash-flow" barSize={28} fill={barColors[key]} isAnimationActive={false} />
                     ))}
                     <ReferenceLine y={0} stroke="var(--border-strong)" strokeWidth={1.5} />
                     {visible.savings && (

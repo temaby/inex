@@ -353,4 +353,6 @@ Run `npm run visual-qa:reports` to regenerate `qa-summary.json` and the screensh
 
 Fixture QA passed 43 area states and 42 bar states, including 15 and 14 Cash Flow states respectively. Both variants passed checks for 36 labels, signed geometry, compact axis ticks, month selection and drill-through, mobile scrolling, and selected details above the bottom navigation. The summary and selected details passed locale and precision checks for USD and PLN, including unsigned zero for sub-cent amounts. The fixture harness intercepted every API request.
 
-Run `npm run visual-qa:reports` for the default area chart. Set `VITE_CASH_FLOW_CHART=bar` before starting Vite to compare the bar chart or run the same fixtures against it. Review `history-typography-1440.png` for the selected desktop state and `history-russian-360.png` for the narrow Russian layout. The full-page mobile capture places the fixed bottom navigation at its initial position. The interaction check verifies that selection scrolls the details above it.
+### Cash Flow bar and line chart
+
+Run `npm run visual-qa:reports` to check the cash flow bars and net cash flow line. Review `history-typography-1440.png` for the selected desktop state and `history-russian-360.png` for the narrow Russian layout. The full-page mobile capture places the fixed bottom navigation at its initial position. The interaction check verifies that selection scrolls the details above it.
