@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, DatePicker, Dropdown, message, Modal, Select } from "antd";
+import { Alert, DatePicker, message, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import { Download, Ellipsis, Printer, Settings2, Share2, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import BasicPage from "../layouts/BasicPage";
@@ -17,6 +17,7 @@ export interface ReportsHubContext {
     period: Dayjs;
     periodLabel: string;
     historyYear: number;
+    reportMonth: Dayjs;
 }
 
 interface UserAccountSummary {
@@ -37,7 +38,6 @@ const Reports = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [hubPeriod, setHubPeriod] = useState(dayjs());
-    const [historyActionsOpen, setHistoryActionsOpen] = useState(false);
     const [isMonthlyPdfExporting, setIsMonthlyPdfExporting] = useState(false);
     const [isMonthlyPdfConfigurationOpen, setIsMonthlyPdfConfigurationOpen] = useState(false);
     const [selectedAccountIds, setSelectedAccountIds] = useState<number[]>([]);
@@ -67,7 +67,18 @@ const Reports = () => {
     const title = reportTitles[normalizedPath] || t("reports.title");
     const isHub = normalizedPath === "/reports";
     const isHistory = normalizedPath === "/reports/history";
-    const requestedYear = Number(new URLSearchParams(location.search).get("year"));
+    const isBudget = normalizedPath === "/reports/budget";
+    const { selectedYear, selectedMonth } = useAppSelector((state) => state.budgetReport);
+    const searchParams = new URLSearchParams(location.search);
+    const interval = searchParams.get("interval");
+    const reportMonth = useMemo(() => {
+        const requestedMonth = interval ? dayjs(interval, dateFormat) : null;
+        if (isBudget) {
+            return requestedMonth?.isValid() ? requestedMonth : dayjs(`${selectedYear}-${selectedMonth}`, "YYYY-M");
+        }
+        return requestedMonth ?? dayjs();
+    }, [interval, isBudget, selectedYear, selectedMonth]);
+    const requestedYear = Number(searchParams.get("year"));
     const historyYear = Number.isInteger(requestedYear) && requestedYear > 0 && requestedYear <= 9999
         ? requestedYear
         : dayjs().year();
@@ -83,32 +94,6 @@ const Reports = () => {
         setSelectedLinkedUserIds([]);
         setLinkedAccounts([]);
     }, [selectedLinkedUserId]);
-
-    const handleShare = async () => {
-        const shareUrl = window.location.href;
-        try {
-            if (navigator.share) {
-                await navigator.share({ title, url: shareUrl });
-                return;
-            }
-
-            await navigator.clipboard?.writeText(shareUrl);
-        } catch {
-            // Native share can reject on user cancel; keep route chrome stable.
-        }
-    };
-
-    const handleExport = () => {
-        const reportText = document.querySelector(".reports-route")?.textContent?.trim() ?? "";
-        const content = `${title}\n${window.location.href}\n${new Date().toISOString()}\n\n${reportText}`;
-        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "inex-report-export.txt";
-        link.click();
-        URL.revokeObjectURL(url);
-    };
 
     const handleMonthlyPdfExport = async (accountIds?: number[], linkedUserIds?: number[]) => {
         const requestedLinkedUserId = selectedLinkedUserId;
@@ -180,12 +165,6 @@ const Reports = () => {
         }
     };
 
-    const drillActions = [
-        { key: "share", label: t("reports.share"), icon: <Share2 size={16} aria-hidden="true" />, run: handleShare },
-        { key: "export", label: t("reports.export"), icon: <Download size={16} aria-hidden="true" />, run: handleExport },
-        { key: "print", label: t("reports.print"), icon: <Printer size={16} aria-hidden="true" />, run: () => window.print() },
-    ];
-
     const extra = isHub ? (
         <div className="reports-hub-controls">
             <DatePicker
@@ -218,17 +197,20 @@ const Reports = () => {
             </InExButton>
         </div>
     ) : (
-        <div className={`reports-drill-actions${isHistory ? " cash-flow-actions" : ""}`}>
-            {isHistory && (
-                <DatePicker
-                    picker="year"
-                    value={dayjs().year(historyYear)}
-                    onChange={(date) => date && navigate(`/reports/history?year=${date.year()}`)}
-                    allowClear={false}
-                    inputReadOnly
-                    aria-label={t("reports.yearControl")}
-                />
-            )}
+        <div className={isHistory ? "reports-drill-actions cash-flow-actions" : "reports-drill-actions"}>
+            <DatePicker
+                picker={isHistory ? "year" : "month"}
+                value={isHistory ? dayjs().year(historyYear) : reportMonth.isValid() ? reportMonth : null}
+                format={isHistory ? "YYYY" : dateFormat}
+                onChange={(date) => {
+                    if (!date) return;
+                    const query = isHistory ? `year=${date.year()}` : `interval=${date.format(dateFormat)}`;
+                    navigate(`${location.pathname}?${query}`);
+                }}
+                allowClear={false}
+                inputReadOnly
+                aria-label={t(isHistory ? "reports.yearControl" : "reports.monthControl")}
+            />
             <InExButton
                 kind="ghost"
                 icon={<ArrowLeft size={16} aria-hidden="true" />}
@@ -236,24 +218,6 @@ const Reports = () => {
             >
                 {t("reports.allReports")}
             </InExButton>
-            {drillActions.map(({ key, label, icon, run }) => (
-                <InExButton key={key} className={isHistory ? "cash-flow-actions__secondary" : undefined} icon={icon} onClick={run}>
-                    {label}
-                </InExButton>
-            ))}
-            {isHistory && (
-                <Dropdown
-                    trigger={["click"]}
-                    autoFocus
-                    open={historyActionsOpen}
-                    onOpenChange={setHistoryActionsOpen}
-                    menu={{ items: drillActions.map(({ key, label, icon, run }) => ({ key, label, icon, onClick: run })) }}
-                >
-                    <button type="button" className="cash-flow-actions__more" aria-label={t("reports.reportActions")} aria-haspopup="menu" aria-expanded={historyActionsOpen}>
-                        <Ellipsis size={18} aria-hidden="true" />
-                    </button>
-                </Dropdown>
-            )}
         </div>
     );
 
@@ -271,7 +235,7 @@ const Reports = () => {
                             type="info"
                         />
                     ) : null}
-                    <Outlet context={{ period: hubPeriod, periodLabel, historyYear } satisfies ReportsHubContext} />
+                    <Outlet context={{ period: hubPeriod, periodLabel, historyYear, reportMonth } satisfies ReportsHubContext} />
                 </div>
             </BasicPage>
             <Modal

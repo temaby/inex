@@ -8,6 +8,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import authSlice from "../../store/auth/auth-slice";
 import { accountsApi } from "../../store/accounts/accounts-api";
 import linkedAccountSlice from "../../store/linkedAccount/linked-account-slice";
+import budgetReportSlice from "../../store/budgetReport/budgetReport-slice";
 import Reports from "../Reports";
 
 const apiClientMock = vi.hoisted(() => Object.assign(vi.fn(), { get: vi.fn() }));
@@ -28,6 +29,7 @@ const makeStore = (linked: boolean) => configureStore({
     reducer: {
         auth: authSlice.reducer,
         linkedAccount: linkedAccountSlice.reducer,
+        budgetReport: budgetReportSlice.reducer,
         [accountsApi.reducerPath]: accountsApi.reducer,
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(accountsApi.middleware),

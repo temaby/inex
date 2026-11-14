@@ -1,64 +1,43 @@
-import React, { useEffect, useState } from "react";
-import { Alert, DatePicker, Spin, Table } from "antd";
+import React, { useEffect } from "react";
+import { Alert, Spin, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import dayjs from "dayjs";
-import type { Dayjs } from "dayjs";
-import { ArrowDown, ArrowUp, Banknote, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { BudgetProgress, Num } from "../../components/primitives";
 import { BudgetComparisonDTO } from "../../model/Report/BudgetReport";
 import { useGetBudgetReportQuery } from "../../store/budgetReport/budgetReport-api";
 import { budgetReportActions } from "../../store/budgetReport/budgetReport-slice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import type { ReportsHubContext } from "../Reports";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
+import ReportSummaryMetrics from "./ReportSummaryMetrics";
 import "./reports.css";
 
 const ReportBudgetSpending: React.FC = () => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const location = useLocation();
+    const { reportMonth } = useOutletContext<ReportsHubContext>();
+    const year = reportMonth.year();
+    const month = reportMonth.month() + 1;
     const reportCurrency = useAppSelector(state => state.report.currency) || "USD";
     const selectedLinkedUserId = useAppSelector(state => state.linkedAccount.selectedLinkedUserId);
     const selectedLinkedAccount = useAppSelector(state => state.linkedAccount.linkState?.linkedAccounts.find(
         (account) => account.id === state.linkedAccount.selectedLinkedUserId,
     ));
     const currency = selectedLinkedAccount?.baseCurrency ?? reportCurrency;
-    const { selectedYear, selectedMonth } = useAppSelector(state => state.budgetReport);
-    const interval = new URLSearchParams(location.search).get("interval");
-    const requestedDate = interval ? dayjs(interval, "YYYY-MM") : null;
-    const [localDate, setLocalDate] = useState(
-        requestedDate?.isValid() ? requestedDate : dayjs(`${selectedYear}-${selectedMonth}`, "YYYY-M"),
-    );
     const { currentData: data, isError, isFetching: isLoading } = useGetBudgetReportQuery({
-        year: localDate.year(),
-        month: localDate.month() + 1,
+        year,
+        month,
         currency,
         linkedUserId: selectedLinkedUserId,
     });
     const items = data?.data ?? [];
     const metadata = data?.metadata;
 
-    const handleDateChange = (date: Dayjs | null) => {
-        if (date) {
-            navigate(`/reports/budget?interval=${date.format("YYYY-MM")}`, { replace: false });
-            setLocalDate(date);
-        }
-    };
-
     useEffect(() => {
-        if (requestedDate?.isValid()) {
-            setLocalDate(requestedDate);
-        }
-    }, [interval]);
-
-    useEffect(() => {
-        dispatch(budgetReportActions.setPeriod({
-            year: localDate.year(),
-            month: localDate.month() + 1,
-        }));
-    }, [dispatch, localDate]);
+        dispatch(budgetReportActions.setPeriod({ year, month }));
+    }, [dispatch, year, month]);
 
     const totalBudget = items.reduce((sum, item) => sum + item.budgetedAmount, 0);
     const totalSpent = items.reduce((sum, item) => sum + item.spentAmount, 0);
@@ -74,8 +53,8 @@ const ReportBudgetSpending: React.FC = () => {
 
     const openBudgetTransactions = (record: BudgetComparisonDTO) => {
         if (record.categoryIds && record.categoryIds.length > 0) {
-            const start = localDate.startOf("month").format("YYYY-MM-DD");
-            const end = localDate.endOf("month").format("YYYY-MM-DD");
+            const start = reportMonth.startOf("month").format("YYYY-MM-DD");
+            const end = reportMonth.endOf("month").format("YYYY-MM-DD");
             navigate(`/transactions?filter=categoryIds:${record.categoryIds.join(",")};start:${start};end:${end}`);
         }
     };
@@ -135,66 +114,22 @@ const ReportBudgetSpending: React.FC = () => {
 
     return (
         <div className="reports-workspace">
-            <section className="report-panel">
-                <div className="report-toolbar">
-                    <div>
-                        <span className="reports-hub-section__title">{t("reports.interval")}</span>
-                        <h2 className="report-title">{t("reports.budgetReport")}</h2>
-                    </div>
-                    <div className="report-toolbar__control">
-                        <label className="report-toolbar__label" htmlFor="report-budget-month">
-                            {t("reports.monthControl")}
-                        </label>
-                        <DatePicker
-                            id="report-budget-month"
-                            picker="month"
-                            value={localDate}
-                            onChange={handleDateChange}
-                            allowClear={false}
-                            inputReadOnly
-                        />
-                    </div>
-                </div>
-            </section>
-
             {isError && (
                 <Alert type="error" message={t("reports.budgetReportError")} />
             )}
 
             <Spin spinning={isLoading}>
-                <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
-                    <div className="report-stat">
-                        <span>{t("reports.totalIncome")}</span>
-                        <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={realIncome} currency={currency} kind="income" /></strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.totalExpense")}</span>
-                        <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={realOutcome} currency={currency} kind="expense" /></strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.unbudgeted")}</span>
-                        <strong><TriangleAlert size={16} aria-hidden="true" /> <Num currencySize="sm" value={unbudgetedSpending} currency={currency} kind={unbudgetedSpending > 0 ? "warn" : "neutral"} /></strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.savings")}</span>
-                        <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={balance} currency={currency} kind={balance >= 0 ? "income" : "expense"} /></strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.totalBudget")}</span>
-                        <strong><Num currencySize="sm" value={totalBudget} currency={currency} kind="neutral" /></strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.budgetSpent")}</span>
-                        <strong><Num currencySize="sm" value={totalSpent} currency={currency} kind="expense" /></strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.used")}</span>
-                        <strong>{totalPercent.toFixed(1)}%</strong>
-                    </div>
-                    <div className="report-stat">
-                        <span>{t("reports.budgetRemaining")}</span>
-                        <strong><Num currencySize="sm" value={totalRemaining} currency={currency} kind={totalRemaining >= 0 ? "income" : "expense"} /></strong>
-                    </div>
+                <section className="report-summary" aria-label={t("reports.summaryTitle")}>
+                    <ReportSummaryMetrics metrics={[
+                        { label: t("reports.totalIncome"), value: <Num currencySize="sm" value={realIncome} currency={currency} kind="income" /> },
+                        { label: t("reports.totalExpense"), value: <Num currencySize="sm" value={realOutcome} currency={currency} kind="expense" /> },
+                        { label: t("reports.unbudgeted"), value: <Num currencySize="sm" value={unbudgetedSpending} currency={currency} kind={unbudgetedSpending > 0 ? "warn" : "neutral"} /> },
+                        { label: t("reports.savings"), value: <Num currencySize="sm" value={balance} currency={currency} kind={balance >= 0 ? "income" : "expense"} /> },
+                        { label: t("reports.totalBudget"), value: <Num currencySize="sm" value={totalBudget} currency={currency} kind="neutral" /> },
+                        { label: t("reports.budgetSpent"), value: <Num currencySize="sm" value={totalSpent} currency={currency} kind="expense" /> },
+                        { label: t("reports.used"), value: `${totalPercent.toFixed(1)}%` },
+                        { label: t("reports.budgetRemaining"), value: <Num currencySize="sm" value={totalRemaining} currency={currency} kind={totalRemaining >= 0 ? "income" : "expense"} /> },
+                    ]} />
                 </section>
 
                 <section className="report-panel">

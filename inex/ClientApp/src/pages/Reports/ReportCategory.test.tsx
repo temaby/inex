@@ -1,7 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { render, screen, within } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { MemoryRouter } from "react-router-dom";
+import dayjs from "dayjs";
+import { MemoryRouter, Outlet, Route, Routes } from "react-router-dom";
 
 import reportSlice from "../../store/report/report-slice";
 import { reportApi } from "../../store/report/report-api";
@@ -73,7 +74,11 @@ describe("ReportCategory", () => {
         render(
             <Provider store={makeStore()}>
                 <MemoryRouter initialEntries={["/reports/category?interval=2026-04"]}>
-                    <ReportCategory />
+                    <Routes>
+                        <Route element={<Outlet context={{ reportMonth: dayjs("2026-04") }} />}>
+                            <Route path="/reports/category" element={<ReportCategory />} />
+                        </Route>
+                    </Routes>
                 </MemoryRouter>
             </Provider>,
         );

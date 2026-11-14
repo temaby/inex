@@ -1,28 +1,25 @@
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { DatePicker, Spin, Table } from "antd";
+import { Spin, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import dayjs from "dayjs";
-import type { Dayjs } from "dayjs";
-import { ArrowDown, ArrowLeftRight, ArrowUp, Banknote } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Num } from "../../components/primitives";
 import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
 import { reportActions } from "../../store/report/report-slice";
 import { useGetCategoriesQuery } from "../../store/categories/categories-api";
 import { useGetCategoryReportQuery } from "../../store/report/report-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import type { ReportsHubContext } from "../Reports";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
+import ReportSummaryMetrics from "./ReportSummaryMetrics";
 import "./reports.css";
-
-const dateFormat = "YYYY-MM";
 
 const ReportCategory = () => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const location = useLocation();
+    const { reportMonth: currentDate } = useOutletContext<ReportsHubContext>();
     const filterData = useAppSelector(state => state.transactions.filter);
     const filter = useAppSelector(state => state.report.filter);
     const selectedLinkedUserId = useAppSelector(state => state.linkedAccount.selectedLinkedUserId);
@@ -31,9 +28,6 @@ const ReportCategory = () => {
     ));
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-    const queryParams = new URLSearchParams(location.search);
-    const interval = queryParams.get("interval");
-    const currentDate = useMemo(() => interval ? dayjs(interval, dateFormat) : dayjs(), [interval]);
     const startDate = currentDate.isValid() ? currentDate.startOf("month").format("YYYY-MM-DD") : "";
     const endDate = currentDate.isValid() ? currentDate.endOf("month").format("YYYY-MM-DD") : "";
     const requestedCurrency = selectedLinkedAccount?.baseCurrency ?? "USD";
@@ -93,10 +87,6 @@ const ReportCategory = () => {
         }));
     }, [dispatch, reportResponse, selectedLinkedUserId]);
 
-    const setIntervalHandler = (date: Dayjs | null) => {
-        if (date) navigate(`${location.pathname}?interval=${date.format(dateFormat)}`, { replace: false });
-    };
-
     const openTransactions = (item: ReportCategoryDetails) => {
         if (!filter.range?.[0] || !filter.range?.[1]) return;
         const start = new Date(filter.range[0] * 1000);
@@ -155,69 +145,24 @@ const ReportCategory = () => {
 
     return (
         <div className="reports-workspace">
-            <section className="report-panel">
-                <div className="report-toolbar">
-                    <div>
-                        <span className="reports-hub-section__title">{t("reports.interval")}</span>
-                        <h2 className="report-title">{t("reports.categoryReport")}</h2>
-                    </div>
-                    <div className="report-toolbar__control">
-                        <label className="report-toolbar__label" htmlFor="report_interval">
-                            {t("reports.monthControl")}
-                        </label>
-                        <DatePicker
-                            id="report_interval"
-                            picker="month"
-                            value={currentDate.isValid() ? currentDate : null}
-                            inputReadOnly
-                            onChange={setIntervalHandler}
-                            allowClear={false}
-                        />
-                    </div>
-                </div>
+            <section className="report-summary" aria-label={t("reports.summaryTitle")}>
+                <ReportSummaryMetrics metrics={[
+                    { label: t("reports.totalIncome"), value: <Num currencySize="sm" value={totals.totalIncome} currency={currency} kind="income" /> },
+                    { label: t("reports.totalExpense"), value: <Num currencySize="sm" value={Math.abs(totals.totalExpenses)} currency={currency} kind="expense" /> },
+                    { label: t("reports.balance"), value: <Num currencySize="sm" value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} />, highlight: true },
+                ]} />
+                {internalTransfers && (
+                    <section className="report-summary__group" aria-labelledby="internal-transfer-summary-title">
+                        <h2 id="internal-transfer-summary-title">{t("reports.internalTransfers")}</h2>
+                        <ReportSummaryMetrics metrics={[
+                            { label: t("reports.internalTransfersReceived"), value: <Num currencySize="sm" value={internalTransfers.amountReceived} currency={currency} kind="transfer" /> },
+                            { label: t("reports.internalTransfersSent"), value: <Num currencySize="sm" value={-internalTransfers.amountSent} currency={currency} kind="transfer" /> },
+                            { label: t("reports.internalTransfersNetChange"), value: <Num currencySize="sm" value={internalTransfers.netChange} currency={currency} kind="transfer" /> },
+                            { label: t("reports.internalTransfersCount"), value: internalTransfers.transactionCount },
+                        ]} />
+                    </section>
+                )}
             </section>
-
-            <section className="report-stat-grid" aria-label={t("reports.summaryTitle")}>
-                <div className="report-stat">
-                    <span>{t("reports.totalIncome")}</span>
-                    <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={totals.totalIncome} currency={currency} kind="income" /></strong>
-                </div>
-                <div className="report-stat">
-                    <span>{t("reports.totalExpense")}</span>
-                    <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={Math.abs(totals.totalExpenses)} currency={currency} kind="expense" /></strong>
-                </div>
-                <div className="report-stat">
-                    <span>{t("reports.balance")}</span>
-                    <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} /></strong>
-                </div>
-            </section>
-
-            {internalTransfers && (
-                <section className="report-panel" aria-labelledby="internal-transfer-summary-title">
-                    <div className="report-panel__heading">
-                        <ArrowLeftRight size={18} aria-hidden="true" />
-                        <h3 id="internal-transfer-summary-title">{t("reports.internalTransfers")}</h3>
-                    </div>
-                    <div className="report-stat-grid">
-                        <div className="report-stat">
-                            <span>{t("reports.internalTransfersReceived")}</span>
-                            <strong><ArrowDown size={16} aria-hidden="true" /> <Num currencySize="sm" value={internalTransfers.amountReceived} currency={currency} kind="transfer" /></strong>
-                        </div>
-                        <div className="report-stat">
-                            <span>{t("reports.internalTransfersSent")}</span>
-                            <strong><ArrowUp size={16} aria-hidden="true" /> <Num currencySize="sm" value={-internalTransfers.amountSent} currency={currency} kind="transfer" /></strong>
-                        </div>
-                        <div className="report-stat">
-                            <span>{t("reports.internalTransfersNetChange")}</span>
-                            <strong><Banknote size={16} aria-hidden="true" /> <Num currencySize="sm" value={internalTransfers.netChange} currency={currency} kind="transfer" /></strong>
-                        </div>
-                        <div className="report-stat">
-                            <span>{t("reports.internalTransfersCount")}</span>
-                            <strong>{internalTransfers.transactionCount}</strong>
-                        </div>
-                    </div>
-                </section>
-            )}
 
             <section className="report-panel">
                 <Spin spinning={isLoading}>
