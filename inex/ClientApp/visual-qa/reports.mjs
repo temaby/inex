@@ -290,9 +290,9 @@ async function applyInteraction(client, state) {
 
   if (state.interaction === "cash-flow-hover") {
     const point = await evaluate(client, `(() => {
-      const mark = document.querySelectorAll('.cash-flow-chart__values > g')[3].querySelector('text');
+      const mark = document.querySelectorAll('.cash-flow-chart__plot .recharts-bar-rectangle path')[3];
       const bounds = mark.getBoundingClientRect();
-      return { x: Math.round(bounds.x + bounds.width / 2), y: Math.round(bounds.y + 30) };
+      return { x: Math.round(bounds.x + bounds.width / 2), y: Math.round(bounds.y + bounds.height / 2) };
     })()`);
     await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
     await waitFor(client, "document.querySelector('.cash-flow-chart__detail')?.textContent.includes('1,094.75')");
@@ -465,17 +465,23 @@ async function collectMetrics(client, state, apiRequestCount) {
     const baseline = cashFlowScroll?.querySelector(".recharts-reference-line-line")?.getBoundingClientRect().top;
     const monthButtons = cashFlowScroll?.querySelector(".cash-flow-chart__months")?.getBoundingClientRect();
     const axisTicks = Array.from(cashFlowScroll?.querySelectorAll(".recharts-yAxis text") ?? []);
-    const bars = cashFlowScroll?.querySelectorAll(".recharts-bar");
+    const bars = cashFlowScroll?.querySelectorAll(".recharts-bar") ?? [];
     const barBounds = (bar) => Array.from(bar?.querySelectorAll(".recharts-bar-rectangle path") ?? [], (path) => path.getBoundingClientRect());
-    const areas = cashFlowScroll?.querySelectorAll(".recharts-area");
-    const incomeArea = areas?.[0]?.querySelector(".recharts-area-area")?.getBoundingClientRect();
-    const expenseArea = areas?.[1]?.querySelector(".recharts-area-area")?.getBoundingClientRect();
+    const incomeBars = barBounds(bars[0]);
+    const expenseBars = barBounds(bars[1]);
+    const allBars = [...incomeBars, ...expenseBars];
+    const barsMatchLabels = (key, rectangles, end, labelOffset) =>
+      Array.from(cashFlowScroll.querySelectorAll('.cash-flow-chart__values text[data-series="' + key + '"]')).every((label) => {
+        const x = chartBounds.left + Number(label.getAttribute("x"));
+        const y = chartBounds.top + Number(label.getAttribute("y")) + labelOffset;
+        return Math.abs(y - baseline) <= 1 || rectangles.some((bar) =>
+          Math.abs(bar.left + bar.width / 2 - x) <= 1 && Math.abs(bar[end] - y) <= 1);
+      });
     const isMonthlyLine = (line) => /^M[^CQS]+$/.test(line ?? "") && line.match(/L/g)?.length === 11;
     const amountCells = Array.from(document.querySelectorAll(".cash-flow-summary dd, .cash-flow-chart__detail dd"));
     const detail = document.querySelector(".cash-flow-chart__detail");
     const detailAmounts = Array.from(detail?.querySelectorAll("dd") ?? [], (amount) => amount.textContent);
     const cashFlow = cashFlowScroll ? {
-      variant: cashFlowScroll.closest(".cash-flow-chart").dataset.variant,
       labels: cashFlowValues.length,
       months: monthBounds.length,
       labelsAlignWithMonths: monthBounds.every((bounds, index) => {
@@ -488,14 +494,15 @@ async function collectMetrics(client, state, apiRequestCount) {
         label.bottom > Math.min(chartBounds.bottom, monthButtons.top)) : true,
       axisClips: chartBounds ? axisTicks.some((tick) => tick.getBoundingClientRect().left < chartBounds.left) : true,
       uniqueTicks: new Set(axisTicks.map((tick) => tick.textContent)).size === axisTicks.length,
-      signedBars: baseline !== undefined && barBounds(bars[0]).length > 0 && barBounds(bars[1]).length > 0 &&
-        barBounds(bars[0]).every((bar) => bar.bottom <= baseline + 1) && barBounds(bars[1]).every((bar) => bar.top >= baseline - 1),
-      signedAreas: baseline !== undefined && Boolean(incomeArea && expenseArea &&
-        incomeArea.top <= baseline && Math.abs(incomeArea.bottom - baseline) <= 1 &&
-        expenseArea.bottom >= baseline && Math.abs(expenseArea.top - baseline) <= 1),
-      linearAreas: areas?.length === 2 && Array.from(areas).every((area) =>
-        isMonthlyLine(area.querySelector(".recharts-area-curve")?.getAttribute("d"))),
+      signedBars: baseline !== undefined && bars.length === 2 && incomeBars.length > 0 && expenseBars.length > 0 &&
+        incomeBars.every((bar) => Math.abs(bar.bottom - baseline) <= 1) &&
+        expenseBars.every((bar) => Math.abs(bar.top - baseline) <= 1),
+      consistentBarWidths: allBars.every((bar) => Math.abs(bar.width - allBars[0].width) <= 1),
+      barsMatchLabels: Boolean(chartBounds && baseline !== undefined &&
+        barsMatchLabels("income", incomeBars, "top", 12) && barsMatchLabels("expense", expenseBars, "bottom", -12)),
+      areaCount: cashFlowScroll.querySelectorAll(".recharts-area").length,
       linearPath: isMonthlyLine(netPath),
+      netMarkers: cashFlowScroll.querySelectorAll("circle.recharts-line-dot").length,
       formattedAmounts: amountCells.every((amount) => /[.,]\\d{2}\\s(?:USD|PLN)$/.test(amount.textContent) && !/^[+−-]0[.,]00\\s/.test(amount.textContent)),
       detailMonth: detail?.querySelector("strong")?.textContent,
       detailAmounts,
@@ -603,11 +610,10 @@ function collectAdditionalFailures(stateResults) {
       if (!chart) continue;
       if (!chart.labelsAlignWithMonths) failures.push(`${state.name}: chart labels do not align with their months`);
       if (chart.overlappingLabels.length || chart.clippedLabels || chart.axisClips) failures.push(`${state.name}: chart or axis labels overlap or are clipped (${JSON.stringify(chart.overlappingLabels)})`);
-      const expectedVariant = process.env.VITE_CASH_FLOW_CHART === "bar" ? "bar" : "area";
-      if (chart.variant !== expectedVariant) failures.push(`${state.name}: expected ${expectedVariant} chart`);
-      if (chart.variant === "bar" && !chart.signedBars) failures.push(`${state.name}: bars do not extend in the correct direction from zero`);
-      if (chart.variant === "area" && (!chart.signedAreas || !chart.linearAreas)) failures.push(`${state.name}: expected straight income and expense areas on opposite sides of zero`);
-      if (!chart.linearPath) failures.push(`${state.name}: net cash flow path does not contain 11 straight segments`);
+      if (!chart.signedBars || !chart.consistentBarWidths) failures.push(`${state.name}: expected equal-width bars on opposite sides of zero`);
+      if (!chart.barsMatchLabels) failures.push(`${state.name}: bars do not align with their value labels`);
+      if (chart.areaCount) failures.push(`${state.name}: chart still renders area fills`);
+      if (!chart.linearPath || chart.netMarkers !== chart.months) failures.push(`${state.name}: expected a straight net cash flow line with a marker for each month`);
       if (!chart.formattedAmounts || !chart.detailFits) failures.push(`${state.name}: summary or detail currency formatting or layout is invalid`);
       if (state.interaction === "cash-flow-select" && (!chart.detailMonth?.includes("2026") || chart.detailAmounts.length !== 3)) failures.push(`${state.name}: selected month details are missing`);
       if (state.scenario === "history-sub-cent" && chart.detailAmounts.some((amount) => amount !== "0.00 USD")) failures.push(`${state.name}: sub-cent amounts did not round to unsigned zero`);
