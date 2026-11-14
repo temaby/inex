@@ -26,6 +26,15 @@
   min-width: 150px;
 }
 
+.reports-drill-actions .ant-picker {
+  width: 116px;
+  height: 37px;
+}
+
+.cash-flow-actions .ant-picker {
+  width: 100px;
+}
+
 .reports-hub-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -43,13 +52,6 @@
   font-size: var(--fs-13);
   font-weight: var(--fw-semibold);
   text-transform: uppercase;
-}
-
-.report-title {
-  color: var(--fg-1);
-  font-size: var(--fs-18);
-  font-weight: var(--fw-semibold);
-  margin: 0;
 }
 
 .reports-hub-card {
@@ -142,76 +144,102 @@
   min-width: 0;
 }
 
-.report-panel__heading {
-  align-items: center;
-  color: var(--fg-1);
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-
-.report-panel__heading h3 {
-  font-size: var(--fs-16);
-  margin: 0;
-}
-
-.report-toolbar {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  justify-content: space-between;
-}
-
-.report-toolbar__control {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.report-toolbar__label {
-  color: var(--fg-2);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-semibold);
-}
-
-.report-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--space-3);
-}
-
-.report-stat {
+.report-summary {
+  overflow: hidden;
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-3);
-  box-shadow: var(--shadow-1);
+}
+
+.reports-workspace .ant-spin-container > .report-summary + .report-panel {
+  margin-block-start: var(--space-5);
+}
+
+.report-summary__metrics {
+  display: grid;
+  grid-template-columns: repeat(var(--metric-count), minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: var(--border-1);
+}
+
+.report-summary__metrics > div {
+  container-type: inline-size;
   min-width: 0;
-  padding: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
 }
 
-.report-stat > span {
-  color: var(--fg-3);
-  display: block;
-  font-size: var(--fs-11);
-  font-weight: var(--fw-semibold);
-  margin-bottom: var(--space-2);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.report-summary__metrics > .report-summary__highlight {
+  background: var(--bg-stripe);
 }
 
-.report-stat > strong {
-  align-items: center;
+.report-summary dt,
+.report-summary__group h2 {
+  color: var(--fg-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+}
+
+.report-summary dd {
+  margin: var(--space-1) 0 0;
   color: var(--fg-1);
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  font-family: var(--font-num);
-  font-size: var(--fs-30);
+  font: var(--fw-semibold) var(--fs-24)/var(--lh-tight) var(--font-num);
+  font-size: clamp(12px, calc(100cqi / var(--amount-width, 8)), var(--fs-24));
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.report-summary dd [aria-hidden="true"] {
+  max-width: 100%;
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+
+.report-summary dd [aria-hidden="true"] > :first-child {
+  white-space: normal;
+}
+
+.report-summary dd[data-tone="income"] { color: var(--income-fg); }
+.report-summary dd[data-tone="expense"] { color: var(--expense-fg); }
+.report-summary dd small { font-size: 0.68em; white-space: nowrap; }
+
+.report-summary__group {
+  border-top: 1px solid var(--border-1);
+}
+
+.report-summary__group h2 {
+  margin: 0;
+  padding: var(--space-2) var(--space-4) 0;
   font-weight: var(--fw-semibold);
-  line-height: 1.1;
+}
+
+.report-summary__group h2 + dl > div {
+  padding-top: var(--space-2);
+}
+
+@media (max-width: 1199px) {
+  .report-summary__metrics {
+    grid-template-columns: repeat(min(4, var(--metric-count)), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .report-summary__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-summary__metrics > div {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .report-summary dd {
+    font-size: clamp(11px, calc(100cqi / var(--amount-width, 8)), clamp(13px, 4vw, 18px));
+  }
+
+  .report-summary__highlight {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Keep the chart's text alternative available without a duplicate visible report. */
@@ -362,22 +390,13 @@
     height: 320px;
   }
 
-  .report-stat-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .report-stat {
-    padding: 18px 16px;
-  }
-
-  .report-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .report-toolbar__control,
-  .report-toolbar__control .ant-picker {
+  .reports-drill-actions.cash-flow-actions {
     width: 100%;
+  }
+
+  .reports-drill-actions .ant-picker,
+  .reports-drill-actions > button {
+    min-height: 44px;
   }
 
   .report-table-wrap--desktop {

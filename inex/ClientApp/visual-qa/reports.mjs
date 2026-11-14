@@ -38,7 +38,7 @@ const states = [
       viewport: { width, height: defaultViewportHeight },
       scenario: "populated",
       routePath: report === "history" ? "/reports/history?year=2026" : `/reports/${report}?interval=2026-04`,
-      interaction: report === "history" ? "cash-flow-select" : undefined,
+      interaction: report === "history" ? "cash-flow-select" : width === 390 ? "change-report-month" : undefined,
     }))),
   ...["hub", "category", "budget", "history"].map((report) => ({
     name: `${report}-russian-360`,
@@ -278,6 +278,15 @@ const cashFlowDetailClearsBottomNav = `(() => {
 })()`;
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "change-report-month") {
+    await evaluate(client, "document.querySelector('.reports-drill-actions input').click()");
+    await waitFor(client, "Boolean(document.querySelector('.ant-picker-cell[title=\"2026-03\"]'))");
+    await evaluate(client, "document.querySelector('.ant-picker-cell[title=\"2026-03\"] .ant-picker-cell-inner').click()");
+    await waitFor(client, "location.search === '?interval=2026-03' && document.querySelector('.reports-drill-actions input').value === '2026-03'");
+    await waitForReportsReady(client, state);
+    return;
+  }
+
   if (state.interaction === "cash-flow-select") {
     const monthIndex = state.scenario === "history-sub-cent" ? 0 : state.scenario === "history-skewed" ? 2 : 3;
     await evaluate(client, `document.querySelectorAll('.cash-flow-chart__months button')[${monthIndex}].click()`);
@@ -306,9 +315,6 @@ async function applyInteraction(client, state) {
 
   if (state.interaction === "cash-flow-touch") {
     await client.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
-    await evaluate(client, "document.querySelector('.cash-flow-actions__more').click()");
-    await waitFor(client, "Array.from(document.querySelectorAll('[role=menuitem]')).map((item) => item.textContent).join(',') === 'Share,Export,Print'");
-    await evaluate(client, "document.querySelector('.cash-flow-actions__more').click()");
     await evaluate(client, "document.querySelector('.cash-flow-chart__scroll').scrollIntoView({ block: 'center' })");
     const point = await evaluate(client, `(() => {
       const viewport = document.querySelector('.cash-flow-chart__scroll').getBoundingClientRect();
@@ -448,7 +454,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const modalRect = modal ? modal.getBoundingClientRect() : null;
     const reportCards = Array.from(document.querySelectorAll(".reports-hub-card"));
     const reportPanels = Array.from(document.querySelectorAll(".report-panel"));
-    const statCards = Array.from(document.querySelectorAll(".report-stat"));
+    const summaryBars = Array.from(document.querySelectorAll(".report-summary"));
+    const summaryCells = Array.from(document.querySelectorAll(".report-summary__metrics > div"));
+    const headerPicker = document.querySelector(".reports-drill-actions .ant-picker")?.getBoundingClientRect();
+    const headerButton = document.querySelector(".reports-drill-actions > button")?.getBoundingClientRect();
     const tableRows = Array.from(document.querySelectorAll(".report-table .ant-table-row"));
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
     const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary"));
@@ -478,7 +487,7 @@ async function collectMetrics(client, state, apiRequestCount) {
           Math.abs(bar.left + bar.width / 2 - x) <= 1 && Math.abs(bar[end] - y) <= 1);
       });
     const isMonthlyLine = (line) => /^M[^CQS]+$/.test(line ?? "") && line.match(/L/g)?.length === 11;
-    const amountCells = Array.from(document.querySelectorAll(".cash-flow-summary dd, .cash-flow-chart__detail dd"));
+    const amountCells = Array.from(document.querySelectorAll(".cash-flow-report .report-summary dd, .cash-flow-chart__detail dd"));
     const detail = document.querySelector(".cash-flow-chart__detail");
     const detailAmounts = Array.from(detail?.querySelectorAll("dd") ?? [], (amount) => amount.textContent);
     const cashFlow = cashFlowScroll ? {
@@ -508,10 +517,9 @@ async function collectMetrics(client, state, apiRequestCount) {
       detailAmounts,
       detailFits: Array.from(detail?.querySelectorAll("dt, dd") ?? []).every((item) => item.scrollWidth <= item.clientWidth),
       scrolls: cashFlowScroll.scrollWidth > cashFlowScroll.clientWidth,
-      summaryHeight: document.querySelector(".cash-flow-summary").getBoundingClientRect().height,
+      summaryHeight: document.querySelector(".report-summary").getBoundingClientRect().height,
       localizedMonths: cashFlowScroll.querySelector(".cash-flow-chart__months button").textContent,
       titles: document.querySelectorAll(".cash-flow-report h2").length,
-      controlsFit: document.querySelector(".cash-flow-actions").getBoundingClientRect().right <= window.innerWidth,
     } : null;
 
     return {
@@ -532,27 +540,23 @@ async function collectMetrics(client, state, apiRequestCount) {
       modalWithinViewport: modalRect ? modalRect.left >= 0 && modalRect.right <= window.innerWidth : null,
       modalBounds: modalRect ? { left: modalRect.left, right: modalRect.right, width: modalRect.width } : null,
       reportCardCount: reportCards.length,
+      drilldownHeaderButtons: document.querySelectorAll(".reports-drill-actions button").length,
       reportPanelCount: reportPanels.length,
-      statCardCount: statCards.length,
+      headerControlsAligned: Boolean(headerPicker && headerButton &&
+        headerPicker.right <= headerButton.left && headerButton.right <= window.innerWidth &&
+        Math.abs(headerPicker.top + headerPicker.height / 2 - headerButton.top - headerButton.height / 2) <= 1),
+      summaryBarCount: summaryBars.length,
+      summaryMetricCount: summaryCells.length,
+      overflowingSummaryMetrics: summaryCells.filter((cell) => {
+        const value = cell.querySelector("dd");
+        return value.scrollWidth > value.clientWidth + 1;
+      }).length,
       tableRowCount: tableRows.length,
       chartSurfaceCount: chartSurfaces.length,
       accessibleSummaryCount: accessibleSummaries.length,
       visibleBottomSummaryCount: accessibleSummaries.filter((summary) => summary.getBoundingClientRect().height > 1).length,
       cashFlow,
       reportCardHeights: reportCards.map((card) => card.getBoundingClientRect().height),
-      statLabelSizes: statCards.map((card) => getComputedStyle(card.querySelector(':scope > span')).fontSize),
-      statValueSizes: statCards.map((card) => getComputedStyle(card.querySelector('strong [aria-hidden="true"]') ?? card.querySelector('strong')).fontSize),
-      statValueMargins: statCards.map((card) => {
-        const value = card.querySelector('strong [aria-hidden="true"]');
-        return value ? getComputedStyle(value).marginBottom : '0px';
-      }),
-      overflowingStatValues: statCards.filter((card) => {
-        const cardRect = card.getBoundingClientRect();
-        return Array.from(card.querySelectorAll('strong span')).some((value) => {
-          const rect = value.getBoundingClientRect();
-          return rect.left < cardRect.left || rect.right > cardRect.right;
-        });
-      }).length,
       hubVisible: reportCards.length > 0,
       categoryReportVisible: document.body.innerText.includes("Category report data summary"),
       budgetReportVisible: document.body.innerText.includes("Budget report data summary"),
@@ -597,12 +601,27 @@ function runState(args) {
 function collectAdditionalFailures(stateResults) {
   const failures = [];
   for (const state of stateResults) {
+    if (state.routePath.startsWith("/reports/")) {
+      if (state.drilldownHeaderButtons !== 1 || !state.headerControlsAligned) {
+        failures.push(`${state.name}: the period picker and All reports button must share one header row`);
+      }
+      const metricCount = state.routePath.startsWith("/reports/budget") ? 8
+        : state.routePath.startsWith("/reports/category") ? 7 : 3;
+      if (state.summaryBarCount !== 1 || state.summaryMetricCount !== metricCount) {
+        failures.push(`${state.name}: expected one summary bar with ${metricCount} metrics`);
+      }
+    }
+    if (state.interaction === "change-report-month") {
+      const expectedRequest = state.routePath.startsWith("/reports/category")
+        ? "GET /reports/category?filter=Start:2026-03-01;End:2026-03-31;&currency=USD"
+        : "GET /reports/budget/comparison?year=2026&month=3&currency=USD";
+      if (!state.requestLog.includes(expectedRequest)) {
+        failures.push(`${state.name}: changing the month did not request ${expectedRequest}`);
+      }
+    }
     if (state.scenario === "russian" && !state.russianLabelsVisible) failures.push(`${state.name}: Russian labels did not load`);
     if (state.visibleBottomSummaryCount > 0) failures.push(`${state.name}: duplicate bottom summary is visible`);
-    if (state.overflowingStatValues > 0) failures.push(`${state.name}: summary values overflow their cards`);
-    if (state.statLabelSizes.some((size) => size !== "11px")) failures.push(`${state.name}: summary label size differs from Transactions`);
-    if (state.statValueSizes.some((size) => size !== "30px")) failures.push(`${state.name}: summary value size differs from Transactions`);
-    if (state.statValueMargins.some((margin) => margin !== "0px")) failures.push(`${state.name}: label spacing leaks into summary values`);
+    if (state.overflowingSummaryMetrics > 0) failures.push(`${state.name}: summary metrics overflow their cells`);
     if (state.reportCardHeights.some((height) => height >= 190)) failures.push(`${state.name}: report list card is not compact`);
     if (state.routePath.startsWith("/reports/history")) {
       const chart = state.cashFlow;
@@ -621,7 +640,7 @@ function collectAdditionalFailures(stateResults) {
       if (!chart.uniqueTicks) failures.push(`${state.name}: y-axis tick labels repeat`);
       if (state.viewport.width >= 1024 && chart.scrolls) failures.push(`${state.name}: desktop chart requires horizontal scrolling`);
       if (state.viewport.width < 500 && !chart.scrolls) failures.push(`${state.name}: mobile chart does not scroll`);
-      if (chart.summaryHeight > 140 || chart.titles > 0 || !chart.controlsFit) failures.push(`${state.name}: summary or report chrome exceeds its layout`);
+      if (chart.summaryHeight > 140 || chart.titles > 0) failures.push(`${state.name}: summary or report chrome exceeds its layout`);
       if (state.scenario === "russian" && !/янв/i.test(chart.localizedMonths)) failures.push(`${state.name}: chart months are not localized`);
     }
   }

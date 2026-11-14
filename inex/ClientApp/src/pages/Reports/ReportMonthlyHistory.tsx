@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useGetHistoryReportQuery } from "../../store/report/report-api";
@@ -9,6 +8,7 @@ import type { ReportsHubContext } from "../Reports";
 import CashFlowChart from "./CashFlowChart";
 import type { CashFlowSeries } from "./CashFlowChart";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
+import ReportSummaryMetrics from "./ReportSummaryMetrics";
 import "./cash-flow.css";
 
 const ReportMonthlyHistory = () => {
@@ -71,7 +71,17 @@ const ReportMonthlyHistory = () => {
     { key: "expense", label: t("reports.expenses") },
     { key: "savings", label: t("reports.netCashFlow") },
   ] as const;
-  const summary = metrics.map(({ key, label }) => ({ key, label, ...formatMetric(totals[key], key) }));
+  const summary = metrics.map(({ key, label }) => {
+    const { amount, tone } = formatMetric(totals[key], key);
+    return {
+      key,
+      label,
+      tone,
+      value: <>{amount} <small>{currency}</small></>,
+      amountWidth: amount.length * 0.62,
+      highlight: key === "savings",
+    };
+  });
   const getMonthPath = (month: number) => `/reports/category?interval=${year}-${String(month).padStart(2, "0")}`;
   const summaryRows = history.map((item) => ({
     key: item.month,
@@ -82,17 +92,8 @@ const ReportMonthlyHistory = () => {
 
   return (
     <div className="reports-workspace cash-flow-report">
-      <section className="cash-flow-summary" aria-label={t("reports.summaryTitle")}>
-        <dl>
-          {summary.map(({ key, label, amount, tone }) => (
-            <div key={key} className={key === "savings" ? "cash-flow-summary__net" : undefined}>
-              <dt>{label}</dt>
-              <dd data-tone={tone} style={{ "--amount-width": amount.length * 0.62 } as CSSProperties}>
-                {amount} <small>{currency}</small>
-              </dd>
-            </div>
-          ))}
-        </dl>
+      <section className="report-summary" aria-label={t("reports.summaryTitle")}>
+        <ReportSummaryMetrics metrics={summary} />
       </section>
 
       <CashFlowChart
