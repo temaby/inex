@@ -953,6 +953,8 @@
     "netCashFlow": "Net cash flow",
     "monthlyCashFlow": "Monthly cash flow",
     "chartSeries": "Chart series",
+    "chartCurrency": "Amounts in {{currency}}",
+    "upcomingMonth": "Upcoming month",
     "scrollMonths": "Scroll to see more months",
     "name": "Name",
     "interval": "Interval",

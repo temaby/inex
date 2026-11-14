@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useGetHistoryReportQuery } from "../../store/report/report-api";
@@ -16,6 +17,8 @@ const ReportMonthlyHistory = () => {
   const locale = i18n.resolvedLanguage ?? i18n.language;
   const navigate = useNavigate();
   const { historyYear: year } = useOutletContext<ReportsHubContext>();
+  const today = dayjs();
+  const lastChartMonth = year < today.year() ? 12 : year === today.year() ? today.month() + 1 : 0;
   const selectedLinkedUserId = useAppSelector((state) => state.linkedAccount.selectedLinkedUserId);
   const selectedLinkedAccount = useAppSelector((state) => state.linkedAccount.linkState?.linkedAccounts.find(
     (account) => account.id === state.linkedAccount.selectedLinkedUserId,
@@ -99,6 +102,7 @@ const ReportMonthlyHistory = () => {
       <CashFlowChart
         key={`${selectedLinkedUserId}:${year}:${currency}`}
         history={history}
+        lastChartMonth={lastChartMonth}
         locale={locale}
         isLoading={isLoading}
         currency={currency}

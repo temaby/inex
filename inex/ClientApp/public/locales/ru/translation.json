@@ -940,6 +940,8 @@
     "netCashFlow": "Чистый денежный поток",
     "monthlyCashFlow": "Движение средств по месяцам",
     "chartSeries": "Ряды графика",
+    "chartCurrency": "Суммы в {{currency}}",
+    "upcomingMonth": "Будущий месяц",
     "scrollMonths": "Прокрутите, чтобы увидеть другие месяцы",
     "name": "Название",
     "interval": "Интервал",

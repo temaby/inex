@@ -29,6 +29,9 @@ const authUser = {
 };
 
 const defaultViewportHeight = 900;
+const yearEnd = "2026-12-31T12:00:00.000Z";
+const timezoneId = "Europe/Warsaw";
+const chartMonthCount = (state) => state.chartMonths ?? 4;
 
 const states = [
   ...["category", "budget", "history"].flatMap((report) =>
@@ -60,6 +63,7 @@ const states = [
     viewport: { width, height: interaction === "cash-flow-touch" ? 700 : defaultViewportHeight },
     scenario: "populated",
     routePath: "/reports/history?year=2026",
+    ...(interaction === "cash-flow-touch" ? { fixedNow: yearEnd, chartMonths: 12 } : {}),
     interaction,
   })),
   ...[
@@ -73,6 +77,27 @@ const states = [
     routePath: "/reports/history?year=2026",
     interaction: "cash-flow-select",
   })),
+  ...[
+    [2025, 12, undefined],
+    [2027, 0, "cash-flow-select"],
+  ].map(([year, chartMonths, interaction]) => ({
+    name: `history-year-${year}-1440`,
+    screenshot: `history-year-${year}-1440.png`,
+    viewport: { width: 1440, height: defaultViewportHeight },
+    scenario: "populated",
+    routePath: `/reports/history?year=${year}`,
+    chartMonths,
+    interaction,
+  })),
+  {
+    name: "history-upcoming-month-390",
+    screenshot: "history-upcoming-month-390.png",
+    viewport: { width: 390, height: defaultViewportHeight },
+    scenario: "populated",
+    routePath: "/reports/history?year=2026",
+    interaction: "cash-flow-select",
+    monthIndex: 4,
+  },
   ...[
     ["hub", "/reports"],
     ["category", "/reports/category?interval=2026-04"],
@@ -246,11 +271,17 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       }
       if (url.pathname.startsWith("/api/reports/history/") && method === "GET") {
         const report = fixture.reportsVisualFixtureHistoryReport;
+        if (url.pathname.endsWith("/2027")) {
+          return jsonResponse({
+            data: report.data.map((month) => ({ ...month, income: 0, expense: 0, savings: 0 })),
+          });
+        }
         if (scenario === "history-skewed" || scenario === "history-sub-cent") {
           const amounts = scenario === "history-skewed" ? [
             { income: 1000, expense: 0, savings: 1000 },
             { income: 50, expense: -55, savings: -5 },
             { income: 7.216494845360825, expense: 0, savings: 7.216494845360825 },
+            { income: 100.4, expense: -22.5, savings: 77.9 },
           ] : [
             { income: 0.003, expense: -0.004, savings: -0.001 },
           ];
@@ -277,6 +308,10 @@ const cashFlowDetailClearsBottomNav = `(() => {
   return detail?.top >= 0 && detail.bottom <= bottomNav?.top;
 })()`;
 
+function selectedMonthIndex(state) {
+  return state.monthIndex ?? (state.scenario === "history-sub-cent" ? 0 : state.scenario === "history-skewed" ? 2 : 3);
+}
+
 async function applyInteraction(client, state) {
   if (state.interaction === "change-report-month") {
     await evaluate(client, "document.querySelector('.reports-drill-actions input').click()");
@@ -288,7 +323,7 @@ async function applyInteraction(client, state) {
   }
 
   if (state.interaction === "cash-flow-select") {
-    const monthIndex = state.scenario === "history-sub-cent" ? 0 : state.scenario === "history-skewed" ? 2 : 3;
+    const monthIndex = selectedMonthIndex(state);
     await evaluate(client, `document.querySelectorAll('.cash-flow-chart__months button')[${monthIndex}].click()`);
     await waitFor(client, `document.activeElement === document.querySelector('.cash-flow-chart__detail a') &&
       document.querySelectorAll('.cash-flow-chart__months button')[${monthIndex}].getAttribute('aria-pressed') === 'true' &&
@@ -309,7 +344,7 @@ async function applyInteraction(client, state) {
     await client.send("Input.dispatchMouseEvent", { type: "mouseReleased", ...point, button: "left", clickCount: 1 });
     await waitFor(client, "location.pathname.endsWith('/reports/category') && location.search === '?interval=2026-04'");
     await evaluate(client, "history.back()");
-    await waitFor(client, "document.querySelectorAll('.cash-flow-chart__values text').length === 36");
+    await waitFor(client, `document.querySelectorAll('.cash-flow-chart__values text').length === ${3 * chartMonthCount(state)}`);
     return;
   }
 
@@ -337,9 +372,9 @@ async function applyInteraction(client, state) {
     await waitFor(client, cashFlowDetailClearsBottomNav);
 
     await evaluate(client, "document.querySelectorAll('.cash-flow-chart__legend button')[1].click()");
-    await waitFor(client, "document.querySelectorAll('.cash-flow-chart__values text').length === 24");
+    await waitFor(client, `document.querySelectorAll('.cash-flow-chart__values text').length === ${2 * chartMonthCount(state)}`);
     await evaluate(client, "document.querySelectorAll('.cash-flow-chart__legend button')[1].click()");
-    await waitFor(client, "document.querySelectorAll('.cash-flow-chart__values text').length === 36");
+    await waitFor(client, `document.querySelectorAll('.cash-flow-chart__values text').length === ${3 * chartMonthCount(state)}`);
     return;
   }
 
@@ -401,7 +436,8 @@ async function waitForReportsReady(client, state) {
       const surface = plot?.querySelector('svg');
       return surface && Math.abs(surface.getBoundingClientRect().width - plot.getBoundingClientRect().width) <= 1 &&
         Math.abs(surface.getBoundingClientRect().height - plot.getBoundingClientRect().height) <= 1 &&
-        document.querySelectorAll('.cash-flow-chart__values text').length === 36;
+        document.querySelectorAll('.cash-flow-chart__months button').length === 12 &&
+        document.querySelectorAll('.cash-flow-chart__values text').length === ${3 * chartMonthCount(state)};
     })()`);
     return;
   }
@@ -486,14 +522,16 @@ async function collectMetrics(client, state, apiRequestCount) {
         return Math.abs(y - baseline) <= 1 || rectangles.some((bar) =>
           Math.abs(bar.left + bar.width / 2 - x) <= 1 && Math.abs(bar[end] - y) <= 1);
       });
-    const isMonthlyLine = (line) => /^M[^CQS]+$/.test(line ?? "") && line.match(/L/g)?.length === 11;
+    const plottedMonths = ${chartMonthCount(state)};
+    const isMonthlyLine = !plottedMonths ? !netPath : /^M[^CQS]+$/.test(netPath ?? "") &&
+      netPath.match(/L/g)?.length === plottedMonths - 1;
     const amountCells = Array.from(document.querySelectorAll(".cash-flow-report .report-summary dd, .cash-flow-chart__detail dd"));
     const detail = document.querySelector(".cash-flow-chart__detail");
     const detailAmounts = Array.from(detail?.querySelectorAll("dd") ?? [], (amount) => amount.textContent);
     const cashFlow = cashFlowScroll ? {
       labels: cashFlowValues.length,
       months: monthBounds.length,
-      labelsAlignWithMonths: monthBounds.every((bounds, index) => {
+      labelsAlignWithMonths: monthBounds.slice(0, plottedMonths).every((bounds, index) => {
         const label = labelBoxes[index * 3];
         return label && Math.abs(label.left + label.width / 2 - bounds.left - bounds.width / 2) <= 1;
       }),
@@ -503,19 +541,26 @@ async function collectMetrics(client, state, apiRequestCount) {
         label.bottom > Math.min(chartBounds.bottom, monthButtons.top)) : true,
       axisClips: chartBounds ? axisTicks.some((tick) => tick.getBoundingClientRect().left < chartBounds.left) : true,
       uniqueTicks: new Set(axisTicks.map((tick) => tick.textContent)).size === axisTicks.length,
-      signedBars: baseline !== undefined && bars.length === 2 && incomeBars.length > 0 && expenseBars.length > 0 &&
+      tickValues: axisTicks.map((tick) => tick.textContent),
+      labelValues: cashFlowValues.map((label) => label.textContent),
+      signedBars: !plottedMonths ? allBars.length === 0 : baseline !== undefined && bars.length === 2 && incomeBars.length > 0 && expenseBars.length > 0 &&
         incomeBars.every((bar) => Math.abs(bar.bottom - baseline) <= 1) &&
         expenseBars.every((bar) => Math.abs(bar.top - baseline) <= 1),
+      barsInPlottedMonths: allBars.every((bar) => bar.right <= monthBounds[plottedMonths - 1]?.right),
       consistentBarWidths: allBars.every((bar) => Math.abs(bar.width - allBars[0].width) <= 1),
       barsMatchLabels: Boolean(chartBounds && baseline !== undefined &&
         barsMatchLabels("income", incomeBars, "top", 12) && barsMatchLabels("expense", expenseBars, "bottom", -12)),
       areaCount: cashFlowScroll.querySelectorAll(".recharts-area").length,
-      linearPath: isMonthlyLine(netPath),
+      linearPath: isMonthlyLine,
       netMarkers: cashFlowScroll.querySelectorAll("circle.recharts-line-dot").length,
       formattedAmounts: amountCells.every((amount) => /[.,]\\d{2}\\s(?:USD|PLN)$/.test(amount.textContent) && !/^[+−-]0[.,]00\\s/.test(amount.textContent)),
       detailMonth: detail?.querySelector("strong")?.textContent,
       detailAmounts,
       detailFits: Array.from(detail?.querySelectorAll("dt, dd") ?? []).every((item) => item.scrollWidth <= item.clientWidth),
+      pendingDetail: detail?.querySelector(".cash-flow-chart__pending")?.textContent,
+      selectedMonthBackground: getComputedStyle(cashFlowScroll.querySelector(".cash-flow-chart__months button[aria-pressed='true']") ??
+        cashFlowScroll.querySelector(".cash-flow-chart__months button")).backgroundColor,
+      chartCurrency: document.querySelector(".cash-flow-chart__currency")?.textContent,
       scrolls: cashFlowScroll.scrollWidth > cashFlowScroll.clientWidth,
       summaryHeight: document.querySelector(".report-summary").getBoundingClientRect().height,
       localizedMonths: cashFlowScroll.querySelector(".cash-flow-chart__months button").textContent,
@@ -578,6 +623,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     viewport: state.viewport,
     scenario: state.scenario,
     routePath: state.routePath,
+    chartMonths: chartMonthCount(state),
+    monthIndex: selectedMonthIndex(state),
+    fixedNow: state.fixedNow ?? fixtureExports.reportsVisualFixtureMeta.fixedNow,
+    timezoneId,
     interaction: state.interaction ?? null,
     ...metrics,
   };
@@ -587,11 +636,13 @@ function runState(args) {
   const { state } = args;
   return runBrowserState({
     ...args,
-    state: state.routePath.startsWith("/reports/history") && state.viewport.width >= 1024
-      ? { ...state, screenshotMode: "viewport" }
-      : state,
+    state: {
+      ...state,
+      timezoneId,
+      screenshotMode: state.routePath.startsWith("/reports/history") && state.viewport.width >= 1024 ? "viewport" : undefined,
+    },
     routePath: state.routePath,
-    initScript: fixedDateInitScript(args.fixture.reportsVisualFixtureMeta.fixedNow, state.language ?? "en"),
+    initScript: fixedDateInitScript(state.fixedNow ?? args.fixture.reportsVisualFixtureMeta.fixedNow, state.language ?? "en"),
     waitForReady: waitForReportsReady,
     applyInteraction,
     collectMetrics,
@@ -625,16 +676,40 @@ function collectAdditionalFailures(stateResults) {
     if (state.reportCardHeights.some((height) => height >= 190)) failures.push(`${state.name}: report list card is not compact`);
     if (state.routePath.startsWith("/reports/history")) {
       const chart = state.cashFlow;
-      if (!chart || chart.labels !== 36 || chart.months !== 12) failures.push(`${state.name}: monthly chart values are missing`);
+      if (!chart || chart.labels !== 3 * state.chartMonths || chart.months !== 12) failures.push(`${state.name}: chart values do not match the reporting year`);
       if (!chart) continue;
       if (!chart.labelsAlignWithMonths) failures.push(`${state.name}: chart labels do not align with their months`);
       if (chart.overlappingLabels.length || chart.clippedLabels || chart.axisClips) failures.push(`${state.name}: chart or axis labels overlap or are clipped (${JSON.stringify(chart.overlappingLabels)})`);
-      if (!chart.signedBars || !chart.consistentBarWidths) failures.push(`${state.name}: expected equal-width bars on opposite sides of zero`);
+      if (!chart.signedBars || !chart.consistentBarWidths || !chart.barsInPlottedMonths) failures.push(`${state.name}: expected equal-width bars on opposite sides of zero and no bars in future months`);
       if (!chart.barsMatchLabels) failures.push(`${state.name}: bars do not align with their value labels`);
       if (chart.areaCount) failures.push(`${state.name}: chart still renders area fills`);
-      if (!chart.linearPath || chart.netMarkers !== chart.months) failures.push(`${state.name}: expected a straight net cash flow line with a marker for each month`);
+      if (!chart.linearPath || chart.netMarkers !== state.chartMonths) failures.push(`${state.name}: expected a straight net cash flow line with a marker for each plotted month`);
       if (!chart.formattedAmounts || !chart.detailFits) failures.push(`${state.name}: summary or detail currency formatting or layout is invalid`);
-      if (state.interaction === "cash-flow-select" && (!chart.detailMonth?.includes("2026") || chart.detailAmounts.length !== 3)) failures.push(`${state.name}: selected month details are missing`);
+      if (state.interaction === "cash-flow-select") {
+        const year = new URLSearchParams(state.routePath.split("?")[1]).get("year");
+        const isUpcoming = state.monthIndex >= state.chartMonths;
+        if (!chart.detailMonth?.includes(year) || (isUpcoming ? !chart.pendingDetail || chart.detailAmounts.length : chart.detailAmounts.length !== 3)) {
+          failures.push(`${state.name}: selected month details are missing or invalid`);
+        }
+        if (chart.selectedMonthBackground !== "rgba(0, 0, 0, 0)") failures.push(`${state.name}: selected month button has a background`);
+      }
+      if (![...chart.labelValues, ...chart.tickValues].every((value) => /^[+−]?\d[\d,\.\s]*$/.test(value) && !/^[+−]0$/.test(value))) {
+        failures.push(`${state.name}: chart numbers use invalid formatting`);
+      }
+      if (!chart.chartCurrency?.includes(state.scenario === "linked" ? "PLN" : "USD")) failures.push(`${state.name}: chart currency is missing`);
+      if (state.name === "history-russian-360" && chart.labelValues.slice(0, 6).map((value) => value.replace(/\s/g, " ")).join("|") !== "3 050|−2 320|+730|3 080|−4 390|−1 310") {
+        failures.push(`${state.name}: chart values are not localized, grouped, and signed`);
+      }
+      if (state.name === "history-year-2025-1440" && chart.labelValues.slice(12, 15).join("|") !== "0|0|0") {
+        failures.push(`${state.name}: past months without activity must show zero values`);
+      }
+      if (state.scenario === "history-skewed" && chart.labelValues[8] !== "+7.2") failures.push(`${state.name}: chart values under 10 must round to one decimal place`);
+      if (state.scenario === "history-skewed" && chart.labelValues.slice(9, 12).join("|") !== "100|−23|+78") {
+        failures.push(`${state.name}: chart values of at least 10 must round to integers`);
+      }
+      if (state.scenario === "history-sub-cent" && chart.labelValues.some((value) => value !== "0")) {
+        failures.push(`${state.name}: sub-cent chart values must round to unsigned zero`);
+      }
       if (state.scenario === "history-sub-cent" && chart.detailAmounts.some((amount) => amount !== "0.00 USD")) failures.push(`${state.name}: sub-cent amounts did not round to unsigned zero`);
       if (state.scenario === "history-skewed" && chart.detailAmounts[2] !== "+7.22 USD") failures.push(`${state.name}: net amount was not rounded and signed`);
       if (!chart.uniqueTicks) failures.push(`${state.name}: y-axis tick labels repeat`);
