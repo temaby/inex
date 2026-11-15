@@ -68,6 +68,7 @@ const Reports = () => {
     const isHub = normalizedPath === "/reports";
     const isHistory = normalizedPath === "/reports/history";
     const isBudget = normalizedPath === "/reports/budget";
+    const isCategory = normalizedPath === "/reports/category";
     const { selectedYear, selectedMonth } = useAppSelector((state) => state.budgetReport);
     const searchParams = new URLSearchParams(location.search);
     const interval = searchParams.get("interval");
@@ -223,7 +224,7 @@ const Reports = () => {
 
     return (
         <>
-            <BasicPage frame="analytics" title={title} subtitle={isHub ? t("reports.subtitleHub") : isHistory ? undefined : t("reports.subtitleDrilldown")} extra={extra}>
+            <BasicPage frame="analytics" title={title} subtitle={isHub ? t("reports.subtitleHub") : isHistory || isCategory ? undefined : t("reports.subtitleDrilldown")} extra={extra}>
                 <div className="reports-route">
                     {isLinkedMode ? (
                         <Alert

@@ -180,6 +180,14 @@ const states = [
     scenario: "populated",
     routePath: "/reports/category?interval=2026-04",
   },
+  ...[360, 390, 768, 1280, 1920].map((width) => ({
+    name: `category-distribution-${width}`,
+    screenshot: `category-distribution-${width}.png`,
+    viewport: { width, height: defaultViewportHeight },
+    scenario: "category-distribution",
+    routePath: "/reports/category?interval=2026-04",
+    interaction: "expand-category",
+  })),
   {
     name: "category-empty-390",
     screenshot: "category-empty-390.png",
@@ -251,12 +259,21 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ data: fixture.reportsVisualFixtureCategories });
       }
       if (url.pathname === "/api/reports/category" && method === "GET") {
+        const report = fixture.reportsVisualFixtureCategoryReport;
+        const stretch = scenario === "category-distribution";
         return jsonResponse({
-          ...fixture.reportsVisualFixtureCategoryReport,
-          data: scenario === "empty" ? [] : fixture.reportsVisualFixtureCategoryReport.data,
+          ...report,
+          data: scenario === "empty" ? [] : report.data.map((row) => stretch && row.id === 402 ? {
+            ...row,
+            name: "Groceries, household essentials and recurring family purchases",
+            value: -123456789012.125,
+          } : row),
           metadata: {
-            ...fixture.reportsVisualFixtureCategoryReport.metadata,
-            currency: scenario === "linked" ? "PLN" : fixture.reportsVisualFixtureCategoryReport.metadata.currency,
+            ...report.metadata,
+            currency: scenario === "linked" ? "PLN" : stretch ? "KWD" : report.metadata.currency,
+            ...(scenario === "empty" ? {
+              internalTransfers: { amountReceived: 0, amountSent: 0, netChange: 0, transactionCount: 0 },
+            } : {}),
           },
         });
       }
@@ -313,6 +330,12 @@ function selectedMonthIndex(state) {
 }
 
 async function applyInteraction(client, state) {
+  if (state.interaction === "expand-category") {
+    await evaluate(client, "document.querySelector('.category-report__toggle').click()");
+    await waitFor(client, "document.querySelector('.category-report__toggle[aria-expanded=true]') && document.querySelectorAll('.category-report .ant-table-row-level-1').length === 3");
+    return;
+  }
+
   if (state.interaction === "change-report-month") {
     await evaluate(client, "document.querySelector('.reports-drill-actions input').click()");
     await waitFor(client, "Boolean(document.querySelector('.ant-picker-cell[title=\"2026-03\"]'))");
@@ -458,7 +481,7 @@ async function waitForReportsReady(client, state) {
     return;
   }
   if (state.name.startsWith("category-empty")) {
-    await waitFor(client, "document.body.innerText.includes('No data')");
+    await waitFor(client, "document.body.innerText.includes('No data') && Boolean(document.querySelector('.category-report__transfers'))");
     return;
   }
   if (state.routePath.startsWith("/reports/category")) {
@@ -491,10 +514,35 @@ async function collectMetrics(client, state, apiRequestCount) {
     const reportCards = Array.from(document.querySelectorAll(".reports-hub-card"));
     const reportPanels = Array.from(document.querySelectorAll(".report-panel"));
     const summaryBars = Array.from(document.querySelectorAll(".report-summary"));
-    const summaryCells = Array.from(document.querySelectorAll(".report-summary__metrics > div"));
+    const summaryCells = Array.from(document.querySelectorAll(".report-summary .report-summary__metrics > div"));
     const headerPicker = document.querySelector(".reports-drill-actions .ant-picker")?.getBoundingClientRect();
     const headerButton = document.querySelector(".reports-drill-actions > button")?.getBoundingClientRect();
     const tableRows = Array.from(document.querySelectorAll(".report-table .ant-table-row"));
+    const categoryReport = document.querySelector(".category-report");
+    const categoryTable = categoryReport?.querySelector(".report-table-wrap");
+    const categoryDistribution = categoryReport ? {
+      transfersOpen: categoryReport.querySelector("details")?.open,
+      categoryScrolls: categoryTable.scrollWidth > categoryTable.clientWidth + 1,
+      mobileRows: tableRows.length > 0 && getComputedStyle(tableRows[0]).display === "grid",
+      rows: tableRows.map((row) => {
+        const name = row.querySelector(".category-report__name > div");
+        const amount = row.querySelector(".category-report__amount > div");
+        const share = row.querySelector(".category-report__share > div");
+        const fill = row.querySelector(".category-report__track > div");
+        return {
+          label: row.querySelector(".reports-link-button").textContent,
+          amount: amount.textContent,
+          share: share.textContent,
+          fillWidth: parseFloat(fill.style.width),
+          tone: fill.dataset.tone,
+          rowFits: Math.abs(row.getBoundingClientRect().width - categoryTable.clientWidth) <= 1,
+          nameFits: name.scrollWidth <= name.clientWidth + 1,
+          amountFits: amount.scrollWidth <= amount.clientWidth + 1 && amount.clientHeight <= parseFloat(getComputedStyle(amount).lineHeight) * 2 + 1,
+          shareFits: share.scrollWidth <= share.clientWidth + 1,
+          amountAlignment: getComputedStyle(amount.parentElement).textAlign,
+        };
+      }),
+    } : null;
     const chartSurfaces = Array.from(document.querySelectorAll(".recharts-surface"));
     const accessibleSummaries = Array.from(document.querySelectorAll(".report-accessible-summary"));
     const cashFlowScroll = document.querySelector(".cash-flow-chart__scroll");
@@ -597,6 +645,7 @@ async function collectMetrics(client, state, apiRequestCount) {
         return value.scrollWidth > value.clientWidth + 1;
       }).length,
       tableRowCount: tableRows.length,
+      categoryDistribution,
       chartSurfaceCount: chartSurfaces.length,
       accessibleSummaryCount: accessibleSummaries.length,
       visibleBottomSummaryCount: accessibleSummaries.filter((summary) => summary.getBoundingClientRect().height > 1).length,
@@ -656,8 +705,7 @@ function collectAdditionalFailures(stateResults) {
       if (state.drilldownHeaderButtons !== 1 || !state.headerControlsAligned) {
         failures.push(`${state.name}: the period picker and All reports button must share one header row`);
       }
-      const metricCount = state.routePath.startsWith("/reports/budget") ? 8
-        : state.routePath.startsWith("/reports/category") ? 7 : 3;
+      const metricCount = state.routePath.startsWith("/reports/budget") ? 8 : 3;
       if (state.summaryBarCount !== 1 || state.summaryMetricCount !== metricCount) {
         failures.push(`${state.name}: expected one summary bar with ${metricCount} metrics`);
       }
@@ -674,6 +722,22 @@ function collectAdditionalFailures(stateResults) {
     if (state.visibleBottomSummaryCount > 0) failures.push(`${state.name}: duplicate bottom summary is visible`);
     if (state.overflowingSummaryMetrics > 0) failures.push(`${state.name}: summary metrics overflow their cells`);
     if (state.reportCardHeights.some((height) => height >= 190)) failures.push(`${state.name}: report list card is not compact`);
+    if (state.categoryDistribution) {
+      const { transfersOpen, categoryScrolls, mobileRows, rows } = state.categoryDistribution;
+      if (transfersOpen !== (state.scenario !== "empty")) failures.push(`${state.name}: unexpected default transfer disclosure state`);
+      if (categoryScrolls || rows.some((row) => !row.rowFits || !row.nameFits || !row.amountFits || !row.shareFits)) failures.push(`${state.name}: category distribution does not fit the available width`);
+      if (rows.length && mobileRows !== (state.viewport.width <= 768)) failures.push(`${state.name}: incorrect responsive category layout`);
+      if (rows.some((row) => row.amountAlignment !== (mobileRows ? "start" : "end"))) failures.push(`${state.name}: category amounts are misaligned`);
+      if (state.interaction === "expand-category") {
+        const [parent, child, tinyRow] = rows;
+        const income = rows.find((row) => row.label === "Income");
+        if (rows.length !== 6 || !child.label.startsWith("Groceries,") || child.amount !== "-123,456,789,012.125 KWD" ||
+            parent.tone !== "expense" || parent.share !== "100%" || tinyRow.share !== "0%" || tinyRow.fillWidth <= 0 ||
+            income?.tone !== "income" || income.share !== "100%") {
+          failures.push(`${state.name}: incorrect hierarchical distribution or monetary precision`);
+        }
+      }
+    }
     if (state.routePath.startsWith("/reports/history")) {
       const chart = state.cashFlow;
       if (!chart || chart.labels !== 3 * state.chartMonths || chart.months !== 12) failures.push(`${state.name}: chart values do not match the reporting year`);

@@ -1,22 +1,35 @@
-import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import { Spin, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { Num } from "../../components/primitives";
 import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
 import { reportActions } from "../../store/report/report-slice";
 import { useGetCategoriesQuery } from "../../store/categories/categories-api";
 import { useGetCategoryReportQuery } from "../../store/report/report-api";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { createFixedAmountFormatter } from "../../utils/formatAmount";
 import type { ReportsHubContext } from "../Reports";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
 import ReportSummaryMetrics from "./ReportSummaryMetrics";
 import "./reports.css";
+import "./category-report.css";
+
+const categoryTableComponents = {
+    table: (props: ComponentPropsWithoutRef<"table">) => <table {...props} role="table" />,
+    body: {
+        wrapper: (props: ComponentPropsWithoutRef<"tbody">) => <tbody {...props} role="rowgroup" />,
+        cell: ({ children, ...props }: ComponentPropsWithoutRef<"td">) => (
+            <td {...props} role="cell"><div>{children}</div></td>
+        ),
+    },
+};
 
 const ReportCategory = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { reportMonth: currentDate } = useOutletContext<ReportsHubContext>();
@@ -96,31 +109,6 @@ const ReportCategory = () => {
         navigate(`../../transactions?filter=categoryIds:${item.id};start:${startStr};end:${endStr};`, { replace: false });
     };
 
-    const reportColumns: ColumnsType<ReportCategoryDetails> = [
-        {
-            title: t("reports.category"),
-            key: "name",
-            render: (_, item) => (
-                <button type="button" className="reports-link-button" onClick={() => openTransactions(item)}>
-                    {item.name}
-                </button>
-            ),
-        },
-        {
-            title: t("reports.amount"),
-            key: "value",
-            width: 170,
-            align: "right",
-            render: (_, item) => (
-                <Num
-                    value={Math.abs(item.value)}
-                    currency={currency}
-                    kind={item.value > 0 ? "income" : "expense"}
-                />
-            ),
-        },
-    ];
-
     const totals = useMemo(() => {
         return report.reduce(
             (acc, item) => {
@@ -136,44 +124,125 @@ const ReportCategory = () => {
     }, [report]);
     const totalBalance = totals.totalIncome + totals.totalExpenses;
 
+    const formatters = useMemo(() => {
+        const minorDigits = currency
+            ? new Intl.NumberFormat(locale, { style: "currency", currency }).resolvedOptions().minimumFractionDigits ?? 2
+            : 2;
+        return {
+            minorDigits,
+            amount: createFixedAmountFormatter(locale, minorDigits),
+            signedAmount: createFixedAmountFormatter(locale, minorDigits, "exceptZero"),
+            share: new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 1 }),
+        };
+    }, [currency, locale]);
+    const normalizeAmount = (value: number) => Math.abs(value) < 0.5 / 10 ** formatters.minorDigits ? 0 : value;
+    const renderAmount = (amount: string) => <>{amount}{currency && <> <small>{currency}</small></>}</>;
+    const renderMoney = (value: number) => renderAmount(formatters.amount.format(normalizeAmount(value)));
+    const getShare = (value: number) => {
+        const total = value > 0 ? totals.totalIncome : Math.abs(totals.totalExpenses);
+        return total === 0 ? 0 : Math.abs(value) / total;
+    };
+    const getTone = (value: number) => value > 0 ? "income" : value < 0 ? "expense" : "neutral";
+
+    const reportColumns: ColumnsType<ReportCategoryDetails> = [
+        {
+            title: t("reports.category"),
+            key: "name",
+            className: "category-report__name",
+            width: "34%",
+            render: (_, item) => (
+                <button type="button" className="reports-link-button" onClick={() => openTransactions(item)}>
+                    {item.name}
+                </button>
+            ),
+        },
+        {
+            title: t("reports.distribution"),
+            key: "distribution",
+            className: "category-report__distribution",
+            render: (_, item) => (
+                <div className="category-report__track" aria-hidden="true">
+                    <div data-tone={getTone(item.value)} style={{ width: `${Math.min(1, getShare(item.value)) * 100}%` }} />
+                </div>
+            ),
+        },
+        {
+            title: t("reports.share"),
+            key: "share",
+            className: "category-report__share",
+            width: "12%",
+            render: (_, item) => formatters.share.format(getShare(item.value)),
+        },
+        {
+            title: t("reports.amount"),
+            key: "value",
+            className: "category-report__amount",
+            width: "28%",
+            render: (_, item) => <span data-tone={getTone(item.value)}>{renderMoney(item.value)}</span>,
+        },
+    ];
+
+    const summary = [
+        { key: "income", label: t("reports.income"), amount: formatters.amount.format(totals.totalIncome), tone: "income" },
+        { key: "expense", label: t("reports.expenses"), amount: formatters.amount.format(Math.abs(totals.totalExpenses)), tone: "expense" },
+        {
+            key: "balance",
+            label: t("reports.netCashFlow"),
+            amount: formatters.signedAmount.format(normalizeAmount(totalBalance)),
+            tone: getTone(normalizeAmount(totalBalance)),
+            highlight: true,
+        },
+    ].map(({ amount, ...metric }) => ({
+        ...metric,
+        value: renderAmount(amount),
+        amountWidth: amount.length * 0.62,
+    }));
+
+    const transferMetrics = internalTransfers && [
+        { key: "received", label: t("reports.internalTransfersReceived"), value: renderMoney(internalTransfers.amountReceived) },
+        { key: "sent", label: t("reports.internalTransfersSent"), value: renderMoney(-internalTransfers.amountSent) },
+        { key: "net", label: t("reports.internalTransfersNetChange"), value: renderMoney(internalTransfers.netChange) },
+        { key: "count", label: t("reports.internalTransfersCount"), value: internalTransfers.transactionCount },
+    ];
+
     const summaryRows = report.map((item) => ({
         key: item.id,
         label: item.name,
-        value: <Num value={Math.abs(item.value)} currency={currency} kind={item.value > 0 ? "income" : "expense"} />,
+        value: renderMoney(item.value),
         detail: item.value > 0 ? t("reports.income") : t("reports.expense"),
     }));
 
     return (
-        <div className="reports-workspace">
+        <div className="reports-workspace category-report">
             <section className="report-summary" aria-label={t("reports.summaryTitle")}>
-                <ReportSummaryMetrics metrics={[
-                    { label: t("reports.totalIncome"), value: <Num currencySize="sm" value={totals.totalIncome} currency={currency} kind="income" /> },
-                    { label: t("reports.totalExpense"), value: <Num currencySize="sm" value={Math.abs(totals.totalExpenses)} currency={currency} kind="expense" /> },
-                    { label: t("reports.balance"), value: <Num currencySize="sm" value={totalBalance} currency={currency} kind={totalBalance >= 0 ? "income" : "expense"} />, highlight: true },
-                ]} />
-                {internalTransfers && (
-                    <section className="report-summary__group" aria-labelledby="internal-transfer-summary-title">
-                        <h2 id="internal-transfer-summary-title">{t("reports.internalTransfers")}</h2>
-                        <ReportSummaryMetrics metrics={[
-                            { label: t("reports.internalTransfersReceived"), value: <Num currencySize="sm" value={internalTransfers.amountReceived} currency={currency} kind="transfer" /> },
-                            { label: t("reports.internalTransfersSent"), value: <Num currencySize="sm" value={-internalTransfers.amountSent} currency={currency} kind="transfer" /> },
-                            { label: t("reports.internalTransfersNetChange"), value: <Num currencySize="sm" value={internalTransfers.netChange} currency={currency} kind="transfer" /> },
-                            { label: t("reports.internalTransfersCount"), value: internalTransfers.transactionCount },
-                        ]} />
-                    </section>
-                )}
+                <ReportSummaryMetrics metrics={summary} />
             </section>
 
-            <section className="report-panel">
+            <section className="report-panel category-report__panel">
                 <Spin spinning={isLoading}>
                     <div className="report-table-wrap">
                         <Table
                             className="report-table"
                             rowKey={(record) => record.id.toString()}
                             columns={reportColumns}
+                            components={categoryTableComponents}
+                            onRow={() => ({ role: "row" })}
                             expandable={{
-                                indentSize: 50,
-                                rowExpandable: () => false,
+                                indentSize: 18,
+                                expandIcon: ({ expanded, record, onExpand }) => {
+                                    if (!record.children.length) return <span className="category-report__toggle-spacer" aria-hidden="true" />;
+                                    return (
+                                        <button
+                                            type="button"
+                                            className="category-report__toggle"
+                                            aria-expanded={expanded}
+                                            aria-label={t(expanded ? "reports.collapseCategory" : "reports.expandCategory", { category: record.name })}
+                                            onClick={(event) => onExpand(record, event)}
+                                        >
+                                            {expanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+                                        </button>
+                                    );
+                                },
                                 onExpand: (expanded, record) => {
                                     setExpandedRows(expanded ? [record.id.toString()] : []);
                                 },
@@ -181,11 +250,31 @@ const ReportCategory = () => {
                             }}
                             dataSource={report}
                             pagination={false}
+                            tableLayout="fixed"
                             sticky
                         />
                     </div>
                 </Spin>
             </section>
+
+            {internalTransfers && transferMetrics && (
+                <details
+                    className="category-report__transfers"
+                    key={`${startDate}:${selectedLinkedUserId}`}
+                    open={internalTransfers.transactionCount > 0}
+                >
+                    <summary>
+                        <span className="category-report__transfers-title">{t("reports.internalTransfers")}</span>
+                        <span className="category-report__transfers-preview">
+                            {transferMetrics.slice(0, 2).map(({ key, label, value }) => (
+                                <span key={key}>{label}: <span className="category-report__transfer-value">{value}</span></span>
+                            ))}
+                        </span>
+                        <ChevronRight size={16} aria-hidden="true" />
+                    </summary>
+                    <ReportSummaryMetrics metrics={transferMetrics} />
+                </details>
+            )}
 
             {summaryRows.length > 0 && (
                 <ReportAccessibleSummary
