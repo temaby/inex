@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
-import { Spin, Table } from "antd";
+import { Select, Spin, Switch, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { ReportCategoryDetails, getCategoryReport } from "../../model/Report/ReportCategoryDetails";
+import { getCategoryReport } from "../../model/Report/ReportCategoryDetails";
+import type { CategoryReportNode, ReportCategoryDetails } from "../../model/Report/ReportCategoryDetails";
 import { reportActions } from "../../store/report/report-slice";
 import { useGetCategoriesQuery } from "../../store/categories/categories-api";
 import { useGetCategoryReportQuery } from "../../store/report/report-api";
@@ -14,6 +15,8 @@ import { createFixedAmountFormatter } from "../../utils/formatAmount";
 import type { ReportsHubContext } from "../Reports";
 import ReportAccessibleSummary from "./ReportAccessibleSummary";
 import ReportSummaryMetrics from "./ReportSummaryMetrics";
+import { getCategoryReportSections } from "./category-report-view";
+import type { CategorySection, CategorySort } from "./category-report-view";
 import "./reports.css";
 import "./category-report.css";
 
@@ -27,6 +30,24 @@ const categoryTableComponents = {
     },
 };
 
+type CategoryTableRow = {
+    key: string;
+    section: CategorySection;
+    category?: CategoryReportNode;
+    parentKey?: string;
+    children?: CategoryTableRow[];
+};
+
+const categorySections: CategorySection[] = ["income", "expense"];
+
+const toCategoryRows = (categories: CategoryReportNode[], section: CategorySection, parentKey: string): CategoryTableRow[] =>
+    categories.map((category) => {
+        const key = `category-${category.id}`;
+        return { key, section, category, parentKey, children: toCategoryRows(category.children, section, key) };
+    });
+
+const hideSectionCell = (row: CategoryTableRow) => ({ colSpan: row.category ? 1 : 0 });
+
 const ReportCategory = () => {
     const { t, i18n } = useTranslation();
     const locale = i18n.resolvedLanguage ?? i18n.language;
@@ -39,7 +60,11 @@ const ReportCategory = () => {
     const selectedLinkedAccount = useAppSelector(state => state.linkedAccount.linkState?.linkedAccounts.find(
         (account) => account.id === state.linkedAccount.selectedLinkedUserId,
     ));
-    const [expandedRows, setExpandedRows] = useState<string[]>([]);
+    const [expandedRows, setExpandedRows] = useState<Record<string, string>>({});
+    const [openSections, setOpenSections] = useState({ income: true, expense: true });
+    const [showEmpty, setShowEmpty] = useState(false);
+    const [sort, setSort] = useState<CategorySort>("amount");
+    const controlsId = useId();
 
     const startDate = currentDate.isValid() ? currentDate.startOf("month").format("YYYY-MM-DD") : "";
     const endDate = currentDate.isValid() ? currentDate.endOf("month").format("YYYY-MM-DD") : "";
@@ -58,16 +83,15 @@ const ReportCategory = () => {
         },
         { skip: !currentDate.isValid() },
     );
-    const reportData = reportResponse?.data ?? [];
     const currency = reportResponse?.metadata.currency ?? "";
     const internalTransfers = reportResponse?.metadata.internalTransfers;
-    const activeCategories = useMemo(
-        () => allCategories.filter((category) => category.isEnabled),
-        [allCategories],
-    );
     const report = useMemo(
-        () => getCategoryReport(activeCategories, reportData),
-        [activeCategories, reportData],
+        () => reportResponse ? getCategoryReport(allCategories, reportResponse.data) : [],
+        [allCategories, reportResponse],
+    );
+    const sections = useMemo(
+        () => getCategoryReportSections(report, showEmpty, sort, locale),
+        [report, showEmpty, sort, locale],
     );
 
     useEffect(() => {
@@ -87,7 +111,7 @@ const ReportCategory = () => {
     }, [currentDate, dispatch, filterData]);
 
     useEffect(() => {
-        setExpandedRows([]);
+        setExpandedRows({});
     }, [startDate, endDate, selectedLinkedUserId]);
 
     useEffect(() => {
@@ -144,25 +168,53 @@ const ReportCategory = () => {
     };
     const getTone = (value: number) => value > 0 ? "income" : value < 0 ? "expense" : "neutral";
 
-    const reportColumns: ColumnsType<ReportCategoryDetails> = [
+    const sectionLabels = { income: t("reports.income"), expense: t("reports.expenses") };
+    const rows = categorySections.flatMap((section) => [
+        { key: section, section },
+        ...(openSections[section] ? toCategoryRows(sections[section].categories, section, section) : []),
+    ]);
+
+    const reportColumns: ColumnsType<CategoryTableRow> = [
         {
             title: t("reports.category"),
             key: "name",
             className: "category-report__name",
             width: "34%",
-            render: (_, item) => (
-                <button type="button" className="reports-link-button" onClick={() => openTransactions(item)}>
-                    {item.name}
-                </button>
-            ),
+            onCell: ({ category }) => ({ colSpan: category ? 1 : 4 }),
+            render: (_, { category, section }) => {
+                if (category) {
+                    return (
+                        <button type="button" className="reports-link-button" onClick={() => openTransactions(category)}>
+                            {category.name}
+                        </button>
+                    );
+                }
+                const expanded = openSections[section];
+                return (
+                    <button
+                        type="button"
+                        className="category-report__section-toggle"
+                        data-tone={section}
+                        aria-expanded={expanded}
+                        onClick={() => setOpenSections((current) => ({ ...current, [section]: !current[section] }))}
+                    >
+                        {expanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+                        <span>{sectionLabels[section]}</span>
+                        <span className="category-report__section-amount">
+                            {renderMoney(section === "expense" ? Math.abs(sections[section].value) : sections[section].value)}
+                        </span>
+                    </button>
+                );
+            },
         },
         {
             title: t("reports.distribution"),
             key: "distribution",
             className: "category-report__distribution",
-            render: (_, item) => (
+            onCell: hideSectionCell,
+            render: (_, { category }) => category && (
                 <div className="category-report__track" aria-hidden="true">
-                    <div data-tone={getTone(item.value)} style={{ width: `${Math.min(1, getShare(item.value)) * 100}%` }} />
+                    <div data-tone={getTone(category.value)} style={{ width: `${Math.min(1, getShare(category.value)) * 100}%` }} />
                 </div>
             ),
         },
@@ -171,14 +223,20 @@ const ReportCategory = () => {
             key: "share",
             className: "category-report__share",
             width: "12%",
-            render: (_, item) => formatters.share.format(getShare(item.value)),
+            onCell: hideSectionCell,
+            render: (_, { category }) => category && formatters.share.format(getShare(category.value)),
         },
         {
             title: t("reports.amount"),
             key: "value",
             className: "category-report__amount",
             width: "28%",
-            render: (_, item) => <span data-tone={getTone(item.value)}>{renderMoney(item.value)}</span>,
+            onCell: hideSectionCell,
+            render: (_, { category, section }) => category && (
+                <span data-tone={category.value !== 0 && section === "expense" ? "expense" : getTone(category.value)}>
+                    {renderMoney(section === "expense" ? Math.abs(category.value) : category.value)}
+                </span>
+            ),
         },
     ];
 
@@ -205,7 +263,7 @@ const ReportCategory = () => {
         { key: "count", label: t("reports.internalTransfersCount"), value: internalTransfers.transactionCount },
     ];
 
-    const summaryRows = report.map((item) => ({
+    const summaryRows = report.filter((item) => item.hasActivity).map((item) => ({
         key: item.id,
         label: item.name,
         value: renderMoney(item.value),
@@ -219,24 +277,46 @@ const ReportCategory = () => {
             </section>
 
             <section className="report-panel category-report__panel">
+                <div className="category-report__controls">
+                    <label className="category-report__control" htmlFor={`${controlsId}-empty`}>
+                        <Switch id={`${controlsId}-empty`} size="small" checked={showEmpty} onChange={setShowEmpty} />
+                        {t("reports.showEmptyCategories")}
+                    </label>
+                    <div className="category-report__control">
+                        <label htmlFor={`${controlsId}-sort`}>{t("reports.categorySort")}</label>
+                        <Select<CategorySort>
+                            id={`${controlsId}-sort`}
+                            size="small"
+                            value={sort}
+                            onChange={setSort}
+                            options={[
+                                { value: "amount", label: t("reports.categorySortAmount") },
+                                { value: "name", label: t("reports.categorySortName") },
+                                { value: "default", label: t("reports.categorySortDefault") },
+                            ]}
+                        />
+                    </div>
+                </div>
                 <Spin spinning={isLoading}>
                     <div className="report-table-wrap">
                         <Table
                             className="report-table"
-                            rowKey={(record) => record.id.toString()}
+                            rowKey="key"
+                            rowClassName={(record) => record.category ? "category-report__category-row" : "category-report__section-row"}
                             columns={reportColumns}
                             components={categoryTableComponents}
                             onRow={() => ({ role: "row" })}
                             expandable={{
-                                indentSize: 18,
+                                indentSize: 12,
                                 expandIcon: ({ expanded, record, onExpand }) => {
-                                    if (!record.children.length) return <span className="category-report__toggle-spacer" aria-hidden="true" />;
+                                    if (!record.category) return null;
+                                    if (!record.children?.length) return <span className="category-report__toggle-spacer" aria-hidden="true" />;
                                     return (
                                         <button
                                             type="button"
                                             className="category-report__toggle"
                                             aria-expanded={expanded}
-                                            aria-label={t(expanded ? "reports.collapseCategory" : "reports.expandCategory", { category: record.name })}
+                                            aria-label={t(expanded ? "reports.collapseCategory" : "reports.expandCategory", { category: record.category.name })}
                                             onClick={(event) => onExpand(record, event)}
                                         >
                                             {expanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
@@ -244,16 +324,26 @@ const ReportCategory = () => {
                                     );
                                 },
                                 onExpand: (expanded, record) => {
-                                    setExpandedRows(expanded ? [record.id.toString()] : []);
+                                    const parentKey = record.parentKey;
+                                    if (!parentKey) return;
+                                    setExpandedRows((current) => {
+                                        const next = { ...current };
+                                        if (expanded) next[parentKey] = record.key;
+                                        else delete next[parentKey];
+                                        return next;
+                                    });
                                 },
-                                expandedRowKeys: expandedRows,
+                                expandedRowKeys: Object.values(expandedRows),
                             }}
-                            dataSource={report}
+                            dataSource={rows}
                             pagination={false}
                             tableLayout="fixed"
                             sticky
                         />
                     </div>
+                    {!isLoading && categorySections.every((section) => sections[section].categories.length === 0) && (
+                        <p className="category-report__empty">{t("categories.empty")}</p>
+                    )}
                 </Spin>
             </section>
 

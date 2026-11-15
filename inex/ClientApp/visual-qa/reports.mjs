@@ -331,7 +331,7 @@ function selectedMonthIndex(state) {
 
 async function applyInteraction(client, state) {
   if (state.interaction === "expand-category") {
-    await evaluate(client, "document.querySelector('.category-report__toggle').click()");
+    await evaluate(client, "document.querySelector('.category-report__toggle[aria-label=\"Expand Living\"]').click()");
     await waitFor(client, "document.querySelector('.category-report__toggle[aria-expanded=true]') && document.querySelectorAll('.category-report .ant-table-row-level-1').length === 3");
     return;
   }
@@ -481,11 +481,11 @@ async function waitForReportsReady(client, state) {
     return;
   }
   if (state.name.startsWith("category-empty")) {
-    await waitFor(client, "document.body.innerText.includes('No data') && Boolean(document.querySelector('.category-report__transfers'))");
+    await waitFor(client, "Boolean(document.querySelector('.category-report__empty') && document.querySelector('.category-report__transfers'))");
     return;
   }
   if (state.routePath.startsWith("/reports/category")) {
-    await waitFor(client, "document.body.innerText.includes('Living') && document.body.innerText.includes('Category report data summary')");
+    await waitFor(client, "document.body.innerText.includes('Living') && document.querySelectorAll('.category-report__section-toggle').length === 2");
     return;
   }
   if (state.routePath.startsWith("/reports/budget")) {
@@ -520,17 +520,29 @@ async function collectMetrics(client, state, apiRequestCount) {
     const tableRows = Array.from(document.querySelectorAll(".report-table .ant-table-row"));
     const categoryReport = document.querySelector(".category-report");
     const categoryTable = categoryReport?.querySelector(".report-table-wrap");
+    const categoryRows = tableRows.filter((row) => row.classList.contains("category-report__category-row"));
     const categoryDistribution = categoryReport ? {
       transfersOpen: categoryReport.querySelector("details")?.open,
       categoryScrolls: categoryTable.scrollWidth > categoryTable.clientWidth + 1,
-      mobileRows: tableRows.length > 0 && getComputedStyle(tableRows[0]).display === "grid",
-      rows: tableRows.map((row) => {
+      controlsFit: Array.from(categoryReport.querySelectorAll(".category-report__control"), (control) => {
+        const width = control.closest(".category-report__controls").getBoundingClientRect();
+        const rect = control.getBoundingClientRect();
+        return rect.left >= width.left && rect.right <= width.right;
+      }).every(Boolean),
+      sections: Array.from(categoryReport.querySelectorAll(".category-report__section-toggle"), (section) => ({
+        tone: section.dataset.tone,
+        expanded: section.getAttribute("aria-expanded") === "true",
+        fits: section.scrollWidth <= section.clientWidth + 1,
+      })),
+      mobileRows: categoryRows.length > 0 && getComputedStyle(categoryRows[0]).display === "grid",
+      rows: categoryRows.map((row) => {
         const name = row.querySelector(".category-report__name > div");
         const amount = row.querySelector(".category-report__amount > div");
         const share = row.querySelector(".category-report__share > div");
         const fill = row.querySelector(".category-report__track > div");
         return {
           label: row.querySelector(".reports-link-button").textContent,
+          depth: Number(row.className.match(/ant-table-row-level-([0-9]+)/)?.[1]),
           amount: amount.textContent,
           share: share.textContent,
           fillWidth: parseFloat(fill.style.width),
@@ -723,17 +735,18 @@ function collectAdditionalFailures(stateResults) {
     if (state.overflowingSummaryMetrics > 0) failures.push(`${state.name}: summary metrics overflow their cells`);
     if (state.reportCardHeights.some((height) => height >= 190)) failures.push(`${state.name}: report list card is not compact`);
     if (state.categoryDistribution) {
-      const { transfersOpen, categoryScrolls, mobileRows, rows } = state.categoryDistribution;
+      const { transfersOpen, categoryScrolls, controlsFit, sections, mobileRows, rows } = state.categoryDistribution;
       if (transfersOpen !== (state.scenario !== "empty")) failures.push(`${state.name}: unexpected default transfer disclosure state`);
-      if (categoryScrolls || rows.some((row) => !row.rowFits || !row.nameFits || !row.amountFits || !row.shareFits)) failures.push(`${state.name}: category distribution does not fit the available width`);
+      if (categoryScrolls || !controlsFit || sections.some((section) => !section.fits) || rows.some((row) => !row.rowFits || !row.nameFits || !row.amountFits || !row.shareFits)) failures.push(`${state.name}: category distribution does not fit the available width`);
+      if (sections.map(({ tone }) => tone).join() !== "income,expense" || sections.some((section) => !section.expanded)) failures.push(`${state.name}: expected two expanded category sections`);
       if (rows.length && mobileRows !== (state.viewport.width <= 768)) failures.push(`${state.name}: incorrect responsive category layout`);
-      if (rows.some((row) => row.amountAlignment !== (mobileRows ? "start" : "end"))) failures.push(`${state.name}: category amounts are misaligned`);
+      if (rows.some((row) => row.amountAlignment !== "end")) failures.push(`${state.name}: category amounts are misaligned`);
       if (state.interaction === "expand-category") {
-        const [parent, child, tinyRow] = rows;
-        const income = rows.find((row) => row.label === "Income");
-        if (rows.length !== 6 || !child.label.startsWith("Groceries,") || child.amount !== "-123,456,789,012.125 KWD" ||
-            parent.tone !== "expense" || parent.share !== "100%" || tinyRow.share !== "0%" || tinyRow.fillWidth <= 0 ||
-            income?.tone !== "income" || income.share !== "100%") {
+        const [parent, child, tinyRow] = rows.slice(2);
+        const [salary, freelance] = rows;
+        if (rows.length !== 7 || child?.depth !== 1 || !child.label.startsWith("Groceries,") || child.amount !== "123,456,789,012.125 KWD" ||
+            parent.label !== "Living" || parent.tone !== "expense" || parent.share !== "100%" || tinyRow.share !== "0%" || tinyRow.fillWidth <= 0 ||
+            salary?.label !== "Salary" || salary.tone !== "income" || salary.share !== "76.6%" || freelance?.label !== "Freelance") {
           failures.push(`${state.name}: incorrect hierarchical distribution or monetary precision`);
         }
       }
