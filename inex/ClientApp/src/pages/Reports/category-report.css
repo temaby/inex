@@ -6,6 +6,75 @@
   padding: 0;
 }
 
+.category-report__controls,
+.category-report__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.category-report__controls {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  color: var(--fg-2);
+  font-size: var(--fs-13);
+}
+
+.category-report__control .ant-select {
+  min-width: 100px;
+}
+
+.category-report__control[for] {
+  cursor: pointer;
+}
+
+.category-report .report-table .ant-table-tbody > .category-report__section-row > td {
+  padding: 0;
+}
+
+.category-report__section-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-inline-start: 3px solid var(--section-accent);
+  background: var(--section-bg);
+  color: var(--section-fg);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  text-align: start;
+  cursor: pointer;
+}
+
+.category-report__section-toggle[data-tone="income"] {
+  --section-bg: var(--income-bg);
+  --section-fg: var(--income-fg);
+  --section-accent: var(--income-500);
+}
+
+.category-report__section-toggle[data-tone="expense"] {
+  --section-bg: var(--expense-bg);
+  --section-fg: var(--expense-fg);
+  --section-accent: var(--expense-500);
+}
+
+.category-report__section-amount {
+  text-align: end;
+}
+
+.category-report__empty {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--fg-3);
+  text-align: center;
+}
+
 .category-report .report-table-wrap {
   overflow: visible;
 }
@@ -71,6 +140,7 @@
 }
 
 .category-report__toggle:focus-visible,
+.category-report__section-toggle:focus-visible,
 .category-report__transfers > summary:focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--income-500);
@@ -96,6 +166,7 @@
 
 .category-report__amount,
 .category-report__share,
+.category-report__section-amount,
 .category-report__transfer-value,
 .category-report__transfers dd {
   font-family: var(--font-num);
@@ -108,6 +179,7 @@
 }
 
 .category-report__amount small,
+.category-report__section-amount small,
 .category-report__transfers small {
   font-size: 0.8em;
   white-space: nowrap;
@@ -193,6 +265,22 @@
 }
 
 @media (max-width: 768px) {
+  .category-report__controls {
+    justify-content: flex-start;
+    padding-inline: var(--space-3);
+  }
+
+  .category-report__section-row {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .category-report__section-toggle {
+    min-height: 44px;
+    padding-inline: var(--space-3);
+  }
+
   .category-report .ant-table-header {
     position: absolute;
     width: 1px;
@@ -216,9 +304,9 @@
     width: 100%;
   }
 
-  .category-report .report-table .ant-table-row {
+  .category-report .report-table .category-report__category-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 5em);
+    grid-template-columns: minmax(0, 5em) minmax(0, 1fr);
     align-items: baseline;
     padding: 0 var(--space-3) var(--space-2);
     border-bottom: 1px solid var(--border-1);
@@ -232,13 +320,13 @@
     background: var(--bg-stripe);
   }
 
-  .category-report .report-table .ant-table-tbody > .ant-table-row > td {
+  .category-report .report-table .ant-table-tbody > .category-report__category-row > td {
     padding: 0;
     border: 0;
     text-align: start;
   }
 
-  .category-report .report-table .ant-table-tbody > .ant-table-row:hover > td {
+  .category-report .report-table .ant-table-tbody > .category-report__category-row:hover > td {
     background: transparent;
   }
 
@@ -255,16 +343,20 @@
   }
 
   .category-report__amount {
-    grid-area: 2 / 1;
+    grid-area: 2 / 2;
     font-weight: var(--fw-semibold);
   }
 
   .category-report__share {
-    grid-area: 2 / 2;
+    grid-area: 2 / 1;
     color: var(--fg-2);
   }
 
-  .category-report .report-table .ant-table-row > .category-report__share {
+  .category-report .report-table .ant-table-tbody > .category-report__category-row > .category-report__share {
+    text-align: start;
+  }
+
+  .category-report .report-table .ant-table-tbody > .category-report__category-row > .category-report__amount {
     padding-inline-start: var(--space-2);
     text-align: end;
   }
