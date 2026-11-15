@@ -356,3 +356,12 @@ Fixture QA passed 43 area states and 42 bar states, including 15 and 14 Cash Flo
 ### Cash Flow bar and line chart
 
 Run `npm run visual-qa:reports` to check the cash flow bars and net cash flow line. Review `history-typography-1440.png` for the selected desktop state and `history-russian-360.png` for the narrow Russian layout. The full-page mobile capture places the fixed bottom navigation at its initial position. The interaction check verifies that selection scrolls the details above it.
+
+## 2026-11-15 - Category Report
+
+The Reports fixture harness passed all 50 states, including 14 Category Report states. The Category Report checks covered expanded rows, very small shares, long labels, large KWD amounts with three decimal places, month changes, linked PLN scope, and the default transfer disclosure states. The mobile report fit without horizontal scrolling. The harness intercepted all API requests.
+
+- Expanded distribution at [360px](../../implementation/visual-qa/category-report/category-distribution-360.png), [390px](../../implementation/visual-qa/category-report/category-distribution-390.png), [768px](../../implementation/visual-qa/category-report/category-distribution-768.png), [1280px](../../implementation/visual-qa/category-report/category-distribution-1280.png), and [1920px](../../implementation/visual-qa/category-report/category-distribution-1920.png).
+- [Populated USD report](../../implementation/visual-qa/category-report/category-report-1440.png), [Russian layout](../../implementation/visual-qa/category-report/category-russian-360.png), and [empty period with collapsed transfers](../../implementation/visual-qa/category-report/category-empty-390.png).
+
+Run `npm run visual-qa:reports` to reproduce the suite. Full-page mobile captures show the navigation at its initial fixed position. The harness also checks that scrolling to the end clears the final content above the navigation.

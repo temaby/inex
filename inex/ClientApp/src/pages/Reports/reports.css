@@ -174,8 +174,7 @@
   background: var(--bg-stripe);
 }
 
-.report-summary dt,
-.report-summary__group h2 {
+.report-summary dt {
   color: var(--fg-2);
   font-size: var(--fs-12);
   font-weight: var(--fw-medium);
@@ -203,20 +202,6 @@
 .report-summary dd[data-tone="income"] { color: var(--income-fg); }
 .report-summary dd[data-tone="expense"] { color: var(--expense-fg); }
 .report-summary dd small { font-size: 0.68em; white-space: nowrap; }
-
-.report-summary__group {
-  border-top: 1px solid var(--border-1);
-}
-
-.report-summary__group h2 {
-  margin: 0;
-  padding: var(--space-2) var(--space-4) 0;
-  font-weight: var(--fw-semibold);
-}
-
-.report-summary__group h2 + dl > div {
-  padding-top: var(--space-2);
-}
 
 @media (max-width: 1199px) {
   .report-summary__metrics {

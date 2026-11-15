@@ -1,0 +1,281 @@
+.category-report {
+  gap: var(--space-3);
+}
+
+.category-report__panel {
+  padding: 0;
+}
+
+.category-report .report-table-wrap {
+  overflow: visible;
+}
+
+.category-report .report-table .ant-table-thead > tr > th {
+  padding-block: var(--space-3);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.category-report .report-table .ant-table-tbody > tr > td {
+  padding-block: var(--space-1);
+}
+
+.category-report .report-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+.category-report__name > div {
+  display: flex;
+  align-items: center;
+}
+
+.category-report__name .reports-link-button {
+  min-width: 0;
+  min-height: 40px;
+  overflow-wrap: anywhere;
+  color: var(--fg-2);
+}
+
+.category-report__name .reports-link-button:hover {
+  color: var(--income-600);
+  text-decoration: underline;
+}
+
+.category-report .ant-table-row-level-0 .reports-link-button {
+  color: var(--fg-1);
+  font-weight: var(--fw-semibold);
+}
+
+.category-report__toggle,
+.category-report__toggle-spacer {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.category-report__toggle {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--fg-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+}
+
+.category-report__toggle:hover,
+.category-report__toggle[aria-expanded="true"] {
+  background: var(--bg-stripe);
+  color: var(--fg-1);
+}
+
+.category-report__toggle:focus-visible,
+.category-report__transfers > summary:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--income-500);
+}
+
+.category-report__track {
+  height: 6px;
+  overflow: hidden;
+  background: var(--bg-stripe);
+  border: 1px solid var(--border-1);
+  border-radius: 4px;
+}
+
+.category-report__track > div {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.category-report__track [data-tone="income"] { background: var(--income-500); }
+.category-report__track [data-tone="expense"] { background: var(--expense-500); }
+.category-report__amount [data-tone="income"] { color: var(--income-fg); }
+.category-report__amount [data-tone="expense"] { color: var(--expense-fg); }
+
+.category-report__amount,
+.category-report__share,
+.category-report__transfer-value,
+.category-report__transfers dd {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.category-report .report-table .ant-table-cell:is(.category-report__amount, .category-report__share) {
+  text-align: end;
+}
+
+.category-report__amount small,
+.category-report__transfers small {
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.category-report__transfers {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-surface);
+}
+
+.category-report__transfers > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: inherit;
+  cursor: pointer;
+  list-style: none;
+}
+
+.category-report__transfers > summary::-webkit-details-marker {
+  display: none;
+}
+
+.category-report__transfers > summary:hover {
+  background: var(--bg-stripe);
+}
+
+.category-report__transfers-title {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+}
+
+.category-report__transfers-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+  color: var(--fg-2);
+  font-size: var(--fs-12);
+}
+
+.category-report__transfers > summary > svg {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--fg-2);
+}
+
+.category-report__transfers[open] .category-report__transfers-preview {
+  display: none;
+}
+
+.category-report__transfers[open] > summary > svg {
+  transform: rotate(90deg);
+}
+
+.category-report__transfers > dl {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-top: 1px solid var(--border-1);
+  gap: var(--space-2) var(--space-4);
+  background: transparent;
+}
+
+.category-report__transfers > dl > div {
+  padding: 0;
+  background: transparent;
+}
+
+.category-report__transfers dt {
+  color: var(--fg-2);
+  font-size: var(--fs-12);
+}
+
+.category-report__transfers dd {
+  margin: var(--space-1) 0 0;
+  color: var(--transfer-fg);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+}
+
+@media (max-width: 768px) {
+  .category-report .ant-table-header {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .category-report .ant-table-body > table,
+  .category-report .ant-table-tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .category-report .ant-table-body colgroup {
+    display: none;
+  }
+
+  .category-report .ant-table-placeholder {
+    display: table;
+    width: 100%;
+  }
+
+  .category-report .report-table .ant-table-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 5em);
+    align-items: baseline;
+    padding: 0 var(--space-3) var(--space-2);
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .category-report .report-table .ant-table-row:last-child {
+    border-bottom: 0;
+  }
+
+  .category-report .ant-table-row-level-1 {
+    background: var(--bg-stripe);
+  }
+
+  .category-report .report-table .ant-table-tbody > .ant-table-row > td {
+    padding: 0;
+    border: 0;
+    text-align: start;
+  }
+
+  .category-report .report-table .ant-table-tbody > .ant-table-row:hover > td {
+    background: transparent;
+  }
+
+  .category-report__name {
+    grid-area: 1 / 1 / 2 / -1;
+  }
+
+  .category-report__name .reports-link-button {
+    min-height: 44px;
+  }
+
+  .category-report__toggle {
+    height: 44px;
+  }
+
+  .category-report__amount {
+    grid-area: 2 / 1;
+    font-weight: var(--fw-semibold);
+  }
+
+  .category-report__share {
+    grid-area: 2 / 2;
+    color: var(--fg-2);
+  }
+
+  .category-report .report-table .ant-table-row > .category-report__share {
+    padding-inline-start: var(--space-2);
+    text-align: end;
+  }
+
+  .category-report__distribution {
+    grid-area: 3 / 1 / 4 / -1;
+    margin-top: var(--space-2);
+  }
+
+  .category-report__transfers-preview {
+    flex: 0 0 100%;
+    order: 1;
+  }
+}
