@@ -33,15 +33,6 @@
     border-left: 1px solid var(--border-1);
 }
 
-.transactions-kpi-period {
-    border-bottom: 1px solid var(--border-1);
-    color: var(--fg-2);
-    font-size: var(--fs-12);
-    font-weight: var(--fw-semibold);
-    grid-column: 1 / -1;
-    padding: 8px 20px;
-}
-
 .transactions-kpi__label {
     color: var(--fg-3);
     font-size: var(--fs-11);
@@ -420,7 +411,7 @@
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 6px 8px;
     min-width: 0;
 }
 
@@ -437,39 +428,48 @@
     font-variant-numeric: tabular-nums;
 }
 
+.transactions-ledger-toolbar .transactions-search,
+.transactions-ledger-toolbar__actions > button,
+.transactions-month-controls > button,
+.transactions-month-picker.ant-picker {
+    box-sizing: border-box;
+    min-height: 36px;
+}
+
 .transactions-month-controls {
     align-items: center;
-    background: var(--bg-muted);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-1);
     display: inline-flex;
-    flex-wrap: nowrap;
     gap: 2px;
-    min-height: 32px;
     min-width: 0;
-    padding: 2px;
+}
+
+.transactions-month-controls > button {
+    flex: 0 0 36px;
+    padding: 0 !important;
 }
 
 .transactions-month-picker.ant-picker {
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    height: 28px;
-    max-width: min(210px, 44vw);
-    min-width: 132px;
+    background: var(--bg-muted);
+    border-color: var(--border-1);
     padding: 0 8px;
+    width: 148px;
 }
 
 .transactions-month-picker .ant-picker-input > input {
-    color: var(--fg-2);
+    color: var(--fg-1);
     cursor: pointer;
     font-family: var(--font-sans);
-    font-size: 12px;
-    font-weight: 700;
+    font-size: var(--fs-13);
+    font-weight: var(--fw-semibold);
     overflow: hidden;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.transactions-month-picker .ant-picker-input > input::placeholder {
+    color: var(--fg-2);
+    font-size: var(--fs-12);
 }
 
 .transactions-month-picker .ant-picker-suffix {
@@ -480,8 +480,13 @@
     padding-block: 6px;
 }
 
-.transactions-ledger-controls button {
+.transactions-ledger-controls button[aria-pressed] {
     font-variant-numeric: tabular-nums;
+    font-weight: var(--fw-regular) !important;
+}
+
+.transactions-ledger-controls button[aria-pressed="true"] {
+    font-weight: var(--fw-semibold) !important;
 }
 
 .transactions-filter-chips {
@@ -605,6 +610,7 @@
     min-height: 44px;
     padding-block: 8px;
     position: relative;
+    row-gap: 2px;
     text-align: left;
     transition: background var(--dur-1) var(--ease-standard);
     width: 100%;
@@ -658,7 +664,7 @@
     display: flex;
     flex-wrap: wrap;
     font-size: 12px;
-    gap: 2px 8px;
+    gap: 2px 6px;
     grid-area: meta;
     line-height: 1.4;
 }
@@ -671,6 +677,11 @@
 
 .transactions-row-token {
     color: var(--income-600);
+}
+
+.transactions-category-path + .transactions-row-token::before {
+    color: var(--fg-3);
+    content: "·\00a0" / "";
 }
 
 .transactions-row-account {
@@ -939,10 +950,6 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .transactions-kpi-period {
-        padding-inline: 14px;
-    }
-
     .transactions-kpi {
         align-items: baseline;
         gap: 2px 8px;
@@ -1009,11 +1016,6 @@
         flex-basis: 100%;
     }
 
-    .transactions-month-picker.ant-picker {
-        min-width: 0;
-        width: 128px;
-    }
-
     .transactions-ledger-controls [role="group"] {
         gap: 4px 8px !important;
     }
@@ -1033,7 +1035,6 @@
             "meta equivalent"
             "account equivalent";
         grid-template-columns: minmax(0, 1fr) fit-content(54cqi);
-        row-gap: 1px;
     }
 
     .transactions-row-amount {

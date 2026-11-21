@@ -293,7 +293,7 @@ const Transactions = () => {
     const pendingMonthPickerValue = useMemo(
         () => pendingMonthRange.length === 2 && pendingMonthRange[0] > 0
             ? dayjs.unix(pendingMonthRange[0])
-            : dayjs(),
+            : null,
         [pendingMonthRangeKey],
     );
 
@@ -410,6 +410,7 @@ const Transactions = () => {
                 inputReadOnly
                 onChange={selectMonth}
                 picker="month"
+                placeholder={t("transactions.period.allActiveDates")}
                 value={pendingMonthPickerValue}
             />
             <InExButton
@@ -530,7 +531,7 @@ const Transactions = () => {
         },
         {
             label: t("transactions.kpi.expenses"),
-            value: currentConversionUnavailable ? null : -Math.abs(scopedMetrics.expense),
+            value: currentConversionUnavailable ? null : Math.abs(scopedMetrics.expense),
             kind: "expense" as MoneyKind,
             signage: "negative-only" as Signage,
             sub: t("transactions.kpi.transactionCount", { count: scopedMetrics.typeCounts.expense }),
@@ -655,7 +656,6 @@ const Transactions = () => {
                         />
                     ) : null}
                     <div className="transactions-kpi-strip" aria-label={t("transactions.kpi.title")} data-qa="hero-card" role="group">
-                        <div className="transactions-kpi-period">{periodLabel}</div>
                         {kpiItems.map(item => (
                             <div className={`transactions-kpi${ledgerInitialLoading || summaryInitialLoading || conversionLoading ? " transactions-kpi--loading" : ""}`} key={item.label}>
                                 <div className="transactions-kpi__label" data-qa={item.primary ? "hero-primary-label" : undefined}>{item.label}</div>
@@ -697,8 +697,11 @@ const Transactions = () => {
                             <div className="transactions-ledger-toolbar__title">
                                 <h2 id="transactions-ledger-heading" tabIndex={-1}>{t("transactions.ledger")}</h2>
                                 {monthControls}
-                                <span className="transactions-toolbar-count" role="status">
+                                <span aria-hidden="true" className="transactions-toolbar-count">
                                     {ledgerCount && t("transactions.toolbarCount", { ...ledgerCount })}
+                                </span>
+                                <span className="sr-only" role="status">
+                                    {ledgerCount && t("transactions.toolbarCountAnnouncement", { ...ledgerCount })}
                                 </span>
                             </div>
                             <div className="transactions-ledger-toolbar__actions">

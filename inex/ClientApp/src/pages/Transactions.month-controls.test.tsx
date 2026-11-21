@@ -77,13 +77,15 @@ vi.mock("react-i18next", async () => {
                     "transactions.month.chooser": "Transaction month",
                     "transactions.month.next": "Next month",
                     "transactions.month.previous": "Previous month",
+                    "transactions.period.allActiveDates": "All active dates",
                     "transactions.period.currentMonth": "Current month",
                     "transactions.removeFilter": `Remove filter ${params?.filter}`,
                     "transactions.search": "Search",
                     "transactions.searchPlaceholder": "Search transactions",
                     "transactions.subtitle": "Overview",
                     "transactions.title": "Transactions",
-                    "transactions.toolbarCount": `${params?.visible ?? 0} of ${params?.total ?? 0} transactions`,
+                    "transactions.toolbarCount": `Showing ${params?.visible ?? 0} of ${params?.total ?? 0}`,
+                    "transactions.toolbarCountAnnouncement": `Showing ${params?.visible ?? 0} of ${params?.total ?? 0} transactions`,
                     "transactions.transfer": "Transfer",
                     "transactions.view": "View",
                 };
@@ -327,17 +329,18 @@ describe("Transactions month controls", () => {
     ])("localizes amounts and compares against the previous period when its net was $priorNet", ({ priorNet, comparison }) => {
         translationState.language = "ru";
         const typeCounts = { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 };
+        const currentTypeCounts = { ...typeCounts, all: 2, expense: 1 };
         summaryQueryState.data = {
-            totalCount: 1,
-            typeCounts,
-            viewTypeCounts: typeCounts,
+            totalCount: 2,
+            typeCounts: currentTypeCounts,
+            viewTypeCounts: currentTypeCounts,
             currencySummaries: [],
             baseCurrency: "USD",
             currentScope: {
-                totalCount: 1,
-                typeCounts,
+                totalCount: 2,
+                typeCounts: currentTypeCounts,
                 period: { startDate: "2026-07-01", endDate: "2026-07-31" },
-                cashFlowBuckets: [{ date: "2026-07-10", currency: "USD", income: 3731.48, expense: 0, recordCount: 1 }],
+                cashFlowBuckets: [{ date: "2026-07-10", currency: "USD", income: 4731.48, expense: -1000, recordCount: 2 }],
             },
             previousScope: {
                 totalCount: 1,
@@ -349,6 +352,7 @@ describe("Transactions month controls", () => {
 
         const { container } = renderTransactions();
 
+        expect(screen.getByText("Expenses").parentElement?.querySelector('[role="text"]')).toHaveTextContent(/^1\s000,00USD$/);
         expect(container.querySelector('[data-qa="hero-primary-value"] [role="text"]')).toHaveAttribute("aria-label", expect.stringContaining("+3 731,48 USD"));
         expect(container.querySelector('[data-qa="hero-secondary-text"]')).toHaveTextContent(comparison);
     });
@@ -589,8 +593,10 @@ describe("Transactions month controls", () => {
 
         expect(store.getState().transactions.filter).toMatchObject({
             accountIds: [1],
+            range: [],
             type: "expense",
         });
+        expect(screen.getByPlaceholderText("All active dates")).toHaveValue("");
 
         const filters = screen.getByRole("button", { name: "Filters" });
         expect(filters).toHaveAttribute("aria-expanded", "false");
@@ -610,7 +616,8 @@ describe("Transactions month controls", () => {
 
         const { onCountChange } = transactionListProps.current as { onCountChange: (count: TransactionListCount) => void };
         act(() => onCountChange({ visible: 20, total: 37 }));
-        expect(screen.getByRole("status")).toHaveTextContent("20 of 37 transactions");
+        expect(screen.getByText("Showing 20 of 37")).toHaveAttribute("aria-hidden", "true");
+        expect(screen.getByRole("status")).toHaveTextContent("Showing 20 of 37 transactions");
 
         navigateMock.mockClear();
         fireEvent.click(screen.getByRole("button", { name: "Remove filter Account: Wallet" }));

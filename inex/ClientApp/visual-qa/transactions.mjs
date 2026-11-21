@@ -39,7 +39,7 @@ const visualQaViewports = [
 const longRangeRoutePath = "/transactions?filter=start%3A2026-01-01%3Bend%3A2026-04-30%3B";
 const wideJournalViewports = [1280, 1920].map(width => ({ suffix: String(width), viewport: { width, height: 900 } }));
 const hasDesktopJournal = (state) => /^populated-(1024|1280|1440|1920)$|^account-overview-pinned-desktop-|^journal-workflow-/.test(state.name);
-const hasMobileJournal = (state) => /^(populated|account-overview-pinned-mobile)-(360|390)$|^journal-(localized|page-two)-/.test(state.name);
+const hasMobileJournal = (state) => /^(populated|account-overview-pinned-mobile)-(360|390)$|^journal-(all-dates|localized|page-two)-/.test(state.name);
 
 const delayedResponse = (response, delayMs = 1400) => new Promise((resolve) => {
   setTimeout(() => resolve(response), delayMs);
@@ -61,7 +61,7 @@ function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceede
   }
   if (scenario === "empty" || hasNoMatch || (scenario === "edit-filtered-out" && mutationSucceeded)) return [];
 
-  if (scenario === "journal-workflow") {
+  if (scenario.startsWith("journal-workflow")) {
     const start = query.get("startDate")?.slice(0, 10) ?? "";
     const end = query.get("endDate")?.slice(0, 10) ?? "9999-12-31";
     const search = (query.get("search") ?? "").toLowerCase();
@@ -87,6 +87,7 @@ function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceede
 
 function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded, query) {
   const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded, query);
+  const unbounded = scenario.startsWith("journal-workflow") && (!query.has("startDate") || !query.has("endDate"));
   const categoriesById = new Map(getScenarioCategories(fixture, scenario).map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
   const typeCounts = {
@@ -134,7 +135,7 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
     currentScope: {
       totalCount: transactions.length,
       typeCounts,
-      period: { startDate: "2026-04-01T00:00:00", endDate: "2026-04-30T23:59:59" },
+      period: unbounded ? null : { startDate: "2026-04-01T00:00:00", endDate: "2026-04-30T23:59:59" },
       cashFlowBuckets: transactions.filter((transaction) => !categoriesById.get(transaction.categoryId)?.isSystem).map((transaction) => ({
         date: transaction.created,
         currency: transaction.accountCurrency,
@@ -143,7 +144,7 @@ function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSuccee
         recordCount: 1,
       })),
     },
-    previousScope: {
+    previousScope: unbounded ? null : {
       totalCount: 0,
       typeCounts: { all: 0, income: 0, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
       period: { startDate: "2026-03-01T00:00:00", endDate: "2026-03-31T23:59:59" },
@@ -213,6 +214,7 @@ const states = [
     { name: `account-overview-pinned-desktop-${suffix}`, screenshot: `account-overview-pinned-desktop-${suffix}.png`, viewport, scenario: "populated", interaction: "open-and-pin-account-overview" },
   ]),
   { name: "journal-localized-360", screenshot: "journal-localized-360.png", viewport: { width: 360, height: 900 }, scenario: "populated-ru" },
+  { name: "journal-all-dates-360", screenshot: "journal-all-dates-360.png", viewport: { width: 360, height: 900 }, scenario: "journal-workflow-ru", routePath: "/transactions?filter=search%3Asalary%3B" },
   { name: "journal-workflow-1280", screenshot: "journal-workflow-1280.png", viewport: { width: 1280, height: 900 }, scenario: "journal-workflow", interaction: "search-and-toggle-favorites" },
   { name: "journal-page-two-390", screenshot: "journal-page-two-390.png", viewport: { width: 390, height: 900 }, scenario: "long-range", routePath: longRangeRoutePath, interaction: "open-second-page" },
   {
@@ -672,19 +674,19 @@ async function applyInteraction(client, state) {
       }
       await evaluate(client, "document.querySelector('.transactions-search input').focus()");
       await client.send("Input.insertText", { text: "BIEDRONKA" });
-      await waitFor(client, `document.querySelector('.transactions-toolbar-count').textContent === '1 of 1 transactions' && ${favoriteRail}`);
+      await waitFor(client, `document.querySelector('.transactions-toolbar-count').textContent === 'Showing 1 of 1' && ${favoriteRail}`);
       await evaluate(client, "document.querySelector('.transactions-filter-chip').click()");
-      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === '6 of 6 transactions' && !document.querySelector('.transactions-filter-chip')");
+      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === 'Showing 6 of 6' && !document.querySelector('.transactions-filter-chip')");
       await evaluate(client, "document.querySelector('button[aria-label=\"Previous month\"]').click()");
-      await waitFor(client, `document.querySelector('.transactions-kpi-period').textContent === 'March 2026' && document.body.innerText.includes('No transactions to display') && ${favoriteRail}`);
+      await waitFor(client, `document.querySelector('.transactions-month-picker input').value === 'March 2026' && document.body.innerText.includes('No transactions to display') && ${favoriteRail}`);
       await evaluate(client, "document.querySelector('button[aria-label=\"Next month\"]').click()");
-      await waitFor(client, `document.querySelector('.transactions-kpi-period').textContent === 'April 2026' && document.querySelectorAll('.transactions-ledger-row').length === 6 && ${favoriteRail}`);
+      await waitFor(client, `document.querySelector('.transactions-month-picker input').value === 'April 2026' && document.querySelectorAll('.transactions-ledger-row').length === 6 && ${favoriteRail}`);
       return;
     }
     case "open-second-page":
-      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === '20 of 25 transactions'");
+      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === 'Showing 20 of 25'");
       await evaluate(client, "document.querySelector('.ant-pagination-item-2').click()");
-      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === '5 of 25 transactions' && document.querySelectorAll('.transactions-ledger-row').length === 5");
+      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === 'Showing 5 of 25' && document.querySelectorAll('.transactions-ledger-row').length === 5");
       return;
     case "default-account-expense":
     case "default-account-income": {
@@ -1131,7 +1133,16 @@ async function collectMetrics(client, state, apiRequestCount) {
       groupDateCount: document.querySelectorAll(".transactions-day-header time[datetime]").length,
       repeatedRowDates: Boolean(document.querySelector(".transactions-ledger-row time, .transactions-row-date")),
       toolbarCount: document.querySelector(".transactions-toolbar-count")?.textContent?.trim(),
+      monthScope: (() => {
+        const picker = document.querySelector(".transactions-month-picker input");
+        return picker?.value || picker?.placeholder;
+      })(),
       typeFilterCount: document.querySelectorAll(".transactions-ledger-controls button[aria-pressed]").length,
+      toolbarControlHeightsMatch: (() => {
+        const controls = document.querySelectorAll(".transactions-month-controls > *, .transactions-ledger-toolbar__actions > *");
+        const heights = Array.from(controls, (control) => control.getBoundingClientRect().height);
+        return heights.length === 5 && Math.max(...heights) - Math.min(...heights) <= 1;
+      })(),
       toolbarContentsFit: Boolean(ledgerCardRect && Array.from(document.querySelectorAll(".transactions-ledger-toolbar input, .transactions-ledger-toolbar button, .transactions-ledger-controls button, .transactions-filter-chips button")).every((element) => {
         const rect = element.getBoundingClientRect();
         return rect.left >= ledgerCardRect.left && rect.right <= ledgerCardRect.right;
@@ -1147,7 +1158,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       hasTrailingRowChevron: Boolean(document.querySelector(".transactions-ledger-row .transactions-row-chevron")),
       rowContentWithinBounds: rows.every((row) => {
         const rowRect = row.getBoundingClientRect();
-        return Array.from(row.querySelectorAll(".transactions-row-title, .transactions-row-token, .transactions-row-account, [role='text']")).every((element) => {
+        return Array.from(row.querySelectorAll(".transactions-row-title, .transactions-category-path, .transactions-row-token, .transactions-row-account, [role='text']")).every((element) => {
           const rect = element.getBoundingClientRect();
           return rect.left >= rowRect.left - 1 && rect.right <= rowRect.right + 1;
         });
@@ -1326,12 +1337,17 @@ export const visualQaConfig = {
     for (const state of stateResults.filter((item) => hasDesktopJournal(item) || hasMobileJournal(item))) {
       if (state.repeatedRowDates || state.groupDateCount !== state.dayGroupCount) failures.push(`${state.name}: date grouping labels are missing or repeated per row`);
       if (!state.toolbarContentsFit || state.typeFilterCount !== 6) failures.push(`${state.name}: journal controls are clipped or missing`);
+      if (!state.toolbarControlHeightsMatch) failures.push(`${state.name}: primary journal controls have mismatched heights`);
       if (!state.originalNumbersStayTogether) failures.push(`${state.name}: original monetary values break across lines`);
       if (state.name.startsWith("account-overview-pinned-desktop-") && !state.accountBalancesRailVisible) failures.push(`${state.name}: pinned favorite accounts rail is missing`);
     }
 
     const populated = stateResults.find((item) => item.name === "populated-1440");
     const missingRate = stateResults.find((item) => item.name === "missing-rate-1440");
+    const allDates = stateResults.find((item) => item.name === "journal-all-dates-360");
+    if (allDates && allDates.monthScope !== "Все активные даты") {
+      failures.push("journal-all-dates-360: the month picker does not identify the unbounded date scope");
+    }
     if (populated && populated.baseEquivalentCount === 0) {
       failures.push("populated-1440: available cached rates did not render base equivalents");
     }
