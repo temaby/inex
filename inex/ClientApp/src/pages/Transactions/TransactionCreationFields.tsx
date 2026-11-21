@@ -8,8 +8,8 @@ import { useTranslation } from "react-i18next";
 import ExpressionInputNumber from "../../components/ExpressionInputNumber";
 import TransactionCommentInput from "./TransactionCommentInput";
 
-export function CreationAmount({ currency, value, onChange, id }: {
-    currency?: string; value: number; onChange: (value: number | null) => void; id: string;
+export function CreationAmount({ currency, value, onChange, id, editing = false }: {
+    currency?: string; value: number; onChange: (value: number | null) => void; id: string; editing?: boolean;
 }) {
     const { t, i18n } = useTranslation();
     const locale = i18n?.resolvedLanguage ?? i18n?.language ?? "en";
@@ -24,7 +24,7 @@ export function CreationAmount({ currency, value, onChange, id }: {
         previousCurrency.current = currency;
     }, [currency, value]);
     return <div className="transaction-creation-amount">
-        <ExpressionInputNumber id={id} creation locale={locale} addonAfter={currency}
+        <ExpressionInputNumber id={id} creation={!editing} locale={locale} addonAfter={currency}
             value={value} onChange={onChange} precision={2} size="large"
             placeholder={new Intl.NumberFormat(locale, { minimumFractionDigits: 2 }).format(0)} />
         <div className="transaction-currency-feedback" role="status" aria-live="polite">

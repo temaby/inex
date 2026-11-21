@@ -24,6 +24,19 @@ function Amount({ currency = "PLN" }: { currency?: string }) {
 }
 
 describe("Transaction creation fields", () => {
+    it("retains signed values and existing arithmetic behavior when used for editing", () => {
+        const change = vi.fn();
+        const view = render(<CreationAmount editing id="edit_amount" currency="PLN" value={-20} onChange={change} />);
+        const input = screen.getByRole("textbox");
+        expect(input).toHaveValue("-20");
+        fireEvent.change(input, { target: { value: "-10/3" } });
+        expect(change).toHaveBeenLastCalledWith(-10 / 3);
+        fireEvent.blur(input);
+        expect(input).toHaveValue("-3.33");
+        view.rerender(<CreationAmount editing id="edit_amount" currency="USD" value={0} onChange={change} />);
+        expect(input).toHaveValue("0");
+    });
+
     it("starts empty, accepts comma decimals and expressions, and clears stale submitted values", async () => {
         const user = userEvent.setup();
         render(<Amount />);
