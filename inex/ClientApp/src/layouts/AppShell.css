@@ -28,24 +28,10 @@
     flex: 0 0 auto;
 }
 
-.inex-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--brand-ink);
-}
-
-.inex-logo__mark {
+.inex-logo img {
     display: block;
-    width: 36px;
-    height: 22px;
-    object-fit: contain;
-}
-
-.inex-logo__wordmark {
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: 0;
+    width: auto;
+    height: 32px;
 }
 
 .inex-topnav__items {
@@ -426,13 +412,8 @@
         margin-right: 16px;
     }
 
-    .inex-logo__mark {
-        width: 34px;
-        height: 20px;
-    }
-
-    .inex-logo__wordmark {
-        font-size: 18px;
+    .inex-logo img {
+        height: 30px;
     }
 
     .r-topnav-items {
@@ -509,8 +490,8 @@
 }
 
 @media (max-width: 380px) {
-    .inex-logo__wordmark {
-        display: none;
+    .inex-logo img {
+        width: 28px;
     }
 
     .inex-topnav__brand {

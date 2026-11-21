@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="262" height="280" viewBox="0 0 262 280" role="img" aria-label="InEx wallet icon"><g>
+<defs>
+  <linearGradient id="walletFill" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0" stop-color="#3AAE91"/>
+    <stop offset="0.58" stop-color="#179578"/>
+    <stop offset="1" stop-color="#08775F"/>
+  </linearGradient>
+  <linearGradient id="expenseFill" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0" stop-color="#F18A66"/>
+    <stop offset="1" stop-color="#D5503E"/>
+  </linearGradient>
+  <linearGradient id="incomeFill" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0" stop-color="#8AC9AF"/>
+    <stop offset="1" stop-color="#43A886"/>
+  </linearGradient>
+</defs>
+<!-- Coral card: spending; green card: earnings. -->
+<path d="M25 111.5 L25 107 C25 91.5 33.5 81 47 76 L165 32 C176 28 184.5 33 188.5 43 L192 51 L56 99 C51 101 48 106 48 111.5 Z" fill="url(#expenseFill)"/>
+<path d="M77 110 L192 60 C205 54 214 62 216 75 L223 110 Z" fill="url(#incomeFill)"/>
+<!-- Wallet silhouette, including open buckle cavity at right. -->
+<path d="M25 116 H229 Q236 116 236 123 V150 H201 C178 150 161 166 161 185 C161 204 178 220 201 220 H236 V223 C236 240 221 249 203 249 H58 C39 249 25 236 25 217 Z" fill="url(#walletFill)"/>
+<!-- Inner clasp floats in the white cavity; stays recognizable at favicon sizes. -->
+<path d="M236 169 H203 C192 169 184 176 184 185 C184 194 192 202 203 202 H236 Z" fill="#0C8269"/>
+<circle cx="205" cy="185.5" r="8.5" fill="#FFFFFF"/>
+</g></svg>

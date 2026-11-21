@@ -29,11 +29,14 @@
 }
 
 .r-auth-watermark {
+  background: var(--fg-on-dark);
   bottom: -160px;
-  color: var(--fg-on-dark);
+  height: 520px;
+  mask: url("/favicon.svg") center / contain no-repeat;
   opacity: 0.04;
   position: absolute;
   right: -140px;
+  width: 520px;
 }
 
 .r-auth-brand__content,
@@ -42,35 +45,10 @@
 }
 
 .r-auth-brand__logo {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  margin-bottom: 78px;
-}
-
-.r-auth-brand__mark,
-.r-auth-mobile-logo__mark {
-  align-items: center;
-  display: grid;
-  font-weight: 800;
-  justify-items: center;
-}
-
-.r-auth-brand__mark {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-2);
-  color: var(--income-200);
-  font-size: var(--fs-18);
+  display: block;
   height: 40px;
-  width: 40px;
-}
-
-.r-auth-brand__wordmark {
-  color: var(--fg-on-dark);
-  font-family: var(--font-sans);
-  font-size: var(--fs-24);
-  font-weight: 800;
-  letter-spacing: 0;
+  margin-bottom: 78px;
+  width: auto;
 }
 
 .r-auth-brand__headline {
@@ -152,30 +130,12 @@
 }
 
 .r-auth-mobile-logo {
-  align-items: center;
   display: none;
-  gap: var(--space-2);
+  height: 32px;
   margin-bottom: var(--space-6);
+  width: auto;
 }
 
-.r-auth-mobile-logo__mark {
-  background: var(--income-50);
-  border-radius: var(--radius-2);
-  color: var(--income-600);
-  font-size: var(--fs-11);
-  height: 26px;
-  width: 26px;
-}
-
-.r-auth-mobile-logo__wordmark {
-  color: var(--fg-1);
-  font-family: var(--font-sans);
-  font-size: var(--fs-20);
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
-.r-auth-mobile-logo__wordmark span,
 .r-auth-footer-link a {
   color: var(--income-600);
 }
@@ -201,7 +161,7 @@
   }
 
   .r-auth-mobile-logo {
-    display: flex;
+    display: block;
   }
 
   .r-auth-form-wrap {
