@@ -365,3 +365,11 @@ The Reports fixture harness passed all 50 states, including 14 Category Report s
 - [Populated USD report](../../implementation/visual-qa/category-report/category-report-1440.png), [Russian layout](../../implementation/visual-qa/category-report/category-russian-360.png), and [empty period with collapsed transfers](../../implementation/visual-qa/category-report/category-empty-390.png).
 
 Run `npm run visual-qa:reports` to reproduce the suite. Full-page mobile captures show the navigation at its initial fixed position. The harness also checks that scrolling to the end clears the final content above the navigation.
+
+## 2026-11-21 - Transaction editor alignment
+
+Data mode: fixture. PASS 17/17 states in `docs/implementation/visual-qa/transaction-edit/qa-summary.json`: expense at 1440/1024/390/360px, Russian 360px, income, transfer, correction, nested category search, account currency change, date picker, comment disclosure, delete confirmation, successful update, failure, retry and confirmed deletion. All app API requests were intercepted; no real backend or exchange provider was called. Update payload assertions retain the original signed amount, historical date, account and category. Update and delete return focus to the ledger after the closing animation.
+
+Inspected desktop, tablet, mobile and Russian captures plus correction, category-search, calendar, delete-confirmation and update-failure screenshots. The editor follows Account, Amount, Category, Date, Comment order, reuses the prominent amount and compact optional fields, and retains read-only system categories and visible required correction reasons. No horizontal overflow, out-of-bounds drawer controls or clipped footer actions was found. Existing comments are expanded; empty optional comments and record switching have component coverage.
+
+Build/typecheck, lint and 51 focused editor/shared-field, creation and ledger tests pass. The aggregate `visual-qa:verify` reports FAIL because all 12 untouched canonical page summaries exceed the 24-hour freshness limit; this feature summary has zero failures. Browser launch required the documented sandbox escalation. Fixture focus assertions wait for the expected focused ledger element after drawer closure, rather than testing immediately after form unmount.

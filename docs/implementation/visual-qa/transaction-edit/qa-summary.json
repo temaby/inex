@@ -1,0 +1,1213 @@
+{
+  "generatedAt": "2026-11-21T13:30:33.989Z",
+  "page": "transaction-edit",
+  "dataMode": "fixture",
+  "harness": {
+    "realBackendCalled": false,
+    "apiIsolation": "All API requests intercepted; signed historical update payload and confirmed delete verified"
+  },
+  "states": [
+    {
+      "name": "expense-1440",
+      "mode": "expense",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "expense-1440.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 1440,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /auth/link-state",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "expense-1024",
+      "mode": "expense",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "screenshot": "expense-1024.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 1024,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "expense-390",
+      "mode": "expense",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "screenshot": "expense-390.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 390,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "expense-360",
+      "mode": "expense",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "expense-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "expense-ru-360",
+      "mode": "expense",
+      "russian": true,
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "expense-ru-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated-ru",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Счёт",
+        "Сумма",
+        "Категория"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "income-360",
+      "mode": "income",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "income-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "3200",
+        "comment": "April salary #payroll",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "3200",
+      "amountFontSize": 26,
+      "comment": "April salary #payroll",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "transfer-360",
+      "mode": "transfer",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "transfer-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-1234567890.12",
+        "comment": "Transfer to Emergency reserve for long-term household commitments #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier",
+        "systemReadOnly": true,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-1234567890.12",
+      "amountFontSize": 26,
+      "comment": "Transfer to Emergency reserve for long-term household commitments #inter-account-transfer-with-a-long-audit-token @reconciliation-reference-with-a-long-identifier",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "correction-360",
+      "mode": "correction",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "correction-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "correction-edit",
+      "initial": {
+        "amount": "25",
+        "comment": "Cash recount #audit",
+        "systemReadOnly": true,
+        "reasonRequired": true,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category",
+        "Reason for correction"
+      ],
+      "amount": "25",
+      "amountFontSize": 26,
+      "comment": "Cash recount #audit",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "category-search-360",
+      "mode": "category-search",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "category-search-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "searchText": "LivingGroceries",
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "currency-360",
+      "mode": "currency",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "currency-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "Currency changed to USD. Amount unchanged.",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "date-360",
+      "mode": "date",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "date-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "searchText": "Apr2026SuMoTuWeThFrSa293031123456789101112131415161718192021222324252627282930123456789Today",
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "comment-360",
+      "mode": "comment",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "comment-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "collapsed": true,
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "delete-confirmation-360",
+      "mode": "delete-confirmation",
+      "viewport": {
+        "width": 360,
+        "height": 900
+      },
+      "screenshot": "delete-confirmation-360.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042",
+      "popupWithinViewport": true,
+      "searchText": "Are you sure?NoYes",
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 360,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "save-390",
+      "mode": "save",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "screenshot": "save-390.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "focusReturned": true,
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": false,
+      "drawerWithinViewport": true,
+      "fieldLabels": [],
+      "amountFontSize": null,
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 375,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+        "PUT /transactions/501 (historical payload verified)",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "failure-390",
+      "mode": "failure",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "screenshot": "failure-390.png",
+      "screenshotMode": "viewport",
+      "scenario": "edit-failure",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "failedDraftRetained": true,
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": true,
+      "drawerWithinViewport": true,
+      "fieldLabels": [
+        "Account",
+        "Amount",
+        "Category"
+      ],
+      "amount": "-84.5",
+      "amountFontSize": 26,
+      "comment": "BIEDRONKA groceries #food @receipt-1042 updated",
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "currencyFeedback": "",
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 390,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+        "PUT /transactions/501 (historical payload verified)",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "retry-390",
+      "mode": "retry",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "screenshot": "retry-390.png",
+      "screenshotMode": "viewport",
+      "scenario": "edit-retry",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "failedDraftRetained": true,
+      "focusReturned": true,
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": false,
+      "drawerWithinViewport": true,
+      "fieldLabels": [],
+      "amountFontSize": null,
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 375,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+        "PUT /transactions/501 (historical payload verified)",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "PUT /transactions/501 (historical payload verified)",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    },
+    {
+      "name": "delete-390",
+      "mode": "delete",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "screenshot": "delete-390.png",
+      "screenshotMode": "viewport",
+      "scenario": "populated",
+      "initial": {
+        "amount": "-84.5",
+        "comment": "BIEDRONKA groceries #food @receipt-1042",
+        "systemReadOnly": false,
+        "reasonRequired": false,
+        "saveDisabled": true
+      },
+      "focusReturned": true,
+      "dataMode": "fixture",
+      "hasHorizontalOverflow": false,
+      "expectsMobileBottomNav": false,
+      "drawerOpen": false,
+      "drawerWithinViewport": true,
+      "fieldLabels": [],
+      "amountFontSize": null,
+      "popupWithinViewport": true,
+      "controlsWithinDrawer": true,
+      "footerReachable": true,
+      "routePath": "/transactions",
+      "pngDimensions": {
+        "width": 375,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "requestLog": [
+        "POST /auth/refresh",
+        "GET /auth/me",
+        "GET /internal-transfer-requests?page=1&pageSize=10",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /accounts?mode=ALL",
+        "GET /categories?mode=ALL",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /auth/link-state",
+        "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+        "DELETE /transactions/501 (historical payload verified)",
+        "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+        "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+      ],
+      "consoleMessages": [
+        "[vite] connecting...",
+        "[vite] connected.",
+        "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+        "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "Warning: [antd: Input] `addonAfter` is deprecated. Please use `Space.Compact` instead."
+      ]
+    }
+  ],
+  "apiRequests": [
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /auth/link-state",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "PUT /transactions/501 (historical payload verified)",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "PUT /transactions/501 (historical payload verified)",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "PUT /transactions/501 (historical payload verified)",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "PUT /transactions/501 (historical payload verified)",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "POST /auth/refresh",
+    "GET /auth/me",
+    "GET /internal-transfer-requests?page=1&pageSize=10",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /accounts?mode=ALL",
+    "GET /categories?mode=ALL",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /auth/link-state",
+    "GET /exchange/rates/range?startDate=2026-03-01&endDate=2026-04-30",
+    "DELETE /transactions/501 (historical payload verified)",
+    "GET /transactions?mode=active&pageSize=20&page=1&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59",
+    "GET /transactions/summary?mode=active&startDate=2026-04-01T00%3A00%3A00&endDate=2026-04-30T23%3A59%3A59"
+  ],
+  "unhandledApiRequests": [],
+  "checks": {
+    "hasFailures": false,
+    "failures": [],
+    "mobile390NoHorizontalOverflow": true,
+    "mobile360NoHorizontalOverflow": true,
+    "mobileBottomNavClear": true,
+    "fixtureModeAvoidedBackendApis": true
+  }
+}
