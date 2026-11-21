@@ -58,13 +58,6 @@ const getInitials = (username?: string) => {
     return normalized.slice(0, 2).toUpperCase();
 };
 
-const Logo = () => (
-    <div className="inex-logo" aria-label="InEx">
-        <img className="inex-logo__mark" src="/assets/mark.svg" alt="" aria-hidden="true" />
-        <span className="inex-logo__wordmark">InEx</span>
-    </div>
-);
-
 const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -139,7 +132,10 @@ const AppShell = ({ frame, title, subtitle, extra, children }: AppShellProps) =>
         <div className="inex-shell">
             <header className="inex-topnav r-topnav">
                 <div className="inex-topnav__brand r-topnav-brand">
-                    <Logo />
+                    <picture className="inex-logo">
+                        <source media="(max-width: 380px)" srcSet="/favicon.svg" />
+                        <img src="/assets/logo-horizontal.svg" alt="InEx" width="352" height="128" />
+                    </picture>
                 </div>
 
                 <nav className="inex-topnav__items r-topnav-items" aria-label={t("nav.mainNav")}>

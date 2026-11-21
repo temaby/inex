@@ -30,24 +30,10 @@ const AuthShell = () => {
   return (
     <div className="r-auth-shell">
       <aside className="r-auth-brand">
-        <svg className="r-auth-watermark" width="520" height="520" viewBox="0 0 520 520" fill="none" aria-hidden="true">
-          <path
-            d="M260 24C129.661 24 24 129.661 24 260s105.661 236 236 236 236-105.661 236-236S390.339 24 260 24Zm0 76c88.366 0 160 71.634 160 160s-71.634 160-160 160S100 348.366 100 260 171.634 100 260 100Z"
-            fill="currentColor"
-          />
-          <path
-            d="M151 287c37.589-82.622 74.717-123.947 111.384-123.974C299.05 162.999 334.589 204.324 369 287"
-            stroke="currentColor"
-            strokeWidth="44"
-            strokeLinecap="round"
-          />
-        </svg>
+        <span className="r-auth-watermark" aria-hidden="true" />
 
         <div className="r-auth-brand__content">
-          <div className="r-auth-brand__logo">
-            <span className="r-auth-brand__mark" aria-hidden="true">In</span>
-            <span className="r-auth-brand__wordmark">InEx</span>
-          </div>
+          <img className="r-auth-brand__logo" src="/assets/logo-horizontal-on-dark.svg" alt="InEx" width="352" height="128" />
 
           <h1 className="r-auth-brand__headline">
             {t("auth.brandLineOne")}
@@ -77,10 +63,7 @@ const AuthShell = () => {
 
       <main className="r-auth-form-wrap">
         <div className="r-auth-form-panel">
-          <div className="r-auth-mobile-logo">
-            <span className="r-auth-mobile-logo__mark" aria-hidden="true">In</span>
-            <span className="r-auth-mobile-logo__wordmark"><span>In</span>Ex</span>
-          </div>
+          <img className="r-auth-mobile-logo" src="/assets/logo-horizontal.svg" alt="InEx" width="352" height="128" />
 
           <Outlet />
 
