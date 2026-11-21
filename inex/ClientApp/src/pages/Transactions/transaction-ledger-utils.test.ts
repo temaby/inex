@@ -85,7 +85,7 @@ describe("transaction ledger helpers", () => {
   });
 
   it("renders parent category paths while leaving system categories neutral", () => {
-    expect(getCategoryPathLabel(categories[1], categoryMap)).toBe("Food & Drink > Groceries");
+    expect(getCategoryPathLabel(categories[1], categoryMap)).toBe("Food & Drink / Groceries");
     expect(getCategoryPathLabel(categories[2], categoryMap)).toBe("Transfer");
   });
 

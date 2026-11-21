@@ -320,7 +320,7 @@ export const getCategoryPathLabel = (
     current = current.parentId ? categoriesById.get(current.parentId) : undefined;
   }
 
-  return path.join(" > ");
+  return path.join(" / ");
 };
 
 export const getFriendlyTransactionDayLabel = (

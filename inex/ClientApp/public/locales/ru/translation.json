@@ -462,7 +462,8 @@
     "itemCount_few": "{{count}} записи",
     "itemCount_many": "{{count}} записей",
     "itemCount_other": "{{count}} записи",
-    "toolbarCount": "{{visible}} из {{total}} транзакций",
+    "toolbarCount": "Показано {{visible}} из {{total}}",
+    "toolbarCountAnnouncement": "Транзакции. Показано {{visible}} из {{total}}",
     "paginationSummary": "Показано {{visible}} из {{total}} транзакций за {{period}}",
     "loadMore": "Загрузить ещё",
     "period": {
@@ -484,7 +485,7 @@
     "noMatch": "Нет транзакций, соответствующих этим фильтрам",
     "kpi": {
       "title": "Финансовая сводка",
-      "income": "Доход",
+      "income": "Доходы",
       "expenses": "Расходы",
       "netFlow": "Чистый денежный поток",
       "filteredPage": "Текущая страница журнала",
@@ -499,7 +500,7 @@
       "conversionUnavailable": "Конвертация недоступна",
       "absoluteChange": "{{change}} к периоду «{{period}}»",
       "percentChange": "{{change}} ({{percent}}%) к периоду «{{period}}»",
-      "noPreviousActivity": "{{change}} к периоду «{{period}}» без операций",
+      "noPreviousActivity": "{{change}} к периоду «{{period}}» (без операций)",
       "rateWarning": "Предупреждение о курсе",
       "rateWarningDetail": "Нет сохранённого курса {{currency}} на {{date}} за {{period}}."
     },
