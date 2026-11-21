@@ -23,13 +23,23 @@
 
 .transactions-kpi {
     display: grid;
-    gap: 8px;
+    align-content: start;
+    gap: 4px;
     min-width: 0;
-    padding: 24px 28px;
+    padding: 10px 20px 14px;
 }
 
 .transactions-kpi + .transactions-kpi {
     border-left: 1px solid var(--border-1);
+}
+
+.transactions-kpi-period {
+    border-bottom: 1px solid var(--border-1);
+    color: var(--fg-2);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    grid-column: 1 / -1;
+    padding: 8px 20px;
 }
 
 .transactions-kpi__label {
@@ -41,7 +51,10 @@
 }
 
 .transactions-kpi__value {
-    line-height: 1.1;
+    font-size: clamp(20px, 2vw, 26px);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-snug);
+    min-width: 0;
 }
 
 .transactions-kpi__skeleton {
@@ -49,20 +62,24 @@
     background: var(--bg-muted);
     border-radius: var(--radius-1);
     display: block;
-    height: 30px;
+    height: 1.1em;
     max-width: 190px;
 }
 
 .transactions-kpi__sub {
     color: var(--fg-3);
-    font-size: 13px;
+    font-size: var(--fs-12);
+    font-variant-numeric: tabular-nums;
 }
 
 .transactions-ledger-card {
+    --transactions-ledger-gutter: clamp(12px, 2.2cqi, 24px);
+    --transactions-ledger-columns: minmax(0, 1fr) minmax(0, clamp(7rem, 19cqi, 16rem)) minmax(0, clamp(170px, 19cqi, 200px));
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-3);
     box-shadow: var(--shadow-1);
+    container-type: inline-size;
     min-width: 0;
     overflow: hidden;
 }
@@ -83,9 +100,12 @@
 
 .transactions-ledger-toolbar__actions {
     align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    display: grid;
+    flex: 0 1 308px;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-inline-start: auto;
+    min-width: min(100%, 228px);
 }
 
 .transactions-account-balances {
@@ -390,10 +410,10 @@
     border-bottom: 1px solid var(--border-1);
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 8px 12px;
     justify-content: space-between;
     min-width: 0;
-    padding: 14px 20px;
+    padding: 10px var(--transactions-ledger-gutter);
 }
 
 .transactions-ledger-toolbar__title {
@@ -411,20 +431,10 @@
     margin: 0;
 }
 
-.transactions-period-badge,
 .transactions-toolbar-count {
-    border-radius: var(--radius-1);
-    display: inline-flex;
-    font-size: 12px;
-    font-weight: 700;
-    min-width: 0;
-}
-
-.transactions-period-badge {
-    background: var(--bg-muted);
-    border: 1px solid var(--border-1);
-    color: var(--fg-2);
-    padding: 3px 8px;
+    color: var(--fg-3);
+    font-size: var(--fs-12);
+    font-variant-numeric: tabular-nums;
 }
 
 .transactions-month-controls {
@@ -466,42 +476,19 @@
     color: var(--fg-3);
 }
 
-.transactions-toolbar-count {
-    color: var(--fg-3);
-}
-
-.transactions-filter-indicator {
-    align-items: center;
-    background: var(--income-50);
-    border: 1px solid var(--income-100);
-    border-radius: var(--radius-1);
-    color: var(--income-600);
-    display: inline-flex;
-    font-size: 12px;
-    font-weight: 700;
-    gap: 5px;
-    padding: 3px 8px;
-}
-
-.transactions-search {
-    flex: 0 1 280px !important;
-    min-width: 220px;
-}
-
 .transactions-ledger-controls {
-    gap: 14px;
-    justify-content: flex-start;
-    padding: 10px 20px;
+    padding-block: 6px;
 }
 
-.transactions-search {
-    margin-left: auto;
-    min-width: 220px;
+.transactions-ledger-controls button {
+    font-variant-numeric: tabular-nums;
 }
 
 .transactions-filter-chips {
     background: var(--bg-stripe);
+    gap: 6px;
     justify-content: flex-start;
+    padding-block: 6px;
 }
 
 .transactions-filter-chip,
@@ -521,7 +508,18 @@
     background: var(--bg-surface);
     border: 1px solid var(--border-1);
     color: var(--fg-2);
+    max-width: 100%;
     padding: 4px 8px;
+    text-align: start;
+}
+
+.transactions-filter-chip span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.transactions-filter-chip svg {
+    flex-shrink: 0;
 }
 
 .transactions-clear-filters {
@@ -550,11 +548,11 @@
 }
 
 .transactions-ledger-head,
-.transactions-day-header,
 .transactions-ledger-row {
     display: grid;
-    gap: 16px;
-    grid-template-columns: minmax(260px, 1.8fr) minmax(140px, 1fr) minmax(110px, 0.8fr) minmax(180px, 200px);
+    column-gap: clamp(8px, 2cqi, 24px);
+    grid-template-columns: var(--transactions-ledger-columns);
+    padding-inline: var(--transactions-ledger-gutter);
 }
 
 .transactions-ledger-head {
@@ -564,7 +562,7 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0;
-    padding: 10px 20px;
+    padding-block: 8px;
     text-transform: uppercase;
 }
 
@@ -575,14 +573,12 @@
 .transactions-day-header {
     align-items: center;
     background: var(--bg-stripe);
-    border-bottom: 1px solid var(--border-1);
-    border-top: 1px solid var(--border-1);
     color: var(--brand-ink);
     display: flex;
     font-size: 12px;
     font-weight: 800;
     justify-content: space-between;
-    padding: 9px 20px;
+    padding: 7px var(--transactions-ledger-gutter);
 }
 
 .transactions-day-header__date {
@@ -598,19 +594,24 @@
 }
 
 .transactions-ledger-row {
-    appearance: none;
-    align-items: center;
+    align-content: center;
+    align-items: baseline;
     background: var(--bg-surface);
-    border: 0;
-    border-bottom: 1px solid var(--border-1);
-    color: inherit;
     cursor: pointer;
     font-family: var(--font-sans);
-    padding: 13px 20px;
+    grid-template-areas:
+        "title account amount"
+        "meta account equivalent";
+    min-height: 44px;
+    padding-block: 8px;
     position: relative;
     text-align: left;
     transition: background var(--dur-1) var(--ease-standard);
     width: 100%;
+}
+
+.transactions-ledger-row + .transactions-ledger-row {
+    border-top: 1px solid var(--border-1);
 }
 
 .transactions-ledger-row:hover {
@@ -634,83 +635,86 @@
     outline: none;
 }
 
-.transactions-row-main,
+.transactions-row-title,
+.transactions-row-meta,
 .transactions-row-account,
-.transactions-row-date,
-.transactions-row-amount {
+.transactions-row-amount,
+.transactions-row-amount-equivalent {
     min-width: 0;
 }
 
 .transactions-row-title {
     color: var(--fg-1);
     font-size: 14px;
-    font-weight: 700;
+    font-weight: var(--fw-semibold);
+    grid-area: title;
+    line-height: 1.35;
     overflow-wrap: anywhere;
 }
 
 .transactions-row-meta {
-    align-items: center;
+    align-items: baseline;
     color: var(--fg-3);
     display: flex;
     flex-wrap: wrap;
     font-size: 12px;
-    gap: 7px;
-    margin-top: 3px;
+    gap: 2px 8px;
+    grid-area: meta;
+    line-height: 1.4;
 }
 
-.transactions-category-path {
+.transactions-category-path,
+.transactions-row-token {
+    max-width: 100%;
     overflow-wrap: anywhere;
 }
 
 .transactions-row-token {
-    background: transparent;
-    border: 0;
     color: var(--income-600);
-    cursor: pointer;
-    font-family: var(--font-sans);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 0;
-}
-
-.transactions-row-token:focus-visible {
-    box-shadow: var(--focus-ring);
-    outline: none;
 }
 
 .transactions-row-account {
+    align-self: center;
     color: var(--fg-2);
     font-size: 13px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.transactions-row-date {
-    color: var(--fg-3);
-    font-family: var(--font-num);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
+    grid-area: account;
+    overflow-wrap: anywhere;
 }
 
 .transactions-row-amount {
-    display: grid;
-    gap: 3px;
-    font-weight: 700;
-    justify-items: end;
+    font-size: 15px;
+    font-weight: var(--fw-semibold);
+    grid-area: amount;
     text-align: right;
 }
 
 .transactions-row-amount-equivalent {
-    color: var(--fg-4);
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
+    align-items: baseline;
+    color: var(--fg-3);
+    display: flex;
+    font-size: var(--fs-12);
+    gap: 4px;
+    grid-area: equivalent;
+    justify-content: flex-end;
+    text-align: right;
 }
 
-.transactions-row-chevron {
-    color: var(--fg-4);
-    display: none;
+.transactions-kpi__value [aria-hidden="true"],
+.transactions-row-amount [aria-hidden="true"],
+.transactions-row-amount-equivalent [role="text"] [aria-hidden="true"] {
+    flex-wrap: wrap;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+}
+
+.transactions-row-amount [aria-hidden="true"],
+.transactions-row-amount-equivalent [role="text"] [aria-hidden="true"] {
+    justify-content: flex-end;
+}
+
+.transactions-row-amount-equivalent [role="text"] {
+    min-width: 0;
 }
 
 .transactions-pagination {
@@ -931,17 +935,19 @@
         padding-right: 14px;
     }
 
-    .transactions-ledger-toolbar__actions,
-    .transactions-ledger-toolbar__actions > button {
-        width: 100%;
+    .transactions-kpi-strip {
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .transactions-kpi-strip {
-        grid-template-columns: 1fr;
+    .transactions-kpi-period {
+        padding-inline: 14px;
     }
 
     .transactions-kpi {
-        padding: 18px 16px;
+        align-items: baseline;
+        gap: 2px 8px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+        padding: 8px 14px;
     }
 
     .transactions-kpi + .transactions-kpi {
@@ -949,73 +955,21 @@
         border-top: 1px solid var(--border-1);
     }
 
-    .transactions-ledger-toolbar,
-    .transactions-ledger-controls,
-    .transactions-filter-chips,
-    .transactions-pagination {
-        align-items: stretch;
-        flex-direction: column;
-        padding: 12px 14px;
+    .transactions-kpi__value {
+        grid-area: 1 / 2 / span 2;
+        text-align: end;
     }
 
-    .transactions-ledger-controls [role="tablist"] {
-        max-width: 100%;
-        overflow-x: auto;
+    .transactions-kpi__value [aria-hidden="true"] {
+        justify-content: flex-end;
     }
 
-    .transactions-ledger-controls > div:first-child {
-        max-width: 100%;
-        overflow-x: auto;
+    .transactions-kpi:last-child .transactions-kpi__value {
+        grid-row-end: span 1;
     }
 
-    .transactions-search {
-        flex: 0 1 auto !important;
-        margin-left: 0;
-        max-width: none;
-        min-width: 0;
-        width: 100%;
-    }
-
-    .transactions-ledger-head {
-        display: none;
-    }
-
-    .transactions-day-header {
-        justify-content: space-between;
-        padding: 10px 14px;
-    }
-
-    .transactions-ledger-row {
-        display: grid;
-        gap: 8px;
-        grid-template-columns: minmax(0, 1fr);
-        padding: 14px;
-    }
-
-    .transactions-row-main {
-        grid-column: 1;
-        grid-row: 2;
-    }
-
-    .transactions-row-account {
-        grid-column: 1;
-        grid-row: 3;
-    }
-
-    .transactions-row-date {
-        grid-column: 1;
-        grid-row: 4;
-    }
-
-    .transactions-row-amount {
-        grid-column: 1;
-        grid-row: 1;
-        justify-items: start;
-        text-align: left;
-    }
-
-    .transactions-row-title {
-        white-space: normal;
+    .transactions-kpi:last-child .transactions-kpi__sub {
+        grid-column: 1 / -1;
     }
 
     .transactions-pagination .ant-pagination {
@@ -1047,6 +1001,52 @@
 
     .transactions-drawer-actions > button {
         width: 100%;
+    }
+}
+
+@container (max-width: 540px) {
+    .transactions-ledger-toolbar__actions {
+        flex-basis: 100%;
+    }
+
+    .transactions-month-picker.ant-picker {
+        min-width: 0;
+        width: 128px;
+    }
+
+    .transactions-ledger-controls [role="group"] {
+        gap: 4px 8px !important;
+    }
+
+    .transactions-filter-chip,
+    .transactions-clear-filters {
+        min-height: 32px;
+    }
+
+    .transactions-ledger-head {
+        display: none;
+    }
+
+    .transactions-ledger-row {
+        grid-template-areas:
+            "title amount"
+            "meta equivalent"
+            "account equivalent";
+        grid-template-columns: minmax(0, 1fr) fit-content(54cqi);
+        row-gap: 1px;
+    }
+
+    .transactions-row-amount {
+        font-size: 14px;
+    }
+
+    .transactions-row-account {
+        color: var(--fg-3);
+        font-size: var(--fs-12);
+    }
+
+    .transactions-row-amount-equivalent {
+        align-self: start;
     }
 }
 

@@ -2,6 +2,7 @@ import * as React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pagination } from "antd";
+import dayjs from "dayjs";
 import { Inbox, Plus, RotateCw } from "lucide-react";
 
 import type { AccountResponse } from "../../store/accounts/accounts-api";
@@ -25,6 +26,11 @@ import {
     type ExchangeRateLike,
 } from "./transaction-ledger-utils";
 
+export interface TransactionListCount {
+    visible: number;
+    total: number;
+}
+
 interface TransactionListProps {
     accounts: AccountResponse[];
     baseCurrency: string;
@@ -36,7 +42,7 @@ interface TransactionListProps {
     onAddTransaction: () => void;
     onClearFilters: () => void;
     onInitialLoadingChange: (loading: boolean) => void;
-    onVisibleCountChange: (count: number) => void;
+    onCountChange: (count: TransactionListCount | null) => void;
     periodLabel: string;
     readOnly?: boolean;
     refreshToken: number;
@@ -65,8 +71,9 @@ const groupTransactions = (transactions: TransactionResponse[], dayLabels: { tod
     return Array.from(groups.values()).sort((left, right) => right.dateKey.localeCompare(left.dateKey));
 };
 
-const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categories, dataOwnerId, filter, linkedUserId, onAddTransaction, onClearFilters, onInitialLoadingChange, onVisibleCountChange, periodLabel, readOnly = false, refreshToken }: TransactionListProps) => {
-    const { t } = useTranslation();
+const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categories, dataOwnerId, filter, linkedUserId, onAddTransaction, onClearFilters, onCountChange, onInitialLoadingChange, periodLabel, readOnly = false, refreshToken }: TransactionListProps) => {
+    const { t, i18n } = useTranslation();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
     const dispatch = useAppDispatch();
     const formError = useAppSelector(state => state.transactions.error);
     const [pagination, setPagination] = useState({ current: 1, size: 20 });
@@ -143,7 +150,10 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
         yesterday: t("transactions.day.yesterday"),
     }), [t, transactions]);
 
-    useEffect(() => onVisibleCountChange(transactions.length), [onVisibleCountChange, transactions.length]);
+    const hasKnownCount = hasRows || (!isCurrentDataLoading && !query.isError && currentPageData !== undefined);
+    useEffect(() => {
+        onCountChange(hasKnownCount ? { visible: transactions.length, total } : null);
+    }, [hasKnownCount, onCountChange, total, transactions.length]);
     useEffect(() => onInitialLoadingChange(isCurrentDataLoading && !hasRows), [hasRows, isCurrentDataLoading, onInitialLoadingChange]);
     useEffect(() => {
         if (query.isError && !hasRows) {
@@ -237,17 +247,23 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
     return <>
         {query.isFetching && hasRows && <div className="transactions-refreshing" role="status"><RotateCw aria-hidden="true" size={14} />{t("transactions.loading.refreshing")}</div>}
         {query.isError && hasRows && <Alert action={<InExButton icon={<RotateCw size={14} />} kind="ghost" onClick={() => query.refetch()} size="sm">{t("transactions.error.retry")}</InExButton>} className="transactions-inline-error" message={t("transactions.error.partialFailure")} showIcon type="error" />}
-        <div className="transactions-ledger-head"><div>{t("transactions.description")}</div><div>{t("transactions.account")}</div><div>{t("transactions.date")}</div><div>{t("transactions.amount")}</div></div>
+        <div className="transactions-ledger-head"><div>{t("transactions.description")}</div><div>{t("transactions.account")}</div><div>{t("transactions.amount")}</div></div>
         {groups.map(group => <section className="transactions-day-group" key={group.dateKey}>
-            <header className="transactions-day-header"><div className="transactions-day-header__date">{group.label}<span>&middot; {t("transactions.itemCount", { count: group.items.length })}</span></div></header>
+            <header className="transactions-day-header">
+                <div className="transactions-day-header__date">
+                    <time dateTime={group.dateKey} title={dayjs(group.dateKey).locale(locale).format("D MMMM YYYY")}>{group.label}</time>
+                    <span>&middot; {t("transactions.itemCount", { count: group.items.length })}</span>
+                </div>
+            </header>
             {group.items.map(transaction => {
                 const account = accountsById.get(transaction.accountId);
                 const category = categoriesById.get(transaction.categoryId);
                 const kind = getTransactionKind(transaction, category);
                 const amountKind: MoneyKind = kind === "transfer" || kind === "internalTransfer" || kind === "correction" ? "transfer" : kind;
                 const cleanComment = transaction.comment?.replace(/#\S+/g, "").replace(/@\S+/g, "").trim();
-                const categoryPath = getCategoryPathLabel(category, categoriesById);
-                const title = cleanComment || (kind === "transfer" ? t("transactions.transfer") : kind === "internalTransfer" ? t("transactions.internalTransfer") : category?.name) || t("transactions.uncategorized");
+                const movementLabel = amountKind === "transfer" ? t(`transactions.${kind}`) : undefined;
+                const title = cleanComment || movementLabel || category?.name || t("transactions.uncategorized");
+                const categoryLabel = movementLabel === title ? undefined : movementLabel ?? getCategoryPathLabel(category, categoriesById);
                 const currency = account?.currency ?? transaction.accountCurrency;
                 const baseEquivalent = getBaseCurrencyEquivalent(transaction.amount, currency, transaction.created, baseCurrency, cachedExchangeRates);
                 const openEdit = () => {
@@ -264,9 +280,24 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
                     tabIndex: 0,
                 };
                 return <div className={`transactions-ledger-row transactions-ledger-row--${kind}${readOnly ? " transactions-ledger-row--read-only" : ""}${restoredFocusId === transaction.id ? " transactions-ledger-row--restored-focus" : ""}`} data-transaction-id={transaction.id} key={transaction.id} onBlur={() => setRestoredFocusId(null)} {...interactiveProps}>
-                    <div className="transactions-row-main"><div className="transactions-row-title">{title}</div><div className="transactions-row-meta">{categoryPath && kind !== "correction" && kind !== "transfer" && kind !== "internalTransfer" && <span className="transactions-category-path">{categoryPath}</span>}{kind === "transfer" && <span>{t("transactions.transfer")}</span>}{kind === "internalTransfer" && <span>{t("transactions.internalTransfer")}</span>}{kind === "correction" && <span>{t("transactions.correction")}</span>}{transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}{transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}</div></div>
-                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div><div className="transactions-row-date">{getTransactionLocalDate(transaction.created)}</div>
-                    <div className="transactions-row-amount"><Num currency={currency} kind={amountKind} signage="signed" size={15} value={transaction.amount} />{baseEquivalent && <span className="transactions-row-amount-equivalent">≈ <Num currency={baseEquivalent.currency} kind={amountKind} signage="signed" size={12} value={baseEquivalent.value} /></span>}</div>
+                    <div className="transactions-row-title">{title}</div>
+                    {(categoryLabel || transaction.tags.length > 0 || transaction.refs.length > 0) && (
+                        <div className="transactions-row-meta">
+                            {categoryLabel && <span className="transactions-category-path">{categoryLabel}</span>}
+                            {transaction.tags.map(tag => <span className="transactions-row-token" key={`tag-${tag}`}>#{tag}</span>)}
+                            {transaction.refs.map(ref => <span className="transactions-row-token" key={`ref-${ref}`}>@{ref}</span>)}
+                        </div>
+                    )}
+                    <div className="transactions-row-account">{account?.name ?? t("transactions.unknownAccount")}</div>
+                    <div className="transactions-row-amount">
+                        <Num currency={currency} currencySize="sm" fractionDigits="currency" kind={amountKind} locale={locale} signage="signed" value={transaction.amount} />
+                    </div>
+                    {baseEquivalent && (
+                        <div className="transactions-row-amount-equivalent">
+                            <span aria-hidden="true">≈</span>
+                            <Num accessibleLabel={t("transactions.amountEquivalent")} currency={baseEquivalent.currency} currencySize="sm" fractionDigits="currency" kind={amountKind} locale={locale} muted signage="signed" value={baseEquivalent.value} />
+                        </div>
+                    )}
                 </div>;
             })}
         </section>)}

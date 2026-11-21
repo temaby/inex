@@ -37,6 +37,9 @@ const visualQaViewports = [
   { suffix: "360", viewport: { width: 360, height: defaultViewportHeight } },
 ];
 const longRangeRoutePath = "/transactions?filter=start%3A2026-01-01%3Bend%3A2026-04-30%3B";
+const wideJournalViewports = [1280, 1920].map(width => ({ suffix: String(width), viewport: { width, height: 900 } }));
+const hasDesktopJournal = (state) => /^populated-(1024|1280|1440|1920)$|^account-overview-pinned-desktop-|^journal-workflow-/.test(state.name);
+const hasMobileJournal = (state) => /^(populated|account-overview-pinned-mobile)-(360|390)$|^journal-(localized|page-two)-/.test(state.name);
 
 const delayedResponse = (response, delayMs = 1400) => new Promise((resolve) => {
   setTimeout(() => resolve(response), delayMs);
@@ -49,7 +52,7 @@ function getScenarioCategories(fixture, scenario) {
   }] : fixture.transactionsVisualFixtureCategories;
 }
 
-function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded = false) {
+function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded = false, query) {
   if (scenario === "correction-ledger" || scenario === "correction-edit") {
     return [25, -10].map((amount, index) => ({
       ...fixture.transactionsVisualFixtureTransactions[0], id: 990 + index, categoryId: 999,
@@ -57,6 +60,16 @@ function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceede
     }));
   }
   if (scenario === "empty" || hasNoMatch || (scenario === "edit-filtered-out" && mutationSucceeded)) return [];
+
+  if (scenario === "journal-workflow") {
+    const start = query.get("startDate")?.slice(0, 10) ?? "";
+    const end = query.get("endDate")?.slice(0, 10) ?? "9999-12-31";
+    const search = (query.get("search") ?? "").toLowerCase();
+    return fixture.transactionsVisualFixtureTransactions.filter(({ created, comment }) => {
+      const date = created.slice(0, 10);
+      return date >= start && date <= end && comment.toLowerCase().includes(search);
+    });
+  }
 
   if (scenario === "progressive-loading" || scenario === "progressive-error" || scenario === "long-range") {
     return Array.from({ length: 25 }, (_, index) => {
@@ -72,8 +85,8 @@ function getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceede
   return fixture.transactionsVisualFixtureTransactions;
 }
 
-function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded) {
-  const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded);
+function createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded, query) {
+  const transactions = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded, query);
   const categoriesById = new Map(getScenarioCategories(fixture, scenario).map((category) => [category.id, category]));
   const currencySummariesByCurrency = new Map();
   const typeCounts = {
@@ -195,6 +208,13 @@ const states = [
     scenario: "linked",
     interaction: "select-linked-account",
   })),
+  ...wideJournalViewports.flatMap(({ suffix, viewport }) => [
+    { name: `populated-${suffix}`, screenshot: `populated-${suffix}.png`, viewport, scenario: "populated" },
+    { name: `account-overview-pinned-desktop-${suffix}`, screenshot: `account-overview-pinned-desktop-${suffix}.png`, viewport, scenario: "populated", interaction: "open-and-pin-account-overview" },
+  ]),
+  { name: "journal-localized-360", screenshot: "journal-localized-360.png", viewport: { width: 360, height: 900 }, scenario: "populated-ru" },
+  { name: "journal-workflow-1280", screenshot: "journal-workflow-1280.png", viewport: { width: 1280, height: 900 }, scenario: "journal-workflow", interaction: "search-and-toggle-favorites" },
+  { name: "journal-page-two-390", screenshot: "journal-page-two-390.png", viewport: { width: 390, height: 900 }, scenario: "long-range", routePath: longRangeRoutePath, interaction: "open-second-page" },
   {
     name: "populated-1440",
     screenshot: "populated-1440.png",
@@ -576,7 +596,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           return problemResponse("Transactions fixture failure", "Controlled Transactions summary failure.", 500);
         }
 
-        const response = jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded));
+        const response = jsonResponse(createTransactionsSummary(fixture, scenario, hasNoMatch, mutationSucceeded, url.searchParams));
         return scenario === "initial-loading" ? delayedResponse(response) : response;
       }
       if (url.pathname === "/api/transactions" && method === "GET") {
@@ -590,7 +610,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           return problemResponse("Transactions fixture failure", "Controlled Transactions load failure.", 500);
         }
 
-        const data = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded);
+        const data = getScenarioTransactions(fixture, scenario, hasNoMatch, mutationSucceeded, url.searchParams);
         const response = jsonResponse({
           data: data.slice((page - 1) * pageSize, page * pageSize),
           metadata: { totalItems: data.length },
@@ -634,6 +654,38 @@ async function applyInteraction(client, state) {
     return;
   }
   switch (state.interaction) {
+    case "search-and-toggle-favorites": {
+      const favoriteRail = "Boolean(document.querySelector('.transactions-account-balances-rail'))";
+      for (const pinned of [true, false, true]) {
+        if (pinned) {
+          await evaluate(client, clickButtonByTextExpression("Favorite accounts"));
+          await waitFor(client, "Boolean(document.querySelector('.transactions-account-balances--drawer'))");
+        }
+        await evaluate(client, "document.getElementById('transactions-account-balances-pin-control').click()");
+        await waitFor(client, "Boolean(document.querySelector('[role=menuitem]'))");
+        await evaluate(client, "document.querySelector('[role=menuitem]').click()");
+        await waitFor(client, `${favoriteRail} === ${pinned} && localStorage.getItem('inex.transactions.account-balances-pinned') === '${pinned}'`);
+        if (!pinned && await evaluate(client, "Boolean(document.querySelector('.transactions-account-balances--drawer'))")) {
+          await evaluate(client, "document.querySelector('.ant-drawer-close').click()");
+          await waitFor(client, "!document.querySelector('.ant-drawer-open')");
+        }
+      }
+      await evaluate(client, "document.querySelector('.transactions-search input').focus()");
+      await client.send("Input.insertText", { text: "BIEDRONKA" });
+      await waitFor(client, `document.querySelector('.transactions-toolbar-count').textContent === '1 of 1 transactions' && ${favoriteRail}`);
+      await evaluate(client, "document.querySelector('.transactions-filter-chip').click()");
+      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === '6 of 6 transactions' && !document.querySelector('.transactions-filter-chip')");
+      await evaluate(client, "document.querySelector('button[aria-label=\"Previous month\"]').click()");
+      await waitFor(client, `document.querySelector('.transactions-kpi-period').textContent === 'March 2026' && document.body.innerText.includes('No transactions to display') && ${favoriteRail}`);
+      await evaluate(client, "document.querySelector('button[aria-label=\"Next month\"]').click()");
+      await waitFor(client, `document.querySelector('.transactions-kpi-period').textContent === 'April 2026' && document.querySelectorAll('.transactions-ledger-row').length === 6 && ${favoriteRail}`);
+      return;
+    }
+    case "open-second-page":
+      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === '20 of 25 transactions'");
+      await evaluate(client, "document.querySelector('.ant-pagination-item-2').click()");
+      await waitFor(client, "document.querySelector('.transactions-toolbar-count').textContent === '5 of 25 transactions' && document.querySelectorAll('.transactions-ledger-row').length === 5");
+      return;
     case "default-account-expense":
     case "default-account-income": {
       const russian = state.scenario === "default-account-ru";
@@ -1052,7 +1104,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       hiddenOverviewAccountVisible: Array.from(document.querySelectorAll(".transactions-account-balances__list li"))
         .some((item) => item.textContent?.includes("UZS cash")),
       accountBalancesZeroVisible: document.body.innerText.includes("0.00 PLN"),
-      ledgerColumnsFullyVisible: Boolean(ledgerCardRect && ledgerColumns.length === 4 && ledgerColumns.every((column) => {
+      ledgerColumnsFullyVisible: Boolean(ledgerCardRect && ledgerColumns.length === 3 && ledgerColumns.every((column) => {
         const rect = column.getBoundingClientRect();
         return rect.left >= ledgerCardRect.left && rect.right <= ledgerCardRect.right;
       })),
@@ -1063,17 +1115,27 @@ async function collectMetrics(client, state, apiRequestCount) {
       readOnlyNoticeVisible: document.body.innerText.includes("read-only mode"),
       addTransactionVisible: Array.from(document.querySelectorAll("button"))
         .some((button) => button.textContent?.trim() === "Add transaction" || button.textContent?.trim() === "Add"),
-      mobileAmountFirst: rows.every((row) => {
+      mobileDescriptionBesideAmount: rows.length > 0 && rows.every((row) => {
         const amount = row.querySelector(".transactions-row-amount");
-        const main = row.querySelector(".transactions-row-main");
+        const title = row.querySelector(".transactions-row-title");
+        const meta = row.querySelector(".transactions-row-meta");
         const account = row.querySelector(".transactions-row-account");
-        const date = row.querySelector(".transactions-row-date");
-        if (!amount || !main || !account || !date) return false;
-        const amountTop = amount.getBoundingClientRect().top;
-        return amountTop <= main.getBoundingClientRect().top
-          && main.getBoundingClientRect().top <= account.getBoundingClientRect().top
-          && account.getBoundingClientRect().top <= date.getBoundingClientRect().top;
+        if (!amount || !title || !account) return false;
+        const titleBounds = title.getBoundingClientRect();
+        const amountBounds = amount.getBoundingClientRect();
+        const leftContentBottom = meta?.getBoundingClientRect().bottom ?? titleBounds.bottom;
+        return Math.abs(amountBounds.top - titleBounds.top) < 8
+          && titleBounds.right <= amountBounds.left
+          && account.getBoundingClientRect().top >= leftContentBottom - 1;
       }),
+      groupDateCount: document.querySelectorAll(".transactions-day-header time[datetime]").length,
+      repeatedRowDates: Boolean(document.querySelector(".transactions-ledger-row time, .transactions-row-date")),
+      toolbarCount: document.querySelector(".transactions-toolbar-count")?.textContent?.trim(),
+      typeFilterCount: document.querySelectorAll(".transactions-ledger-controls button[aria-pressed]").length,
+      toolbarContentsFit: Boolean(ledgerCardRect && Array.from(document.querySelectorAll(".transactions-ledger-toolbar input, .transactions-ledger-toolbar button, .transactions-ledger-controls button, .transactions-filter-chips button")).every((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.left >= ledgerCardRect.left && rect.right <= ledgerCardRect.right;
+      })),
       requestPanelVisible: Boolean(document.querySelector(".transfer-requests")),
       requestCardCount: document.querySelectorAll(".transfer-request-card").length,
       requestAcceptDisabled: document.querySelector(".transfer-request-card__actions button")?.disabled ?? null,
@@ -1085,10 +1147,17 @@ async function collectMetrics(client, state, apiRequestCount) {
       hasTrailingRowChevron: Boolean(document.querySelector(".transactions-ledger-row .transactions-row-chevron")),
       rowContentWithinBounds: rows.every((row) => {
         const rowRect = row.getBoundingClientRect();
-        return Array.from(row.querySelectorAll(".transactions-row-title, .transactions-row-token, [role='text']")).every((element) => {
+        return Array.from(row.querySelectorAll(".transactions-row-title, .transactions-row-token, .transactions-row-account, [role='text']")).every((element) => {
           const rect = element.getBoundingClientRect();
           return rect.left >= rowRect.left - 1 && rect.right <= rowRect.right + 1;
         });
+      }),
+      originalNumbersStayTogether: rows.every((row) => {
+        const number = row.querySelector('.transactions-row-amount [aria-hidden="true"] > span');
+        if (!number) return false;
+        const range = document.createRange();
+        range.selectNodeContents(number);
+        return range.getClientRects().length === 1;
       }),
       loadErrorVisible: document.body.innerText.includes("Failed to load transactions"),
       initialLoadingVisible: Boolean(document.querySelector(".transactions-loading")),
@@ -1181,15 +1250,15 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
         .filter((state) => state.accountBalancesTotalVisible)
         .every((state) => state.accountBalancesTotalAfterList && state.accountBalancesTotalEmphasized),
       desktopLedgerScanOrder: stateResults
-        .filter((state) => state.name === "populated-1440" || state.name === "populated-1024")
-        .every((state) => state.ledgerColumnLabels.join("|") === "Description|Account|Date|Amount"
+        .filter(hasDesktopJournal)
+        .every((state) => state.ledgerColumnLabels.join("|") === "Description|Account|Amount"
           && state.ledgerColumnsFullyVisible
           && state.rowsKeyboardOperable
           && !state.hasTrailingRowChevron
           && state.rowContentWithinBounds),
       mobileLedgerScanOrder: stateResults
-        .filter((state) => state.name === "populated-390" || state.name === "populated-360")
-        .every((state) => state.mobileAmountFirst && state.rowsKeyboardOperable && !state.hasTrailingRowChevron && state.rowContentWithinBounds),
+        .filter(hasMobileJournal)
+        .every((state) => state.mobileDescriptionBesideAmount && state.rowsKeyboardOperable && !state.hasTrailingRowChevron && state.rowContentWithinBounds),
       baseEquivalentsRespectCachedDate: stateResults
         .filter((state) => state.name === "populated-1440")
         .every((state) => state.baseEquivalentCount > 0)
@@ -1236,9 +1305,9 @@ export const visualQaConfig = {
       if (state.addTransactionVisible) failures.push(`${state.name}: transaction mutation control is visible in linked mode`);
       if (!state.linkedRowsNonInteractive || state.rowEditDrawerOpen) failures.push(`${state.name}: linked transaction rows remain editable`);
     }
-    for (const state of stateResults.filter((item) => item.name === "populated-1440" || item.name === "populated-1024")) {
-      if (state.ledgerColumnLabels.join("|") !== "Description|Account|Date|Amount") {
-        failures.push(`${state.name}: desktop ledger order is not Description, Account, Date, Amount`);
+    for (const state of stateResults.filter(hasDesktopJournal)) {
+      if (!state.ledgerColumnsFullyVisible || state.ledgerColumnLabels.join("|") !== "Description|Account|Amount") {
+        failures.push(`${state.name}: the three desktop ledger columns are missing, out of order, or clipped`);
       }
       if (!state.rowsKeyboardOperable || state.hasTrailingRowChevron) {
         failures.push(`${state.name}: ledger rows are not keyboard-operable button rows without a trailing chevron`);
@@ -1248,10 +1317,17 @@ export const visualQaConfig = {
       }
     }
 
-    for (const state of stateResults.filter((item) => item.name === "populated-390" || item.name === "populated-360")) {
-      if (!state.mobileAmountFirst || !state.rowsKeyboardOperable || state.hasTrailingRowChevron || !state.rowContentWithinBounds) {
+    for (const state of stateResults.filter(hasMobileJournal)) {
+      if (!state.mobileDescriptionBesideAmount || !state.rowsKeyboardOperable || state.hasTrailingRowChevron || !state.rowContentWithinBounds) {
         failures.push(`${state.name}: mobile ledger row order or keyboard semantics are incorrect`);
       }
+    }
+
+    for (const state of stateResults.filter((item) => hasDesktopJournal(item) || hasMobileJournal(item))) {
+      if (state.repeatedRowDates || state.groupDateCount !== state.dayGroupCount) failures.push(`${state.name}: date grouping labels are missing or repeated per row`);
+      if (!state.toolbarContentsFit || state.typeFilterCount !== 6) failures.push(`${state.name}: journal controls are clipped or missing`);
+      if (!state.originalNumbersStayTogether) failures.push(`${state.name}: original monetary values break across lines`);
+      if (state.name.startsWith("account-overview-pinned-desktop-") && !state.accountBalancesRailVisible) failures.push(`${state.name}: pinned favorite accounts rail is missing`);
     }
 
     const populated = stateResults.find((item) => item.name === "populated-1440");

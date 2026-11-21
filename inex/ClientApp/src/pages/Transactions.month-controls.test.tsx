@@ -1,6 +1,7 @@
 import * as React from "react";
 import { configureStore } from "@reduxjs/toolkit";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import "dayjs/locale/ru";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,10 +14,12 @@ import authSlice from "../store/auth/auth-slice";
 import linkedAccountSlice, { linkedAccountActions } from "../store/linkedAccount/linked-account-slice";
 import type { TransactionSummaryResult } from "../store/transactions/transactions-api";
 import Transactions from "./Transactions";
+import type { TransactionListCount } from "./Transactions/TransactionList";
 
 const navigateMock = vi.hoisted(() => vi.fn());
 const routerState = vi.hoisted(() => ({ search: "" }));
 const summaryQueryState = vi.hoisted(() => ({ data: undefined as TransactionSummaryResult | undefined }));
+const translationState = vi.hoisted(() => ({ language: "en" }));
 const accountSummaryQueryMock = vi.hoisted(() => vi.fn());
 const accountsQueryMock = vi.hoisted(() => vi.fn());
 const categoriesQueryMock = vi.hoisted(() => vi.fn());
@@ -38,7 +41,7 @@ vi.mock("react-i18next", async () => {
     return {
         ...actual,
         useTranslation: () => ({
-            i18n: { language: "en" },
+            i18n: { language: translationState.language },
             t: (key: string, params?: Record<string, unknown>) => {
                 const translations: Record<string, string> = {
                     "transactions.addTransaction": "Add transaction",
@@ -56,12 +59,15 @@ vi.mock("react-i18next", async () => {
                     "transactions.summaryTotal": "TOTAL",
                     "primitives.kindLabel.neutral": "Neutral",
                     "transactions.advancedFilters": "Advanced filters",
+                    "transactions.account": "Account",
                     "transactions.all": "All",
                     "transactions.clearAll": "Clear all",
                     "transactions.expense": "Expense",
                     "transactions.filters": "Filters",
                     "transactions.income": "Income",
                     "transactions.kpi.baseCurrencyContext": "Month summary shown in USD where rates exist",
+                    "transactions.kpi.absoluteChange": `${params?.change} vs ${params?.period}`,
+                    "transactions.kpi.percentChange": `${params?.change} (${params?.percent}%) vs ${params?.period}`,
                     "transactions.kpi.expenses": "Expenses",
                     "transactions.kpi.income": "Income",
                     "transactions.kpi.netFlow": "Net Flow",
@@ -72,11 +78,12 @@ vi.mock("react-i18next", async () => {
                     "transactions.month.next": "Next month",
                     "transactions.month.previous": "Previous month",
                     "transactions.period.currentMonth": "Current month",
+                    "transactions.removeFilter": `Remove filter ${params?.filter}`,
                     "transactions.search": "Search",
                     "transactions.searchPlaceholder": "Search transactions",
                     "transactions.subtitle": "Overview",
                     "transactions.title": "Transactions",
-                    "transactions.toolbarCount": `${params?.visible ?? 0} of ${params?.total ?? 0} transactions in ${params?.period ?? ""}`,
+                    "transactions.toolbarCount": `${params?.visible ?? 0} of ${params?.total ?? 0} transactions`,
                     "transactions.transfer": "Transfer",
                     "transactions.view": "View",
                 };
@@ -259,6 +266,7 @@ describe("Transactions month controls", () => {
         vi.mocked(requestRatesForRange).mockReset().mockResolvedValue([]);
         accountFixtures.current = undefined;
         routerState.search = "";
+        translationState.language = "en";
         summaryQueryState.data = undefined;
         accountsQueryMock.mockReset();
         categoriesQueryMock.mockReset();
@@ -311,6 +319,38 @@ describe("Transactions month controls", () => {
         };
         renderTransactions();
         expect(fetchRatesForRange).toHaveBeenCalledWith("2026-06-01", "2026-07-31", null);
+    });
+
+    it.each([
+        { priorNet: 3000, comparison: "+731,48 USD (24,4%) vs июнь 2026" },
+        { priorNet: 0.01, comparison: "+3 731,47 USD vs июнь 2026" },
+    ])("localizes amounts and compares against the previous period when its net was $priorNet", ({ priorNet, comparison }) => {
+        translationState.language = "ru";
+        const typeCounts = { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 };
+        summaryQueryState.data = {
+            totalCount: 1,
+            typeCounts,
+            viewTypeCounts: typeCounts,
+            currencySummaries: [],
+            baseCurrency: "USD",
+            currentScope: {
+                totalCount: 1,
+                typeCounts,
+                period: { startDate: "2026-07-01", endDate: "2026-07-31" },
+                cashFlowBuckets: [{ date: "2026-07-10", currency: "USD", income: 3731.48, expense: 0, recordCount: 1 }],
+            },
+            previousScope: {
+                totalCount: 1,
+                typeCounts,
+                period: { startDate: "2026-06-01", endDate: "2026-06-30" },
+                cashFlowBuckets: [{ date: "2026-06-10", currency: "USD", income: priorNet, expense: 0, recordCount: 1 }],
+            },
+        };
+
+        const { container } = renderTransactions();
+
+        expect(container.querySelector('[data-qa="hero-primary-value"] [role="text"]')).toHaveAttribute("aria-label", expect.stringContaining("+3 731,48 USD"));
+        expect(container.querySelector('[data-qa="hero-secondary-text"]')).toHaveTextContent(comparison);
     });
 
     afterEach(() => {
@@ -562,6 +602,19 @@ describe("Transactions month controls", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "Close" }));
         expect(filters).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("shows the ledger's visible and total counts and removes one selected account per filter chip", () => {
+        routerState.search = "?filter=accountIds%3A1%2C2%3Btype%3Aexpense%3B";
+        renderTransactions();
+
+        const { onCountChange } = transactionListProps.current as { onCountChange: (count: TransactionListCount) => void };
+        act(() => onCountChange({ visible: 20, total: 37 }));
+        expect(screen.getByRole("status")).toHaveTextContent("20 of 37 transactions");
+
+        navigateMock.mockClear();
+        fireEvent.click(screen.getByRole("button", { name: "Remove filter Account: Wallet" }));
+        expect(navigateMock).toHaveBeenCalledWith("/transactions?filter=accountIds%3A2%3Btype%3Aexpense%3B", { replace: true });
     });
 
     it("uses untyped server VIEW counts and removes only type when All is selected", () => {

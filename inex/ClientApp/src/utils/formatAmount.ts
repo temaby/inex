@@ -7,3 +7,8 @@ export const createFixedAmountFormatter = (
     maximumFractionDigits: fractionDigits,
     signDisplay,
 });
+
+export const getCurrencyFractionDigits = (currency: string | undefined): number =>
+    currency && /^[a-z]{3}$/i.test(currency)
+        ? new Intl.NumberFormat(undefined, { style: "currency", currency }).resolvedOptions().maximumFractionDigits ?? 2
+        : 2;

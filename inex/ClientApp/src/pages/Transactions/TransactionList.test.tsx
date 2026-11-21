@@ -6,6 +6,8 @@ import TransactionList from "./TransactionList";
 
 const apiState = vi.hoisted(() => ({
     transactions: [] as any[],
+    totalItems: undefined as number | undefined,
+    language: "en",
     refetch: vi.fn(),
     initiate: vi.fn(),
     dispatch: vi.fn(),
@@ -25,11 +27,13 @@ const transaction = {
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
+        i18n: { language: apiState.language },
         t: (key: string, options?: { count?: number }) => ({
             "transactions.description": "Description",
             "transactions.account": "Account",
             "transactions.date": "Date",
             "transactions.amount": "Amount",
+            "transactions.amountEquivalent": "Amount equivalent",
             "transactions.day.today": "Today",
             "transactions.day.yesterday": "Yesterday",
             "transactions.itemCount": `${String(options?.count)} items`,
@@ -66,7 +70,7 @@ vi.mock("../../store/transactions/transactions-api", () => ({
     useGetTransactionsQuery: () => ({
         currentData: {
             data: apiState.transactions,
-            metadata: { totalItems: apiState.transactions.length },
+            metadata: { totalItems: apiState.totalItems ?? apiState.transactions.length },
         },
         isError: false,
         isFetching: false,
@@ -98,7 +102,7 @@ describe("TransactionList", () => {
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
                 onInitialLoadingChange={vi.fn()}
-                onVisibleCountChange={vi.fn()}
+                onCountChange={vi.fn()}
                 periodLabel="June 2026"
                 refreshToken={0}
             />
@@ -107,6 +111,8 @@ describe("TransactionList", () => {
 
     beforeEach(() => {
         apiState.transactions = [transaction];
+        apiState.totalItems = undefined;
+        apiState.language = "en";
         apiState.refetch.mockReset();
         apiState.initiate.mockReset();
         apiState.dispatch.mockReset();
@@ -115,7 +121,9 @@ describe("TransactionList", () => {
         apiState.initiate.mockReturnValue({ unwrap: () => Promise.resolve({ data: apiState.transactions, metadata: { totalItems: apiState.transactions.length } }) });
     });
 
-    it("keeps desktop metadata before the final amount and shows an available date-matched equivalent", () => {
+    it("groups dates above compact rows, preserves metadata, and distinguishes the visible and total counts", () => {
+        const onCountChange = vi.fn();
+        apiState.totalItems = 37;
         const { container } = render(
             <TransactionList
                 accounts={[{ id: 1, key: "cash", name: "Daily cash", description: null, isEnabled: true, isFavourite: true, currencyId: 1, currency: "PLN" }]}
@@ -127,27 +135,40 @@ describe("TransactionList", () => {
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
                 onInitialLoadingChange={vi.fn()}
-                onVisibleCountChange={vi.fn()}
+                onCountChange={onCountChange}
                 periodLabel="June 2026"
                 refreshToken={0}
             />,
         );
 
         const header = container.querySelector(".transactions-ledger-head");
-        expect(Array.from(header?.children ?? []).map((element) => element.textContent)).toEqual(["Description", "Account", "Date", "Amount"]);
+        expect(Array.from(header?.children ?? []).map((element) => element.textContent)).toEqual(["Description", "Account", "Amount"]);
+        expect(container.querySelector(".transactions-day-header time")).toHaveAttribute("datetime", "2026-06-05");
 
         const row = container.querySelector(".transactions-ledger-row");
-        expect(Array.from(row?.children ?? []).map((element) => element.className)).toEqual([
-            "transactions-row-main",
-            "transactions-row-account",
-            "transactions-row-date",
-            "transactions-row-amount",
-        ]);
-        expect(row).toHaveTextContent("-20.00 USD");
+        expect(row).not.toHaveTextContent("2026-06-05");
+        expect(row?.querySelector(".transactions-category-path")).toHaveTextContent("Groceries");
+        expect(row?.querySelectorAll(".transactions-row-token")).toHaveLength(2);
+        expect(screen.getByRole("text", { name: "Expense: -80.00 PLN" })).toBeVisible();
+        expect(screen.getByRole("text", { name: "Amount equivalent: -20.00 USD" })).toBeVisible();
+        expect(onCountChange).toHaveBeenLastCalledWith({ visible: 1, total: 37 });
         expect(row).toHaveAttribute("tabindex", "0");
 
         fireEvent.keyDown(row as Element, { key: "Enter" });
         fireEvent.keyDown(row as Element, { key: " " });
+    });
+
+    it("formats original and converted money using the active locale and each currency's precision", () => {
+        apiState.language = "ru";
+        apiState.transactions = [
+            { ...transaction, accountId: 2, accountCurrency: "JPY", amount: -1234, categoryId: 0, tags: [], refs: [] },
+            { ...transaction, id: 2, amount: -14925.92, tags: [], refs: [] },
+        ];
+
+        renderList();
+
+        expect(screen.getByRole("text", { name: "Expense: -1 234 JPY" })).toBeVisible();
+        expect(screen.getByRole("text", { name: "Amount equivalent: -3 731,48 USD" })).toBeVisible();
     });
 
     it("returns focus to the updated row after the refreshed ledger renders", async () => {
@@ -182,7 +203,7 @@ describe("TransactionList", () => {
                     onAddTransaction={vi.fn()}
                     onClearFilters={vi.fn()}
                     onInitialLoadingChange={vi.fn()}
-                    onVisibleCountChange={vi.fn()}
+                    onCountChange={vi.fn()}
                     periodLabel="June 2026"
                     refreshToken={refreshToken}
                 />
@@ -236,7 +257,7 @@ describe("TransactionList", () => {
                 onAddTransaction={vi.fn()}
                 onClearFilters={vi.fn()}
                 onInitialLoadingChange={vi.fn()}
-                onVisibleCountChange={vi.fn()}
+                onCountChange={vi.fn()}
                 periodLabel="June 2026"
                 readOnly
                 refreshToken={0}

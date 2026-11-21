@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from "react-i18next";
-import { createFixedAmountFormatter } from "../../utils/formatAmount";
+import { createFixedAmountFormatter, getCurrencyFractionDigits } from "../../utils/formatAmount";
 
 import { useSignage } from "./SignageContext";
 import type { Signage } from "./SignageContext";
@@ -13,7 +13,8 @@ export interface NumProps {
     kind?: MoneyKind;
     bare?: boolean;
     compact?: boolean;
-    fractionDigits?: 0 | 1 | 2;
+    fractionDigits?: 0 | 1 | 2 | "currency";
+    muted?: boolean;
     signage?: Signage;
     locale?: string;
     size?: string | number;
@@ -39,7 +40,7 @@ const inferKind = (value: number): MoneyKind => {
     return "neutral";
 };
 
-const formatAmount = (value: number, compact: boolean, fractionDigits: 0 | 1 | 2, locale?: string): string => {
+const formatAmount = (value: number, compact: boolean, fractionDigits: number, locale?: string): string => {
     const absoluteValue = Math.abs(value);
 
     if (compact && absoluteValue >= 1_000_000) {
@@ -85,6 +86,7 @@ export const Num: React.FC<NumProps> = ({
     bare = false,
     compact = false,
     fractionDigits = 2,
+    muted = false,
     signage,
     locale,
     size,
@@ -99,13 +101,14 @@ export const Num: React.FC<NumProps> = ({
     const { signage: contextSignage } = useSignage();
     const resolvedKind = kind ?? inferKind(value);
     const resolvedSignage = signage ?? contextSignage;
-    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact, fractionDigits, locale)}`;
+    const digits = fractionDigits === "currency" ? getCurrencyFractionDigits(currency) : fractionDigits;
+    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact, digits, locale)}`;
     const visibleValue = bare || !currency ? formattedValue : `${formattedValue} ${currency}`;
     const accessibleValue = accessibleCurrency ? `${formattedValue} ${accessibleCurrency}` : visibleValue;
     const kindLabel = accessibleLabel ?? t(`primitives.kindLabel.${resolvedKind}`);
 
     const visibleStyle: React.CSSProperties = {
-        color: colorMap[resolvedKind],
+        color: muted ? "var(--fg-3)" : colorMap[resolvedKind],
         display: "inline-flex",
         alignItems: "baseline",
         gap: 3,
