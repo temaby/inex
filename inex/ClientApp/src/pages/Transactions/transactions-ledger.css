@@ -63,6 +63,14 @@
     font-variant-numeric: tabular-nums;
 }
 
+.transactions-kpi__sub[data-change="up"] {
+    color: var(--income-600);
+}
+
+.transactions-kpi__sub[data-change="down"] {
+    color: var(--expense-600);
+}
+
 .transactions-ledger-card {
     --transactions-ledger-gutter: clamp(12px, 2.2cqi, 24px);
     --transactions-ledger-columns: minmax(0, 1fr) minmax(0, clamp(7rem, 19cqi, 16rem)) minmax(0, clamp(170px, 19cqi, 200px));
@@ -477,7 +485,36 @@
 }
 
 .transactions-ledger-controls {
+    gap: 4px;
+    justify-content: flex-start;
     padding-block: 6px;
+}
+
+.transactions-more-types {
+    align-items: center;
+    background: var(--bg-muted);
+    border: 1px solid transparent;
+    border-radius: var(--radius-2);
+    color: var(--fg-3);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    font-size: var(--fs-12);
+    gap: 4px;
+    min-height: 34px;
+    padding: 5px 8px;
+    white-space: nowrap;
+}
+
+.transactions-more-types[data-active="true"],
+.transactions-more-types[aria-expanded="true"] {
+    background: var(--bg-surface);
+    border-color: var(--border-2);
+    color: var(--brand-ink);
+}
+
+.transactions-more-types[data-active="true"] {
+    font-weight: var(--fw-semibold);
 }
 
 .transactions-ledger-controls button[aria-pressed] {
@@ -995,10 +1032,6 @@
 @container (max-width: 540px) {
     .transactions-ledger-toolbar__actions {
         flex-basis: 100%;
-    }
-
-    .transactions-ledger-controls [role="group"] {
-        gap: 4px 8px !important;
     }
 
     .transactions-filter-chip,
