@@ -792,10 +792,7 @@
       "createFailed": "Could not create the category",
       "descriptionTooLong": "Description is too long",
       "updateFailed": "Could not update the category",
-      "deleteFailed": "Could not delete the category",
-      "deleteHasChildren": "Delete the child categories before deleting this parent category.",
-      "deleteHasTransactions": "This category is used by transactions and cannot be deleted.",
-      "deleteHasBudgets": "This category is linked to budgets and cannot be deleted."
+      "deleteFailed": "Could not delete the category"
     },
     "formSuccess": {
       "create": "Category created",
@@ -1076,6 +1073,10 @@
     }
   },
   "errors": {
+    "category-delete-unavailable": "This category cannot be deleted.",
+    "category-delete-has-children": "Delete the child categories before deleting this parent category.",
+    "category-delete-has-transactions": "This category is used by transactions and cannot be deleted.",
+    "category-delete-has-budgets": "This category is linked to budgets and cannot be deleted.",
     "amount.not_zero": "Amount cannot be zero",
     "amount_from.must_be_positive": "Source amount must be greater than zero",
     "amount_to.must_be_positive": "Destination amount must be greater than zero",

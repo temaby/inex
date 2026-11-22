@@ -93,6 +93,9 @@ public class CategoryService : InExService, ICategoryService
     public override async Task DeleteAsync(IEnumerable<int> ids, int userId, CancellationToken ct = default)
     {
         var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return;
+
+        await using var atomic = await DbInEx.BeginAtomicAsync(ct);
         var categories = await DbInEx.CategoryRepository
             .Get(false, i => idList.Contains(i.Id) && i.UserId == userId)
             .ToListAsync(ct);
@@ -110,9 +113,38 @@ public class CategoryService : InExService, ICategoryService
         if (systemIds.Count > 0)
             throw new DomainRuleException("system-category-delete", $"System categories cannot be deleted: {string.Join(", ", systemIds)}.");
 
+        // Top-level reads under SERIALIZABLE lock the matching foreign-key ranges,
+        // including empty ranges, until the delete commits.
+        var ownsChild = await DbInEx.CategoryRepository
+            .Get(true, child => child.ParentCategoryId.HasValue && idList.Contains(child.ParentCategoryId.Value) &&
+                child.ParentCategory != null && child.ParentCategory.UserId == userId && !idList.Contains(child.Id))
+            .Select(child => (bool?)(child.UserId == userId))
+            .FirstOrDefaultAsync(ct);
+        if (ownsChild is bool childOwned)
+            throw DeleteDependencyError(childOwned, "category-delete-has-children", "Delete the child categories before deleting this parent category.");
+
+        var ownsTransaction = await DbInEx.TransactionRepository
+            .Get(true, transaction => idList.Contains(transaction.CategoryId) && transaction.Category.UserId == userId)
+            .Select(transaction => (bool?)(transaction.UserId == userId))
+            .FirstOrDefaultAsync(ct);
+        if (ownsTransaction is bool transactionOwned)
+            throw DeleteDependencyError(transactionOwned, "category-delete-has-transactions", "This category is used by transactions and cannot be deleted.");
+
+        var ownsBudget = await DbInEx.BudgetCategoryRepository
+            .Get(true, link => idList.Contains(link.CategoryId) && link.Category.UserId == userId)
+            .Select(link => (bool?)(link.Budget.UserId == userId))
+            .FirstOrDefaultAsync(ct);
+        if (ownsBudget is bool budgetOwned)
+            throw DeleteDependencyError(budgetOwned, "category-delete-has-budgets", "This category is linked to budgets and cannot be deleted.");
+
         DbInEx.CategoryRepository.Delete(categories);
         await DbInEx.SaveAsync(ct);
+        await atomic.CommitAsync(ct);
     }
 
     #endregion Public Interface
+
+    private static DomainRuleException DeleteDependencyError(bool owned, string rule, string detail) =>
+        // Legacy cross-owner links must also block the cascade without revealing their type.
+        owned ? new(rule, detail) : new("category-delete-unavailable", "This category cannot be deleted.");
 }

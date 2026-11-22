@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
+using inex.Data;
 using inex.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace inex.Tests.Categories;
 
@@ -192,6 +195,115 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
     }
 
     [Fact]
+    public async Task Delete_ParentWithUnselectedChild_PreservesBothCategories()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        int parentId = await CreateCategoryAsync(client, "delete-parent");
+        int childId = await CreateCategoryAsync(client, "delete-child", parentId);
+
+        await AssertDeleteRuleAsync(await client.DeleteAsync($"/api/categories/{parentId}"), "category-delete-has-children");
+
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync($"/api/categories/{parentId}")).StatusCode);
+        var child = await client.GetFromJsonAsync<JsonElement>($"/api/categories/{childId}");
+        Assert.Equal(parentId, child.GetProperty("parentId").GetInt32());
+    }
+
+    [Fact]
+    public async Task Delete_CategoryWithLegacyCrossOwnerChild_HidesDependencyType()
+    {
+        using var owner = await CreateAuthenticatedClientAsync();
+        using var otherUser = await CreateAuthenticatedClientAsync();
+        int parentId = await CreateCategoryAsync(owner, "cross-owner-parent");
+        int childId = await CreateCategoryAsync(otherUser, "cross-owner-child");
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+            var child = await db.Categories.SingleAsync(category => category.Id == childId);
+            child.ParentCategoryId = parentId;
+            await db.SaveChangesAsync();
+        }
+
+        await AssertDeleteRuleAsync(await owner.DeleteAsync($"/api/categories/{parentId}"), "category-delete-unavailable");
+
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await owner.GetAsync($"/api/categories/{childId}"));
+        Assert.Equal(HttpStatusCode.OK, (await owner.GetAsync($"/api/categories/{parentId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await otherUser.GetAsync($"/api/categories/{childId}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_CategoryWithTransaction_PreservesFinancialRecord()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        int categoryId = await CreateCategoryAsync(client, "used-by-transaction");
+        var accountResponse = await client.PostAsJsonAsync("/api/accounts", new
+        {
+            key = "category-deletion-account",
+            name = "Category deletion account",
+            currencyId = 1,
+            isEnabled = true,
+        });
+        accountResponse.EnsureSuccessStatusCode();
+        int accountId = (await accountResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+        var create = await client.PostAsJsonAsync("/api/transactions", new
+        {
+            accountId,
+            categoryId,
+            created = "2026-05-01",
+            amount = -25m,
+        });
+        create.EnsureSuccessStatusCode();
+        int transactionId = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+
+        await AssertDeleteRuleAsync(await client.DeleteAsync($"/api/categories/{categoryId}"), "category-delete-has-transactions");
+
+        var transaction = await client.GetFromJsonAsync<JsonElement>($"/api/transactions/{transactionId}");
+        Assert.Equal(categoryId, transaction.GetProperty("categoryId").GetInt32());
+        Assert.Equal(-25m, transaction.GetProperty("amount").GetDecimal());
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync($"/api/categories/{categoryId}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteList_CategoryWithBudget_PreservesBudgetAndEntireRequestedBatch()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        int unusedId = await CreateCategoryAsync(client, "unused-in-delete-batch");
+        int categoryId = await CreateCategoryAsync(client, "used-by-budget");
+        var create = await client.PostAsJsonAsync("/api/budgets", new
+        {
+            key = "category-deletion-budget",
+            name = "Category deletion budget",
+            year = 2026,
+            month = 5,
+            value = 100m,
+            categoryIds = new[] { categoryId },
+        });
+        create.EnsureSuccessStatusCode();
+        int budgetId = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+
+        var response = await client.DeleteAsync($"/api/categories?ids={unusedId}&ids={categoryId}");
+        await AssertDeleteRuleAsync(response, "category-delete-has-budgets");
+
+        var budget = await client.GetFromJsonAsync<JsonElement>($"/api/budgets/{budgetId}");
+        Assert.Contains(budget.GetProperty("categoryIds").EnumerateArray(), item => item.GetInt32() == categoryId);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync($"/api/categories/{unusedId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync($"/api/categories/{categoryId}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteList_ParentAndChildWithoutFinancialLinks_Returns200()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        int parentId = await CreateCategoryAsync(client, "delete-complete-branch");
+        int childId = await CreateCategoryAsync(client, "delete-complete-branch-child", parentId);
+
+        var response = await client.DeleteAsync($"/api/categories?ids={parentId}&ids={childId}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await client.GetAsync($"/api/categories/{parentId}"));
+        await ProblemDetailsAssertions.AssertNotFoundProblemAsync(await client.GetAsync($"/api/categories/{childId}"));
+    }
+
+    [Fact]
     public async Task Delete_SystemCategory_Returns422()
     {
         // Each user gets seeded system categories via onboarding
@@ -247,12 +359,21 @@ public class CategoriesControllerTests : IClassFixture<InExWebApplicationFactory
             email: $"{Guid.NewGuid()}@example.com",
             username: $"user-{Guid.NewGuid():N}");
 
-    private static async Task<int> CreateCategoryAsync(HttpClient client, string key)
+    private static async Task AssertDeleteRuleAsync(HttpResponseMessage response, string rule)
+    {
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(rule, problem.GetProperty("rule").GetString());
+    }
+
+    private static async Task<int> CreateCategoryAsync(HttpClient client, string key, int? parentId = null)
     {
         var createResponse = await client.PostAsJsonAsync("/api/categories", new
         {
             key,
             name      = key,
+            parentId,
             isEnabled = true,
             isSystem  = false,
         });

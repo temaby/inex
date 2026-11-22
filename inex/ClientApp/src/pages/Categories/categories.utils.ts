@@ -185,11 +185,6 @@ export const findRootCategory = (
     return current;
 };
 
-export const hasChildCategories = (
-    category: CategoryResponse,
-    allItems: CategoryResponse[],
-): boolean => allItems.some((item) => item.parentId === category.id);
-
 export const isDescendantCategory = (
     categoryId: number,
     ancestorId: number,

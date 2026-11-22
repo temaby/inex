@@ -10,9 +10,8 @@ import {
     useDeleteCategoryMutation,
     useUpdateCategoryMutation,
 } from "../../store/categories/categories-api";
-import apiClient from "../../utils/apiClient";
 import { parseAxiosError } from "../../utils/parseAxiosError";
-import { hasChildCategories, isSystemCategory } from "./categories.utils";
+import { isSystemCategory } from "./categories.utils";
 
 export type CategoryDrawerSession = { mode: "create" } | { mode: "edit"; category: CategoryResponse };
 export type CategoryMutation = "create" | "update" | "delete";
@@ -48,29 +47,6 @@ const FORM_ID = "category-editor";
 const CATEGORY_KEY_MAX_LENGTH = 45;
 const CATEGORY_NAME_MAX_LENGTH = 255;
 const CATEGORY_DESCRIPTION_MAX_LENGTH = 512;
-
-const getDeletionBlock = async (category: CategoryResponse, allCategories: CategoryResponse[]) => {
-    if (hasChildCategories(category, allCategories)) return "categories.formErrors.deleteHasChildren";
-
-    // The database cascades category deletion to transactions and budget links.
-    // The information section only covers the current period, so check the entire history here.
-    const dependencies = await Promise.all([
-        apiClient.get<{ metadata: { totalItems: number } }>("/transactions", {
-            params: { categoryId: category.id, mode: "ALL", page: 1, pageSize: 1 },
-        }),
-        apiClient.get<{ data: BudgetDetails[] }>("/budgets"),
-    ]).catch(() => null);
-    const transactionCount = dependencies?.[0].data?.metadata?.totalItems;
-    const budgets = dependencies?.[1].data?.data;
-    if (transactionCount == null || !Number.isSafeInteger(transactionCount) || transactionCount < 0 ||
-        !Array.isArray(budgets) || budgets.some((budget) => !Array.isArray(budget?.categoryIds))) {
-        return "categories.formErrors.deleteFailed";
-    }
-    if (transactionCount > 0) return "categories.formErrors.deleteHasTransactions";
-    if (budgets.some((budget) => budget.categoryIds.includes(category.id))) {
-        return "categories.formErrors.deleteHasBudgets";
-    }
-};
 
 export const CategoryDrawer = ({
     session,
@@ -120,13 +96,6 @@ export const CategoryDrawer = ({
         setPendingMutation(mutation);
         setFormError(null);
         try {
-            if (mutation === "delete" && category) {
-                const blockedReason = await getDeletionBlock(category, allCategories);
-                if (blockedReason) {
-                    setFormError(t(blockedReason));
-                    return;
-                }
-            }
             await request();
             onMutationSuccess(mutation);
         } catch (error) {

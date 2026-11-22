@@ -32,6 +32,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
                 return `Edit ${values?.category}`;
             }
             if (key === "errors.name.max_length") return "Category name is too long";
+            if (key.startsWith("errors.category-delete-")) return `Localized ${key}`;
             return key;
         },
     }),
@@ -438,22 +439,18 @@ describe("Categories drawer and list", () => {
     });
 
     it.each([
-        { name: "children", children: true, transactions: 0, budget: false, error: "deleteHasChildren" },
-        { name: "historical transactions", children: false, transactions: 1, budget: false, error: "deleteHasTransactions" },
-        { name: "historical budgets", children: false, transactions: 0, budget: true, error: "deleteHasBudgets" },
-        { name: "unavailable dependency data", children: false, transactions: -1, budget: false, error: "deleteFailed" },
-        { name: "no links", children: false, transactions: 0, budget: false, error: null },
-    ])("checks deletion for $name after confirming", async ({ children, transactions, budget, error }) => {
+        { name: "children", rule: "category-delete-has-children" },
+        { name: "historical transactions", rule: "category-delete-has-transactions" },
+        { name: "historical budgets", rule: "category-delete-has-budgets" },
+        { name: "no links", rule: null },
+    ])("handles the server's delete decision for $name after confirmation", async ({ rule }) => {
         const user = userEvent.setup();
-        apiClientMock.mockImplementation(async ({ url }) => ({ data: { data: url === "/categories?mode=ALL"
-            ? [category(1, "Food"), ...(children ? [category(2, "Groceries", { parentId: 1 })] : [])]
-            : [] } }));
-        apiClientMock.get.mockImplementation(async (url, config) => {
-            if (url === "/transactions") {
-                return { data: { data: [], metadata: { totalItems: config.params.categoryId ? transactions : 0 } } };
+        apiClientMock.mockImplementation(async ({ url, method }) => {
+            if (url === "/categories/1" && method === "delete" && rule) {
+                throw { response: { status: 422, data: { rule, detail: "Untranslated server message" } } };
             }
-            if (url === "/budgets") return { data: { data: budget ? [{ categoryIds: [1] }] : [] } };
-            return { data: [{ id: 1, key: "USD" }] };
+            const categories = url === "/categories?mode=ALL" ? [category(1, "Food")] : [];
+            return { data: { data: categories } };
         });
         renderCategories();
         await user.click(await screen.findByRole("button", { name: "Edit Food" }));
@@ -470,19 +467,16 @@ describe("Categories drawer and list", () => {
         expect(confirmButton).toHaveFocus();
         await user.keyboard("{Enter}");
 
-        const deletion = expect.objectContaining({ url: "/categories/1", method: "delete" });
-        if (error) {
-            expect(await screen.findByText(`categories.formErrors.${error}`)).toBeVisible();
-            expect(apiClientMock).not.toHaveBeenCalledWith(deletion);
+        if (rule) {
+            expect(await screen.findByText(`Localized errors.${rule}`)).toBeVisible();
+            expect(screen.getByRole("button", { name: "common.delete" })).toBeEnabled();
         } else {
             expect(await screen.findByText("categories.formSuccess.delete")).toBeVisible();
-            expect(apiClientMock).toHaveBeenCalledWith(deletion);
         }
-        if (!children) {
-            expect(apiClientMock.get).toHaveBeenCalledWith("/transactions", {
-                params: { categoryId: 1, mode: "ALL", page: 1, pageSize: 1 },
-            });
-            expect(apiClientMock.get).toHaveBeenCalledWith("/budgets");
-        }
+        expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({ url: "/categories/1", method: "delete" }));
+        expect(apiClientMock.get).not.toHaveBeenCalledWith("/budgets");
+        expect(apiClientMock.get).not.toHaveBeenCalledWith("/transactions", {
+            params: { categoryId: 1, mode: "ALL", page: 1, pageSize: 1 },
+        });
     });
 });
