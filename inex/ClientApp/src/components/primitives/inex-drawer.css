@@ -1,0 +1,27 @@
+.inex-drawer-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.inex-drawer-actions--sticky {
+    background: var(--bg-surface);
+    bottom: -24px;
+    padding-block: 16px;
+    position: sticky;
+    z-index: 2;
+}
+
+@media (max-width: 768px) {
+    .inex-drawer-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .inex-drawer-actions > button {
+        width: 100%;
+    }
+}

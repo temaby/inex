@@ -17,6 +17,7 @@ import { normalizeTransactionFilter, transactionsActions, transactionsDefaultFil
 import {
     InExButton,
     InExDrawer,
+    RECORD_EDITOR_DRAWER_WIDTH,
     Input,
     Num,
     SegmentedControl,
@@ -784,7 +785,7 @@ const Transactions = () => {
                 onClose={closeAddDrawer}
                 open={addDrawerOpen}
                 title={addDrawerTitle}
-                width={460}
+                width={RECORD_EDITOR_DRAWER_WIDTH}
             >
                 {addDrawerOpen && (
                     <TransactionCreate

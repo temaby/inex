@@ -1,10 +1,14 @@
 import * as React from 'react';
 import { Drawer } from "antd";
 import { X } from "lucide-react";
+import "./inex-drawer.css";
+
+export const RECORD_EDITOR_DRAWER_WIDTH = 460;
 
 export interface InExDrawerProps {
     open: boolean;
     onClose: () => void;
+    afterOpenChange?: (open: boolean) => void;
     title: string;
     subtitle?: string;
     width?: number;
@@ -17,6 +21,7 @@ export interface InExDrawerProps {
 export const InExDrawer: React.FC<InExDrawerProps> = ({
     open,
     onClose,
+    afterOpenChange,
     title,
     subtitle,
     width = 440,
@@ -45,7 +50,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
                 {title}
             </div>
             {subtitle && (
-                <div style={{ color: "var(--fg-3)", fontSize: 13, marginTop: 2 }}>
+                <div style={{ color: "var(--fg-3)", fontSize: 13, marginTop: 2, overflowWrap: "anywhere" }}>
                     {subtitle}
                 </div>
             )}
@@ -54,6 +59,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
 
     return (
         <Drawer
+            afterOpenChange={afterOpenChange}
             closeIcon={<X color="var(--fg-3)" size={20} />}
             onClose={onClose}
             open={open}

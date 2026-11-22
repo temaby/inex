@@ -1,5 +1,6 @@
+import { StyleProvider } from "@ant-design/cssinjs";
 import { configureStore } from "@reduxjs/toolkit";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render as renderTest, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
@@ -19,6 +20,7 @@ import {
 } from "../test/fixtures/accountsVisualFixture";
 
 const apiClientMock = vi.hoisted(() => Object.assign(vi.fn(), { get: vi.fn() }));
+const render = (ui: React.ReactElement) => renderTest(<StyleProvider autoClear>{ui}</StyleProvider>);
 
 vi.mock("../utils/apiClient", () => ({
     default: apiClientMock,
@@ -40,6 +42,8 @@ vi.mock("react-i18next", async (importOriginal) => ({
                 "accounts.headers.share": "SHARE",
                 "accounts.headers.balance": "BALANCE",
                 "accounts.inventory.summary": `${String(options?.visible)} / ${String(options?.total)}`,
+                "accounts.editAccountAction": `Edit account ${String(options?.name)}`,
+                "accounts.viewAccountAction": `View account information for ${String(options?.name)}`,
                 "accounts.group.accountCountOne": `${String(options?.count)} account`,
                 "accounts.group.accountCountOther": `${String(options?.count)} accounts`,
                 "accounts.hero.momDeltaPercent": `${String(options?.value)} MoM`,
@@ -51,16 +55,6 @@ vi.mock("react-i18next", async (importOriginal) => ({
             return translations[key] ?? key;
         },
     }),
-}));
-
-vi.mock("./Accounts/AccountCreateForm", () => ({
-    default: ({ onCreated }: { onCreated: () => void }) => (
-        <button onClick={onCreated} type="button">mock-create-account</button>
-    ),
-}));
-
-vi.mock("./Accounts/AccountEditForm", () => ({
-    default: () => <div>mock-account-edit</div>,
 }));
 
 const makeStore = (
@@ -150,6 +144,7 @@ const populatedSummaries = [
 
 describe("Accounts empty-state create focus", () => {
     beforeEach(() => {
+        vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
         window.localStorage.clear();
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
             if (url === "/accounts?mode=ALL") {
@@ -166,6 +161,11 @@ describe("Accounts empty-state create focus", () => {
     it("returns focus to the mounted header Add account button after first create", async () => {
         const user = userEvent.setup();
         const store = makeStore();
+        let created = false;
+        apiClientMock.mockImplementation(async ({ url, method }: { url: string; method?: string }) => {
+            if (url === "/accounts" && method === "post") created = true;
+            return { data: { data: url === "/accounts?mode=ALL" && created ? [populatedAccounts[0]] : [] } };
+        });
 
         render(
             <Provider store={store}>
@@ -177,20 +177,10 @@ describe("Accounts empty-state create focus", () => {
 
         const emptyRegion = await screen.findByRole("region", { name: "accounts.emptyState.title" });
         await user.click(within(emptyRegion).getByRole("button", { name: "accounts.emptyState.primaryAction" }));
-        await user.click(await screen.findByRole("button", { name: "mock-create-account" }));
-
-        act(() => {
-            store.dispatch(accountsApi.util.upsertQueryData("getAccounts", "ALL", [{
-                id: 1,
-                key: "cash",
-                name: "Cash wallet",
-                description: "Created in test",
-                isEnabled: true,
-                isFavourite: true,
-                currencyId: 1,
-                currency: "PLN",
-            }]));
-        });
+        fireEvent.change(await screen.findByRole("textbox", { name: "accounts.name" }), { target: { value: "Cash wallet" } });
+        fireEvent.mouseDown(screen.getByRole("combobox", { name: "accounts.currency" }));
+        await user.click(await screen.findByText("PLN"));
+        await user.click(screen.getByRole("button", { name: "accounts.createAccount" }));
 
         await waitFor(() => {
             expect(document.activeElement).toHaveTextContent("accounts.addAccount");
@@ -309,7 +299,7 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
     });
 
-    it("keeps an open account editor mounted and hides non-matching currency groups", async () => {
+    it("opens and closes the editor without expanding rows or resetting inventory state", async () => {
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: accountsVisualFixtureAccounts } };
@@ -331,23 +321,35 @@ describe("Accounts empty-state create focus", () => {
             </Provider>,
         );
 
-        const accountRow = await screen.findByRole("button", { name: /UZS main wallet/ });
-        await user.click(accountRow);
-        expect(screen.getByText("mock-account-edit")).toBeVisible();
-
-        const uzsGroupToggle = (await screen.findAllByRole("button", {
+        await screen.findByText("UZS main wallet");
+        const [uzsGroupToggle] = screen.getAllByRole("button", {
             name: "accounts.group.collapse",
-        }))[0];
-        expect(uzsGroupToggle).toBeDisabled();
-        expect(screen.getByText("mock-account-edit")).toBeVisible();
-
+        });
+        await user.click(uzsGroupToggle);
         const searchbox = screen.getByRole("searchbox", { name: "accounts.searchLabel" });
-        await user.clear(searchbox);
         await user.type(searchbox, "USD operating");
+        const accountRow = await screen.findByRole("button", { name: "Edit account USD operating" });
+        await user.click(accountRow);
 
+        const drawer = await screen.findByRole("dialog", { name: /accounts.editDrawerTitle/ });
+        expect(within(drawer).getByRole("textbox", { name: "accounts.name" })).toHaveValue("USD operating");
+        expect(accountRow).not.toHaveAttribute("aria-expanded");
+        expect(accountRow.closest(".accounts-row-wrap")).not.toContainElement(drawer);
+        const information = within(drawer).getByText("accounts.snapshot.title");
+        expect(information.parentElement).not.toHaveAttribute("open");
+        await user.click(information);
+        expect(information.parentElement).toHaveAttribute("open");
+        expect(within(drawer).getByText("accounts.snapshot.currentBalance")).toBeVisible();
+        await user.click(within(drawer).getByRole("button", { name: "accounts.cancel" }));
+
+        await waitFor(() => expect(drawer).not.toBeInTheDocument());
+        expect(accountRow).toHaveFocus();
+        expect(searchbox).toHaveValue("USD operating");
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
         expect(screen.getByText("USD operating")).toBeVisible();
         expect(document.querySelectorAll(".accounts-group")).toHaveLength(1);
+        await user.clear(searchbox);
+        expect(await screen.findByRole("button", { name: "accounts.group.expand" })).toHaveAttribute("aria-controls", "hierarchy-children-UZS");
     });
 
     it("uses linked account queries and exposes no mutation controls in linked mode", async () => {
@@ -371,13 +373,16 @@ describe("Accounts empty-state create focus", () => {
             </Provider>,
         );
 
-        const accountRow = await screen.findByRole("button", { name: /Cash wallet/ });
+        const accountRow = await screen.findByRole("button", { name: "View account information for Cash wallet" });
         expect(screen.queryByRole("button", { name: "accounts.addAccount" })).not.toBeInTheDocument();
         expect(screen.getByText("linkedAccount.readOnly")).toBeVisible();
 
         await user.click(accountRow);
 
-        expect(screen.queryByText("mock-account-edit")).not.toBeInTheDocument();
+        const drawer = await screen.findByRole("dialog", { name: /accounts.snapshot.title/ });
+        expect(within(drawer).getByText("accounts.snapshot.currentBalance")).toBeVisible();
+        expect(within(drawer).queryByRole("textbox")).not.toBeInTheDocument();
+        expect(within(drawer).queryByRole("button", { name: "accounts.delete" })).not.toBeInTheDocument();
         expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({
             url: "/accounts?mode=ALL&linkedUserId=2",
         }));

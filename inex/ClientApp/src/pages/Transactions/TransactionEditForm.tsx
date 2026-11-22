@@ -159,7 +159,7 @@ const TransactionEditFields = (props: TransactionEditFormProps) => {
             </Form.Item>
             <CreationDate date={state.date} onChange={setDateHandler} />
             <CreationComment comment={state.comment} onChange={setCommentHandler} required={isCorrection} />
-            <div className="transactions-drawer-actions transactions-edit-actions">
+            <div className="transactions-drawer-actions inex-drawer-actions inex-drawer-actions--sticky">
                 <Popconfirm title={t("transactions.deleteConfirm")} onConfirm={removeTransactionHandler}
                     okText={t("common.yes")} cancelText={t("common.no")} disabled={isSaving}>
                     <Button danger loading={isDeleting} disabled={isSaving}>{t("transactions.delete")}</Button>

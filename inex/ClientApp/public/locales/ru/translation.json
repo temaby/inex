@@ -531,11 +531,13 @@
   },
   "accounts": {
     "subtitle": "Управление",
+    "basicInformation": "Основная информация",
+    "settings": "Настройки счёта",
+    "activeSetting": "Активный счёт",
     "favouriteSetting": "Показывать в обзорах",
-    "favourite": "Показывать",
-    "notFavourite": "Скрывать",
-    "drawerSubtitle": "Создайте счёт и назначьте его валюту",
     "addAccount": "Добавить счёт",
+    "editAccountAction": "Редактировать счёт {{name}}",
+    "viewAccountAction": "Открыть информацию о счёте {{name}}",
     "noDescription": "Без описания",
     "workspaceTitle": "Счета",
     "searchLabel": "Поиск счетов",
@@ -568,8 +570,7 @@
       "accountCount": "{{count}} счёт",
       "accountCount_plural": "{{count}} счетов",
       "expand": "Развернуть счета {{currency}}",
-      "collapse": "Свернуть счета {{currency}}",
-      "finishEditing": "Завершите редактирование счёта перед сворачиванием группы валюты"
+      "collapse": "Свернуть счета {{currency}}"
     },
     "inventory": {
       "summary": "Видимые счета: {{visible}} / {{total}} в области",
@@ -581,10 +582,12 @@
       "unavailable": "Эквивалент недоступен"
     },
     "snapshot": {
-      "title": "Сводка",
+      "title": "Информация о счёте",
       "currentBalance": "Текущий баланс",
       "baseEquivalent": "Эквивалент в {{currency}}",
-      "rateToBase": "Курс к базовой",
+      "reportingEquivalent": "Эквивалент в валюте отчёта",
+      "rateToBase": "Курс обмена",
+      "rateUnavailable": "Курс недоступен",
       "rateValue": "{{value}} {{baseCurrency}} / {{currency}}",
       "accountId": "ID счёта"
     },
@@ -621,9 +624,15 @@
     "formErrors": {
       "nameRequired": "Укажите название",
       "currencyRequired": "Выберите валюту",
+      "currenciesFailure": "Не удалось загрузить валюты",
       "createFailure": "Не удалось создать счёт",
       "updateFailure": "Не удалось обновить счёт",
       "deleteFailure": "Не удалось удалить счёт"
+    },
+    "formSuccess": {
+      "create": "Счёт создан",
+      "update": "Счёт сохранён",
+      "delete": "Счёт удалён"
     },
     "emptyState": {
       "title": "Счетов пока нет",
@@ -636,6 +645,7 @@
     },
     "title": "Счета",
     "addDrawerTitle": "Добавить счёт",
+    "editDrawerTitle": "Редактировать счёт",
     "account": "Счёт",
     "currency": "Валюта",
     "status": "Статус",
@@ -652,7 +662,11 @@
     "deleteConfirm": "Удалить счёт? Это действие нельзя отменить.",
     "delete": "Удалить",
     "cancel": "Отмена",
-    "update": "Обновить"
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "discardConfirm": "Отменить несохранённые изменения счёта?",
+    "discardChanges": "Отменить изменения",
+    "keepEditing": "Продолжить редактирование"
   },
   "categories": {
     "title": "Категории",
