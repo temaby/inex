@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Spin } from "antd";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowUp, ChevronLeft, Layers3 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, Layers3, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -238,7 +238,7 @@ const ClassicDashboard = ({ data }: { data: DashboardData }) => {
     const { t, i18n, navigate, selectedLinkedUserId, selectedLinkedAccount, visibleAccounts, accountBalances, baseCurrency, accountConversion, balancePanelLoading, balancePanelError, accountDataLoading, accountDataError, categoryPanelLoading, categoriesQuery, categoryTransactionsQuery, summaryQuery, ratesLoading, missingCashFlowRates, cashFlowConversion, hasCashFlow, cashFlowChartData, oneSidedCashFlow, formatMoney, openFlow, categoryMode, setCategoryMode, expenseParentName, incomeParentName, expenseSlices, incomeSlices, setExpenseParentId, setIncomeParentId, selectCategory, categoryConversion, retryRates, effectiveDate, currentPeriodLabel, accountsExpanded, setAccountsExpanded, accountListId, hasCollapsibleAccounts, hasDesktopCollapsibleAccounts } = data;
     return (
         <BasicPage
-            extra={<InExButton kind="primary" onClick={() => navigate("/transactions?create=true")}>{t("dashboard.addTransaction")}</InExButton>}
+            extra={<InExButton icon={<Plus size={16} style={{ flexShrink: 0 }} />} kind="primary" onClick={() => navigate("/transactions?create=true")}>{t("dashboard.addTransaction")}</InExButton>}
             frame="management"
             title={t("dashboard.title")}
             subtitle={t("dashboard.subtitle")}

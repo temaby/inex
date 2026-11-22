@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Alert, DatePicker, Spin } from "antd";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowRight, ArrowUp, ArrowLeftRight, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, ArrowLeftRight, ChevronLeft, ChevronRight, Plus, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
@@ -131,7 +131,7 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
                         <InExButton aria-label={t("dashboard.visual.nextMonth")} data-qa="visual-month-next" disabled={!isHistoricalMonth} icon={<ChevronRight size={15} />} kind="ghost" size="sm" onClick={() => selectMonth(dayjs(`${selectedMonth}-01`).add(1, "month"))} />
                     </div>
                     {isHistoricalMonth ? <InExButton data-qa="visual-month-current" kind="ghost" size="sm" onClick={() => selectMonth(dayjs(`${currentMonth}-01`))}>{t("dashboard.visual.currentMonth")}</InExButton> : null}
-                    <InExButton kind="primary" onClick={() => navigate("/transactions?create=true")}>
+                    <InExButton icon={<Plus size={16} style={{ flexShrink: 0 }} />} kind="primary" onClick={() => navigate("/transactions?create=true")}>
                         {t("dashboard.addTransaction")}
                     </InExButton>
                 </div>

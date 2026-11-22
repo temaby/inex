@@ -81,6 +81,7 @@ describe("Account drawer", () => {
     it("defaults new accounts to favourite and submits a chosen non-favourite setting", async () => {
         const { onMutationSuccess } = renderDrawer({ mode: "create" });
 
+        expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
         expect(screen.getByRole("switch", { name: "Active account" })).toBeChecked();
         const overview = screen.getByRole("switch", { name: "Show in overviews" });
         expect(overview).toBeChecked();
@@ -161,11 +162,20 @@ describe("Account drawer", () => {
 
     it("deletes only after confirmation", async () => {
         const { onMutationSuccess } = renderDrawer(editSession);
+        const user = userEvent.setup();
         const trigger = screen.getByRole("button", { name: "Delete" });
-        await userEvent.setup().click(trigger);
-        await waitFor(() => expect(screen.getByText(translations.accounts.deleteConfirm)).toBeVisible());
+        const footer = trigger.closest(".inex-drawer-actions--sticky");
+        expect(footer).toContainElement(screen.getByRole("button", { name: "Cancel" }));
+        expect(footer).toContainElement(screen.getByRole("button", { name: "Save" }));
+
+        await user.click(trigger);
+        await screen.findByText(translations.accounts.deleteConfirm);
+        await user.click(screen.getAllByRole("button", { name: "Cancel" })[1]);
+        await waitFor(() => expect(screen.queryByText(translations.accounts.deleteConfirm)).not.toBeVisible());
         expect(mutationState.deleteAccount).not.toHaveBeenCalled();
-        fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[1]);
+
+        await user.click(trigger);
+        await user.click((await screen.findAllByRole("button", { name: "Delete" }))[1]);
         await waitFor(() => expect(mutationState.deleteAccount).toHaveBeenCalledWith(7));
         expect(onMutationSuccess).toHaveBeenCalledWith("delete");
     });

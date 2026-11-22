@@ -37,8 +37,8 @@ const drawerViewports = [
   { width: 360, height: defaultViewportHeight },
 ];
 const drawerLabels = {
-  en: { add: "Add account", edit: "Edit account", create: "Create account", save: "Save", cancel: "Cancel" },
-  ru: { add: "Добавить счёт", edit: "Редактировать счёт", create: "Создать счёт", save: "Сохранить", cancel: "Отмена" },
+  en: { add: "Add account", edit: "Edit account", create: "Create account", save: "Save", cancel: "Cancel", delete: "Delete" },
+  ru: { add: "Добавить счёт", edit: "Редактировать счёт", create: "Создать счёт", save: "Сохранить", cancel: "Отмена", delete: "Удалить" },
 };
 const accountInformationSelector = '[data-qa="account-drawer-information"]';
 const accountListStateExpression = `JSON.stringify({
@@ -244,8 +244,13 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         });
       }
       if (url.pathname === "/api/accounts/details" && method === "GET") {
+        const summaries = fixture.accountsVisualFixtureSummaries;
         return jsonResponse({
-          data: scenario === "empty" ? [] : fixture.accountsVisualFixtureSummaries,
+          data: scenario === "empty" ? [] : summaries.map((account) => (
+            scenario === "drawer-info-ru" && account.name === "PLN card"
+              ? { ...account, value: -9_999_999_999.99 }
+              : account
+          )),
         });
       }
       return null;
@@ -388,7 +393,22 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerFooter = drawer?.querySelector(".inex-drawer-actions");
     const drawerTitleLines = drawer?.querySelector(".ant-drawer-title > div")?.children;
     const drawerActions = Array.from(drawerFooter?.querySelectorAll("button") ?? []);
+    const footerBounds = drawerFooter?.getBoundingClientRect();
+    const [deleteBounds, cancelBounds, saveBounds] = drawerActions.map((button) => button.getBoundingClientRect());
+    const centerY = (rect) => (rect.top + rect.bottom) / 2;
+    const editActionsAligned = drawerActions.length === 3 && footerBounds
+      && Math.abs(deleteBounds.left - footerBounds.left) <= 1
+      && Math.abs(saveBounds.right - footerBounds.right) <= 1
+      && deleteBounds.right < cancelBounds.left && cancelBounds.right < saveBounds.left
+      && Math.abs(centerY(deleteBounds) - centerY(saveBounds)) <= 1
+      && Math.abs(centerY(cancelBounds) - centerY(saveBounds)) <= 1;
     const accountInformation = drawer?.querySelector(${JSON.stringify(accountInformationSelector)});
+    const snapshotAmountsFit = Array.from(accountInformation?.querySelectorAll(".accounts-snapshot__metric dd") ?? []).every((metric) => {
+      const range = document.createRange();
+      range.selectNodeContents(metric);
+      const metricRect = metric.getBoundingClientRect();
+      return Array.from(range.getClientRects()).every((rect) => rect.left >= metricRect.left - 1 && rect.right <= metricRect.right + 1);
+    });
     const actionsWithinViewport = drawerActions.every((button) => {
       const rect = button.getBoundingClientRect();
       return rect.left >= 0 && rect.right <= window.innerWidth
@@ -466,12 +486,14 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerAccountName: drawer?.querySelector('#account-editor input[id$="_name"]')?.value ?? null,
       drawerHasClose: Boolean(drawer?.querySelector(".ant-drawer-close")),
       drawerActions: drawerActions.map((button) => button.innerText.trim()),
+      editActionsAligned: Boolean(editActionsAligned),
       drawerActionsWithinViewport: actionsWithinViewport,
       drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
       drawerSwitchCount: drawer?.querySelectorAll('[role="switch"]').length ?? 0,
       accountInformationPresent: Boolean(accountInformation),
       accountInformationExpanded: accountInformation?.open ?? null,
       accountInformationText: accountInformation?.innerText ?? null,
+      snapshotAmountsFit,
       inlineEditPanelPresent: Boolean(document.querySelector(".accounts-edit-panel")),
       editableAccountRows: document.querySelectorAll('button.accounts-row[aria-label^="Edit account "], .accounts-row button[aria-label^="Edit account "]').length,
       rowCount: rows.length,
@@ -544,8 +566,9 @@ function collectAdditionalFailures(stateResults) {
       if (isEdit && (!state.drawerSubtitle || state.drawerAccountName !== state.drawerSubtitle)) {
         failures.push(`${state.name}: edited account name is missing from the header or form`);
       }
-      if (state.drawerBodyOverflow || !state.drawerActionsWithinViewport
-        || JSON.stringify(state.drawerActions) !== JSON.stringify([labels.cancel, isEdit ? labels.save : labels.create])) {
+      const expectedActions = isEdit ? [labels.delete, labels.cancel, labels.save] : [labels.cancel, labels.create];
+      if (state.drawerBodyOverflow || !state.drawerActionsWithinViewport || (isEdit && !state.editActionsAligned)
+        || JSON.stringify(state.drawerActions) !== JSON.stringify(expectedActions)) {
         failures.push(`${state.name}: drawer body or footer overflows, or footer actions are incorrect`);
       }
       if (state.drawerSwitchCount !== 2 || state.inlineEditPanelPresent) {
@@ -556,10 +579,12 @@ function collectAdditionalFailures(stateResults) {
         failures.push(`${state.name}: account information availability or expansion is incorrect`);
       }
       if (expectedInformationExpanded) {
-        const expectedInformation = ["Текущий баланс", "14,500.00", "Эквивалент в USD", "3,625.00", "Курс", "0.2500", "ID счёта", "#203"];
-        if (!expectedInformation.every((text) => state.accountInformationText?.includes(text))) {
+        const expectedInformation = ["Текущий баланс", "-9 999 999 999,99 PLN", "Эквивалент в USD", "-2 500 000 000,00 USD", "Курс", "0,2500 USD / PLN", "ID счёта", "#203"];
+        const informationText = state.accountInformationText?.replace(/\s+/g, " ");
+        if (!expectedInformation.every((text) => informationText?.includes(text))) {
           failures.push(`${state.name}: expanded account information is missing the expected PLN balance, USD equivalent, exchange rate, or ID`);
         }
+        if (!state.snapshotAmountsFit) failures.push(`${state.name}: an account information value overflows its column`);
       }
     }
     if (state.scenario === "linked" && !state.linkedSelectorVisible) {
@@ -691,6 +716,8 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "desktop search control is 260px wide and right-aligned in the toolbar",
       "create and edit drawers match the transaction drawer width and fit the viewport",
       "drawer buttons and settings switches fit desktop and mobile screens",
+      "edit drawer actions align with Delete on the left and Cancel and Save on the right",
+      "expanded account information uses localized Russian balances and exchange rates",
       "account information starts collapsed and expands without changing the grouped list",
     ],
     screenshots: stateResults.map((state) => state.screenshot),

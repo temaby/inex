@@ -26,6 +26,7 @@ import BasicPage from "../layouts/BasicPage";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
 import { buildUniqueDistributionColors } from "../utils/distribution";
+import { createFixedAmountFormatter, getCurrencyFractionDigits } from "../utils/formatAmount";
 import {
     useGetAccountsQuery,
     useGetAccountsSummaryQuery,
@@ -364,24 +365,18 @@ const Accounts = () => {
 
     const getRateToBaseLabel = (account: AccountDisplay): string | null => {
         if (!baseCurrency) return null;
-        if (account.currency === baseCurrency) {
-            return t("accounts.snapshot.rateValue", {
-                value: "1.0000",
-                baseCurrency,
-                currency: account.currency,
-            });
-        }
-
-        const rate = exchangeRates.find((item) =>
+        const rate = account.currency === baseCurrency ? 1 : exchangeRates.find((item) =>
             item.currencyFrom === baseCurrency && item.currencyTo === account.currency,
-        );
+        )?.rate;
+        if (!rate || !Number.isFinite(rate) || rate <= 0) return null;
 
-        if (!rate || !Number.isFinite(rate.rate) || rate.rate <= 0) return null;
-
-        const rateToBase = 1 / rate.rate;
+        const rateToBase = 1 / rate;
+        const formatter = rateToBase < 0.01
+            ? new Intl.NumberFormat(i18n.language, { maximumSignificantDigits: 4 })
+            : createFixedAmountFormatter(i18n.language, 4);
 
         return t("accounts.snapshot.rateValue", {
-            value: rateToBase.toFixed(rateToBase < 0.01 ? 6 : 4),
+            value: formatter.format(rateToBase),
             baseCurrency,
             currency: account.currency,
         });
@@ -393,6 +388,21 @@ const Accounts = () => {
             <dd>{value}</dd>
         </div>
     );
+
+    const renderSnapshotAmount = (value: number, currency: string) => {
+        const halfMinorUnit = 0.5 / 10 ** getCurrencyFractionDigits(currency);
+        const displayValue = value < 0 && -value < halfMinorUnit ? 0 : value;
+        return (
+            <Num
+                currency={currency}
+                fractionDigits="currency"
+                kind={displayValue < 0 ? "expense" : "neutral"}
+                locale={i18n.language}
+                signage="negative-only"
+                value={displayValue}
+            />
+        );
+    };
 
     const renderHeroDelta = () => {
         if (!canRenderHeroDelta) {
@@ -434,17 +444,15 @@ const Accounts = () => {
                     t("accounts.snapshot.currentBalance"),
                     account.value === undefined
                         ? t("accounts.hero.balanceUnavailable")
-                        : (
-                            <Num
-                                currency={account.currency}
-                                kind={account.value < 0 ? "expense" : "neutral"}
-                                value={toFixedMoney(account.value)}
-                            />
-                        ),
+                        : renderSnapshotAmount(account.value, account.currency),
                 )}
                 {renderSnapshotMetric(
                     baseEquivalentLabel,
-                    renderBaseEquivalent(account.baseValue, { className: "accounts-snapshot__amount" }),
+                    <span className="accounts-snapshot__amount">
+                        {account.baseValue === null || !baseCurrency
+                            ? t("accounts.equivalent.unavailable")
+                            : renderSnapshotAmount(account.baseValue, baseCurrency)}
+                    </span>,
                 )}
                 {renderSnapshotMetric(t("accounts.snapshot.rateToBase"), rateToBase ?? t("accounts.snapshot.rateUnavailable"))}
                 {renderSnapshotMetric(t("accounts.snapshot.accountId"), `#${account.id}`)}
