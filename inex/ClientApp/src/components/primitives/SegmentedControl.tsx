@@ -7,6 +7,7 @@ export interface SegmentedOption {
 }
 
 export interface SegmentedControlProps {
+    ariaLabel?: string;
     options: SegmentedOption[];
     value: string;
     onChange: (key: string) => void;
@@ -15,6 +16,7 @@ export interface SegmentedControlProps {
 }
 
 export const SegmentedControl: React.FC<SegmentedControlProps> = ({
+    ariaLabel,
     options,
     value,
     onChange,
@@ -55,7 +57,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
     };
 
     return (
-        <div aria-labelledby={label ? labelId : undefined} role="group" style={wrapperStyle}>
+        <div aria-label={ariaLabel} aria-labelledby={label ? labelId : undefined} role="group" style={wrapperStyle}>
             {label && (
                 <span id={labelId} style={labelStyle}>
                     {label}

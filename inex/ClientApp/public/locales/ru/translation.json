@@ -549,6 +549,9 @@
     "clearSearch": "Очистить поиск",
     "filteringBy": "Фильтр: \"{{query}}\"",
     "shareOfNetWorth": "{{value}}%",
+    "emptyShare": "—",
+    "smallPositiveShare": "<{{value}}%",
+    "smallNegativeShare": ">{{value}}%",
     "scope": {
       "active": "Активные",
       "all": "Все"
@@ -560,7 +563,7 @@
     "toolbar": {
       "label": "Элементы управления счетами",
       "statusLabel": "СТАТУС",
-      "viewLabel": "ВИД"
+      "viewLabel": "Вид списка счетов"
     },
     "headers": {
       "account": "СЧЕТ",
@@ -569,17 +572,23 @@
       "balance": "БАЛАНС"
     },
     "group": {
-      "accountCountOne": "{{count}} счёт",
-      "accountCountOther": "{{count}} счетов",
-      "accountCount": "{{count}} счёт",
-      "accountCount_plural": "{{count}} счетов",
       "expand": "Развернуть счета {{currency}}",
       "collapse": "Свернуть счета {{currency}}"
     },
     "inventory": {
-      "summary": "Видимые счета: {{visible}} / {{total}} в области",
-      "activeOnly": "только активные: {{count}}",
-      "allScope": "все счета"
+      "summary": "{{accounts}} · {{currencies}}",
+      "accountCount_one": "{{count}} счёт",
+      "accountCount_few": "{{count}} счёта",
+      "accountCount_many": "{{count}} счетов",
+      "accountCount_other": "{{count}} счёта",
+      "currencyCount_one": "{{count}} валюта",
+      "currencyCount_few": "{{count}} валюты",
+      "currencyCount_many": "{{count}} валют",
+      "currencyCount_other": "{{count}} валюты",
+      "searchResults_one": "Найдено {{visible}} из {{count}} счёта",
+      "searchResults_few": "Найдено {{visible}} из {{count}} счетов",
+      "searchResults_many": "Найдено {{visible}} из {{count}} счетов",
+      "searchResults_other": "Найдено {{visible}} из {{count}} счёта"
     },
     "equivalent": {
       "approx": "≈",
@@ -596,7 +605,7 @@
       "accountId": "ID счёта"
     },
     "hero": {
-      "netWorth": "Чистая стоимость",
+      "totalInAccounts": "Всего на счетах",
       "balanceUnavailable": "Баланс недоступен",
       "momUnavailable": "Изменение с {{period}} недоступно",
       "momDelta": "{{value}} м/м",

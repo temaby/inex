@@ -541,6 +541,9 @@
     "clearSearch": "Clear search",
     "filteringBy": "Filtering by \"{{query}}\"",
     "shareOfNetWorth": "{{value}}%",
+    "emptyShare": "—",
+    "smallPositiveShare": "<{{value}}%",
+    "smallNegativeShare": ">{{value}}%",
     "scope": {
       "active": "Active",
       "all": "All"
@@ -552,7 +555,7 @@
     "toolbar": {
       "label": "Accounts inventory controls",
       "statusLabel": "STATUS",
-      "viewLabel": "VIEW"
+      "viewLabel": "Account view"
     },
     "headers": {
       "account": "ACCOUNT",
@@ -561,17 +564,17 @@
       "balance": "BALANCE"
     },
     "group": {
-      "accountCountOne": "{{count}} account",
-      "accountCountOther": "{{count}} accounts",
-      "accountCount": "{{count}} account",
-      "accountCount_plural": "{{count}} accounts",
       "expand": "Expand {{currency}} accounts",
       "collapse": "Collapse {{currency}} accounts"
     },
     "inventory": {
-      "summary": "Visible accounts: {{visible}} / {{total}} in scope",
-      "activeOnly": "active only: {{count}} active",
-      "allScope": "all accounts"
+      "summary": "{{accounts}} · {{currencies}}",
+      "accountCount_one": "{{count}} account",
+      "accountCount_other": "{{count}} accounts",
+      "currencyCount_one": "{{count}} currency",
+      "currencyCount_other": "{{count}} currencies",
+      "searchResults_one": "Found {{visible}} of {{count}} account",
+      "searchResults_other": "Found {{visible}} of {{count}} accounts"
     },
     "equivalent": {
       "approx": "≈",
@@ -588,7 +591,7 @@
       "accountId": "Account ID"
     },
     "hero": {
-      "netWorth": "Net worth",
+      "totalInAccounts": "Total in accounts",
       "balanceUnavailable": "Balance unavailable",
       "momUnavailable": "Change from {{period}} unavailable",
       "momDelta": "{{value}} MoM",

@@ -2,9 +2,12 @@ import { StyleProvider } from "@ant-design/cssinjs";
 import { configureStore } from "@reduxjs/toolkit";
 import { fireEvent, render as renderTest, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createInstance } from "i18next";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 
+import english from "../../public/locales/en/translation.json";
+import russian from "../../public/locales/ru/translation.json";
 import authSlice from "../store/auth/auth-slice";
 import ratesSlice from "../store/rates/rates-slice";
 import linkedAccountSlice from "../store/linkedAccount/linked-account-slice";
@@ -21,6 +24,7 @@ import {
 
 const apiClientMock = vi.hoisted(() => Object.assign(vi.fn(), { get: vi.fn() }));
 const locale = vi.hoisted(() => ({ language: "en" }));
+const translations = createInstance();
 const render = (ui: React.ReactElement) => renderTest(<StyleProvider autoClear>{ui}</StyleProvider>);
 
 vi.mock("../utils/apiClient", () => ({
@@ -32,7 +36,10 @@ vi.mock("react-i18next", async (importOriginal) => ({
     useTranslation: () => ({
         i18n: locale,
         t: (key: string, options?: Record<string, unknown>) => {
-            const translations: Record<string, string> = {
+            if (key.startsWith("accounts.inventory.") || key.endsWith("Share")) {
+                return translations.getFixedT(locale.language)(key, options);
+            }
+            const labels: Record<string, string> = {
                 "accounts.workspaceTitle": "Accounts",
                 "accounts.searchPlaceholder": "Search accounts...",
                 "accounts.toolbar.label": "Accounts inventory controls",
@@ -42,7 +49,10 @@ vi.mock("react-i18next", async (importOriginal) => ({
                 "accounts.headers.currency": "CURRENCY",
                 "accounts.headers.share": "SHARE",
                 "accounts.headers.balance": "BALANCE",
-                "accounts.inventory.summary": `${String(options?.visible)} / ${String(options?.total)}`,
+                "accounts.scope.active": "Active",
+                "accounts.scope.all": "All",
+                "accounts.view.byCurrency": "By currency",
+                "accounts.view.flat": "Flat list",
                 "accounts.editAccountAction": `Edit account ${String(options?.name)}`,
                 "accounts.viewAccountAction": `View account information for ${String(options?.name)}`,
                 "accounts.group.accountCountOne": `${String(options?.count)} account`,
@@ -54,7 +64,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
                 "accounts.snapshot.rateValue": `${String(options?.value)} ${String(options?.baseCurrency)} / ${String(options?.currency)}`,
             };
 
-            return translations[key] ?? key;
+            return labels[key] ?? key;
         },
     }),
 }));
@@ -144,9 +154,19 @@ const populatedSummaries = [
     { ...populatedAccounts[2], value: 25, thisMonthNet: 2 },
 ];
 
-describe("Accounts empty-state create focus", () => {
+describe("Accounts inventory and editor", () => {
+    beforeAll(async () => {
+        await translations.init({
+            fallbackLng: "en",
+            resources: {
+                en: { translation: english },
+                ru: { translation: russian },
+            },
+        });
+    });
     beforeEach(() => {
         locale.language = "en";
+        apiClientMock.mockClear();
         vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
         window.localStorage.clear();
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
@@ -191,7 +211,8 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.getByText("Cash wallet")).toBeInTheDocument();
     });
 
-    it("renders audit toolbar labels, desktop headers, and active-scope counts", async () => {
+    it("shows the appropriate columns and accounts summary for the view and filters", async () => {
+        const user = userEvent.setup();
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: populatedAccounts } };
@@ -217,6 +238,7 @@ describe("Accounts empty-state create focus", () => {
         const viewControl = screen.getByRole("group", { name: "VIEW" });
         expect(statusControl).toBeInTheDocument();
         expect(viewControl).toBeInTheDocument();
+        expect(within(viewControl).queryByText("VIEW")).not.toBeInTheDocument();
         expect(statusControl.closest(".accounts-toolbar__primary")).not.toBeNull();
         expect(viewControl.closest(".accounts-toolbar__filters")).not.toBeNull();
         const searchbox = screen.getByRole("searchbox", { name: "accounts.searchLabel" });
@@ -224,11 +246,12 @@ describe("Accounts empty-state create focus", () => {
         expect(searchbox).toHaveAttribute("placeholder", "Search accounts...");
 
         expect(screen.getByText("ACCOUNT")).toBeVisible();
-        expect(screen.getByText("CURRENCY")).toBeVisible();
+        expect(screen.queryByText("CURRENCY")).not.toBeInTheDocument();
+        expect(document.querySelector(".accounts-row__currency")).not.toBeInTheDocument();
+        expect(document.querySelector(".accounts-row__action")).not.toBeInTheDocument();
         expect(screen.getByText("SHARE")).toBeVisible();
         expect(screen.getByText("BALANCE")).toBeVisible();
-        expect(screen.getByText("2 / 2")).toBeVisible();
-        expect(screen.queryByText("2 / 3")).not.toBeInTheDocument();
+        expect(screen.getByText("2 accounts · 1 currency")).toBeVisible();
         expect(screen.queryByText("cash WALLET")).not.toBeInTheDocument();
         expect(screen.getByText("Daily card")).toBeVisible();
         expect(document.querySelector(".accounts-group__bar")).not.toBeInTheDocument();
@@ -237,6 +260,20 @@ describe("Accounts empty-state create focus", () => {
         expect((document.querySelector(".accounts-group__marker") as HTMLElement).style.background).not.toBe("");
         expect(document.querySelector(".accounts-row--tree-leaf .accounts-row__connector")).toBeInTheDocument();
         expect(document.querySelector(".accounts-row--tree-leaf .accounts-row__marker")).toBeInTheDocument();
+
+        await user.click(within(viewControl).getByRole("button", { name: "Flat list" }));
+        expect(screen.getByText("CURRENCY")).toBeVisible();
+        const cashRow = screen.getByRole("button", { name: "Edit account Cash wallet" });
+        expect(cashRow.querySelector(".accounts-row__currency")).toHaveTextContent("USD");
+
+        await user.type(searchbox, "Archive");
+        expect(screen.getByText("Found 0 of 2 accounts")).toBeVisible();
+        expect(screen.queryByRole("button", { name: "Edit account Archive" })).not.toBeInTheDocument();
+        await user.click(within(statusControl).getByRole("button", { name: "All" }));
+        expect(screen.getByText("Found 1 of 3 accounts")).toBeVisible();
+        expect(screen.getByRole("button", { name: "Edit account Archive" })).toBeVisible();
+        await user.clear(searchbox);
+        expect(screen.getByText("3 accounts · 1 currency")).toBeVisible();
     });
 
     it("renders fixture currency groups expanded by default and supports collapsed-state QA", async () => {
@@ -273,8 +310,9 @@ describe("Accounts empty-state create focus", () => {
         expect(fixtureGroup).toHaveAttribute("aria-expanded", "true");
         expect(fixtureGroup).toHaveAttribute("aria-controls", "hierarchy-children-UZS");
 
-        await userEvent.setup().click(fixtureGroup);
+        await userEvent.setup().click(within(fixtureGroup).getByText("UZS"));
 
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         expect(fixtureGroup).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
         expect(accountsVisualFixtureMeta.collapsedStateCurrency).toBe("UZS");
@@ -351,8 +389,95 @@ describe("Accounts empty-state create focus", () => {
         expect(screen.queryByText("UZS main wallet")).not.toBeInTheDocument();
         expect(screen.getByText("USD operating")).toBeVisible();
         expect(document.querySelectorAll(".accounts-group")).toHaveLength(1);
+        expect(apiClientMock.mock.calls.filter(([request]) => request.url === "/accounts?mode=ALL")).toHaveLength(1);
         await user.clear(searchbox);
         expect(await screen.findByRole("button", { name: "accounts.group.expand" })).toHaveAttribute("aria-controls", "hierarchy-children-UZS");
+    });
+
+    it("edits the focused flat row with the keyboard while preserving view and filters", async () => {
+        const user = userEvent.setup();
+        let archive = populatedAccounts[2];
+        apiClientMock.mockImplementation(async ({ url, method, data }) => {
+            if (url === "/accounts/3" && method === "put") {
+                archive = { ...archive, ...data };
+                return { data: null };
+            }
+            if (url.startsWith("/accounts/details")) {
+                return { data: { data: populatedSummaries } };
+            }
+            return { data: { data: [...populatedAccounts.slice(0, 2), archive] } };
+        });
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        render(
+            <Provider store={makeStore(accountsVisualFixtureRates)}>
+                <MemoryRouter><Accounts /></MemoryRouter>
+            </Provider>,
+        );
+
+        const flat = screen.getByRole("button", { name: "Flat list" });
+        const all = screen.getByRole("button", { name: "All" });
+        await user.click(flat);
+        await user.click(all);
+        const search = screen.getByRole("searchbox", { name: "accounts.searchLabel" });
+        await user.type(search, "Archive");
+        const row = await screen.findByRole("button", { name: "Edit account Archive" });
+        await user.tab();
+        expect(screen.getByRole("button", { name: "accounts.clearSearch" })).toHaveFocus();
+        await user.tab();
+        expect(row).toHaveFocus();
+        await user.keyboard("{Enter}");
+        const firstDrawer = await screen.findByRole("dialog");
+        expect(within(firstDrawer).getByRole("textbox", { name: "accounts.name" })).toHaveValue("Archive");
+        await user.click(within(firstDrawer).getByRole("button", { name: "accounts.cancel" }));
+        await waitFor(() => expect(row).toHaveFocus());
+
+        await user.keyboard(" ");
+        const drawer = await screen.findByRole("dialog");
+        const name = within(drawer).getByRole("textbox", { name: "accounts.name" });
+        await user.type(name, " updated");
+        await user.click(within(drawer).getByRole("button", { name: "accounts.save" }));
+
+        expect(await screen.findByRole("button", { name: "Edit account Archive updated" })).toBeVisible();
+        await waitFor(() => expect(drawer).not.toBeInTheDocument());
+        expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({
+            url: "/accounts/3",
+            method: "put",
+            data: expect.objectContaining({ id: 3, key: "archive", name: "Archive updated" }),
+        }));
+        expect(flat).toHaveAttribute("aria-pressed", "true");
+        expect(all).toHaveAttribute("aria-pressed", "true");
+        expect(search).toHaveValue("Archive");
+    });
+
+    it("formats Russian amounts, pluralizes counts, and distinguishes zero from tiny signed shares", async () => {
+        locale.language = "ru";
+        const accounts = accountsVisualFixtureAccounts.slice(0, 4);
+        const values = [190860318.79, 0, 0.12, -0.13];
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => ({
+            data: { data: url.startsWith("/accounts/details")
+                ? accounts.map((account, index) => ({ ...account, value: values[index], thisMonthNet: 0 }))
+                : accounts },
+        }));
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        render(
+            <Provider store={makeStore(accountsVisualFixtureRates)}>
+                <MemoryRouter><Accounts /></MemoryRouter>
+            </Provider>,
+        );
+
+        const uzsRow = await screen.findByRole("button", { name: "Edit account UZS main wallet" });
+        expect(await within(uzsRow).findByText("190 860 318,79 UZS")).toBeVisible();
+        expect(await within(uzsRow).findByText("15 905,03 USD")).toBeVisible();
+        expect(screen.getByText("4 счёта · 4 валюты")).toBeVisible();
+
+        const zeroRow = within(screen.getByRole("button", { name: "Edit account USD operating" }));
+        expect(zeroRow.getAllByText("0,00 USD").length).toBeGreaterThan(0);
+        expect(zeroRow.getByText("—")).toBeVisible();
+        const tinyRow = within(screen.getByRole("button", { name: "Edit account PLN card" }));
+        expect(tinyRow.getByText("<0,1%")).toBeVisible();
+        const negativeRow = screen.getByRole("button", { name: "Edit account BYN reserve" });
+        expect(within(negativeRow).getByText("-0,13 BYN")).toBeVisible();
+        expect(negativeRow.querySelector(".accounts-row__share")).toHaveTextContent(/-.*0,1/);
     });
 
     it.each([

@@ -107,6 +107,13 @@ const states = [
     scenario: "populated",
   },
   {
+    name: "populated-ru-360",
+    screenshot: "populated-ru-360.png",
+    viewport: { width: 360, height: defaultViewportHeight },
+    scenario: "populated-ru",
+    language: "ru",
+  },
+  {
     name: "filter-empty-390",
     screenshot: "filter-empty-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -211,7 +218,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse(scenario === "drawer-info-ru" ? { ...authUser, languageCode: "ru" } : authUser);
+        return jsonResponse(scenario.endsWith("-ru") ? { ...authUser, languageCode: "ru" } : authUser);
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
         return jsonResponse({
@@ -256,6 +263,37 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       return null;
     },
   });
+}
+
+async function pressKey(client, key, code, windowsVirtualKeyCode) {
+  const text = key === "Enter" ? "\r" : key === " " ? " " : undefined;
+  await client.send("Input.dispatchKeyEvent", { type: "keyDown", key, code, text, windowsVirtualKeyCode });
+  await client.send("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode });
+}
+
+async function verifyKeyboardAndScroll(client, findEditAction, cancelLabel) {
+  const scrollY = await evaluate(client, `(() => {
+    const group = ${findEditAction}.closest(".inex-hierarchy-list__branch").querySelector(".accounts-group__toggle");
+    group.scrollIntoView({ block: "center" });
+    group.focus({ preventScroll: true });
+    return window.scrollY;
+  })()`);
+  await pressKey(client, "Tab", "Tab", 9);
+  const rowIsFocused = await evaluate(client, `${findEditAction} === document.activeElement
+    && document.activeElement.matches(":focus-visible")
+    && getComputedStyle(document.activeElement).boxShadow !== "none"`);
+  if (!rowIsFocused || scrollY <= 0) {
+    throw new Error("Account row must show its focus ring after Tab in a scrolled list.");
+  }
+  await pressKey(client, "Enter", "Enter", 13);
+  await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open form'))");
+  await evaluate(client, clickButtonByTextExpression(cancelLabel));
+  await waitFor(client, `!document.querySelector('.ant-drawer-open form') && document.activeElement === ${findEditAction}`);
+  const restoredScrollY = await evaluate(client, "window.scrollY");
+  if (!nearZero(restoredScrollY - scrollY, 1)) {
+    throw new Error(`Account editor changed the page scroll position from ${scrollY} to ${restoredScrollY}.`);
+  }
+  await pressKey(client, " ", "Space", 32);
 }
 
 async function applyInteraction(client, state, fixture) {
@@ -321,10 +359,14 @@ async function applyInteraction(client, state, fixture) {
       const editLabelSelector = state.editAccountName
         ? `[aria-label="${labels.edit} ${state.editAccountName}"]`
         : `[aria-label^="${labels.edit} "]`;
-      const editActionSelector = `button.accounts-row${editLabelSelector}, .accounts-row button${editLabelSelector}`;
+      const editActionSelector = `button.accounts-row${editLabelSelector}`;
       const findEditAction = `document.querySelector(${JSON.stringify(editActionSelector)})`;
       await waitFor(client, `Boolean(${findEditAction})`);
-      await evaluate(client, `${findEditAction}.click()`);
+      if (state.name === "edit-drawer-390") {
+        await verifyKeyboardAndScroll(client, findEditAction, labels.cancel);
+      } else {
+        await evaluate(client, `${findEditAction}.querySelector(".accounts-row__name").click()`);
+      }
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open form'))");
       const listAfterEdit = await evaluate(client, accountListStateExpression);
       if (listAfterEdit !== listBeforeEdit) {
@@ -341,22 +383,17 @@ async function applyInteraction(client, state, fixture) {
       await evaluate(client, clickButtonByTextExpression("All"));
       await waitFor(client, "document.body.innerText.includes('USD closed card')");
       return;
-    case "collapse-fixture-group":
-      await evaluate(client, `(() => {
-        const currency = ${JSON.stringify(fixture.accountsVisualFixtureMeta.collapsedStateCurrency)};
-        const button = Array.from(document.querySelectorAll(".accounts-group__toggle"))
-          .find((item) => item.parentElement?.textContent?.includes(currency));
-        if (!button) return false;
-        button.click();
-        return true;
-      })()`);
-      await waitFor(client, `(() => {
-        const currency = ${JSON.stringify(fixture.accountsVisualFixtureMeta.collapsedStateCurrency)};
-        const button = Array.from(document.querySelectorAll(".accounts-group__toggle"))
-          .find((item) => item.parentElement?.textContent?.includes(currency));
-        return button && button.getAttribute("aria-expanded") === "false";
-      })()`);
+    case "collapse-fixture-group": {
+      const currency = fixture.accountsVisualFixtureMeta.collapsedStateCurrency;
+      const groupSelector = `[aria-controls="hierarchy-children-${currency}"]`;
+      const groupButton = `document.querySelector(${JSON.stringify(groupSelector)})`;
+      await evaluate(client, `${groupButton}?.querySelector(".accounts-group__title")?.click()`);
+      await waitFor(client, `${groupButton}?.getAttribute("aria-expanded") === "false"`);
+      if (await evaluate(client, "Boolean(document.querySelector('.ant-drawer-open'))")) {
+        throw new Error("Currency group activation opened the account editor.");
+      }
       return;
+    }
     case undefined:
       return;
     default:
@@ -365,12 +402,15 @@ async function applyInteraction(client, state, fixture) {
 }
 
 async function waitForAccountsReady(client, state) {
-  if (state.scenario === "accounts-error") {
-    await waitFor(client, "document.body.innerText.includes('Accounts could not be loaded')");
-  } else if (state.scenario === "empty") {
-    await waitFor(client, "document.body.innerText.includes('No accounts yet')");
-  } else {
-    await waitFor(client, "document.body.innerText.includes('UZS main wallet')");
+  const expectedText = {
+    "accounts-error": "Accounts could not be loaded",
+    empty: "No accounts yet",
+  }[state.scenario] ?? "UZS main wallet";
+  try {
+    await waitFor(client, `document.body.innerText.includes(${JSON.stringify(expectedText)})`);
+  } catch (error) {
+    const page = await evaluate(client, "({ path: location.pathname, text: document.body.innerText.slice(0, 300) })");
+    throw new Error(`${state.name} reached ${page.path} with text ${JSON.stringify(page.text)}`, { cause: error });
   }
 }
 
@@ -417,6 +457,11 @@ async function collectMetrics(client, state, apiRequestCount) {
     });
     const rows = Array.from(document.querySelectorAll(".accounts-row"));
     const groupButtons = Array.from(document.querySelectorAll(".accounts-group__toggle"));
+    const zeroRow = rows.find((row) => row.querySelector(".accounts-row__name")?.textContent === "USD closed card");
+    const rowAmount = (row) => row?.querySelector(".accounts-row__balance-primary [aria-hidden='true']");
+    const amountColor = (row) => rowAmount(row) ? getComputedStyle(rowAmount(row)).color : null;
+    const nameColor = (row) => row ? getComputedStyle(row.querySelector(".accounts-row__name")).color : null;
+    const normalizeText = (element) => element?.textContent?.trim().replace(/\\s+/g, " ") ?? "";
     const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".accounts-hero__net");
@@ -466,7 +511,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       : null;
     const collapsedGroups = groupButtons
       .filter((button) => button.getAttribute("aria-expanded") === "false")
-      .map((button) => button.parentElement?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 80) ?? "");
+      .map((button) => normalizeText(button.querySelector(".accounts-group__title")));
 
     return {
       title: document.title,
@@ -497,6 +542,17 @@ async function collectMetrics(client, state, apiRequestCount) {
       inlineEditPanelPresent: Boolean(document.querySelector(".accounts-edit-panel")),
       editableAccountRows: document.querySelectorAll('button.accounts-row[aria-label^="Edit account "], .accounts-row button[aria-label^="Edit account "]').length,
       rowCount: rows.length,
+      rowCurrencyCount: document.querySelectorAll(".accounts-row__currency").length,
+      currencyHeaderPresent: Boolean(document.querySelector(".accounts-list-header__currency")),
+      rowActionCount: document.querySelectorAll(".accounts-row__action").length,
+      visibleViewLabel: Array.from(toolbarFilters?.querySelectorAll("span") ?? []).some((span) => /^(view|вид)$/i.test(span.textContent.trim())),
+      listSummary: normalizeText(document.querySelector(".accounts-toolbar__summary")),
+      heroPrimaryLabel: normalizeText(document.querySelector('[data-qa="hero-primary-label"]')),
+      sampleRowAmount: normalizeText(rowAmount(rows[0])),
+      zeroRowAmount: normalizeText(rowAmount(zeroRow)),
+      zeroRowShare: normalizeText(zeroRow?.querySelector(".accounts-row__share")),
+      zeroRowAmountMuted: Boolean(zeroRow && amountColor(zeroRow) !== amountColor(rows[0])),
+      zeroRowNameRegular: Boolean(zeroRow && nameColor(zeroRow) === nameColor(rows[0])),
       heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
       heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
       distributionEyebrow: styleSample(distributionEyebrow),
@@ -516,7 +572,6 @@ async function collectMetrics(client, state, apiRequestCount) {
       momVisible: /\\bMoM\\b/.test(document.body.innerText),
       previousMonthVisible: document.body.innerText.includes(${JSON.stringify("from May 2026")}),
       heroPrimaryValueText: heroPrimaryValue ? heroPrimaryValue.textContent.trim().replace(/\\s+/g, " ") : "",
-      heroPrimaryValueHasDecimal: heroPrimaryValue ? /\\d[\\d,]*\\.\\d/.test(heroPrimaryValue.textContent) : null,
       heroSecondaryText: heroSecondaryText ? heroSecondaryText.textContent.trim().replace(/\\s+/g, " ") : "",
       heroSecondaryTextHasDecimal: heroSecondaryText ? /\\d[\\d,]*\\.\\d/.test(heroSecondaryText.textContent) : null,
       heroDeltaPeriodOnOwnLine: Boolean(heroDeltaMain && heroDeltaPeriod && heroDeltaPeriod.getBoundingClientRect().top >= heroDeltaMain.getBoundingClientRect().bottom - 1),
@@ -599,7 +654,27 @@ function collectAdditionalFailures(stateResults) {
     if (state.scenario === "linked" && state.editableAccountRows > 0) {
       failures.push(`${state.name}: Edit account mutation control is visible in linked mode`);
     }
-    const groupedPopulatedState = state.scenario === "populated" && state.interaction !== "select-flat-view";
+    const flatView = state.interaction === "select-flat-view";
+    if (state.rowCount > 0 && (state.rowCurrencyCount !== (flatView ? state.rowCount : 0)
+      || state.currencyHeaderPresent !== flatView)) {
+      failures.push(`${state.name}: currency column does not match the account view`);
+    }
+    if (state.rowActionCount || state.visibleViewLabel) {
+      failures.push(`${state.name}: a redundant row or view label is still visible`);
+    }
+    if (state.interaction === "select-all-scope" && (state.listSummary !== "7 accounts · 6 currencies"
+      || state.zeroRowAmount !== "0.00 USD" || state.zeroRowShare !== "—" || !state.zeroRowAmountMuted || !state.zeroRowNameRegular)) {
+      failures.push(`${state.name}: scope counts or zero-value styling is incorrect`);
+    }
+    if (state.interaction === "search-usd-operating" && state.listSummary !== "Found 1 of 6 accounts") {
+      failures.push(`${state.name}: search summary does not reflect the filtered and active counts`);
+    }
+    if (state.scenario === "populated-ru" && (state.heroPrimaryLabel !== "Всего на счетах"
+      || state.listSummary !== "6 счетов · 6 валют" || state.sampleRowAmount !== "199 093 440,00 UZS"
+      || !state.heroPrimaryValueText.startsWith("33 968,12"))) {
+      failures.push(`${state.name}: Russian summary or currency formatting is incorrect`);
+    }
+    const groupedPopulatedState = state.scenario === "populated" && !flatView;
     if (groupedPopulatedState && state.groupShareBarCount > 0) {
       failures.push(`${state.name}: currency groups still render per-group share bars`);
     }
@@ -621,8 +696,9 @@ function collectAdditionalFailures(stateResults) {
     if (groupedPopulatedState && !state.previousMonthVisible) {
       failures.push(`${state.name}: Accounts hero is missing "from May 2026"`);
     }
-    if (groupedPopulatedState && state.heroPrimaryValueHasDecimal) {
-      failures.push(`${state.name}: Accounts primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
+    if (groupedPopulatedState && (state.heroPrimaryLabel !== "Total in accounts"
+      || !state.heroPrimaryValueText.startsWith("33,968.12"))) {
+      failures.push(`${state.name}: Accounts hero title or currency precision is incorrect: ${state.heroPrimaryLabel} ${state.heroPrimaryValueText}`);
     }
     if (groupedPopulatedState && state.heroSecondaryTextHasDecimal) {
       failures.push(`${state.name}: Accounts secondary hero value still shows decimal digits: ${state.heroSecondaryText}`);
@@ -707,7 +783,10 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "legend marker colors match corresponding bar segment colors",
       "MoM is absent",
       "from May 2026 appears for the fixed visual QA date",
-      "primary hero value is rounded with no visible decimal digits",
+      "primary hero title and total use the locale and currency precision",
+      "currency columns appear only in flat view, with no row pencil or visible view label",
+      "row keyboard activation shows a focus ring and preserves scroll after the editor closes",
+      "scope and search counts are localized, and actual zero balances use muted values and a dash for share",
       "secondary hero amount and percent values are rounded with no visible decimal digits",
       "from May 2026 period label is on a separate line from the delta amount/percent",
       "visible USD equivalent label is absent from Accounts hero distribution",
