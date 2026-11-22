@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, DatePicker } from "antd";
+import { Alert, DatePicker, Dropdown } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
-import { ChevronLeft, ChevronRight, Plus, SlidersHorizontal, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
@@ -46,7 +46,7 @@ import {
 import "./Transactions/transactions-ledger.css";
 
 const MONTH_FILTER_COMMIT_DELAY_MS = 250;
-const NET_COMPARISON_PERCENT_DISPLAY_LIMIT = 1000;
+const additionalFilterTypes = ["internalTransfer", "correction"] as const;
 
 interface FilterChip {
     key: string;
@@ -126,6 +126,8 @@ const Transactions = () => {
     const [accountBalancesPinned, setAccountBalancesPinned] = useState(readAccountBalancesPinnedPreference);
     const [accountBalancesOpen, setAccountBalancesOpen] = useState(readAccountBalancesPinnedPreference);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+    const [moreTypesOpen, setMoreTypesOpen] = useState(false);
+    const moreTypesButton = useRef<HTMLButtonElement>(null);
     const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerCount, setLedgerCount] = useState<TransactionListCount | null>(null);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
@@ -281,6 +283,7 @@ const Transactions = () => {
         }
         : emptyLedgerMetrics;
     const viewTypeCounts = summaryData?.viewTypeCounts ?? emptyLedgerMetrics.typeCounts;
+    const activeAdditionalType = additionalFilterTypes.find(type => type === canonicalFilter.type);
     const periodLabel = useMemo(
         () => isWholeMonth
             ? formatTransactionMonthLabel(activeMonthRange, t("transactions.period.allActiveDates"))
@@ -492,29 +495,52 @@ const Transactions = () => {
     const conversionLoading = cachedRateRangeKey !== undefined
         && (cachedRatesLoading || cachedRatesCompletedKey !== cachedRateRangeKey);
     const currentConversionUnavailable = !conversionLoading && summaryData !== undefined && currentConversion?.isComplete === false;
-    const comparisonUnavailable = !conversionLoading && (currentConversionUnavailable || previousConversion?.isComplete === false);
     const previousPeriod = summaryData?.previousScope?.period;
     const previousPeriodLabel = previousPeriod
         ? isWholeMonth
             ? dayjs(previousPeriod.startDate).locale(locale).format("MMMM YYYY")
             : `${dayjs(previousPeriod.startDate).locale(locale).format("D MMM YYYY")} – ${dayjs(previousPeriod.endDate).locale(locale).format("D MMM YYYY")}`
         : "";
-    const netChange = previousConversion ? scopedMetrics.net - previousConversion.net : 0;
-    const formattedNetChange = `${createFixedAmountFormatter(locale, getCurrencyFractionDigits(baseCurrency), "exceptZero").format(netChange)} ${baseCurrency}`;
-    const netChangePercent = previousConversion?.net ? (netChange / Math.abs(previousConversion.net)) * 100 : null;
-    const netComparison = comparisonUnavailable
-        ? t("transactions.kpi.conversionUnavailable")
-        : previousConversion && summaryData?.previousScope && previousPeriodLabel
-            ? summaryData.previousScope.totalCount === 0
-                ? t("transactions.kpi.noPreviousActivity", { change: formattedNetChange, period: previousPeriodLabel })
-                : netChangePercent === null || Math.abs(netChangePercent) >= NET_COMPARISON_PERCENT_DISPLAY_LIMIT
-                    ? t("transactions.kpi.absoluteChange", { change: formattedNetChange, period: previousPeriodLabel })
-                    : t("transactions.kpi.percentChange", {
-                        change: formattedNetChange,
-                        percent: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(netChangePercent),
-                        period: previousPeriodLabel,
-                    })
-            : t("transactions.kpi.baseCurrencyContext", { currency: baseCurrency });
+    let netComparison: string;
+    let netComparisonDirection: "up" | "down" | undefined;
+    if (summaryInitialLoading || conversionLoading) {
+        netComparison = t("transactions.kpi.comparisonLoading");
+    } else if (currentConversionUnavailable || previousConversion?.isComplete === false) {
+        netComparison = t("transactions.kpi.conversionUnavailable");
+    } else if (previousPeriod && previousConversion && summaryData?.previousScope) {
+        let period = previousPeriodLabel;
+        if (isWholeMonth) {
+            const previousMonth = dayjs(previousPeriod.startDate).locale(locale);
+            // Including a day in the formatter gives Russian month names in the genitive.
+            const month = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" })
+                .formatToParts(previousMonth.toDate()).find(part => part.type === "month")?.value ?? previousMonth.format("MMMM");
+            period = previousMonth.year() === dayjs.unix(activeMonthRange[0]).year()
+                ? month
+                : t("transactions.kpi.comparisonMonthWithYear", { month, year: previousMonth.format("YYYY") });
+        }
+
+        const netChange = scopedMetrics.net - previousConversion.net;
+        const fractionDigits = getCurrencyFractionDigits(baseCurrency);
+        const formatter = createFixedAmountFormatter(locale, fractionDigits);
+        const amount = formatter.format(Math.abs(netChange));
+        const roundsToZero = amount === formatter.format(0);
+        if (roundsToZero && formatter.format(scopedMetrics.net) === formatter.format(previousConversion.net)) {
+            netComparison = t("transactions.kpi.noChange", { period });
+        } else {
+            netComparisonDirection = netChange > 0 ? "up" : "down";
+            const displayAmount = roundsToZero ? `< ${formatter.format(10 ** -fractionDigits)}` : amount;
+            netComparison = t("transactions.kpi.absoluteChange", {
+                arrow: netComparisonDirection === "up" ? "↑" : "↓",
+                change: `${displayAmount} ${baseCurrency}`,
+                period,
+            });
+        }
+        if (summaryData.previousScope.totalCount === 0) {
+            netComparison = t("transactions.kpi.noPreviousActivity", { comparison: netComparison });
+        }
+    } else {
+        netComparison = t("transactions.kpi.comparisonUnavailable");
+    }
     const rateWarnings = (conversionLoading ? [] : [
         ...(currentConversion?.warnings ?? []).map(warning => ({ ...warning, period: periodLabel })),
         ...(previousConversion?.warnings ?? []).map(warning => ({ ...warning, period: previousPeriodLabel })),
@@ -538,11 +564,12 @@ const Transactions = () => {
             sub: t("transactions.kpi.transactionCount", { count: scopedMetrics.typeCounts.expense }),
         },
         {
-            label: t("transactions.kpi.netFlow"),
+            label: t(isWholeMonth ? "transactions.kpi.monthResult" : "transactions.kpi.netFlow"),
             value: currentConversionUnavailable ? null : scopedMetrics.net,
             kind: scopedMetrics.net > 0 ? "income" as MoneyKind : scopedMetrics.net < 0 ? "expense" as MoneyKind : "neutral" as MoneyKind,
             signage: "signed" as Signage,
             sub: netComparison,
+            comparisonDirection: netComparisonDirection,
             primary: true,
         },
     ];
@@ -678,7 +705,7 @@ const Transactions = () => {
                                             />
                                     )}
                                 </div>
-                                <div className="transactions-kpi__sub" data-qa={item.primary ? "hero-secondary-text" : undefined}>{item.sub}</div>
+                                <div className="transactions-kpi__sub" data-change={item.comparisonDirection} data-qa={item.primary ? "hero-secondary-text" : undefined}>{item.sub}</div>
                             </div>
                         ))}
                     </div>
@@ -728,21 +755,63 @@ const Transactions = () => {
                             </div>
                         </div>
 
-                        <div className="transactions-ledger-controls">
+                        <div aria-label={t("transactions.type")} className="transactions-ledger-controls" role="group">
                             <SegmentedControl
-                                label={t("transactions.view")}
                                 onChange={(value) => applyServerFilter({ ...canonicalFilter, type: value as TransactionFilter["type"] })}
                                 options={[
                                     { key: "all", label: `${t("transactions.all")} ${viewTypeCounts.all}` },
                                     { key: "income", label: `${t("transactions.income")} ${viewTypeCounts.income}` },
                                     { key: "expense", label: `${t("transactions.expense")} ${viewTypeCounts.expense}` },
                                     { key: "transfer", label: `${t("transactions.transfer")} ${viewTypeCounts.transfer}` },
-                                    { key: "internalTransfer", label: `${t("transactions.internalTransfer")} ${viewTypeCounts.internalTransfer}` },
-                                    { key: "correction", label: `${t("transactions.correction")} ${viewTypeCounts.correction}` },
                                 ]}
                                 size="compact"
                                 value={canonicalFilter.type}
                             />
+                            <Dropdown
+                                autoFocus
+                                menu={{
+                                    "aria-label": t("transactions.moreTypes"),
+                                    selectable: true,
+                                    selectedKeys: activeAdditionalType ? [activeAdditionalType] : [],
+                                    items: additionalFilterTypes.map(type => ({
+                                        key: type,
+                                        label: `${t(`transactions.${type}`)} ${viewTypeCounts[type]}`,
+                                        role: "menuitemradio",
+                                        "aria-checked": type === activeAdditionalType,
+                                        onClick: ({ domEvent }) => {
+                                            // Cancel Enter's default action before returning focus to the trigger.
+                                            domEvent.preventDefault();
+                                            applyServerFilter({ ...canonicalFilter, type });
+                                            setMoreTypesOpen(false);
+                                            moreTypesButton.current?.focus();
+                                        },
+                                    })),
+                                }}
+                                onOpenChange={setMoreTypesOpen}
+                                open={moreTypesOpen}
+                                placement="bottomRight"
+                                trigger={["click"]}
+                            >
+                                <button
+                                    aria-expanded={moreTypesOpen}
+                                    aria-haspopup="menu"
+                                    aria-label={activeAdditionalType ? t("transactions.moreTypesActive", { type: t(`transactions.${activeAdditionalType}`) }) : undefined}
+                                    className="transactions-more-types"
+                                    data-active={Boolean(activeAdditionalType)}
+                                    onKeyDown={event => {
+                                        if (event.key === "ArrowDown") {
+                                            event.preventDefault();
+                                            setMoreTypesOpen(true);
+                                        }
+                                    }}
+                                    ref={moreTypesButton}
+                                    type="button"
+                                >
+                                    {activeAdditionalType && <Check aria-hidden="true" size={12} />}
+                                    {t("transactions.moreTypes")}
+                                    <ChevronDown aria-hidden="true" size={12} />
+                                </button>
+                            </Dropdown>
                         </div>
 
                         {chips.length > 0 && (

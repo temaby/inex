@@ -38,6 +38,17 @@ vi.mock("react-router-dom", async () => {
 
 vi.mock("react-i18next", async () => {
     const actual = await vi.importActual<typeof import("react-i18next")>("react-i18next");
+    const { createInstance } = await import("i18next");
+    const [en, ru] = await Promise.all([
+        import("../../public/locales/en/translation.json"),
+        import("../../public/locales/ru/translation.json"),
+    ]);
+    const translationsByLocale = createInstance();
+    await translationsByLocale.init({
+        lng: "en",
+        resources: { en: { translation: en.default }, ru: { translation: ru.default } },
+        interpolation: { escapeValue: false },
+    });
     return {
         ...actual,
         useTranslation: () => ({
@@ -65,12 +76,8 @@ vi.mock("react-i18next", async () => {
                     "transactions.expense": "Expense",
                     "transactions.filters": "Filters",
                     "transactions.income": "Income",
-                    "transactions.kpi.baseCurrencyContext": "Month summary shown in USD where rates exist",
-                    "transactions.kpi.absoluteChange": `${params?.change} vs ${params?.period}`,
-                    "transactions.kpi.percentChange": `${params?.change} (${params?.percent}%) vs ${params?.period}`,
                     "transactions.kpi.expenses": "Expenses",
                     "transactions.kpi.income": "Income",
-                    "transactions.kpi.netFlow": "Net Flow",
                     "transactions.kpi.title": "Transaction KPIs",
                     "transactions.kpi.visibleRows": `${params?.count ?? 0} transactions in ${params?.period ?? ""}`,
                     "transactions.ledger": "Ledger",
@@ -87,10 +94,9 @@ vi.mock("react-i18next", async () => {
                     "transactions.toolbarCount": `Showing ${params?.visible ?? 0} of ${params?.total ?? 0}`,
                     "transactions.toolbarCountAnnouncement": `Showing ${params?.visible ?? 0} of ${params?.total ?? 0} transactions`,
                     "transactions.transfer": "Transfer",
-                    "transactions.view": "View",
                 };
 
-                return translations[key] ?? key;
+                return translations[key] ?? translationsByLocale.getFixedT(translationState.language)(key, params);
             },
         }),
     };
@@ -321,40 +327,59 @@ describe("Transactions month controls", () => {
         };
         renderTransactions();
         expect(fetchRatesForRange).toHaveBeenCalledWith("2026-06-01", "2026-07-31", null);
+        expect(screen.getByText("Loading previous-period comparison")).toBeVisible();
     });
 
     it.each([
-        { priorNet: 3000, comparison: "+731,48 USD (24,4%) vs июнь 2026" },
-        { priorNet: 0.01, comparison: "+3 731,47 USD vs июнь 2026" },
-    ])("localizes amounts and compares against the previous period when its net was $priorNet", ({ priorNet, comparison }) => {
+        { priorNet: 3000, direction: "up", comparison: "↑ 731,48 USD относительно июня" },
+        { priorNet: 4151.98, direction: "down", comparison: "↓ 420,50 USD относительно декабря 2025 года", crossYear: true },
+        { priorNet: 3731.48, direction: null, comparison: "Без изменений относительно июня" },
+        { priorNet: 0, direction: "up", comparison: "↑ 3 731,48 USD относительно июня" },
+        { priorNet: 3731.474, currentNet: 3731.476, direction: "up", comparison: "↑ < 0,01 USD относительно июня" },
+        { priorNet: -900, currentNet: -100, displayedNet: "-100,00 USD", direction: "up", comparison: "↑ 800,00 USD относительно июня" },
+    ])("localizes the comparison when the previous net was $priorNet", ({
+        priorNet, direction, comparison, crossYear, currentNet = 3731.48, displayedNet = "+3 731,48 USD",
+    }) => {
         translationState.language = "ru";
+        if (crossYear) vi.setSystemTime(new Date("2026-01-28T12:00:00"));
+        const currentMonth = crossYear ? "2026-01" : "2026-07";
+        const previousMonth = crossYear ? "2025-12" : "2026-06";
         const typeCounts = { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 };
-        const currentTypeCounts = { ...typeCounts, all: 2, expense: 1 };
+        const currentTypeCounts = { ...typeCounts, all: 8, income: 3, expense: 5 };
         summaryQueryState.data = {
-            totalCount: 2,
+            totalCount: 8,
             typeCounts: currentTypeCounts,
             viewTypeCounts: currentTypeCounts,
             currencySummaries: [],
             baseCurrency: "USD",
             currentScope: {
-                totalCount: 2,
+                totalCount: 8,
                 typeCounts: currentTypeCounts,
-                period: { startDate: "2026-07-01", endDate: "2026-07-31" },
-                cashFlowBuckets: [{ date: "2026-07-10", currency: "USD", income: 4731.48, expense: -1000, recordCount: 2 }],
+                period: { startDate: `${currentMonth}-01`, endDate: `${currentMonth}-31` },
+                cashFlowBuckets: [{ date: `${currentMonth}-10`, currency: "USD", income: currentNet + 1000, expense: -1000, recordCount: 8 }],
             },
             previousScope: {
                 totalCount: 1,
                 typeCounts,
-                period: { startDate: "2026-06-01", endDate: "2026-06-30" },
-                cashFlowBuckets: [{ date: "2026-06-10", currency: "USD", income: priorNet, expense: 0, recordCount: 1 }],
+                period: { startDate: `${previousMonth}-01`, endDate: `${previousMonth}-${crossYear ? 31 : 30}` },
+                cashFlowBuckets: [{ date: `${previousMonth}-10`, currency: "USD", income: Math.max(priorNet, 0), expense: Math.min(priorNet, 0), recordCount: 1 }],
             },
         };
 
         const { container } = renderTransactions();
 
+        expect(screen.getByText("Итог месяца")).toBeVisible();
+        expect(screen.getByText("3 операции")).toBeVisible();
+        expect(screen.getByText("5 операций")).toBeVisible();
         expect(screen.getByText("Expenses").parentElement?.querySelector('[role="text"]')).toHaveTextContent(/^1\s000,00USD$/);
-        expect(container.querySelector('[data-qa="hero-primary-value"] [role="text"]')).toHaveAttribute("aria-label", expect.stringContaining("+3 731,48 USD"));
-        expect(container.querySelector('[data-qa="hero-secondary-text"]')).toHaveTextContent(comparison);
+        expect(container.querySelector('[data-qa="hero-primary-value"] [role="text"]')).toHaveAttribute("aria-label", expect.stringContaining(displayedNet));
+        const comparisonText = container.querySelector('[data-qa="hero-secondary-text"]');
+        expect(comparisonText).toHaveTextContent(comparison);
+        if (direction) {
+            expect(comparisonText).toHaveAttribute("data-change", direction);
+        } else {
+            expect(comparisonText).not.toHaveAttribute("data-change");
+        }
     });
 
     afterEach(() => {
@@ -624,11 +649,11 @@ describe("Transactions month controls", () => {
         expect(navigateMock).toHaveBeenCalledWith("/transactions?filter=accountIds%3A2%3Btype%3Aexpense%3B", { replace: true });
     });
 
-    it("uses untyped server VIEW counts and removes only type when All is selected", () => {
+    it("uses the untyped counts and keeps the period and search when changing type filters", async () => {
         summaryQueryState.data = {
             totalCount: 1,
             typeCounts: { all: 1, income: 1, expense: 0, transfer: 0, internalTransfer: 0, correction: 0 },
-            viewTypeCounts: { all: 4, income: 1, expense: 1, transfer: 2, internalTransfer: 0, correction: 0 },
+            viewTypeCounts: { all: 10, income: 1, expense: 1, transfer: 2, internalTransfer: 4, correction: 2 },
             currencySummaries: [],
             baseCurrency: "USD",
             currentScope: {
@@ -639,19 +664,44 @@ describe("Transactions month controls", () => {
             },
             previousScope: null,
         };
-        routerState.search = "?filter=type%3Aincome%3Bsearch%3Aview-scope%3B";
+        const periodAndSearch = "start:2026-07-01;end:2026-07-31;search:view-scope;";
+        routerState.search = `?filter=${encodeURIComponent(`${periodAndSearch}type:income;`)}`;
 
-        renderTransactions();
-        expect(screen.getByRole("button", { name: "All 4" })).toBeVisible();
+        const { rerender, store } = renderTransactions();
+        expect(screen.getByRole("button", { name: "All 10" })).toBeVisible();
         expect(screen.getByRole("button", { name: "Income 1" })).toBeVisible();
         expect(screen.getByRole("button", { name: "Expense 1" })).toBeVisible();
         expect(screen.getByRole("button", { name: "Transfer 2" })).toBeVisible();
+        expect(screen.getByText("Previous-period comparison unavailable")).toBeVisible();
+        expect(screen.queryByText("View")).not.toBeInTheDocument();
+
+        const more = screen.getByRole("button", { name: "More" });
+        expect(screen.queryByRole("menuitemradio")).not.toBeInTheDocument();
+        fireEvent.keyDown(more, { key: "ArrowDown" });
+        await act(() => vi.advanceTimersByTimeAsync(400));
+        expect(more).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("menu", { name: "More" })).toBeVisible();
+        expect(screen.getByRole("menuitemradio", { name: "Internal transfer 4", checked: false })).toBeVisible();
+        navigateMock.mockClear();
+        fireEvent.keyDown(screen.getByRole("menuitemradio", { name: "Correction 2", checked: false }), { key: "Enter", keyCode: 13, which: 13 });
+        expect(more).toHaveAttribute("aria-expanded", "false");
+        expect(more).toHaveFocus();
+        const [typeUrl] = navigateMock.mock.lastCall ?? [];
+        expect(typeUrl).toBe(`/transactions?filter=${encodeURIComponent("start:2026-07-01;end:2026-07-31;type:correction;search:view-scope;")}`);
+        routerState.search = new URL(typeUrl, "https://example.test").search;
+        rerenderPage(rerender, store);
+
+        const moreActive = screen.getByRole("button", { name: "More (selected: Correction)" });
+        expect(moreActive).toHaveAttribute("data-active", "true");
+        expect(screen.getByRole("button", { name: "All 10", pressed: false })).toBeVisible();
+        fireEvent.click(moreActive);
+        await act(() => vi.advanceTimersByTimeAsync(400));
+        expect(screen.getByRole("menuitemradio", { name: "Correction 2", checked: true })).toBeVisible();
 
         navigateMock.mockClear();
-        fireEvent.click(screen.getByRole("button", { name: "All 4" }));
-
+        fireEvent.click(screen.getByRole("button", { name: "All 10" }));
         expect(navigateMock).toHaveBeenCalledWith(
-            "/transactions?filter=search%3Aview-scope%3B",
+            `/transactions?filter=${encodeURIComponent(periodAndSearch)}`,
             { replace: true },
         );
     });
@@ -682,7 +732,7 @@ describe("Transactions month controls", () => {
             linkedUserId: 2,
             readOnly: true,
         });
-        expect(screen.getByText("linkedAccount.readOnly")).toBeVisible();
+        expect(screen.getByText("Viewing linked's financial workspace in read-only mode.")).toBeVisible();
         expect(screen.queryByRole("button", { name: "Add transaction" })).not.toBeInTheDocument();
     });
 
