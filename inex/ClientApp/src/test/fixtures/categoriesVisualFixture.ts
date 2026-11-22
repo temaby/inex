@@ -17,7 +17,7 @@ export const categoriesVisualFixtureMeta = {
   expectedBaseCurrency: "USD",
   expectedCategoryCount: 12,
   expectedTransactionCount: 10,
-  rowInteraction: "open-inline-edit",
+  rowInteraction: "open-edit-drawer",
 } as const;
 
 export const categoriesVisualFixtureCurrencies = [

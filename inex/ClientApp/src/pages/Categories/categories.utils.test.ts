@@ -9,6 +9,7 @@ import {
     filterCollapsedCategoryTree,
     flattenCategoryTree,
     buildCategoriesTree,
+    getCategoryIncomeSnapshot,
     isDescendantCategory,
     sortLeafCategoriesBySpend,
 } from "./categories.utils";
@@ -79,6 +80,26 @@ describe("category spend utilities", () => {
         expect(isDescendantCategory(3, 1, categories)).toBe(true);
         expect(isDescendantCategory(1, 3, categories)).toBe(false);
         expect(isDescendantCategory(4, 1, categories)).toBe(false);
+    });
+
+    it("uses current-period income and the existing exchange rate for income-only branches", () => {
+        const root = category(1, "Income");
+        const categories = [root, category(2, "Salary", 1), category(3, "System", 1, true)];
+        const transactions = [
+            transaction(1, 2, 90, "2026-06-04T12:00:00Z", "EUR"),
+            transaction(2, 1, 15, "2026-06-04T12:00:00Z"),
+            transaction(3, 3, -200, "2026-06-04T12:00:00Z"),
+            transaction(4, 2, -80, "2026-05-20T12:00:00Z"),
+        ];
+        const period = { year: 2026, month: 6 };
+        const rates = [{ currencyFrom: "USD", currencyTo: "EUR", rate: 2 }];
+
+        expect(getCategoryIncomeSnapshot(root, categories, transactions, period, "USD", rates))
+            .toEqual({ amount: 60, transactionCount: 2 });
+        expect(getCategoryIncomeSnapshot(root, categories, transactions, period, "USD", []))
+            .toEqual({ amount: null, transactionCount: 2 });
+        transactions.push(transaction(5, 1, -10, "2026-06-12T12:00:00Z"));
+        expect(getCategoryIncomeSnapshot(root, categories, transactions, period, "USD", rates)).toBeUndefined();
     });
 
     it("computes current-month expense stats and rolls child spend up to parents", () => {

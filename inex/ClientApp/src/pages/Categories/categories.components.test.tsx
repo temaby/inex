@@ -34,9 +34,7 @@ const renderRow = (overrides: Partial<ComponentProps<typeof CategoryRow>> = {}) 
             category={category()}
             depth={0}
             hasChildren={false}
-            isEditing={false}
             isCollapsed={false}
-            isCollapseDisabled={false}
             paletteColor="#0f766e"
             periodLabel="June 2026"
             statsAvailable
@@ -66,7 +64,8 @@ describe("Categories toolbar", () => {
         );
 
         expect(screen.getByText("categories.controlLabels.status")).toBeInTheDocument();
-        expect(screen.getByText("categories.controlLabels.view")).toBeInTheDocument();
+        expect(screen.queryByText("categories.controlLabels.view")).not.toBeInTheDocument();
+        expect(screen.getByRole("group", { name: "categories.controlLabels.view" })).toBeInTheDocument();
         expect(screen.getByRole("searchbox", { name: "categories.search.label" })).toHaveAttribute(
             "placeholder",
             "categories.search.placeholder",
@@ -109,7 +108,7 @@ describe("Category row", () => {
             statsAvailable: true,
         });
 
-        const row = screen.getByRole("button", { name: "categories.inlineEdit.edit" });
+        const row = screen.getByRole("button", { name: "categories.drawer.edit" });
         expect(row).toHaveTextContent("3 categories.activity.txns");
         expect(row).toHaveTextContent("42.50 USD");
         expect(screen.queryByLabelText("categories.activity.unavailable")).not.toBeInTheDocument();
@@ -129,8 +128,10 @@ describe("Category row", () => {
         expect(onBranchToggle).toHaveBeenCalledOnce();
         expect(onEdit).not.toHaveBeenCalled();
 
-        await user.click(screen.getByRole("button", { name: "categories.inlineEdit.edit" }));
-        expect(onEdit).toHaveBeenCalledOnce();
+        const row = screen.getByRole("button", { name: "categories.drawer.edit" });
+        await user.click(row);
+        await user.keyboard(" ");
+        expect(onEdit).toHaveBeenCalledTimes(2);
     });
 
     it("uses the shared right/down disclosure semantics", () => {
@@ -143,9 +144,7 @@ describe("Category row", () => {
                 category={category()}
                 depth={0}
                 hasChildren={true}
-                isEditing={false}
                 isCollapsed={false}
-                isCollapseDisabled={false}
                 paletteColor="#0f766e"
                 periodLabel="June 2026"
                 statsAvailable
@@ -156,11 +155,5 @@ describe("Category row", () => {
         );
 
         expect(document.querySelector("[data-hierarchy-disclosure='expanded']")).toBeInTheDocument();
-    });
-
-    it("disables collapse when it would discard a descendant edit", () => {
-        renderRow({ hasChildren: true, isCollapseDisabled: true });
-
-        expect(screen.getByRole("button", { name: "categories.branch.collapse" })).toBeDisabled();
     });
 });

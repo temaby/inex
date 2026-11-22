@@ -2,7 +2,6 @@ import * as React from "react";
 import dayjs from "dayjs";
 import {
     Lock,
-    Settings2,
     Target,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,9 +15,7 @@ interface CategoryRowProps {
     category: CategoryResponse;
     depth: number;
     hasChildren: boolean;
-    isEditing: boolean;
     isCollapsed: boolean;
-    isCollapseDisabled: boolean;
     readOnly?: boolean;
     paletteColor: string;
     periodLabel: string;
@@ -26,7 +23,7 @@ interface CategoryRowProps {
     statsAvailable: boolean;
     budget?: BudgetDetails;
     currency: string;
-    onEdit: () => void;
+    onEdit: React.MouseEventHandler<HTMLButtonElement>;
     onBranchToggle: () => void;
 }
 
@@ -34,9 +31,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     category,
     depth,
     hasChildren,
-    isEditing,
     isCollapsed,
-    isCollapseDisabled,
     readOnly = false,
     paletteColor,
     periodLabel,
@@ -72,25 +67,13 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
         "inex-hierarchy-row",
         hasChildren ? "inex-hierarchy-row--parent" : "inex-hierarchy-row--leaf",
         rowKindClass,
-        isEditing ? "is-expanded" : "",
         !category.isEnabled ? "is-disabled" : "",
     ]
         .filter(Boolean)
         .join(" ");
     const indent = Math.min(depth * HIERARCHY_DEPTH_INCREMENT, 42);
-    const RowAction = readOnly ? "div" : "button";
-
-    return (
-        <div
-            className={rowClassName}
-            style={{ "--category-indent": `${indent}px` } as React.CSSProperties}
-        >
-            <RowAction
-                aria-label={readOnly ? undefined : t("categories.inlineEdit.edit", { category: category.name })}
-                className={`category-row__edit${readOnly ? " category-row__edit--readonly" : ""}`}
-                onClick={readOnly ? undefined : onEdit}
-                type={readOnly ? undefined : "button"}
-            >
+    const content = (
+        <>
             <span className="category-row__name">
                 {depth > 0 ? <span className="category-row__connector" /> : null}
                 <span
@@ -174,12 +157,27 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                     </strong>
                 )}
             </span>
-            {!readOnly ? (
-                <span className="category-row__icon" aria-hidden="true">
-                    <Settings2 size={16} />
-                </span>
-            ) : null}
-            </RowAction>
+        </>
+    );
+
+    return (
+        <div
+            className={rowClassName}
+            style={{ "--category-indent": `${indent}px` } as React.CSSProperties}
+        >
+            {readOnly ? (
+                <div className="category-row__edit category-row__edit--readonly">{content}</div>
+            ) : (
+                <button
+                    aria-haspopup="dialog"
+                    aria-label={t("categories.drawer.edit", { category: category.name })}
+                    className="category-row__edit"
+                    onClick={onEdit}
+                    type="button"
+                >
+                    {content}
+                </button>
+            )}
             {hasChildren ? (
                 <HierarchyBranchToggle
                     ariaLabel={t(
@@ -187,10 +185,8 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                         { category: category.name },
                     )}
                     className="category-row__branch-toggle"
-                    disabled={isCollapseDisabled}
                     isCollapsed={isCollapsed}
                     onToggle={onBranchToggle}
-                    title={isCollapseDisabled ? t("categories.branch.finishEditing") : undefined}
                 />
             ) : null}
         </div>

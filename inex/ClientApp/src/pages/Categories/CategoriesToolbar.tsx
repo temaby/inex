@@ -65,7 +65,7 @@ export const CategoriesToolbar: React.FC<CategoriesToolbarProps> = ({
             />
             <ListPanelFilterBar>
                 <SegmentedControl
-                    label={t("categories.controlLabels.view")}
+                    ariaLabel={t("categories.controlLabels.view")}
                     size="compact"
                     options={[
                         { key: "tree", label: t("categories.view.tree") },

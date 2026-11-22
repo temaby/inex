@@ -42,10 +42,6 @@ vi.mock("./Categories/CategoryRow", () => ({
     ),
 }));
 
-vi.mock("./Categories/CategoryInlineEdit", () => ({
-    CategoryInlineEdit: () => <div>mock-category-edit</div>,
-}));
-
 const makeStore = () =>
     configureStore({
         reducer: {

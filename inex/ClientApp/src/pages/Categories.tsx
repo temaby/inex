@@ -1,12 +1,11 @@
 import * as React from "react";
-import { Alert, Button } from "antd";
+import { Alert, message } from "antd";
 import { FolderTree, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
     EmptyState,
     InExButton,
-    InExDrawer,
     ListPanel,
     ListPanelColumnHeader,
     ListPanelNoMatchRow,
@@ -20,8 +19,7 @@ import { useGetCategoriesQuery } from "../store/categories/categories-api";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchCachedRatesForRange } from "../store/rates/rates-action";
 import apiClient from "../utils/apiClient";
-import CategoryCreateForm from "./Categories/CategoryCreateForm";
-import { CategoryInlineEdit } from "./Categories/CategoryInlineEdit";
+import { CategoryDrawer, type CategoryDrawerSession, type CategoryMutation, type CategorySnapshot } from "./Categories/CategoryDrawer";
 import { CategoryRow } from "./Categories/CategoryRow";
 import { useCollapsedTreeNodeIds } from "./tree-expansion-preferences";
 import { CategoriesHero } from "./Categories/CategoriesHero";
@@ -37,8 +35,8 @@ import {
     filterCollapsedCategoryTree,
     flattenCategoryTree,
     getCategoryBaseCurrency,
+    getCategoryIncomeSnapshot,
     includeAncestorCategories,
-    isDescendantCategory,
     sortLeafCategoriesBySpend,
 } from "./Categories/categories.utils";
 import "./Categories/categories.css";
@@ -70,6 +68,14 @@ interface TransactionsPagedData {
 interface CurrencyOption {
     id: number;
     key: string;
+}
+
+interface CategoryDrawerState {
+    key: number;
+    open: boolean;
+    ownerId?: number;
+    preferHeaderFallback: boolean;
+    session: CategoryDrawerSession;
 }
 
 const CATEGORY_TRANSACTIONS_PAGE_SIZE = 250;
@@ -171,15 +177,15 @@ const useCurrentPeriod = () => {
 const Categories = () => {
     const { i18n, t } = useTranslation();
     const dispatch = useAppDispatch();
-    const [addOpen, setAddOpen] = React.useState(false);
+    const [drawerState, setDrawerState] = React.useState<CategoryDrawerState | null>(null);
     const [activeOnly, setActiveOnly] = React.useState(true);
     const [search, setSearch] = React.useState("");
     const [view, setView] = React.useState<CategoriesViewMode>("tree");
-    const [editingId, setEditingId] = React.useState<number | null>(null);
-    const [createError, setCreateError] = React.useState<string | null>(null);
-    const [createSubmitting, setCreateSubmitting] = React.useState(false);
     const [currencies, setCurrencies] = React.useState<CurrencyOption[]>([]);
-    const addDrawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
+    const drawerTriggerRef = React.useRef<HTMLButtonElement | null>(null);
+    const drawerSequence = React.useRef(0);
+    const restoreFocusAfterRefresh = React.useRef(false);
+    const [categoryMessage, messageHolder] = message.useMessage();
     const period = useCurrentPeriod();
     const [periodTransactions, setPeriodTransactions] = React.useState<{
         key: string;
@@ -236,41 +242,50 @@ const Categories = () => {
         ? periodTransactions.items
         : null;
 
-    const focusAddTrigger = React.useCallback((preferPageHeadFallback = false) => {
-        const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
-        const findEnabledButton = (label: string) =>
-            buttons.find((button) => !button.disabled && button.textContent?.trim() === label) ?? null;
-        const originalTrigger = addDrawerTriggerRef.current;
+    const focusDrawerTrigger = React.useCallback((preferHeaderFallback = false) => {
+        const originalTrigger = drawerTriggerRef.current;
         const connectedOriginalTrigger = originalTrigger?.isConnected ? originalTrigger : null;
-        const pageHeadAddButton = findEnabledButton(t("categories.addCategory"));
-        const emptyAddButton = findEnabledButton(t("categories.emptyState.addManually"));
-        const focusTarget = preferPageHeadFallback
-            ? pageHeadAddButton ?? connectedOriginalTrigger ?? emptyAddButton
-            : connectedOriginalTrigger ?? pageHeadAddButton ?? emptyAddButton;
+        const pageHeadAddButton = document.querySelector<HTMLButtonElement>("button[data-category-add-trigger]");
+        const focusTarget = preferHeaderFallback
+            ? pageHeadAddButton ?? connectedOriginalTrigger
+            : connectedOriginalTrigger ?? pageHeadAddButton;
 
-        focusTarget?.focus();
-    }, [t]);
-
-    const closeAddDrawer = React.useCallback((preferPageHeadFallback = false) => {
-        setAddOpen(false);
-        setCreateError(null);
-        window.setTimeout(() => focusAddTrigger(preferPageHeadFallback), 0);
-        if (preferPageHeadFallback) {
-            window.setTimeout(() => focusAddTrigger(true), 250);
-        }
-    }, [focusAddTrigger]);
-
-    const openAddDrawer: React.MouseEventHandler<HTMLButtonElement> = React.useCallback((event) => {
-        addDrawerTriggerRef.current = event.currentTarget;
-        setCreateError(null);
-        setAddOpen(true);
+        focusTarget?.focus({ preventScroll: true });
     }, []);
 
+    const openDrawer = (trigger: HTMLButtonElement, session: CategoryDrawerSession) => {
+        drawerTriggerRef.current = trigger;
+        restoreFocusAfterRefresh.current = false;
+        setDrawerState({
+            key: ++drawerSequence.current,
+            open: true,
+            ownerId: dataOwnerId,
+            preferHeaderFallback: false,
+            session,
+        });
+    };
+
+    const openAddDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) =>
+        openDrawer(event.currentTarget, { mode: "create" });
+
+    const closeDrawer = (key: number, preferHeaderFallback = false) => {
+        setDrawerState((current) => current?.key === key ? { ...current, open: false, preferHeaderFallback } : current);
+    };
+
+    const handleCategoryMutation = (key: number, mutation: CategoryMutation) => {
+        if (key !== drawerSequence.current) return;
+        void categoryMessage.success(t(`categories.formSuccess.${mutation}`));
+        restoreFocusAfterRefresh.current = mutation === "update";
+        closeDrawer(key, mutation !== "update");
+    };
+
     React.useEffect(() => {
-        if (editingId != null && !categories.some((category) => category.id === editingId)) {
-            setEditingId(null);
+        if (drawerState || !restoreFocusAfterRefresh.current || isFetching) return;
+        restoreFocusAfterRefresh.current = false;
+        if (!drawerTriggerRef.current?.isConnected && document.activeElement === document.body) {
+            focusDrawerTrigger(true);
         }
-    }, [categories, editingId]);
+    }, [drawerState, focusDrawerTrigger, isFetching]);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -301,9 +316,10 @@ const Categories = () => {
     }, [dispatch, period.month, period.year, selectedLinkedUserId]);
 
     React.useEffect(() => {
-        setAddOpen(false);
-        setEditingId(null);
-    }, [selectedLinkedUserId]);
+        setDrawerState(null);
+        drawerSequence.current += 1;
+        restoreFocusAfterRefresh.current = false;
+    }, [dataOwnerId, isLinkedMode]);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -377,6 +393,26 @@ const Categories = () => {
         [budgetsForPeriod, categories, categoryStats.period],
     );
 
+    const openedCategory = drawerState?.session.mode === "edit" ? drawerState.session.category : undefined;
+    const snapshot = React.useMemo<CategorySnapshot | undefined>(() => {
+        if (!openedCategory || isLinkedMode || drawerState?.ownerId !== dataOwnerId) return;
+        const income = getCategoryIncomeSnapshot(
+            openedCategory, categories, currentPeriodTransactions, categoryStats.period, baseCurrency, exchangeRates,
+        );
+        const spend = categoryStats.byCategoryId.get(openedCategory.id);
+        return {
+            kind: income ? "income" : "expense",
+            amount: income ? income.amount : spend?.totalSpend ?? null,
+            transactionCount: income?.transactionCount ?? spend?.transactionCount ?? 0,
+            budget: budgetByCategoryId.get(openedCategory.id),
+            periodLabel,
+            currency: categoryStats.currency,
+        };
+    }, [
+        baseCurrency, budgetByCategoryId, categories, categoryStats, currentPeriodTransactions, dataOwnerId,
+        drawerState?.ownerId, exchangeRates, isLinkedMode, openedCategory, periodLabel,
+    ]);
+
     const bySpendRows = React.useMemo(() => {
         return sortLeafCategoriesBySpend(filteredCategories, categories, categoryStats)
             .map((category) => ({
@@ -417,31 +453,10 @@ const Categories = () => {
         });
     }, []);
 
-    const createFormId = "category-create-form";
-
-    const createDrawerFooter = (
-        <React.Fragment>
-            <Button
-                size="large"
-                onClick={() => closeAddDrawer()}
-                disabled={createSubmitting}
-            >
-                {t("common.cancel")}
-            </Button>
-            <Button
-                type="primary"
-                htmlType="submit"
-                form={createFormId}
-                size="large"
-                loading={createSubmitting}
-            >
-                {t("common.create")}
-            </Button>
-        </React.Fragment>
-    );
-
     const pageExtra = !isLinkedMode ? (
         <InExButton
+            aria-haspopup="dialog"
+            data-category-add-trigger=""
             kind="primary"
             icon={<Plus size={16} aria-hidden="true" />}
             onClick={openAddDrawer}
@@ -451,73 +466,49 @@ const Categories = () => {
         </InExButton>
     ) : undefined;
 
-    const renderRows = (items: typeof rows) =>
-        items.map(({ category, depth, hasChildren }) => {
-            const isEditing = editingId === category.id;
-            const hasBranch = view === "tree" && hasChildren;
-            const isCollapseDisabled =
-                !collapsedCategoryIds.has(String(category.id)) &&
-                editingId != null &&
-                isDescendantCategory(editingId, category.id, categories);
-            return (
-                <React.Fragment key={category.id}>
-                    <CategoryRow
-                        category={category}
-                        depth={depth}
-                        hasChildren={hasBranch}
-                        isEditing={isEditing}
-                        isCollapsed={collapsedCategoryIds.has(String(category.id))}
-                        isCollapseDisabled={isCollapseDisabled}
-                        readOnly={isLinkedMode}
-                        paletteColor={categoryPaletteColor(category, categories)}
-                        periodLabel={periodLabel}
-                        stats={categoryStats.byCategoryId.get(category.id)}
-                        statsAvailable={categoryStats.available}
-                        budget={budgetByCategoryId.get(category.id)}
-                        currency={categoryStats.currency}
-                        onEdit={() => setEditingId(isEditing ? null : category.id)}
-                        onBranchToggle={() => toggleBranch(category.id)}
-                    />
-                    {isEditing && !isLinkedMode ? (
-                        <CategoryInlineEdit
-                            category={category}
-                            allCategories={categories}
-                            stats={categoryStats.byCategoryId.get(category.id)}
-                            statsAvailable={categoryStats.available}
-                            budget={budgetByCategoryId.get(category.id)}
-                            currency={categoryStats.currency}
-                            periodLabel={periodLabel}
-                            onClose={() => setEditingId(null)}
-                        />
-                    ) : null}
-                </React.Fragment>
-            );
-        });
+    const renderRows = (items: typeof rows) => items.map(({ category, depth, hasChildren }) => (
+        <CategoryRow
+            key={category.id}
+            category={category}
+            depth={depth}
+            hasChildren={view === "tree" && hasChildren}
+            isCollapsed={collapsedCategoryIds.has(String(category.id))}
+            readOnly={isLinkedMode}
+            paletteColor={categoryPaletteColor(category, categories)}
+            periodLabel={periodLabel}
+            stats={categoryStats.byCategoryId.get(category.id)}
+            statsAvailable={categoryStats.available}
+            budget={budgetByCategoryId.get(category.id)}
+            currency={categoryStats.currency}
+            onEdit={(event) => openDrawer(event.currentTarget, { mode: "edit", category })}
+            onBranchToggle={() => toggleBranch(category.id)}
+        />
+    ));
 
     return (
         <React.Fragment>
-            {!isLinkedMode ? <InExDrawer
-                title={t("categories.addDrawerTitle")}
-                subtitle={t("categories.addDrawerSubtitle")}
-                open={addOpen}
-                onClose={closeAddDrawer}
-                footer={createDrawerFooter}
-            >
-                {createError ? (
-                    <Alert
-                        className="categories-alert"
-                        type="error"
-                        showIcon
-                        message={createError}
-                    />
-                ) : null}
-                <CategoryCreateForm
-                    formId={createFormId}
-                    onCreated={() => closeAddDrawer(true)}
-                    onError={() => setCreateError(t("categories.formErrors.createFailed"))}
-                    onSubmittingChange={setCreateSubmitting}
+            {messageHolder}
+            {drawerState && !isLinkedMode && drawerState.ownerId === dataOwnerId && (
+                <CategoryDrawer
+                    key={drawerState.key}
+                    session={drawerState.session}
+                    open={drawerState.open}
+                    allCategories={categories}
+                    snapshot={snapshot}
+                    onClose={() => closeDrawer(drawerState.key)}
+                    afterOpenChange={(open) => {
+                        if (open || drawerState.open || drawerState.key !== drawerSequence.current) return;
+                        setDrawerState(null);
+                        // The Drawer restores its own trigger after this callback.
+                        window.setTimeout(() => {
+                            if (drawerState.key === drawerSequence.current) {
+                                focusDrawerTrigger(drawerState.preferHeaderFallback);
+                            }
+                        }, 0);
+                    }}
+                    onMutationSuccess={(mutation) => handleCategoryMutation(drawerState.key, mutation)}
                 />
-            </InExDrawer> : null}
+            )}
             <BasicPage
                 frame="management"
                 title={t("categories.title")}
@@ -579,6 +570,7 @@ const Categories = () => {
                                 : t("categories.emptyState.description")}
                             actions={!isLinkedMode ? (
                                 <InExButton
+                                    aria-haspopup="dialog"
                                     kind="primary"
                                     icon={<Plus size={16} aria-hidden="true" />}
                                     onClick={openAddDrawer}
@@ -609,7 +601,6 @@ const Categories = () => {
                                     t("categories.category"),
                                     t("categories.snapshot.spend"),
                                     t("categories.activity.title"),
-                                    "",
                                 ]}
                             />
                             {showInitialLoading ? (
