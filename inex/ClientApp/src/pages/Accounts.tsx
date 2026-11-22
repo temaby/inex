@@ -3,8 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, message } from "antd";
 import {
-    Info,
-    Pencil,
     Plus,
     RefreshCw,
     Wallet,
@@ -21,7 +19,6 @@ import {
     SegmentedControl,
     Tag as InExTag,
 } from "../components/primitives";
-import type { NumProps } from "../components/primitives";
 import BasicPage from "../layouts/BasicPage";
 import { useAppSelector } from "../store/hooks";
 import apiClient from "../utils/apiClient";
@@ -45,7 +42,6 @@ import {
     makeCurrencyGroups,
     normalizeAccountSearch,
     sortAccountsByBaseValue,
-    toFixedMoney,
 } from "./Accounts/accounts-utils";
 import "./Accounts/accounts.css";
 
@@ -241,9 +237,16 @@ const Accounts = () => {
         [searchedAccounts],
     );
 
-    const activeCount = displayAccounts.filter((account) => account.isEnabled).length;
     const scopedCount = scopedAccounts.length;
     const hasSearch = normalizeAccountSearch(search).length > 0;
+    const isGrouped = viewMode === "currency";
+    const listSummary = hasSearch
+        ? t("accounts.inventory.searchResults", { visible: searchedAccounts.length, count: scopedCount })
+        : t("accounts.inventory.summary", {
+            accounts: t("accounts.inventory.accountCount", { count: scopedCount }),
+            currencies: t("accounts.inventory.currencyCount", { count: allDistributionGroups.length }),
+        });
+    const shareFormatter = useMemo(() => createFixedAmountFormatter(i18n.language, 1), [i18n.language]);
     const isInitialLoading = accountsQuery.isLoading && accounts.length === 0;
     const isRefreshing = (accountsQuery.isFetching || summaryQuery.isFetching) && accounts.length > 0;
     const hasLoadError = accountsQuery.isError && accounts.length === 0;
@@ -269,11 +272,6 @@ const Accounts = () => {
         if (accountIds.length > 0) summaryQuery.refetch();
     };
 
-    const formatGroupCount = (count: number): string =>
-        count === 1
-            ? t("accounts.group.accountCountOne", { count })
-            : t("accounts.group.accountCountOther", { count });
-
     const focusDrawerTrigger = React.useCallback((preferHeaderFallback = false) => {
         const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
         const findEnabledButton = (label: string) =>
@@ -286,7 +284,7 @@ const Accounts = () => {
             ? headerAddButton ?? connectedOriginalTrigger ?? emptyAddButton
             : connectedOriginalTrigger ?? headerAddButton ?? emptyAddButton;
 
-        focusTarget?.focus();
+        focusTarget?.focus({ preventScroll: true });
     }, [t]);
 
     const openDrawer = (event: React.MouseEvent<HTMLButtonElement>, session: AccountDrawerSession) => {
@@ -334,9 +332,21 @@ const Accounts = () => {
         });
     };
 
+    const renderMoney = (value: number, currency: string) => (
+        <Num
+            currency={currency}
+            fractionDigits="currency"
+            kind={value < 0 ? "expense" : "neutral"}
+            locale={i18n.language}
+            muted={value === 0}
+            signage="negative-only"
+            value={value}
+        />
+    );
+
     const renderBaseEquivalent = (
         value: number | null,
-        options: { approx?: boolean; className?: string; fractionDigits?: NumProps["fractionDigits"] } = {},
+        options: { approx?: boolean; className?: string } = {},
     ) => {
         if (value === null || !baseCurrency) {
             return (
@@ -353,12 +363,7 @@ const Accounts = () => {
                         {t("accounts.equivalent.approx")}
                     </span>
                 )}
-                <Num
-                    currency={baseCurrency}
-                    fractionDigits={options.fractionDigits}
-                    kind={value < 0 ? "expense" : "neutral"}
-                    value={toFixedMoney(value)}
-                />
+                {renderMoney(value, baseCurrency)}
             </span>
         );
     };
@@ -417,7 +422,8 @@ const Accounts = () => {
                         kind={thisMonthNet < 0 ? "expense" : "income"}
                         signage="signed"
                         fractionDigits={0}
-                        value={toFixedMoney(thisMonthNet)}
+                        locale={i18n.language}
+                        value={thisMonthNet}
                     />
                     <span>
                         {t("accounts.hero.momDeltaPercentValue", {
@@ -460,6 +466,19 @@ const Accounts = () => {
         );
     };
 
+    const renderRowShare = (account: AccountDisplay, share: number | null) => {
+        if (account.value === 0) return t("accounts.emptyShare");
+        if (share === null) return t("accounts.equivalent.unavailable");
+
+        const signedShare = (account.baseValue ?? 0) < 0 ? -share : share;
+        if (share > 0 && share < 0.05) {
+            return t(signedShare < 0 ? "accounts.smallNegativeShare" : "accounts.smallPositiveShare", {
+                value: shareFormatter.format(signedShare < 0 ? -0.1 : 0.1),
+            });
+        }
+        return t("accounts.shareOfNetWorth", { value: shareFormatter.format(signedShare) });
+    };
+
     const renderRow = (account: AccountDisplay, groupColor?: string) => {
         const share = account.baseValue === null || equivalentShareTotal === null
             ? null
@@ -468,14 +487,15 @@ const Accounts = () => {
                 : 0;
         const rowActionLabel = t(isLinkedMode ? "accounts.viewAccountAction" : "accounts.editAccountAction", { name: account.name });
         const rowId = `account-row-${account.id}`;
-        const rowDescription = `${rowId}-meta ${rowId}-balance ${rowId}-currency ${rowId}-share`;
+        const rowDescription = [
+            `${rowId}-meta`,
+            `${rowId}-balance`,
+            ...(!isGrouped ? [`${rowId}-currency`] : []),
+            `${rowId}-share`,
+        ].join(" ");
         const accountValue = account.value;
         const balanceUnavailable = accountValue === undefined;
         const displayDescription = getAccountDisplayDescription(account.name, account.description);
-        const isZeroValue = !balanceUnavailable
-            && accountValue === 0
-            && (account.baseValue === null || account.baseValue === 0)
-            && (share === null || share === 0);
 
         return (
             <div className="accounts-row-wrap" key={account.id}>
@@ -483,7 +503,7 @@ const Accounts = () => {
                     aria-describedby={rowDescription}
                     aria-haspopup="dialog"
                     aria-label={rowActionLabel}
-                    className={`accounts-row${groupColor ? " accounts-row--tree-leaf" : ""}${account.isEnabled ? "" : " is-disabled"}${isZeroValue ? " is-zero-value" : ""}`}
+                    className={`accounts-row${groupColor ? " accounts-row--tree-leaf" : ""}${account.isEnabled ? "" : " is-disabled"}`}
                     onClick={(event) => openDrawer(event, { mode: isLinkedMode ? "view" : "edit", account })}
                     style={groupColor ? { "--accounts-currency-color": groupColor } as React.CSSProperties : undefined}
                     title={rowActionLabel}
@@ -512,30 +532,22 @@ const Accounts = () => {
                             : (
                                 <React.Fragment>
                                     <span className="accounts-row__balance-primary">
-                                        <Num
-                                            currency={account.currency}
-                                            kind={accountValue < 0 ? "expense" : "neutral"}
-                                            value={toFixedMoney(accountValue)}
-                                        />
+                                        {renderMoney(accountValue, account.currency)}
                                     </span>
                                     {renderBaseEquivalent(account.baseValue, {
                                         approx: account.currency !== baseCurrency,
                                         className: "accounts-row__balance-equivalent",
-                                        fractionDigits: account.currency !== baseCurrency ? 0 : undefined,
                                     })}
                                 </React.Fragment>
                             )}
                     </span>
-                    <span className="accounts-row__currency" id={`${rowId}-currency`}>
-                        {account.currency}
-                    </span>
+                    {!isGrouped && (
+                        <span className="accounts-row__currency" id={`${rowId}-currency`}>
+                            {account.currency}
+                        </span>
+                    )}
                     <span className="accounts-row__share" id={`${rowId}-share`}>
-                        {share === null
-                            ? t("accounts.equivalent.unavailable")
-                            : t("accounts.shareOfNetWorth", { value: share.toFixed(1) })}
-                    </span>
-                    <span className="accounts-row__action" aria-hidden="true">
-                        {isLinkedMode ? <Info size={17} /> : <Pencil size={17} />}
+                        {renderRowShare(account, share)}
                     </span>
                 </button>
             </div>
@@ -548,10 +560,9 @@ const Accounts = () => {
         return (
             <div className="accounts-list-header">
                 <span>{t("accounts.headers.account")}</span>
-                <span>{t("accounts.headers.balance")}</span>
-                <span>{t("accounts.headers.currency")}</span>
-                <span>{t("accounts.headers.share")}</span>
-                <span aria-hidden="true" />
+                <span className="accounts-list-header__numeric">{t("accounts.headers.balance")}</span>
+                {!isGrouped && <span className="accounts-list-header__currency">{t("accounts.headers.currency")}</span>}
+                <span className="accounts-list-header__numeric">{t("accounts.headers.share")}</span>
             </div>
         );
     };
@@ -617,46 +628,39 @@ const Accounts = () => {
 
                     return (
                         <div className="accounts-group">
-                            <div className="accounts-group__head inex-hierarchy-row inex-hierarchy-row--parent">
                             <HierarchyBranchToggle
-                                childrenId={branch.childrenId}
+                                ariaDescribedBy={`accounts-group-${group.currency}-count accounts-group-${group.currency}-balance`}
                                 ariaLabel={t(branch.isCollapsed ? "accounts.group.expand" : "accounts.group.collapse", {
                                     currency: group.currency,
                                 })}
-                                className="accounts-group__toggle"
+                                childrenId={branch.childrenId}
+                                className="accounts-group__head accounts-group__toggle inex-hierarchy-row inex-hierarchy-row--parent"
                                 isCollapsed={branch.isCollapsed}
                                 onToggle={branch.toggle}
-                            />
-                            <span className="accounts-group__identity">
-                                <span
-                                    aria-hidden="true"
-                                    className="accounts-group__marker"
-                                    style={{ background: groupColor }}
-                                />
-                                <strong className="accounts-group__title">{group.currency}</strong>
-                                <span className="accounts-group__count">{formatGroupCount(group.accounts.length)}</span>
-                            </span>
-                            <span className="accounts-group__metrics">
-                                <span className="accounts-group__balance">
+                            >
+                                <span className="accounts-group__identity">
+                                    <span
+                                        aria-hidden="true"
+                                        className="accounts-group__marker"
+                                        style={{ background: groupColor }}
+                                    />
+                                    <strong className="accounts-group__title">{group.currency}</strong>
+                                    <span className="accounts-group__count" id={`accounts-group-${group.currency}-count`}>
+                                        {t("accounts.inventory.accountCount", { count: group.accounts.length })}
+                                    </span>
+                                </span>
+                                <span className="accounts-group__balance" id={`accounts-group-${group.currency}-balance`}>
                                     <span className="accounts-group__subtotal">
                                         {group.accounts.every((account) => account.value !== undefined)
-                                            ? (
-                                                <Num
-                                                    currency={group.currency}
-                                                    kind={group.subtotal < 0 ? "expense" : "neutral"}
-                                                    value={toFixedMoney(group.subtotal)}
-                                                />
-                                            )
+                                            ? renderMoney(group.subtotal, group.currency)
                                             : t("accounts.hero.balanceUnavailable")}
                                     </span>
                                     {renderBaseEquivalent(group.baseSubtotal, {
                                         approx: group.currency !== baseCurrency,
                                         className: "accounts-group__base",
-                                        fractionDigits: group.currency !== baseCurrency ? 0 : undefined,
                                     })}
                                 </span>
-                            </span>
-                            </div>
+                            </HierarchyBranchToggle>
                         </div>
                     );
                 }}
@@ -744,7 +748,7 @@ const Accounts = () => {
                     ) : null}
                     <section className="accounts-hero" data-qa="hero-card">
                         <div className="accounts-hero__net">
-                            <div className="accounts-eyebrow" data-qa="hero-primary-label">{t("accounts.hero.netWorth")}</div>
+                            <div className="accounts-eyebrow" data-qa="hero-primary-label">{t("accounts.hero.totalInAccounts")}</div>
                             <div className="accounts-hero__value" data-qa="hero-primary-value">
                                 {hasCompleteScopedBaseValues
                                     ? (
@@ -752,9 +756,12 @@ const Accounts = () => {
                                             currency={baseCurrency ?? undefined}
                                             currencyDataQa="hero-primary-currency"
                                             currencySize="sm"
-                                            fractionDigits={0}
+                                            fractionDigits="currency"
                                             kind={totalBaseValue < 0 ? "expense" : "neutral"}
-                                            value={toFixedMoney(totalBaseValue)}
+                                            locale={i18n.language}
+                                            muted={totalBaseValue === 0}
+                                            signage="negative-only"
+                                            value={totalBaseValue}
                                         />
                                     )
                                     : <span>{t("accounts.hero.balanceUnavailable")}</span>}
@@ -827,24 +834,12 @@ const Accounts = () => {
                         </div>
                     </section>
 
-                    <section className="accounts-card">
+                    <section className={`accounts-card accounts-card--${viewMode}`}>
                         <div className="accounts-toolbar" aria-label={t("accounts.toolbar.label")} role="region">
                             <div className="accounts-toolbar__primary">
                                 <div className="accounts-toolbar__title">
                                     <h2>{t("accounts.workspaceTitle")}</h2>
-                                    <p className="accounts-toolbar__summary">
-                                        <span>
-                                            {t("accounts.inventory.summary", {
-                                                visible: searchedAccounts.length,
-                                                total: scopedCount,
-                                            })}
-                                        </span>
-                                        <span>
-                                            {scope === "active"
-                                                ? t("accounts.inventory.activeOnly", { count: activeCount })
-                                                : t("accounts.inventory.allScope")}
-                                        </span>
-                                    </p>
+                                    <p className="accounts-toolbar__summary">{listSummary}</p>
                                     {hasPartialError && (
                                         <span className="accounts-inline-retry">
                                             {t("accounts.error.partialFailure")}
@@ -865,7 +860,7 @@ const Accounts = () => {
                             </div>
                             <div className="accounts-toolbar__filters">
                                 <SegmentedControl
-                                    label={t("accounts.toolbar.viewLabel")}
+                                    ariaLabel={t("accounts.toolbar.viewLabel")}
                                     size="compact"
                                     value={viewMode}
                                     onChange={(key) => setViewMode(key as AccountViewMode)}

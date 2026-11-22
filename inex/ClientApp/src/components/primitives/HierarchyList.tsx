@@ -24,7 +24,9 @@ export interface HierarchyListProps<TBranch> {
 }
 
 export interface HierarchyBranchToggleProps {
+    ariaDescribedBy?: string;
     ariaLabel: string;
+    children?: React.ReactNode;
     childrenId?: string;
     className?: string;
     disabled?: boolean;
@@ -38,7 +40,9 @@ export interface HierarchyBranchToggleProps {
  * A collapsed branch always points right; an expanded branch always points down.
  */
 export const HierarchyBranchToggle: React.FC<HierarchyBranchToggleProps> = ({
+    ariaDescribedBy,
     ariaLabel,
+    children,
     childrenId,
     className,
     disabled = false,
@@ -48,6 +52,7 @@ export const HierarchyBranchToggle: React.FC<HierarchyBranchToggleProps> = ({
 }) => (
     <button
         aria-controls={childrenId}
+        aria-describedby={ariaDescribedBy}
         aria-expanded={!isCollapsed}
         aria-label={ariaLabel}
         className={["inex-hierarchy-toggle", className].filter(Boolean).join(" ")}
@@ -63,6 +68,7 @@ export const HierarchyBranchToggle: React.FC<HierarchyBranchToggleProps> = ({
         >
             {isCollapsed ? <ChevronRight size={17} /> : <ChevronDown size={17} />}
         </span>
+        {children}
     </button>
 );
 
