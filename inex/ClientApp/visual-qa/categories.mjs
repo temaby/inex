@@ -120,6 +120,13 @@ const states = [
     scenario: "empty",
   },
   {
+    name: "drawer-open-1440",
+    screenshot: "drawer-open-1440.png",
+    viewport: { width: 1440, height: 1000 },
+    scenario: "populated",
+    interaction: "open-add-drawer",
+  },
+  {
     name: "drawer-open-390",
     screenshot: "drawer-open-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
@@ -134,18 +141,33 @@ const states = [
     interaction: "open-add-drawer",
   },
   {
-    name: "expanded-row-1440",
-    screenshot: "expanded-row-1440.png",
+    name: "edit-drawer-1440",
+    screenshot: "edit-drawer-1440.png",
     viewport: { width: 1440, height: 1000 },
     scenario: "populated",
-    interaction: "expand-first-row",
+    interaction: "open-edit-drawer",
   },
   {
-    name: "expanded-row-390",
-    screenshot: "expanded-row-390.png",
+    name: "edit-drawer-spend-1024",
+    screenshot: "edit-drawer-spend-1024.png",
+    viewport: { width: 1024, height: defaultViewportHeight },
+    scenario: "populated",
+    interaction: "open-edit-from-spend",
+  },
+  {
+    name: "edit-drawer-390",
+    screenshot: "edit-drawer-390.png",
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "populated",
-    interaction: "expand-first-row",
+    interaction: "open-edit-drawer",
+  },
+  {
+    name: "edit-drawer-information-ru-360",
+    screenshot: "edit-drawer-information-ru-360.png",
+    viewport: { width: 360, height: 800 },
+    scenario: "populated-ru",
+    interaction: "open-edit-information",
+    locale: "ru",
   },
   {
     name: "load-error-390",
@@ -165,7 +187,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse(authUser);
+        return jsonResponse(scenario === "populated-ru" ? { ...authUser, languageCode: "ru" } : authUser);
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
         return jsonResponse({
@@ -253,14 +275,23 @@ async function applyInteraction(client, state) {
       await evaluate(client, clickButtonByTextExpression("Add category"));
       await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Add Category')");
       return;
-    case "expand-first-row":
+    case "open-edit-from-spend":
+      await evaluate(client, clickButtonByTextExpression("By spend"));
+      await waitFor(client, "document.querySelector('button.category-row__edit')?.textContent.includes('Rent')");
+      await openEditDrawer(client, "Rent");
+      return;
+    case "open-edit-drawer":
+      await openEditDrawer(client, "Groceries");
+      return;
+    case "open-edit-information":
+      await openEditDrawer(client, "Groceries");
       await evaluate(client, `(() => {
-        const editButton = document.querySelector(".category-row:not(.category-row--parent) .category-row__edit");
-        if (!editButton) return false;
-        editButton.click();
-        return true;
+        const summary = document.querySelector(".category-drawer-information summary");
+        summary.click();
+        const drawerBody = summary.closest('.ant-drawer-body');
+        drawerBody.scrollTop = drawerBody.scrollHeight;
       })()`);
-      await waitFor(client, "document.body.innerText.includes('Edit category')");
+      await waitFor(client, "Boolean(document.querySelector('.category-drawer-information[open]'))");
       return;
     case "collapse-first-branch":
       await evaluate(client, `(() => {
@@ -278,7 +309,21 @@ async function applyInteraction(client, state) {
   }
 }
 
+async function openEditDrawer(client, name) {
+  await evaluate(client, `(() => {
+    const rows = Array.from(document.querySelectorAll('.category-row'));
+    const row = rows.find((item) => item.querySelector('.category-row__title strong')?.textContent === ${JSON.stringify(name)});
+    window.categoryRowsBeforeEdit = rows.map((item) => item.getBoundingClientRect().height);
+    row.querySelector('button.category-row__edit').click();
+  })()`);
+  await waitFor(client, `document.querySelector('.ant-drawer-open #category-editor_name')?.value === ${JSON.stringify(name)}`);
+}
+
 async function waitForCategoriesReady(client, state) {
+  if (state.locale === "ru") {
+    await waitFor(client, "document.body.innerText.includes('Категории') && document.body.innerText.includes('Groceries')");
+    return;
+  }
   await waitFor(client, "document.body.innerText.includes('Categories')");
 
   if (state.scenario === "categories-error") {
@@ -305,6 +350,9 @@ async function collectMetrics(client, state, apiRequestCount) {
     const contentRect = content ? content.getBoundingClientRect() : null;
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
+    const drawerBody = drawer?.querySelector('.ant-drawer-body');
+    const drawerFooter = drawer?.querySelector('.ant-drawer-footer');
+    const information = drawer?.querySelector('.category-drawer-information');
     const rows = Array.from(document.querySelectorAll(".category-row"));
     const columnHeaders = Array.from(document.querySelectorAll(".categories-list .inex-list-panel__columns span"));
     const firstRowCells = rows[0]
@@ -312,7 +360,6 @@ async function collectMetrics(client, state, apiRequestCount) {
       : [];
     const branchToggles = Array.from(document.querySelectorAll(".category-row__branch-toggle"));
     const expandedRows = branchToggles.filter((toggle) => toggle.getAttribute("aria-expanded") === "true");
-    const inlineEdit = document.querySelector(".category-inline-edit");
     const hero = document.querySelector('[data-qa="hero-card"]');
     const heroSummary = document.querySelector(".categories-hero__summary");
     const heroPrimaryValue = document.querySelector('[data-qa="hero-primary-value"] [role="text"] > span') ?? document.querySelector('[data-qa="hero-primary-value"]');
@@ -395,11 +442,25 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerOpen: Boolean(drawer),
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
+      drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
+      drawerFooterVisible: Boolean(drawerFooter && drawerFooter.getBoundingClientRect().bottom <= window.innerHeight),
+      drawerSaveDisabled: Boolean(drawerFooter?.querySelector('button[type="submit"][disabled]')),
+      drawerHasDelete: Boolean(drawerFooter?.querySelector('.ant-btn-dangerous')),
+      drawerHasSwitch: Boolean(drawerBody?.querySelector('button[role="switch"]')),
+      drawerParentReadOnly: Boolean(drawerBody?.querySelector('#category-parent-readonly[readonly]')),
+      drawerInformation: information ? (information.open ? 'expanded' : 'collapsed') : null,
+      drawerPreservesRowHeights: window.categoryRowsBeforeEdit
+        ? JSON.stringify(window.categoryRowsBeforeEdit) === JSON.stringify(rows.map((row) => row.getBoundingClientRect().height))
+        : null,
+      overlappingBudgetBadge: rows.some((row) => {
+        const badge = row.querySelector('.category-row__chip--budget');
+        const amount = row.querySelector('.category-row__spent [role="text"]');
+        return badge && amount && badge.getBoundingClientRect().right > amount.getBoundingClientRect().left;
+      }),
       rowCount: rows.length,
       expandedRowCount: expandedRows.length,
       branchToggleCount: branchToggles.length,
       collapsedBranchCount: branchToggles.filter((toggle) => toggle.getAttribute("aria-expanded") === "false").length,
-      inlineEditOpen: Boolean(inlineEdit),
       heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
       heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
       distributionEyebrow: styleSample(distributionEyebrow),
@@ -443,6 +504,7 @@ async function collectMetrics(client, state, apiRequestCount) {
     screenshot: state.screenshot,
     viewport: state.viewport,
     scenario: state.scenario,
+    locale: state.locale ?? "en",
     interaction: state.interaction ?? null,
     ...metrics,
   };
@@ -451,8 +513,12 @@ async function collectMetrics(client, state, apiRequestCount) {
 function runState(args) {
   return runBrowserState({
     ...args,
+    state: {
+      ...args.state,
+      screenshotMode: args.state.interaction?.startsWith("open-") ? "viewport" : undefined,
+    },
     routePath: "/categories",
-    initScript: `${fixedDateInitScript(args.fixture.categoriesVisualFixtureMeta.fixedNow, "en")}
+    initScript: `${fixedDateInitScript(args.fixture.categoriesVisualFixtureMeta.fixedNow, args.state.locale ?? "en")}
       localStorage.removeItem("inex.tree-expansion.categories.user-1");
       localStorage.removeItem("inex.tree-expansion.categories.user-2");`,
     waitForReady: waitForCategoriesReady,
@@ -477,7 +543,7 @@ function collectAdditionalFailures(stateResults) {
     if (state.scenario === "linked" && state.editControlCount > 0) {
       failures.push(`${state.name}: category edit controls are visible in linked mode`);
     }
-    const populatedState = state.scenario === "populated";
+    const populatedState = state.scenario.startsWith("populated");
     if (!populatedState) continue;
 
     if (state.distributionSegmentCount !== state.distributionLegendItemCount) {
@@ -489,7 +555,7 @@ function collectAdditionalFailures(stateResults) {
     if (state.distributionSegmentColors.some((color, index) => color !== state.distributionLegendMarkerColors[index])) {
       failures.push(`${state.name}: Categories legend marker colors do not match bar segment colors`);
     }
-    if (!state.distributionLegendLabels.includes("Other")) {
+    if (!state.distributionLegendLabels.includes(state.locale === "ru" ? "Другое" : "Other")) {
       failures.push(`${state.name}: Categories distribution fixture did not render Other segment`);
     }
     if (state.usdEquivalentVisibleInHeroDistribution) {
@@ -506,6 +572,31 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.interaction === "collapse-first-branch" && state.collapsedBranchCount !== 1) {
       failures.push(`${state.name}: Categories collapsed branch state was not rendered`);
+    }
+    if (state.interaction === "collapse-first-branch" && state.drawerOpen) {
+      failures.push(`${state.name}: using the branch control unexpectedly opened the editor`);
+    }
+    if (state.toolbarLabels.length !== 1) {
+      failures.push(`${state.name}: Categories should display only the status label`);
+    }
+    if (state.overlappingBudgetBadge) {
+      failures.push(`${state.name}: a category budget badge overlaps the displayed amount`);
+    }
+    const editing = state.interaction?.startsWith("open-edit-");
+    if (editing || state.interaction === "open-add-drawer") {
+      const expectedWidth = Math.min(460, state.viewport.width);
+      if (state.drawerBounds?.width !== expectedWidth || !state.drawerWithinViewport ||
+          state.drawerBodyOverflow || !state.drawerFooterVisible || !state.drawerHasSwitch) {
+        failures.push(`${state.name}: drawer width, viewport, switch, or footer check failed`);
+      }
+      const info = state.interaction === "open-edit-information" ? "expanded" : "collapsed";
+      if (editing && (!state.drawerHasDelete || !state.drawerSaveDisabled || !state.drawerParentReadOnly ||
+          !state.drawerPreservesRowHeights || state.drawerInformation !== info)) {
+        failures.push(`${state.name}: edit drawer fields, tree geometry, or information state did not match`);
+      }
+      if (!editing && (state.drawerHasDelete || state.drawerInformation !== null)) {
+        failures.push(`${state.name}: create drawer displayed edit-only controls`);
+      }
     }
     for (const label of state.toolbarLabels) {
       const normalLetterSpacing = label.letterSpacing === "0px" || label.letterSpacing === "normal";
@@ -577,7 +668,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "secondary hero top-category amount is rounded with no visible decimal digits",
       "visible Change from period copy is absent from the Categories hero summary",
       "visible USD equivalent label is absent from Categories hero distribution",
-      "Status and View labels use the shared uppercase small-label treatment",
+      "only Status uses the visible uppercase small-label treatment",
+      "category create and edit drawers match the shared width and keep their footers accessible",
+      "opening the editor preserves row heights and the chevron only toggles its branch",
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
       "desktop category table headers align with rendered row columns",

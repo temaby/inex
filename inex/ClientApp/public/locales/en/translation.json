@@ -671,7 +671,12 @@
     "title": "Categories",
     "subtitle": "Manage",
     "addDrawerTitle": "Add Category",
-    "addDrawerSubtitle": "Create a parent group or child category for future transactions.",
+    "addDrawerSubtitle": "Add a top-level category or choose a parent.",
+    "editDrawerTitle": "Edit Category",
+    "saving": "Saving…",
+    "discardConfirm": "Discard unsaved category changes?",
+    "discardChanges": "Discard changes",
+    "keepEditing": "Keep editing",
     "category": "Category",
     "status": "Status",
     "active": "Active",
@@ -740,23 +745,23 @@
       "noResults": "No categories match these filters",
       "label": "Search categories"
     },
-    "inlineEdit": {
+    "drawer": {
       "edit": "Edit {{category}}",
-      "editSection": "Edit category",
-      "snapshotSection": "Snapshot · {{period}}",
-      "systemNotice": "This is a system category. It can't be renamed, disabled, or deleted.",
-      "viewTransactions": "View transactions",
-      "setBudget": "Set budget",
-      "reparentNotSupported": "Reparenting is not supported yet",
+      "basicInformation": "Basic information",
+      "settings": "Settings",
+      "activeSetting": "Active category",
+      "information": "Category information",
+      "systemNotice": "System categories are managed by InEx.",
+      "reparentNotSupported": "The parent is fixed after creation.",
       "noParent": "Top-level category"
     },
     "branch": {
       "collapse": "Collapse {{category}} branch",
-      "expand": "Expand {{category}} branch",
-      "finishEditing": "Finish editing the open category before collapsing this branch."
+      "expand": "Expand {{category}} branch"
     },
     "snapshot": {
       "spend": "Spend",
+      "income": "Income",
       "transactions": "Transactions",
       "budget": "Budget",
       "categoryId": "Category ID",
@@ -785,9 +790,17 @@
     },
     "formErrors": {
       "createFailed": "Could not create the category",
+      "descriptionTooLong": "Description is too long",
       "updateFailed": "Could not update the category",
       "deleteFailed": "Could not delete the category",
-      "deleteHasChildren": "Move or delete child categories before deleting this parent category"
+      "deleteHasChildren": "Delete the child categories before deleting this parent category.",
+      "deleteHasTransactions": "This category is used by transactions and cannot be deleted.",
+      "deleteHasBudgets": "This category is linked to budgets and cannot be deleted."
+    },
+    "formSuccess": {
+      "create": "Category created",
+      "update": "Category saved",
+      "delete": "Category deleted"
     },
     "addCategory": "Add category",
     "controlLabels": {

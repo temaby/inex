@@ -255,6 +255,36 @@ const isInPeriod = (value: string, period: CategoryPeriod): boolean => {
     return date.getFullYear() === period.year && date.getMonth() + 1 === period.month;
 };
 
+// Categories have no income/expense type. Use income for branches with only income activity in this period.
+export const getCategoryIncomeSnapshot = (
+    category: CategoryResponse,
+    categories: CategoryResponse[],
+    transactions: TransactionResponse[] | null,
+    period: CategoryPeriod,
+    currency: string | null,
+    exchangeRates: CategoryExchangeRate[],
+): { amount: number | null; transactionCount: number } | undefined => {
+    if (!transactions || isSystemCategory(category)) return;
+
+    const includedIds = new Set(categories.filter((item) => !isSystemCategory(item) && (
+        item.id === category.id || isDescendantCategory(item.id, category.id, categories)
+    )).map(({ id }) => id));
+    let amount: number | null = 0;
+    let transactionCount = 0;
+
+    for (const transaction of transactions) {
+        if (!includedIds.has(transaction.categoryId) || !isInPeriod(transaction.created, period)) continue;
+        if (transaction.amount < 0) return;
+        if (transaction.amount > 0) {
+            transactionCount += 1;
+            const converted = toBaseCurrencyAmount(transaction.amount, transaction.accountCurrency, currency, exchangeRates);
+            amount = amount == null || converted == null ? null : amount + converted;
+        }
+    }
+
+    if (transactionCount > 0) return { amount, transactionCount };
+};
+
 const isExpenseTransaction = (
     transaction: TransactionResponse,
     category: CategoryResponse | undefined,
