@@ -594,7 +594,7 @@ const Transactions = () => {
     const headerActions = (
         <div className="transactions-header-actions">
             {!isLinkedMode && <InExButton
-                icon={<Plus size={16} />}
+                icon={<Plus size={16} style={{ flexShrink: 0 }} />}
                 kind="primary"
                 onClick={openAddDrawer}
                 size="md"

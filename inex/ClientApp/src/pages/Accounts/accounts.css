@@ -664,8 +664,24 @@
     margin-top: 12px;
 }
 
-.accounts-drawer-secondary-actions {
-    margin-top: 12px;
+.inex-drawer-actions.accounts-drawer-primary-actions {
+    padding-top: 0;
+}
+
+.inex-drawer-actions.accounts-drawer-actions--edit {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.accounts-drawer-actions--edit .accounts-drawer-primary-actions {
+    flex-direction: row;
+    margin-inline-start: auto;
+}
+
+.accounts-drawer-actions--edit > button,
+.accounts-drawer-actions--edit .accounts-drawer-primary-actions > button {
+    width: auto;
 }
 
 .accounts-snapshot {
@@ -694,6 +710,11 @@
     margin: 0;
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+.accounts-snapshot__metric [role="text"] > [aria-hidden="true"] {
+    /* Num keeps amounts on one line by default. */
+    white-space: normal !important;
 }
 
 .accounts-form-error {

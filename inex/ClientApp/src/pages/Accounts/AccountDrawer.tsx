@@ -215,34 +215,34 @@ const AccountDrawer = ({
                             </div>
                         </section>
                         {isEditing && account && (
-                            <>
-                                <details className="accounts-drawer-information" data-qa="account-drawer-information">
-                                    <summary>{t("accounts.snapshot.title")}</summary>
-                                    {information}
-                                </details>
-                                <div className="accounts-drawer-secondary-actions">
-                                    <Popconfirm
-                                        cancelText={t("accounts.cancel")}
-                                        disabled={busy}
-                                        okButtonProps={{ danger: true }}
-                                        okText={t("accounts.delete")}
-                                        onConfirm={() => runMutation("delete", () => deleteAccount(account.id).unwrap())}
-                                        title={t("accounts.deleteConfirm")}
-                                    >
-                                        <Button danger htmlType="button" loading={isDeleting} type="text">
-                                            {t("accounts.delete")}
-                                        </Button>
-                                    </Popconfirm>
-                                </div>
-                            </>
+                            <details className="accounts-drawer-information" data-qa="account-drawer-information">
+                                <summary>{t("accounts.snapshot.title")}</summary>
+                                {information}
+                            </details>
                         )}
-                        <div className="inex-drawer-actions inex-drawer-actions--sticky">
-                            <InExButton disabled={busy} onClick={requestClose}>
-                                {t("accounts.cancel")}
-                            </InExButton>
-                            <InExButton aria-busy={isSaving} disabled={busy || (isEditing && !dirty)} kind="primary" type="submit">
-                                {t(isSaving ? "accounts.saving" : isEditing ? "accounts.save" : "accounts.createAccount")}
-                            </InExButton>
+                        <div className={`inex-drawer-actions inex-drawer-actions--sticky${isEditing ? " accounts-drawer-actions--edit" : ""}`}>
+                            {isEditing && account && (
+                                <Popconfirm
+                                    cancelText={t("accounts.cancel")}
+                                    disabled={busy}
+                                    okButtonProps={{ danger: true }}
+                                    okText={t("accounts.delete")}
+                                    onConfirm={() => runMutation("delete", () => deleteAccount(account.id).unwrap())}
+                                    title={t("accounts.deleteConfirm")}
+                                >
+                                    <Button danger disabled={busy} htmlType="button" loading={isDeleting} type="text">
+                                        {t("accounts.delete")}
+                                    </Button>
+                                </Popconfirm>
+                            )}
+                            <div className="inex-drawer-actions accounts-drawer-primary-actions">
+                                <InExButton disabled={busy} onClick={requestClose}>
+                                    {t("accounts.cancel")}
+                                </InExButton>
+                                <InExButton aria-busy={isSaving} disabled={busy || (isEditing && !dirty)} kind="primary" type="submit">
+                                    {t(isSaving ? "accounts.saving" : isEditing ? "accounts.save" : "accounts.createAccount")}
+                                </InExButton>
+                            </div>
                         </div>
                     </Form>
                 )}

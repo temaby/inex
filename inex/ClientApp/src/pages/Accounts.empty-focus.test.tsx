@@ -20,6 +20,7 @@ import {
 } from "../test/fixtures/accountsVisualFixture";
 
 const apiClientMock = vi.hoisted(() => Object.assign(vi.fn(), { get: vi.fn() }));
+const locale = vi.hoisted(() => ({ language: "en" }));
 const render = (ui: React.ReactElement) => renderTest(<StyleProvider autoClear>{ui}</StyleProvider>);
 
 vi.mock("../utils/apiClient", () => ({
@@ -29,7 +30,7 @@ vi.mock("../utils/apiClient", () => ({
 vi.mock("react-i18next", async (importOriginal) => ({
     ...await importOriginal<typeof import("react-i18next")>(),
     useTranslation: () => ({
-        i18n: { language: "en" },
+        i18n: locale,
         t: (key: string, options?: Record<string, unknown>) => {
             const translations: Record<string, string> = {
                 "accounts.workspaceTitle": "Accounts",
@@ -50,6 +51,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
                 "accounts.hero.momComparisonPeriod": "vs previous month",
                 "accounts.hero.momComparisonFallback": "Change from previous month",
                 "accounts.hero.baseEquivalentLabel": `${String(options?.currency)} equivalent`,
+                "accounts.snapshot.rateValue": `${String(options?.value)} ${String(options?.baseCurrency)} / ${String(options?.currency)}`,
             };
 
             return translations[key] ?? key;
@@ -144,6 +146,7 @@ const populatedSummaries = [
 
 describe("Accounts empty-state create focus", () => {
     beforeEach(() => {
+        locale.language = "en";
         vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
         window.localStorage.clear();
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
@@ -350,6 +353,32 @@ describe("Accounts empty-state create focus", () => {
         expect(document.querySelectorAll(".accounts-group")).toHaveLength(1);
         await user.clear(searchbox);
         expect(await screen.findByRole("button", { name: "accounts.group.expand" })).toHaveAttribute("aria-controls", "hierarchy-children-UZS");
+    });
+
+    it.each([
+        { currency: "UZS", value: 190860318.79, rate: 12000, amount: "190 860 318,79 UZS", equivalent: "15 905,03 USD", rateLabel: "0,00008333 USD / UZS" },
+        { currency: "UZS", value: -1, rate: 12000, amount: "-1,00 UZS", equivalent: "0,00 USD", rateLabel: "0,00008333 USD / UZS" },
+        { currency: "JPY", value: 0, rate: 1e10, amount: "0 JPY", equivalent: "0,00 USD", rateLabel: "0,0000000001 USD / JPY" },
+        { currency: "KWD", value: -1.234, rate: 0.32, amount: "-1,234 KWD", equivalent: "-3,86 USD", rateLabel: "3,1250 USD / KWD" },
+    ])("localizes $currency balances and reporting rates in account information", async ({ currency, value, rate, amount, equivalent, rateLabel }) => {
+        locale.language = "ru";
+        const account = { ...populatedAccounts[0], currency, currencyId: 7 };
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => ({
+            data: { data: url.startsWith("/accounts/details") ? [{ ...account, value, thisMonthNet: 0 }] : [account] },
+        }));
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        render(
+            <Provider store={makeStore([{ ...accountsVisualFixtureRates[0], currencyTo: currency, rate }])}>
+                <MemoryRouter><Accounts /></MemoryRouter>
+            </Provider>,
+        );
+        const user = userEvent.setup();
+        await user.click(await screen.findByRole("button", { name: "Edit account Cash wallet" }));
+        const drawer = within(await screen.findByRole("dialog", { name: /accounts.editDrawerTitle/ }));
+        await user.click(drawer.getByText("accounts.snapshot.title"));
+        expect(await drawer.findByText(amount)).toBeVisible();
+        expect(drawer.getByText(equivalent)).toBeVisible();
+        expect(drawer.getByText(rateLabel)).toBeVisible();
     });
 
     it("uses linked account queries and exposes no mutation controls in linked mode", async () => {
