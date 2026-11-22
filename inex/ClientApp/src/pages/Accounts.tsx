@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert } from "antd";
+import { Alert, message } from "antd";
 import {
-    ChevronDown,
-    ChevronUp,
+    Info,
+    Pencil,
     Plus,
     RefreshCw,
     Wallet,
@@ -16,7 +16,6 @@ import {
     HierarchyBranchToggle,
     HierarchyList,
     InExButton,
-    InExDrawer,
     Input,
     Num,
     SegmentedControl,
@@ -31,8 +30,7 @@ import {
     useGetAccountsQuery,
     useGetAccountsSummaryQuery,
 } from "../store/accounts/accounts-api";
-import AccountCreateForm from "./Accounts/AccountCreateForm";
-import AccountEditForm from "./Accounts/AccountEditForm";
+import AccountDrawer, { type AccountDrawerSession, type AccountMutation, type CurrencyOption } from "./Accounts/AccountDrawer";
 import { useCollapsedTreeNodeIds } from "./tree-expansion-preferences";
 import {
     AccountDisplay,
@@ -53,9 +51,12 @@ import "./Accounts/accounts.css";
 type AccountScope = "active" | "all";
 type AccountViewMode = "currency" | "flat";
 
-interface CurrencyOption {
-    id: number;
-    key: string;
+interface AccountDrawerState {
+    key: number;
+    open: boolean;
+    ownerId: number | null;
+    preferHeaderFallback: boolean;
+    session: AccountDrawerSession;
 }
 
 const currencyMarkerColor = (currency: string): string => {
@@ -82,14 +83,17 @@ const getErrorDetail = (error: unknown): string | null => {
 
 const Accounts = () => {
     const { i18n, t } = useTranslation();
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [drawerState, setDrawerState] = useState<AccountDrawerState | null>(null);
     const [scope, setScope] = useState<AccountScope>("active");
     const [viewMode, setViewMode] = useState<AccountViewMode>("currency");
     const [search, setSearch] = useState("");
-    const [expandedId, setExpandedId] = useState<number | null>(null);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
-    const [pendingCreatedFocusRestore, setPendingCreatedFocusRestore] = useState(false);
+    const [currencyRequest, setCurrencyRequest] = useState(0);
+    const [currencyStatus, setCurrencyStatus] = useState<"loading" | "ready" | "error">("loading");
+    const [accountMessage, messageHolder] = message.useMessage();
+    const drawerSequence = useRef(0);
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const restoreFocusAfterRefresh = useRef(false);
 
     const exchangeRates = useAppSelector((state) => state.rates.items);
     const userCurrencyId = useAppSelector((state) => state.auth.user?.currencyId);
@@ -116,18 +120,19 @@ const Accounts = () => {
             .then(({ data }) => {
                 if (!cancelled) {
                     setCurrencies(data);
+                    setCurrencyStatus("ready");
                 }
             })
             .catch(() => {
                 if (!cancelled) {
-                    setCurrencies([]);
+                    setCurrencyStatus("error");
                 }
             });
 
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [currencyRequest]);
 
     const accountsQuery = useGetAccountsQuery(
         selectedLinkedUserId === null
@@ -145,8 +150,7 @@ const Accounts = () => {
     const summaries = summaryQuery.currentData ?? [];
 
     useEffect(() => {
-        setDrawerOpen(false);
-        setExpandedId(null);
+        setDrawerState((current) => current?.ownerId === selectedLinkedUserId ? current : null);
     }, [selectedLinkedUserId]);
     const summaryIds = useMemo(
         () => new Set(summaries.map((summary) => summary.id)),
@@ -284,28 +288,38 @@ const Accounts = () => {
         focusTarget?.focus();
     }, [t]);
 
-    const openDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    const openDrawer = (event: React.MouseEvent<HTMLButtonElement>, session: AccountDrawerSession) => {
         drawerTriggerRef.current = event.currentTarget;
-        setDrawerOpen(true);
+        restoreFocusAfterRefresh.current = false;
+        setDrawerState({
+            key: ++drawerSequence.current,
+            open: true,
+            ownerId: selectedLinkedUserId,
+            preferHeaderFallback: false,
+            session,
+        });
     };
 
-    const closeDrawer = (preferHeaderFallback = false) => {
-        if (preferHeaderFallback) {
-            setPendingCreatedFocusRestore(true);
-        }
-        setDrawerOpen(false);
-        window.setTimeout(() => focusDrawerTrigger(preferHeaderFallback), 0);
-        if (preferHeaderFallback) {
-            window.setTimeout(() => focusDrawerTrigger(true), 250);
-        }
+    const openCreateDrawer: React.MouseEventHandler<HTMLButtonElement> = (event) => openDrawer(event, { mode: "create" });
+
+    const closeDrawer = (key: number, preferHeaderFallback = false) => {
+        setDrawerState((current) => current?.key === key ? { ...current, open: false, preferHeaderFallback } : current);
+    };
+
+    const handleAccountMutation = (key: number, mutation: AccountMutation) => {
+        if (key !== drawerSequence.current) return;
+        void accountMessage.success(t(`accounts.formSuccess.${mutation}`));
+        restoreFocusAfterRefresh.current = mutation === "update";
+        closeDrawer(key, mutation !== "update");
     };
 
     useEffect(() => {
-        if (!pendingCreatedFocusRestore || drawerOpen || accounts.length === 0) return;
-
-        window.setTimeout(() => focusDrawerTrigger(true), 0);
-        setPendingCreatedFocusRestore(false);
-    }, [accounts.length, drawerOpen, focusDrawerTrigger, pendingCreatedFocusRestore]);
+        if (drawerState || !restoreFocusAfterRefresh.current || accountsQuery.isFetching) return;
+        restoreFocusAfterRefresh.current = false;
+        if (!drawerTriggerRef.current?.isConnected && document.activeElement === document.body) {
+            focusDrawerTrigger(true);
+        }
+    }, [accountsQuery.isFetching, drawerState, focusDrawerTrigger]);
 
     const toggleCurrencyGroup = (currency: string) => {
         setCollapsedCurrencies((current) => {
@@ -375,8 +389,8 @@ const Accounts = () => {
 
     const renderSnapshotMetric = (label: string, value: React.ReactNode) => (
         <div className="accounts-snapshot__metric">
-            <span>{label}</span>
-            <strong>{value}</strong>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
         </div>
     );
 
@@ -412,32 +426,29 @@ const Accounts = () => {
         const rateToBase = getRateToBaseLabel(account);
         const baseEquivalentLabel = baseCurrency
             ? t("accounts.snapshot.baseEquivalent", { currency: baseCurrency })
-            : t("accounts.equivalent.unavailable");
+            : t("accounts.snapshot.reportingEquivalent");
 
         return (
-            <aside className="accounts-snapshot" aria-label={t("accounts.snapshot.title")}>
-                <div className="accounts-snapshot__title">{t("accounts.snapshot.title")}</div>
-                <div className="accounts-snapshot__grid">
-                    {renderSnapshotMetric(
-                        t("accounts.snapshot.currentBalance"),
-                        account.value === undefined
-                            ? t("accounts.hero.balanceUnavailable")
-                            : (
-                                <Num
-                                    currency={account.currency}
-                                    kind={account.value < 0 ? "expense" : "neutral"}
-                                    value={toFixedMoney(account.value)}
-                                />
-                            ),
-                    )}
-                    {renderSnapshotMetric(
-                        baseEquivalentLabel,
-                        renderBaseEquivalent(account.baseValue, { className: "accounts-snapshot__amount" }),
-                    )}
-                    {rateToBase && renderSnapshotMetric(t("accounts.snapshot.rateToBase"), rateToBase)}
-                    {renderSnapshotMetric(t("accounts.snapshot.accountId"), `#${account.id}`)}
-                </div>
-            </aside>
+            <dl className="accounts-snapshot">
+                {renderSnapshotMetric(
+                    t("accounts.snapshot.currentBalance"),
+                    account.value === undefined
+                        ? t("accounts.hero.balanceUnavailable")
+                        : (
+                            <Num
+                                currency={account.currency}
+                                kind={account.value < 0 ? "expense" : "neutral"}
+                                value={toFixedMoney(account.value)}
+                            />
+                        ),
+                )}
+                {renderSnapshotMetric(
+                    baseEquivalentLabel,
+                    renderBaseEquivalent(account.baseValue, { className: "accounts-snapshot__amount" }),
+                )}
+                {renderSnapshotMetric(t("accounts.snapshot.rateToBase"), rateToBase ?? t("accounts.snapshot.rateUnavailable"))}
+                {renderSnapshotMetric(t("accounts.snapshot.accountId"), `#${account.id}`)}
+            </dl>
         );
     };
 
@@ -447,7 +458,9 @@ const Accounts = () => {
             : equivalentShareTotal > 0
                 ? Math.abs(account.baseValue / equivalentShareTotal) * 100
                 : 0;
-        const expanded = expandedId === account.id;
+        const rowActionLabel = t(isLinkedMode ? "accounts.viewAccountAction" : "accounts.editAccountAction", { name: account.name });
+        const rowId = `account-row-${account.id}`;
+        const rowDescription = `${rowId}-meta ${rowId}-balance ${rowId}-currency ${rowId}-share`;
         const accountValue = account.value;
         const balanceUnavailable = accountValue === undefined;
         const displayDescription = getAccountDisplayDescription(account.name, account.description);
@@ -459,10 +472,13 @@ const Accounts = () => {
         return (
             <div className="accounts-row-wrap" key={account.id}>
                 <button
-                    aria-expanded={expanded}
+                    aria-describedby={rowDescription}
+                    aria-haspopup="dialog"
+                    aria-label={rowActionLabel}
                     className={`accounts-row${groupColor ? " accounts-row--tree-leaf" : ""}${account.isEnabled ? "" : " is-disabled"}${isZeroValue ? " is-zero-value" : ""}`}
-                    onClick={() => setExpandedId(expanded ? null : account.id)}
+                    onClick={(event) => openDrawer(event, { mode: isLinkedMode ? "view" : "edit", account })}
                     style={groupColor ? { "--accounts-currency-color": groupColor } as React.CSSProperties : undefined}
+                    title={rowActionLabel}
                     type="button"
                 >
                     <span className="accounts-row__main">
@@ -474,7 +490,7 @@ const Accounts = () => {
                         )}
                         <span className="accounts-row__title">
                             <span className="accounts-row__name">{account.name}</span>
-                            <span className="accounts-row__meta">
+                            <span className="accounts-row__meta" id={`${rowId}-meta`}>
                                 {displayDescription && <span>{displayDescription}</span>}
                                 {!account.isEnabled && (
                                     <InExTag kind="neutral">{t("accounts.disabled")}</InExTag>
@@ -482,7 +498,7 @@ const Accounts = () => {
                             </span>
                         </span>
                     </span>
-                    <span className="accounts-row__balance">
+                    <span className="accounts-row__balance" id={`${rowId}-balance`}>
                         {balanceUnavailable
                             ? <span className="accounts-muted-metric">{t("accounts.hero.balanceUnavailable")}</span>
                             : (
@@ -502,26 +518,18 @@ const Accounts = () => {
                                 </React.Fragment>
                             )}
                     </span>
-                    <span className="accounts-row__currency">
+                    <span className="accounts-row__currency" id={`${rowId}-currency`}>
                         {account.currency}
                     </span>
-                    <span className="accounts-row__share">
+                    <span className="accounts-row__share" id={`${rowId}-share`}>
                         {share === null
                             ? t("accounts.equivalent.unavailable")
                             : t("accounts.shareOfNetWorth", { value: share.toFixed(1) })}
                     </span>
-                    <span className="accounts-row__chevron" aria-hidden="true">
-                        {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                    <span className="accounts-row__action" aria-hidden="true">
+                        {isLinkedMode ? <Info size={17} /> : <Pencil size={17} />}
                     </span>
                 </button>
-                {expanded && (
-                    <div className="accounts-edit-panel">
-                        <div className="accounts-edit-panel__grid">
-                            {!isLinkedMode ? <AccountEditForm record={account} /> : null}
-                            {renderAccountSnapshot(account)}
-                        </div>
-                    </div>
-                )}
             </div>
         );
     };
@@ -591,15 +599,12 @@ const Accounts = () => {
                 className="accounts-groups"
                 collapsedIds={collapsedCurrencies}
                 getBranchId={(group) => group.currency}
-                isCollapseDisabled={(group) => group.accounts.some((account) => account.id === expandedId)}
                 onToggle={toggleCurrencyGroup}
                 renderChildren={(group) => {
                     const groupColor = currencyMarkerColor(group.currency);
                     return <div className="accounts-list">{group.accounts.map((account) => renderRow(account, groupColor))}</div>;
                 }}
                 renderBranch={(group, branch) => {
-                    const collapseDisabled = !branch.isCollapsed
-                        && group.accounts.some((account) => account.id === expandedId);
                     const groupColor = currencyMarkerColor(group.currency);
 
                     return (
@@ -611,10 +616,8 @@ const Accounts = () => {
                                     currency: group.currency,
                                 })}
                                 className="accounts-group__toggle"
-                                disabled={collapseDisabled}
                                 isCollapsed={branch.isCollapsed}
                                 onToggle={branch.toggle}
-                                title={collapseDisabled ? t("accounts.group.finishEditing") : undefined}
                             />
                             <span className="accounts-group__identity">
                                 <span
@@ -653,19 +656,39 @@ const Accounts = () => {
         );
     };
 
-    const drawer = !isLinkedMode ? (
-        <InExDrawer
-            open={drawerOpen}
-            onClose={closeDrawer}
-            title={t("accounts.addDrawerTitle")}
-            subtitle={t("accounts.drawerSubtitle")}
-        >
-            <AccountCreateForm onCancel={() => closeDrawer()} onCreated={() => closeDrawer(true)} />
-        </InExDrawer>
-    ) : null;
+    const openedAccount = drawerState?.session.mode !== "create" ? drawerState?.session.account : undefined;
+    const accountInformation = openedAccount && renderAccountSnapshot(
+        displayAccounts.find(({ id }) => id === openedAccount.id) ?? openedAccount,
+    );
+    const drawer = (
+        <>
+            {messageHolder}
+            {drawerState && drawerState.ownerId === selectedLinkedUserId && (
+                <AccountDrawer
+                    afterOpenChange={(open) => {
+                        if (open || drawerState.open || drawerState.key !== drawerSequence.current) return;
+                        setDrawerState(null);
+                        focusDrawerTrigger(drawerState.preferHeaderFallback);
+                    }}
+                    currencies={currencies}
+                    currencyStatus={currencyStatus}
+                    information={accountInformation}
+                    key={drawerState.key}
+                    onClose={() => closeDrawer(drawerState.key)}
+                    onMutationSuccess={(mutation) => handleAccountMutation(drawerState.key, mutation)}
+                    open={drawerState.open}
+                    onRetryCurrencies={() => {
+                        setCurrencyStatus("loading");
+                        setCurrencyRequest((request) => request + 1);
+                    }}
+                    session={drawerState.session}
+                />
+            )}
+        </>
+    );
 
     const pageExtra = !isLinkedMode ? (
-        <InExButton icon={<Plus size={16} />} kind="primary" onClick={openDrawer}>
+        <InExButton icon={<Plus size={16} />} kind="primary" onClick={openCreateDrawer}>
             {t("accounts.addAccount")}
         </InExButton>
     ) : undefined;
@@ -684,7 +707,7 @@ const Accounts = () => {
                                     ? t("linkedAccount.readOnly", { username: selectedLinkedAccount?.username ?? "" })
                                     : t("accounts.emptyState.description")}
                                 actions={!isLinkedMode ? (
-                                    <InExButton icon={<Plus size={15} />} kind="primary" onClick={openDrawer}>
+                                    <InExButton icon={<Plus size={15} />} kind="primary" onClick={openCreateDrawer}>
                                         {t("accounts.emptyState.primaryAction")}
                                     </InExButton>
                                 ) : undefined}

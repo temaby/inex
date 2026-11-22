@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { TransactionResponse } from "../../model/Transaction/TransactionResponse";
 import { transactionsApi, useGetTransactionsQuery, type TransactionsPagedResult } from "../../store/transactions/transactions-api";
 import type { NormalizedTransactionFilter } from "../../store/transactions/transactions-slice";
-import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, type MoneyKind } from "../../components/primitives";
+import { EmptyState, FilterEmpty, InExButton, InExDrawer, Num, RECORD_EDITOR_DRAWER_WIDTH, type MoneyKind } from "../../components/primitives";
 import TransactionEditForm from "./TransactionEditForm";
 import {
     appendSequentialPage,
@@ -302,7 +302,7 @@ const TransactionList = ({ accounts, baseCurrency, cachedExchangeRates, categori
             })}
         </section>)}
         <div className="transactions-pagination"><div>{t("transactions.paginationSummary", { visible: transactions.length, total, period: periodLabel })}</div>{navigationMode === "progressive" ? <div ref={loadMoreSentinel}><InExButton disabled={!hasNextPage || query.isFetching} kind="default" onClick={loadMore}>{query.isFetching ? t("transactions.loading.refreshing") : t("transactions.loadMore")}</InExButton></div> : <Pagination current={pagination.current} onChange={paginationChangedHandler} pageSize={pagination.size} pageSizeOptions={[20, 50, 100]} showSizeChanger total={total} />}</div>
-        {!readOnly && <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={460}>{editRecord ? <><TransactionEditForm accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>}
+        {!readOnly && <InExDrawer onClose={closeEditDrawer} open={editRecord !== null} subtitle={t("transactions.editDrawerSubtitle")} title={t("transactions.editDrawerTitle")} width={RECORD_EDITOR_DRAWER_WIDTH}>{editRecord ? <><TransactionEditForm accounts={accounts} categories={categories} onMutationSuccess={restoreLedgerFocusAfterMutation} record={editRecord} />{formError && <Alert className="transactions-form-error" message={formError} showIcon type="error" />}</> : <div className="transactions-empty-drawer"><Inbox size={20} /></div>}</InExDrawer>}
     </>;
 };
 

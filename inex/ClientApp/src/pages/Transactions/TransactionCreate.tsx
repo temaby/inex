@@ -538,7 +538,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
                     onSetDirection={setInternalTransferDirectionHandler} validationErrors={validationErrors}
                 />
             )}
-            <div className="transactions-drawer-actions">
+            <div className="transactions-drawer-actions inex-drawer-actions inex-drawer-actions--sticky">
                 <InExButton kind="default" onClick={() => resetAndClose(onCancel)}>
                     {t("transactions.cancel")}
                 </InExButton>

@@ -30,6 +30,21 @@ const authUser = {
 };
 
 const defaultViewportHeight = 900;
+const drawerViewports = [
+  { width: 1440, height: 1000 },
+  { width: 1024, height: defaultViewportHeight },
+  { width: 390, height: defaultViewportHeight },
+  { width: 360, height: defaultViewportHeight },
+];
+const drawerLabels = {
+  en: { add: "Add account", edit: "Edit account", create: "Create account", save: "Save", cancel: "Cancel" },
+  ru: { add: "Добавить счёт", edit: "Редактировать счёт", create: "Создать счёт", save: "Сохранить", cancel: "Отмена" },
+};
+const accountInformationSelector = '[data-qa="account-drawer-information"]';
+const accountListStateExpression = `JSON.stringify({
+  groups: Array.from(document.querySelectorAll(".accounts-group__toggle"), (button) => button.getAttribute("aria-expanded")),
+  rows: Array.from(document.querySelectorAll(".accounts-row__name"), (name) => name.textContent),
+})`;
 
 const states = [
   {
@@ -104,33 +119,36 @@ const states = [
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "empty",
   },
+  ...drawerViewports.flatMap((viewport) => [
+    {
+      name: `drawer-open-${viewport.width}`,
+      screenshot: `drawer-open-${viewport.width}.png`,
+      screenshotMode: "viewport",
+      viewport,
+      scenario: "populated",
+      interaction: "open-drawer",
+      drawerMode: "create",
+    },
+    {
+      name: `edit-drawer-${viewport.width}`,
+      screenshot: `edit-drawer-${viewport.width}.png`,
+      screenshotMode: "viewport",
+      viewport,
+      scenario: "populated",
+      interaction: "open-edit-drawer",
+      drawerMode: "edit",
+    },
+  ]),
   {
-    name: "drawer-open-390",
-    screenshot: "drawer-open-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "populated",
-    interaction: "open-drawer",
-  },
-  {
-    name: "drawer-open-360",
-    screenshot: "drawer-open-360.png",
+    name: "edit-drawer-information-ru-360",
+    screenshot: "edit-drawer-information-ru-360.png",
+    screenshotMode: "viewport",
     viewport: { width: 360, height: defaultViewportHeight },
-    scenario: "populated",
-    interaction: "open-drawer",
-  },
-  {
-    name: "expanded-row-1440",
-    screenshot: "expanded-row-1440.png",
-    viewport: { width: 1440, height: 1000 },
-    scenario: "populated",
-    interaction: "expand-first-row",
-  },
-  {
-    name: "expanded-row-390",
-    screenshot: "expanded-row-390.png",
-    viewport: { width: 390, height: defaultViewportHeight },
-    scenario: "populated",
-    interaction: "expand-first-row",
+    scenario: "drawer-info-ru",
+    interaction: "open-edit-drawer-with-information",
+    drawerMode: "edit",
+    language: "ru",
+    editAccountName: "PLN card",
   },
   {
     name: "collapsed-group-1440",
@@ -152,13 +170,6 @@ const states = [
     viewport: { width: 390, height: defaultViewportHeight },
     scenario: "populated",
     interaction: "search-usd-operating",
-  },
-  {
-    name: "expanded-edit-collapse-protected-1440",
-    screenshot: "expanded-edit-collapse-protected-1440.png",
-    viewport: { width: 1440, height: 1000 },
-    scenario: "populated",
-    interaction: "expand-first-row-and-protect-group",
   },
   {
     name: "disabled-zero-balance-390",
@@ -200,7 +211,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         return jsonResponse({ accessToken: "visual-qa-token", expiresIn: 3600 });
       }
       if (url.pathname === "/api/auth/me" && method === "GET") {
-        return jsonResponse(authUser);
+        return jsonResponse(scenario === "drawer-info-ru" ? { ...authUser, languageCode: "ru" } : authUser);
       }
       if (url.pathname === "/api/auth/link-state" && method === "GET" && scenario === "linked") {
         return jsonResponse({
@@ -243,6 +254,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
 }
 
 async function applyInteraction(client, state, fixture) {
+  const labels = drawerLabels[state.language ?? "en"];
   switch (state.interaction) {
     case "select-linked-account":
       await waitFor(client, "Boolean(document.querySelector('[aria-label=\"Financial workspace\"]'))");
@@ -290,28 +302,36 @@ async function applyInteraction(client, state, fixture) {
       await waitFor(client, "document.body.innerText.includes('USD operating') && !document.body.innerText.includes('UZS main wallet')");
       return;
     case "open-drawer":
-      await evaluate(client, clickButtonByTextExpression("Add account"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open'))");
+      await evaluate(client, clickButtonByTextExpression(labels.add));
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open form'))");
       return;
-    case "expand-first-row":
-      await evaluate(client, `(() => {
-        const row = document.querySelector(".accounts-row");
-        if (!row) return false;
-        row.click();
-        return true;
-      })()`);
-      await waitFor(client, "document.body.innerText.includes('SNAPSHOT')");
+    case "open-edit-drawer":
+    case "open-edit-drawer-with-information": {
+      const openInformation = state.interaction === "open-edit-drawer-with-information";
+      await waitFor(client, `Boolean(document.querySelector('[data-qa="hero-distribution-bar"]'))`);
+      if (openInformation) {
+        await applyInteraction(client, { ...state, interaction: "collapse-fixture-group" }, fixture);
+      }
+      const listBeforeEdit = await evaluate(client, accountListStateExpression);
+      const editLabelSelector = state.editAccountName
+        ? `[aria-label="${labels.edit} ${state.editAccountName}"]`
+        : `[aria-label^="${labels.edit} "]`;
+      const editActionSelector = `button.accounts-row${editLabelSelector}, .accounts-row button${editLabelSelector}`;
+      const findEditAction = `document.querySelector(${JSON.stringify(editActionSelector)})`;
+      await waitFor(client, `Boolean(${findEditAction})`);
+      await evaluate(client, `${findEditAction}.click()`);
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open form'))");
+      const listAfterEdit = await evaluate(client, accountListStateExpression);
+      if (listAfterEdit !== listBeforeEdit) {
+        throw new Error(`${state.name}: account list changed from ${listBeforeEdit} to ${listAfterEdit}`);
+      }
+      if (openInformation) {
+        await evaluate(client, `document.querySelector(${JSON.stringify(`${accountInformationSelector} > summary`)})?.click()`);
+        await waitFor(client, `Boolean(document.querySelector(${JSON.stringify(`${accountInformationSelector}[open]`)}))`);
+        await evaluate(client, `document.querySelector(${JSON.stringify(accountInformationSelector)})?.scrollIntoView({ block: "end" })`);
+      }
       return;
-    case "expand-first-row-and-protect-group":
-      await evaluate(client, `(() => {
-        const row = document.querySelector(".accounts-row");
-        if (!row) return false;
-        row.click();
-        return true;
-      })()`);
-      await waitFor(client, "document.body.innerText.includes('SNAPSHOT')");
-      await waitFor(client, "Boolean(document.querySelector('.accounts-group__toggle:disabled'))");
-      return;
+    }
     case "select-all-scope":
       await evaluate(client, clickButtonByTextExpression("All"));
       await waitFor(client, "document.body.innerText.includes('USD closed card')");
@@ -340,8 +360,6 @@ async function applyInteraction(client, state, fixture) {
 }
 
 async function waitForAccountsReady(client, state) {
-  await waitFor(client, "document.body.innerText.includes('Accounts') || document.body.innerText.includes('No accounts yet')");
-
   if (state.scenario === "accounts-error") {
     await waitFor(client, "document.body.innerText.includes('Accounts could not be loaded')");
   } else if (state.scenario === "empty") {
@@ -366,6 +384,17 @@ async function collectMetrics(client, state, apiRequestCount) {
     const contentRect = content ? content.getBoundingClientRect() : null;
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
+    const drawerBody = drawer?.querySelector(".ant-drawer-body");
+    const drawerFooter = drawer?.querySelector(".inex-drawer-actions");
+    const drawerTitleLines = drawer?.querySelector(".ant-drawer-title > div")?.children;
+    const drawerActions = Array.from(drawerFooter?.querySelectorAll("button") ?? []);
+    const accountInformation = drawer?.querySelector(${JSON.stringify(accountInformationSelector)});
+    const actionsWithinViewport = drawerActions.every((button) => {
+      const rect = button.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= window.innerWidth
+        && rect.top >= 0 && rect.bottom <= window.innerHeight
+        && button.scrollWidth <= button.clientWidth + 1;
+    });
     const rows = Array.from(document.querySelectorAll(".accounts-row"));
     const groupButtons = Array.from(document.querySelectorAll(".accounts-group__toggle"));
     const groupShareBars = Array.from(document.querySelectorAll(".accounts-group__bar"));
@@ -432,6 +461,19 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerOpen: Boolean(drawer),
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
+      drawerTitle: drawerTitleLines?.[0]?.textContent ?? null,
+      drawerSubtitle: drawerTitleLines?.[1]?.textContent ?? null,
+      drawerAccountName: drawer?.querySelector('#account-editor input[id$="_name"]')?.value ?? null,
+      drawerHasClose: Boolean(drawer?.querySelector(".ant-drawer-close")),
+      drawerActions: drawerActions.map((button) => button.innerText.trim()),
+      drawerActionsWithinViewport: actionsWithinViewport,
+      drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
+      drawerSwitchCount: drawer?.querySelectorAll('[role="switch"]').length ?? 0,
+      accountInformationPresent: Boolean(accountInformation),
+      accountInformationExpanded: accountInformation?.open ?? null,
+      accountInformationText: accountInformation?.innerText ?? null,
+      inlineEditPanelPresent: Boolean(document.querySelector(".accounts-edit-panel")),
+      editableAccountRows: document.querySelectorAll('button.accounts-row[aria-label^="Edit account "], .accounts-row button[aria-label^="Edit account "]').length,
       rowCount: rows.length,
       heroSummaryWidth: heroSummaryRect ? heroSummaryRect.width : null,
       heroDividerOffset: heroContentLeft !== null && heroSummaryRect ? heroSummaryRect.right - heroContentLeft : null,
@@ -479,6 +521,8 @@ async function collectMetrics(client, state, apiRequestCount) {
     viewport: state.viewport,
     scenario: state.scenario,
     interaction: state.interaction ?? null,
+    drawerMode: state.drawerMode ?? null,
+    language: state.language ?? "en",
     ...metrics,
   };
 }
@@ -487,6 +531,37 @@ function collectAdditionalFailures(stateResults) {
   const failures = [];
 
   for (const state of stateResults) {
+    if (state.drawerMode) {
+      const labels = drawerLabels[state.language];
+      const isEdit = state.drawerMode === "edit";
+      const expectedWidth = Math.min(460, state.viewport.width);
+      if (!state.drawerOpen || Math.abs(state.drawerBounds.width - expectedWidth) > 1) {
+        failures.push(`${state.name}: drawer width must match the transaction drawer (${expectedWidth}px)`);
+      }
+      if (state.drawerTitle !== (isEdit ? labels.edit : labels.add) || !state.drawerHasClose) {
+        failures.push(`${state.name}: drawer title or close button is missing`);
+      }
+      if (isEdit && (!state.drawerSubtitle || state.drawerAccountName !== state.drawerSubtitle)) {
+        failures.push(`${state.name}: edited account name is missing from the header or form`);
+      }
+      if (state.drawerBodyOverflow || !state.drawerActionsWithinViewport
+        || JSON.stringify(state.drawerActions) !== JSON.stringify([labels.cancel, isEdit ? labels.save : labels.create])) {
+        failures.push(`${state.name}: drawer body or footer overflows, or footer actions are incorrect`);
+      }
+      if (state.drawerSwitchCount !== 2 || state.inlineEditPanelPresent) {
+        failures.push(`${state.name}: expected two account settings switches and no inline edit panel`);
+      }
+      const expectedInformationExpanded = state.interaction === "open-edit-drawer-with-information";
+      if (state.accountInformationPresent !== isEdit || (isEdit && state.accountInformationExpanded !== expectedInformationExpanded)) {
+        failures.push(`${state.name}: account information availability or expansion is incorrect`);
+      }
+      if (expectedInformationExpanded) {
+        const expectedInformation = ["Текущий баланс", "14,500.00", "Эквивалент в USD", "3,625.00", "Курс", "0.2500", "ID счёта", "#203"];
+        if (!expectedInformation.every((text) => state.accountInformationText?.includes(text))) {
+          failures.push(`${state.name}: expanded account information is missing the expected PLN balance, USD equivalent, exchange rate, or ID`);
+        }
+      }
+    }
     if (state.scenario === "linked" && !state.linkedSelectorVisible) {
       failures.push(`${state.name}: linked-account selector is not visible`);
     }
@@ -495,6 +570,9 @@ function collectAdditionalFailures(stateResults) {
     }
     if (state.scenario === "linked" && state.addAccountVisible) {
       failures.push(`${state.name}: Add account mutation control is visible in linked mode`);
+    }
+    if (state.scenario === "linked" && state.editableAccountRows > 0) {
+      failures.push(`${state.name}: Edit account mutation control is visible in linked mode`);
     }
     const groupedPopulatedState = state.scenario === "populated" && state.interaction !== "select-flat-view";
     if (groupedPopulatedState && state.groupShareBarCount > 0) {
@@ -564,7 +642,7 @@ function runState(args) {
   return runBrowserState({
     ...args,
     routePath: "/accounts",
-    initScript: `${fixedDateInitScript(args.fixture.accountsVisualFixtureMeta.fixedNow, "en")}
+    initScript: `${fixedDateInitScript(args.fixture.accountsVisualFixtureMeta.fixedNow, args.state.language ?? "en")}
       localStorage.removeItem("inex.tree-expansion.accounts.user-1");
       localStorage.removeItem("inex.tree-expansion.accounts.user-2");`,
     waitForReady: waitForAccountsReady,
@@ -611,6 +689,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "visible By current balance label is absent from Accounts hero distribution",
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
+      "create and edit drawers match the transaction drawer width and fit the viewport",
+      "drawer buttons and settings switches fit desktop and mobile screens",
+      "account information starts collapsed and expands without changing the grouped list",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

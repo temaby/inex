@@ -850,15 +850,6 @@
     box-shadow: var(--focus-ring) !important;
 }
 
-.transactions-drawer-actions {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-end;
-    padding-top: 4px;
-}
-
 .transactions-selected-account-balance {
     align-items: baseline;
     color: var(--fg-3);
@@ -996,18 +987,8 @@
     }
 
     .transactions-filter-form__date-grid,
-    .transactions-filter-form__amount-grid,
-    .transactions-drawer-actions {
+    .transactions-filter-form__amount-grid {
         grid-template-columns: 1fr;
-    }
-
-    .transactions-drawer-actions {
-        align-items: stretch;
-        flex-direction: column-reverse;
-    }
-
-    .transactions-drawer-actions > button {
-        width: 100%;
     }
 }
 

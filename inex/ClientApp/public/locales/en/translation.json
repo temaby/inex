@@ -523,11 +523,13 @@
   },
   "accounts": {
     "subtitle": "Manage",
+    "basicInformation": "Basic information",
+    "settings": "Account settings",
+    "activeSetting": "Active account",
     "favouriteSetting": "Show in overviews",
-    "favourite": "Shown",
-    "notFavourite": "Hidden",
-    "drawerSubtitle": "Create an account and assign its currency",
     "addAccount": "Add account",
+    "editAccountAction": "Edit account {{name}}",
+    "viewAccountAction": "View account information for {{name}}",
     "noDescription": "No description",
     "workspaceTitle": "Accounts",
     "searchLabel": "Search accounts",
@@ -560,8 +562,7 @@
       "accountCount": "{{count}} account",
       "accountCount_plural": "{{count}} accounts",
       "expand": "Expand {{currency}} accounts",
-      "collapse": "Collapse {{currency}} accounts",
-      "finishEditing": "Finish editing this account before collapsing its currency group"
+      "collapse": "Collapse {{currency}} accounts"
     },
     "inventory": {
       "summary": "Visible accounts: {{visible}} / {{total}} in scope",
@@ -573,10 +574,12 @@
       "unavailable": "Equivalent unavailable"
     },
     "snapshot": {
-      "title": "Snapshot",
+      "title": "Account information",
       "currentBalance": "Current balance",
       "baseEquivalent": "{{currency}} equivalent",
-      "rateToBase": "Rate to base",
+      "reportingEquivalent": "Reporting currency equivalent",
+      "rateToBase": "Exchange rate",
+      "rateUnavailable": "Rate unavailable",
       "rateValue": "{{value}} {{baseCurrency}} / {{currency}}",
       "accountId": "Account ID"
     },
@@ -613,9 +616,15 @@
     "formErrors": {
       "nameRequired": "Name is required",
       "currencyRequired": "Currency is required",
+      "currenciesFailure": "Could not load currencies",
       "createFailure": "Could not create the account",
       "updateFailure": "Could not update the account",
       "deleteFailure": "Could not delete the account"
+    },
+    "formSuccess": {
+      "create": "Account created",
+      "update": "Account saved",
+      "delete": "Account deleted"
     },
     "emptyState": {
       "title": "No accounts yet",
@@ -628,6 +637,7 @@
     },
     "title": "Accounts",
     "addDrawerTitle": "Add account",
+    "editDrawerTitle": "Edit account",
     "account": "Account",
     "currency": "Currency",
     "status": "Status",
@@ -644,7 +654,11 @@
     "deleteConfirm": "Delete account? This cannot be undone.",
     "delete": "Delete",
     "cancel": "Cancel",
-    "update": "Update"
+    "save": "Save",
+    "saving": "Saving...",
+    "discardConfirm": "Discard unsaved account changes?",
+    "discardChanges": "Discard changes",
+    "keepEditing": "Keep editing"
   },
   "categories": {
     "title": "Categories",

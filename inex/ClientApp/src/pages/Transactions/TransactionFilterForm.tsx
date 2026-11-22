@@ -116,7 +116,7 @@ const TransactionFilterForm: React.FC<TransactionFilterFormProps> = ({ accounts,
             <Form.Item label={t("transactions.keyword")}>
                 <Input id="filter_tags_refs" onChange={setTagsAndRefs} placeholder={t("transactions.keywordPlaceholder")} size="large" value={tagsAndRefsInput} />
             </Form.Item>
-            <div className="transactions-drawer-actions">
+            <div className="transactions-drawer-actions inex-drawer-actions">
                 <InExButton kind="default" onClick={() => onApply(createCurrentMonthFilter())}>{t("transactions.clearAll")}</InExButton>
                 <InExButton kind="primary" onClick={() => onApply(localFilter)}>{t("transactions.applyFilters")}</InExButton>
             </div>

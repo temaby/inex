@@ -16,7 +16,7 @@ export { Select } from "./Select";
 export type { SelectProps } from "./Select";
 export { SegmentedControl } from "./SegmentedControl";
 export type { SegmentedControlProps, SegmentedOption } from "./SegmentedControl";
-export { InExDrawer } from "./InExDrawer";
+export { InExDrawer, RECORD_EDITOR_DRAWER_WIDTH } from "./InExDrawer";
 export type { InExDrawerProps } from "./InExDrawer";
 export { BudgetProgress } from "./Progress";
 export type { BudgetProgressProps } from "./Progress";
