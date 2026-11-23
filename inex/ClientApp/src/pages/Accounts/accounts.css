@@ -612,68 +612,8 @@
     justify-self: end;
 }
 
-.accounts-drawer-section h2 {
-    color: var(--fg-1);
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0 0 16px;
-}
-
-.accounts-drawer-section .ant-form-item {
-    margin-bottom: 16px;
-}
-
-.accounts-drawer-section--settings,
-.accounts-drawer-information {
-    border-top: 1px solid var(--border-1);
-    margin-top: 20px;
-    padding-top: 16px;
-}
-
-.accounts-drawer-setting {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-    min-height: 32px;
-}
-
-.accounts-drawer-setting + .accounts-drawer-setting {
-    margin-top: 8px;
-}
-
-.accounts-drawer-setting .ant-switch {
-    flex: 0 0 auto;
-}
-
-.accounts-drawer-information summary {
-    color: var(--fg-1);
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.accounts-drawer-information .accounts-snapshot {
-    margin-top: 12px;
-}
-
-.inex-drawer-actions.accounts-drawer-primary-actions {
-    padding-top: 0;
-}
-
-.inex-drawer-actions.accounts-drawer-actions--edit {
-    align-items: center;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.accounts-drawer-actions--edit .accounts-drawer-primary-actions {
-    flex-direction: row;
-    margin-inline-start: auto;
-}
-
-.accounts-drawer-actions--edit > button,
-.accounts-drawer-actions--edit .accounts-drawer-primary-actions > button {
-    width: auto;
+.form-drawer-information .accounts-snapshot {
+    margin-top: var(--space-2);
 }
 
 .accounts-snapshot {
@@ -707,10 +647,6 @@
 .accounts-snapshot__metric [role="text"] > [aria-hidden="true"] {
     /* Num keeps amounts on one line by default. */
     white-space: normal !important;
-}
-
-.accounts-form-error {
-    margin-bottom: 14px;
 }
 
 @keyframes accounts-pulse {

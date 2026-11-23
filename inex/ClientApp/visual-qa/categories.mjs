@@ -286,12 +286,12 @@ async function applyInteraction(client, state) {
     case "open-edit-information":
       await openEditDrawer(client, "Groceries");
       await evaluate(client, `(() => {
-        const summary = document.querySelector(".category-drawer-information summary");
+        const summary = document.querySelector('[data-qa="category-drawer-information"] summary');
         summary.click();
         const drawerBody = summary.closest('.ant-drawer-body');
         drawerBody.scrollTop = drawerBody.scrollHeight;
       })()`);
-      await waitFor(client, "Boolean(document.querySelector('.category-drawer-information[open]'))");
+      await waitFor(client, `Boolean(document.querySelector('[data-qa="category-drawer-information"][open]'))`);
       return;
     case "collapse-first-branch":
       await evaluate(client, `(() => {
@@ -352,7 +352,7 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const drawerBody = drawer?.querySelector('.ant-drawer-body');
     const drawerFooter = drawer?.querySelector('.ant-drawer-footer');
-    const information = drawer?.querySelector('.category-drawer-information');
+    const information = drawer?.querySelector('[data-qa="category-drawer-information"]');
     const rows = Array.from(document.querySelectorAll(".category-row"));
     const columnHeaders = Array.from(document.querySelectorAll(".categories-list .inex-list-panel__columns span"));
     const firstRowCells = rows[0]
@@ -443,7 +443,9 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
-      drawerFooterVisible: Boolean(drawerFooter && drawerFooter.getBoundingClientRect().bottom <= window.innerHeight),
+      drawerFooterVisible: Boolean(drawerFooter && drawerRect
+        && Math.abs(drawerFooter.getBoundingClientRect().bottom - drawerRect.bottom) <= 1
+        && drawerRect.bottom <= window.innerHeight + 1),
       drawerSaveDisabled: Boolean(drawerFooter?.querySelector('button[type="submit"][disabled]')),
       drawerHasDelete: Boolean(drawerFooter?.querySelector('.ant-btn-dangerous')),
       drawerHasSwitch: Boolean(drawerBody?.querySelector('button[role="switch"]')),
@@ -584,7 +586,7 @@ function collectAdditionalFailures(stateResults) {
     }
     const editing = state.interaction?.startsWith("open-edit-");
     if (editing || state.interaction === "open-add-drawer") {
-      const expectedWidth = Math.min(460, state.viewport.width);
+      const expectedWidth = state.viewport.width <= 768 ? state.viewport.width : 460;
       if (state.drawerBounds?.width !== expectedWidth || !state.drawerWithinViewport ||
           state.drawerBodyOverflow || !state.drawerFooterVisible || !state.drawerHasSwitch) {
         failures.push(`${state.name}: drawer width, viewport, switch, or footer check failed`);

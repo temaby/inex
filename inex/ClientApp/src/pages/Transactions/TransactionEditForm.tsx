@@ -13,18 +13,25 @@ import type { AccountResponse } from "../../store/accounts/accounts-api";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import Dropdown from "../../components/Dropdown";
 import { InExButton } from "../../components/primitives";
+import { FormDrawer } from "../../components/primitives/FormDrawer";
 import { useAppDispatch } from "../../store/hooks";
 import { transactionsActions } from "../../store/transactions/transactions-slice";
 import { useDeleteTransactionMutation, useUpdateTransactionMutation } from "../../store/transactions/transactions-api";
 import { parseAxiosError } from "../../utils/parseAxiosError";
 import { CreationAmount, CreationDate, CreationComment } from "./TransactionCreationFields";
+import TransactionDiscardDialog from "./TransactionDiscardDialog";
 import "./transaction-creation.css";
 
 interface TransactionEditFormProps {
     accounts: AccountResponse[];
     categories: CategoryResponse[];
+    afterOpenChange?: (open: boolean) => void;
+    formError?: string | null;
+    onClose: () => void;
     onMutationSuccess: (focusTransactionId: number | null) => void;
+    open: boolean;
     record: TransactionResponse;
+    subtitle: string;
 }
 
 type SelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
@@ -73,12 +80,12 @@ const findCategoryById = (categories: CategoryDetails[], id: number): CategoryDe
 
 const reducer = (state: TransactionEditState, action: EditAction): TransactionEditState => {
     switch (action.type) {
-        case "INIT": return { ...action.value, hasActiveChanges: false };
-        case "SET_AMOUNT": return { ...state, amount: action.value, hasActiveChanges: true };
-        case "SET_ACCOUNT": return { ...state, account: action.value, hasActiveChanges: state.hasActiveChanges || state.account.id !== action.value.id };
-        case "SET_CATEGORY": return { ...state, category: action.value, hasActiveChanges: state.hasActiveChanges || state.category.id !== action.value.id };
-        case "SET_DATE": return { ...state, date: action.value, hasActiveChanges: state.hasActiveChanges || !state.date.isSame(action.value, "day") };
-        case "SET_COMMENT": return { ...state, comment: action.value, hasActiveChanges: state.hasActiveChanges || state.comment !== action.value };
+        case "INIT": return action.value;
+        case "SET_AMOUNT": return { ...state, amount: action.value };
+        case "SET_ACCOUNT": return { ...state, account: action.value };
+        case "SET_CATEGORY": return { ...state, category: action.value };
+        case "SET_DATE": return { ...state, date: action.value };
+        case "SET_COMMENT": return { ...state, comment: action.value };
     }
 };
 
@@ -87,15 +94,27 @@ const TransactionEditFields = (props: TransactionEditFormProps) => {
     const dispatch = useAppDispatch();
     const [updateTransactionMutation, { isLoading: isUpdating }] = useUpdateTransactionMutation();
     const [deleteTransactionMutation, { isLoading: isDeleting }] = useDeleteTransactionMutation();
-    const [state, dispatchTransactionAction] = useReducer(reducer, undefined, () => initialState(props, t("transactions.unknownAccount")));
     const { categories, accounts, record } = props;
+    const initial = useMemo(
+        () => initialState({ accounts, categories, record }, t("transactions.unknownAccount")),
+        [accounts, categories, record, t],
+    );
+    const [state, dispatchTransactionAction] = useReducer(reducer, initial);
+    const [confirmDiscard, setConfirmDiscard] = React.useState(false);
+    const incompleteAmount = React.useRef(false);
+    const mutationInFlight = React.useRef(false);
 
     useEffect(() => {
-        dispatchTransactionAction({ type: "INIT", value: initialState({ accounts, categories, record }, t("transactions.unknownAccount")) });
-    }, [record, categories, accounts, t]);
+        dispatchTransactionAction({ type: "INIT", value: initial });
+    }, [initial]);
 
     const isCorrection = state.category.isSystem && state.category.systemCode === "correction";
-    const isSaving = isUpdating || isDeleting;
+    const busy = !props.open || isUpdating || isDeleting;
+    const dirty = state.amount !== initial.amount
+        || state.account.id !== initial.account.id
+        || state.category.id !== initial.category.id
+        || !state.date.isSame(initial.date, "day")
+        || state.comment !== initial.comment;
     const categoryTree = useMemo(
         () => getActiveCategoriesTree(categories.map(toCategory), t("categories.systemGroup")),
         [categories, t],
@@ -115,7 +134,18 @@ const TransactionEditFields = (props: TransactionEditFormProps) => {
         dispatchTransactionAction({ type: "SET_COMMENT", value: event.target.value });
     };
 
+    const requestClose = () => {
+        if (busy || mutationInFlight.current) return;
+        if (dirty || incompleteAmount.current) {
+            setConfirmDiscard(true);
+        } else {
+            props.onClose();
+        }
+    };
+
     const updateTransactionHandler = async () => {
+        if (busy || mutationInFlight.current) return;
+        mutationInFlight.current = true;
         try {
             await updateTransactionMutation({
                 id: record.id,
@@ -129,47 +159,76 @@ const TransactionEditFields = (props: TransactionEditFormProps) => {
             props.onMutationSuccess(record.id);
         } catch (error) {
             dispatch(transactionsActions.setError({ error: parseAxiosError(error, t("transactions.formErrors.updateFailure"), t) }));
+        } finally {
+            mutationInFlight.current = false;
         }
     };
     const removeTransactionHandler = async () => {
+        if (busy || mutationInFlight.current) return;
+        mutationInFlight.current = true;
         try {
             await deleteTransactionMutation(record.id).unwrap();
             dispatch(transactionsActions.setError({ error: null }));
             props.onMutationSuccess(null);
         } catch {
             dispatch(transactionsActions.setError({ error: t("transactions.formErrors.saveFailure") }));
+        } finally {
+            mutationInFlight.current = false;
         }
     };
 
     return (
-        <Form className="transactions-edit-form" layout="vertical" hideRequiredMark>
-            <Form.Item label={t("transactions.account")} htmlFor="account">
-                <Dropdown id="account" items={accounts} showCurrency multiple={false} onChange={setAccountHandler}
-                    placeholder={t("transactions.selectAccount")} selection={state.account.id > 0 ? [state.account] : []} />
-            </Form.Item>
-            <Form.Item label={t("transactions.amount")} htmlFor="edit_amount">
-                <CreationAmount editing id="edit_amount" currency={state.account.currency} value={state.amount}
-                    onChange={value => dispatchTransactionAction({ type: "SET_AMOUNT", value: value ?? 0 })} />
-            </Form.Item>
-            <Form.Item label={t("transactions.category")} htmlFor="category">
-                {state.category.isSystem ? <Input id="category" readOnly value={isCorrection ? t("transactions.correction") : state.category.name} /> : <Dropdown
-                    id="category" items={categoryTree} multiple={false} onChange={setCategoryHandler}
-                    searchPlaceholder={t("transactions.searchCategories")}
-                    placeholder={t("transactions.selectCategory")} selection={state.category.id > 0 ? [state.category] : []} />}
-            </Form.Item>
-            <CreationDate date={state.date} onChange={setDateHandler} />
-            <CreationComment comment={state.comment} onChange={setCommentHandler} required={isCorrection} />
-            <div className="transactions-drawer-actions inex-drawer-actions inex-drawer-actions--sticky">
-                <Popconfirm title={t("transactions.deleteConfirm")} onConfirm={removeTransactionHandler}
-                    okText={t("common.yes")} cancelText={t("common.no")} disabled={isSaving}>
-                    <Button danger loading={isDeleting} disabled={isSaving}>{t("transactions.delete")}</Button>
-                </Popconfirm>
-                <InExButton kind="primary" aria-busy={isUpdating} onClick={updateTransactionHandler}
-                    disabled={isSaving || !state.hasActiveChanges || (isCorrection && (!state.comment.trim() || state.amount === 0))}>
-                    {t(isUpdating ? "transactions.saving" : "transactions.save")}
-                </InExButton>
-            </div>
-        </Form>
+        <>
+            <FormDrawer
+                afterOpenChange={props.afterOpenChange}
+                busy={busy}
+                deleteAction={(
+                    <Popconfirm title={t("transactions.deleteConfirm")} onConfirm={removeTransactionHandler}
+                        okText={t("common.yes")} cancelText={t("common.no")} disabled={busy}>
+                        <Button danger disabled={busy} loading={isDeleting} type="text">{t("transactions.delete")}</Button>
+                    </Popconfirm>
+                )}
+                error={props.formError}
+                onClose={requestClose}
+                open={props.open}
+                submitAction={(
+                    <InExButton kind="primary" aria-busy={isUpdating} onClick={updateTransactionHandler}
+                        disabled={busy || !dirty || (isCorrection && (!state.comment.trim() || state.amount === 0))}>
+                        {t(isUpdating ? "transactions.saving" : "transactions.save")}
+                    </InExButton>
+                )}
+                subtitle={props.subtitle}
+                title={t("transactions.editDrawerTitle")}
+            >
+                <Form className="transactions-edit-form" layout="vertical">
+                    <Form.Item label={t("transactions.account")} htmlFor="account" required>
+                        <Dropdown id="account" items={accounts} showCurrency multiple={false} onChange={setAccountHandler}
+                            placeholder={t("transactions.selectAccount")} selection={state.account.id > 0 ? [state.account] : []} />
+                    </Form.Item>
+                    <Form.Item label={t("transactions.amount")} htmlFor="edit_amount" required>
+                        <CreationAmount editing id="edit_amount" currency={state.account.currency} value={state.amount}
+                            onAmountDraftChange={(_, incomplete) => { incompleteAmount.current = incomplete; }}
+                            onChange={value => dispatchTransactionAction({ type: "SET_AMOUNT", value: value ?? 0 })} />
+                    </Form.Item>
+                    <Form.Item label={t("transactions.category")} htmlFor="category" required>
+                        {state.category.isSystem ? <Input id="category" readOnly value={isCorrection ? t("transactions.correction") : state.category.name} /> : <Dropdown
+                            id="category" items={categoryTree} multiple={false} onChange={setCategoryHandler}
+                            searchPlaceholder={t("transactions.searchCategories")}
+                            placeholder={t("transactions.selectCategory")} selection={state.category.id > 0 ? [state.category] : []} />}
+                    </Form.Item>
+                    <CreationDate date={state.date} onChange={setDateHandler} />
+                    <CreationComment comment={state.comment} onChange={setCommentHandler} required={isCorrection} />
+                </Form>
+            </FormDrawer>
+            <TransactionDiscardDialog
+                open={confirmDiscard}
+                onKeepEditing={() => setConfirmDiscard(false)}
+                onDiscard={() => {
+                    setConfirmDiscard(false);
+                    props.onClose();
+                }}
+            />
+        </>
     );
 };
 

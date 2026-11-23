@@ -27,6 +27,7 @@ interface TransactionCreateInternalTransferFormProps {
     onSetComment: React.ChangeEventHandler<HTMLInputElement>;
     onSetDate: (value: Dayjs | null) => void;
     onSetDirection: (value: InternalTransferDirection) => void;
+    onAmountDraftChange?: (id: string, incomplete: boolean) => void;
     validationErrors: TransactionCreateValidationErrors;
 }
 
@@ -43,12 +44,13 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
     onSetComment,
     onSetDate,
     onSetDirection,
+    onAmountDraftChange,
     validationErrors,
 }) => {
     const { t } = useTranslation();
 
     return (
-        <Form layout="vertical" hideRequiredMark>
+        <Form layout="vertical">
             {correction && <Alert type="info" showIcon message={t("transactions.correctionExplanation")} />}
             <Form.Item label={t("transactions.internalTransferDirection")}>
                 <SegmentedControl
@@ -65,6 +67,7 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
                 help={validationErrors.fromAccount}
                 label={t("transactions.account")}
                 htmlFor="internal_transfer_account"
+                required
                 validateStatus={validationErrors.fromAccount ? "error" : undefined}
             >
                 <Dropdown
@@ -81,9 +84,11 @@ const TransactionCreateInternalTransferForm: React.FC<TransactionCreateInternalT
                 help={validationErrors.fromAmount}
                 label={t("transactions.amount")}
                 htmlFor="internal_transfer_amount"
+                required
                 validateStatus={validationErrors.fromAmount ? "error" : undefined}
             >
                 <CreationAmount
+                    onAmountDraftChange={onAmountDraftChange}
                     currency={account.id > 0 ? account.currency : undefined}
                     id="internal_transfer_amount"
                     onChange={onSetAmount}

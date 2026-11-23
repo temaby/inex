@@ -28,6 +28,7 @@ interface TransactionCreateExpenseFormProps {
     onSetDate: (value: Dayjs | null) => void;
     onSetFromAccount: (item: DropdownSelectInfo) => void;
     onSetFromAmount: (value: number | null) => void;
+    onAmountDraftChange?: (id: string, incomplete: boolean) => void;
     validationErrors: TransactionCreateValidationErrors;
 }
 
@@ -55,17 +56,19 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
     onSetDate,
     onSetFromAccount,
     onSetFromAmount,
+    onAmountDraftChange,
     validationErrors,
 }) => {
     const { t } = useTranslation();
     const amountCurrency = getSelectedCurrency(fromAccount);
 
     return (
-        <Form layout="vertical" hideRequiredMark>
+        <Form layout="vertical">
             <Form.Item
                 help={validationErrors.fromAccount}
                 label={t("transactions.account")}
                 htmlFor="expense_account"
+                required
                 validateStatus={validationErrors.fromAccount ? "error" : undefined}
             >
                 <Dropdown
@@ -82,9 +85,11 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                 help={validationErrors.fromAmount}
                 label={t("transactions.amount")}
                 htmlFor="expense_amount"
+                required
                 validateStatus={validationErrors.fromAmount ? "error" : undefined}
             >
                 <CreationAmount
+                    onAmountDraftChange={onAmountDraftChange}
                     currency={amountCurrency}
                     id="expense_amount"
                     onChange={onSetFromAmount}
@@ -95,6 +100,7 @@ const TransactionCreateExpenseForm: React.FC<TransactionCreateExpenseFormProps> 
                 help={validationErrors.category}
                 label={t("transactions.category")}
                 htmlFor="expense_category"
+                required
                 validateStatus={validationErrors.category ? "error" : undefined}
             >
                 {recentCategories.length > 0 && <div className="transaction-category-shortcuts" aria-label={t("transactions.recentCategories")}>

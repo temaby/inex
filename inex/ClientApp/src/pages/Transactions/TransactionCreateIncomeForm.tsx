@@ -28,6 +28,7 @@ interface TransactionCreateIncomeFormProps {
     onSetToAmount: (value: number | null) => void;
     toAccount: AccountDetails;
     toAmount: number;
+    onAmountDraftChange?: (id: string, incomplete: boolean) => void;
     validationErrors: TransactionCreateValidationErrors;
 }
 
@@ -55,17 +56,19 @@ const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = 
     onSetToAmount,
     toAccount,
     toAmount,
+    onAmountDraftChange,
     validationErrors,
 }) => {
     const { t } = useTranslation();
     const amountCurrency = getSelectedCurrency(toAccount);
 
     return (
-        <Form layout="vertical" hideRequiredMark>
+        <Form layout="vertical">
             <Form.Item
                 help={validationErrors.toAccount}
                 label={t("transactions.account")}
                 htmlFor="income_account"
+                required
                 validateStatus={validationErrors.toAccount ? "error" : undefined}
             >
                 <Dropdown
@@ -82,9 +85,11 @@ const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = 
                 help={validationErrors.toAmount}
                 label={t("transactions.amount")}
                 htmlFor="income_amount"
+                required
                 validateStatus={validationErrors.toAmount ? "error" : undefined}
             >
                 <CreationAmount
+                    onAmountDraftChange={onAmountDraftChange}
                     currency={amountCurrency}
                     id="income_amount"
                     onChange={onSetToAmount}
@@ -95,6 +100,7 @@ const TransactionCreateIncomeForm: React.FC<TransactionCreateIncomeFormProps> = 
                 help={validationErrors.category}
                 label={t("transactions.category")}
                 htmlFor="income_category"
+                required
                 validateStatus={validationErrors.category ? "error" : undefined}
             >
                 {recentCategories.length > 0 && <div className="transaction-category-shortcuts" aria-label={t("transactions.recentCategories")}>

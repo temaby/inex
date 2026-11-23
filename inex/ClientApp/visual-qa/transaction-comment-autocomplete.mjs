@@ -58,7 +58,7 @@ async function applyInteraction(client, state) {
     await evaluate(client, "document.querySelector('#expense_amount').focus()");
     await client.send("Input.insertText", { text: "12.50" });
     await click(client, ".transaction-category-shortcuts button");
-    await click(client, ".transactions-drawer-actions button:last-child");
+    await click(client, ".form-drawer-primary-actions button:last-child");
     await waitFor(client, "!document.querySelector('.transactions-create-form')");
     state.saveWorked = true;
     return;
@@ -87,7 +87,7 @@ async function applyInteraction(client, state) {
 async function collectMetrics(client, state) {
   const metrics = await evaluate(client, `(() => {
     const popup=document.querySelector('${popupSelector}'); const p=popup?.getBoundingClientRect();
-    const footer=document.querySelector('.transactions-drawer-actions')?.getBoundingClientRect();
+    const footer=document.querySelector('.form-drawer-footer')?.getBoundingClientRect();
     const input=document.querySelector('${inputSelector}'); const options=Array.from(popup?.querySelectorAll('[role=option]')??[]);
     return {hasHorizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,drawerOpen:Boolean(input),expectsMobileBottomNav:false,
       popupWithinViewport:Boolean(p)&&p.left>=-1&&p.right<=innerWidth+1&&p.top>=-1&&p.bottom<=innerHeight+1,

@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useRef, useState } from "react";
-import { Alert, Button, Form, Input, Modal, Popconfirm, Select, Switch } from "antd";
+import { Button, Form, Input, Modal, Popconfirm, Select, Switch } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { InExButton, InExDrawer, RECORD_EDITOR_DRAWER_WIDTH } from "../../components/primitives";
+import { FormDrawer } from "../../components/primitives/FormDrawer";
 import {
     useCreateAccountMutation,
     useDeleteAccountMutation,
@@ -40,6 +41,8 @@ interface AccountDrawerProps {
     onMutationSuccess: (mutation: AccountMutation) => void;
     onRetryCurrencies: () => void;
 }
+
+const FORM_ID = "account-editor";
 
 const AccountDrawer = ({
     session,
@@ -120,133 +123,141 @@ const AccountDrawer = ({
         }
     };
 
-    const title = {
-        create: t("accounts.addDrawerTitle"),
-        edit: t("accounts.editDrawerTitle"),
-        view: t("accounts.snapshot.title"),
-    }[session.mode];
+    if (session.mode === "view") {
+        return (
+            <InExDrawer
+                afterOpenChange={afterOpenChange}
+                onClose={onClose}
+                open={open}
+                subtitle={session.account.name}
+                title={t("accounts.snapshot.title")}
+                width={RECORD_EDITOR_DRAWER_WIDTH}
+            >
+                {information}
+            </InExDrawer>
+        );
+    }
 
     return (
         <>
-            <InExDrawer
+            <FormDrawer
                 afterOpenChange={afterOpenChange}
+                busy={busy}
+                error={formError}
+                deleteAction={isEditing && account && (
+                    <Popconfirm
+                        cancelText={t("accounts.cancel")}
+                        disabled={busy}
+                        okButtonProps={{ danger: true }}
+                        okText={t("accounts.delete")}
+                        onConfirm={() => runMutation("delete", () => deleteAccount(account.id).unwrap())}
+                        title={t("accounts.deleteConfirm")}
+                    >
+                        <Button danger disabled={busy} htmlType="button" loading={isDeleting} type="text">
+                            {t("accounts.delete")}
+                        </Button>
+                    </Popconfirm>
+                )}
                 onClose={requestClose}
                 open={open}
-                subtitle={account?.name}
-                title={title}
-                width={RECORD_EDITOR_DRAWER_WIDTH}
-            >
-                {session.mode === "view" ? information : (
-                    <Form
-                        disabled={busy}
-                        form={form}
-                        id="account-editor"
-                        initialValues={initialValues}
-                        layout="vertical"
-                        name="account-editor"
-                        onFinish={save}
-                        onSubmitCapture={(event) => {
-                            if (!mutationInFlight.current) return;
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }}
-                        onValuesChange={(_, values: AccountFormValues) => setDirty(
-                            values.name !== initialValues.name
-                            || values.description !== initialValues.description
-                            || values.currencyId !== initialValues.currencyId
-                            || values.isEnabled !== initialValues.isEnabled
-                            || values.isFavourite !== initialValues.isFavourite,
-                        )}
-                        scrollToFirstError={{ focus: true }}
+                submitAction={(
+                    <InExButton
+                        aria-busy={isSaving}
+                        disabled={busy || (isEditing && !dirty)}
+                        form={FORM_ID}
+                        kind="primary"
+                        type="submit"
                     >
-                        {formError && <Alert className="accounts-form-error" message={formError} showIcon type="error" />}
-                        <section aria-labelledby="account-basic-information" className="accounts-drawer-section">
-                            <h2 id="account-basic-information">{t("accounts.basicInformation")}</h2>
-                            <Form.Item
-                                name="name"
-                                label={t("accounts.name")}
-                                rules={[
-                                    { required: true, whitespace: true, message: t("accounts.formErrors.nameRequired") },
-                                    { max: 256, message: t("errors.name.max_length") },
-                                ]}
-                            >
-                                <Input placeholder={t("accounts.namePlaceholder")} />
-                            </Form.Item>
-                            <Form.Item name="description" label={t("accounts.description")}>
-                                <Input placeholder={t("accounts.descriptionPlaceholder")} />
-                            </Form.Item>
-                            <Form.Item
-                                name="currencyId"
-                                label={t("accounts.currency")}
-                                extra={currencyStatus === "error" && (
-                                    <div className="accounts-inline-retry" role="status">
-                                        {t("accounts.formErrors.currenciesFailure")}
-                                        <button disabled={busy} onClick={onRetryCurrencies} type="button">
-                                            {t("accounts.error.retry")}
-                                        </button>
-                                    </div>
-                                )}
-                                rules={[
-                                    { required: true, type: "number", min: 1, message: t("accounts.formErrors.currencyRequired") },
-                                ]}
-                            >
-                                <Select
-                                    loading={currencyStatus === "loading"}
-                                    optionFilterProp="label"
-                                    options={currencyOptions}
-                                    placeholder={t("accounts.currencyPlaceholder")}
-                                    showSearch
-                                />
-                            </Form.Item>
-                        </section>
-                        <section aria-labelledby="account-settings" className="accounts-drawer-section accounts-drawer-section--settings">
-                            <h2 id="account-settings">{t("accounts.settings")}</h2>
-                            <div className="accounts-drawer-setting">
-                                <label htmlFor="account-active">{t("accounts.activeSetting")}</label>
-                                <Form.Item name="isEnabled" noStyle valuePropName="checked">
-                                    <Switch id="account-active" />
-                                </Form.Item>
-                            </div>
-                            <div className="accounts-drawer-setting">
-                                <label htmlFor="account-in-overviews">{t("accounts.favouriteSetting")}</label>
-                                <Form.Item name="isFavourite" noStyle valuePropName="checked">
-                                    <Switch id="account-in-overviews" />
-                                </Form.Item>
-                            </div>
-                        </section>
-                        {isEditing && account && (
-                            <details className="accounts-drawer-information" data-qa="account-drawer-information">
-                                <summary>{t("accounts.snapshot.title")}</summary>
-                                {information}
-                            </details>
-                        )}
-                        <div className={`inex-drawer-actions inex-drawer-actions--sticky${isEditing ? " accounts-drawer-actions--edit" : ""}`}>
-                            {isEditing && account && (
-                                <Popconfirm
-                                    cancelText={t("accounts.cancel")}
-                                    disabled={busy}
-                                    okButtonProps={{ danger: true }}
-                                    okText={t("accounts.delete")}
-                                    onConfirm={() => runMutation("delete", () => deleteAccount(account.id).unwrap())}
-                                    title={t("accounts.deleteConfirm")}
-                                >
-                                    <Button danger disabled={busy} htmlType="button" loading={isDeleting} type="text">
-                                        {t("accounts.delete")}
-                                    </Button>
-                                </Popconfirm>
-                            )}
-                            <div className="inex-drawer-actions accounts-drawer-primary-actions">
-                                <InExButton disabled={busy} onClick={requestClose}>
-                                    {t("accounts.cancel")}
-                                </InExButton>
-                                <InExButton aria-busy={isSaving} disabled={busy || (isEditing && !dirty)} kind="primary" type="submit">
-                                    {t(isSaving ? "accounts.saving" : isEditing ? "accounts.save" : "accounts.createAccount")}
-                                </InExButton>
-                            </div>
-                        </div>
-                    </Form>
+                        {t(isSaving ? "accounts.saving" : isEditing ? "common.save" : "common.create")}
+                    </InExButton>
                 )}
-            </InExDrawer>
+                subtitle={account?.name}
+                title={t(isEditing ? "accounts.editDrawerTitle" : "accounts.addDrawerTitle")}
+            >
+                <Form
+                    disabled={busy}
+                    form={form}
+                    id={FORM_ID}
+                    initialValues={initialValues}
+                    layout="vertical"
+                    name={FORM_ID}
+                    onFinish={save}
+                    onSubmitCapture={(event) => {
+                        if (!mutationInFlight.current) return;
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }}
+                    onValuesChange={(_, values: AccountFormValues) => setDirty(
+                        values.name !== initialValues.name
+                        || values.description !== initialValues.description
+                        || values.currencyId !== initialValues.currencyId
+                        || values.isEnabled !== initialValues.isEnabled
+                        || values.isFavourite !== initialValues.isFavourite,
+                    )}
+                    scrollToFirstError={{ focus: true }}
+                >
+                    <section aria-labelledby="account-basic-information" className="form-drawer-section">
+                        <h2 id="account-basic-information">{t("accounts.basicInformation")}</h2>
+                        <Form.Item
+                            name="name"
+                            label={t("accounts.name")}
+                            rules={[
+                                { required: true, whitespace: true, message: t("accounts.formErrors.nameRequired") },
+                                { max: 256, message: t("errors.name.max_length") },
+                            ]}
+                        >
+                            <Input placeholder={t("accounts.namePlaceholder")} />
+                        </Form.Item>
+                        <Form.Item name="description" label={t("accounts.description")}>
+                            <Input placeholder={t("accounts.descriptionPlaceholder")} />
+                        </Form.Item>
+                        <Form.Item
+                            name="currencyId"
+                            label={t("accounts.currency")}
+                            extra={currencyStatus === "error" && (
+                                <div className="accounts-inline-retry" role="status">
+                                    {t("accounts.formErrors.currenciesFailure")}
+                                    <button disabled={busy} onClick={onRetryCurrencies} type="button">
+                                        {t("accounts.error.retry")}
+                                    </button>
+                                </div>
+                            )}
+                            rules={[
+                                { required: true, type: "number", min: 1, message: t("accounts.formErrors.currencyRequired") },
+                            ]}
+                        >
+                            <Select
+                                loading={currencyStatus === "loading"}
+                                optionFilterProp="label"
+                                options={currencyOptions}
+                                placeholder={t("accounts.currencyPlaceholder")}
+                                showSearch
+                            />
+                        </Form.Item>
+                    </section>
+                    <section aria-labelledby="account-settings" className="form-drawer-section">
+                        <h2 id="account-settings">{t("accounts.settings")}</h2>
+                        <div className="form-drawer-setting">
+                            <label htmlFor="account-active">{t("accounts.activeSetting")}</label>
+                            <Form.Item name="isEnabled" noStyle valuePropName="checked">
+                                <Switch id="account-active" />
+                            </Form.Item>
+                        </div>
+                        <div className="form-drawer-setting">
+                            <label htmlFor="account-in-overviews">{t("accounts.favouriteSetting")}</label>
+                            <Form.Item name="isFavourite" noStyle valuePropName="checked">
+                                <Switch id="account-in-overviews" />
+                            </Form.Item>
+                        </div>
+                    </section>
+                    {isEditing && account && (
+                        <details className="form-drawer-information" data-qa="account-drawer-information">
+                            <summary>{t("accounts.snapshot.title")}</summary>
+                            {information}
+                        </details>
+                    )}
+                </Form>
+            </FormDrawer>
             <Modal
                 cancelText={t("accounts.keepEditing")}
                 okButtonProps={{ danger: true }}

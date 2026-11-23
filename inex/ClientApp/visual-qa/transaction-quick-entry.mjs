@@ -7,9 +7,10 @@ const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
 const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/transaction-quick-entry");
 const fixture = transactions.fixture;
 const states = [
-  ...[1440, 1024, 390, 360].flatMap(width => ["expense", "income"].map(mode => ({ name: `${mode}-${width}`, mode, viewport: { width, height: 900 } }))),
+  ...[1920, 1440, 1280, 1024, 768, 390, 360].flatMap(width => ["expense", "income"].map(mode => ({ name: `${mode}-${width}`, mode, viewport: { width, height: 900 } }))),
   ...["expense", "income", "correction", "internalTransfer"].map(mode => ({ name: `${mode}-ru-360`, mode, russian: true, viewport: { width: 360, height: 900 } })),
   ...["transfer", "correction", "internalTransfer", "category-search", "date", "comment", "currency", "save"].map(mode => ({ name: `${mode}-390`, mode, viewport: { width: 390, height: 900 } })),
+  { name: "transfer-keyboard-360", mode: "transfer", keyboard: true, viewport: { width: 360, height: 750 } },
 ].map(state => ({ ...state, screenshot: `${state.name}.png`, screenshotMode: "viewport", scenario: state.russian ? "default-account-ru" : "default-account" }));
 
 async function click(client, selector) {
@@ -64,8 +65,25 @@ async function applyInteraction(client, state) {
     await setInputValue(client, ".inex-picker-popup:not(.ant-popover-hidden) input", "grocer");
   }
   if (state.mode === "date") await click(client, ".transaction-creation-date .ant-btn-link");
+  if (state.keyboard) {
+    await evaluate(client, `(() => {
+      const viewport = window.visualViewport;
+      document.querySelector('#transfer_to_amount').focus();
+      Object.defineProperty(viewport, 'height', { value: 410 });
+      Object.defineProperty(viewport, 'offsetTop', { value: 10 });
+      viewport.dispatchEvent(new Event('resize'));
+    })()`);
+    await waitFor(client, "Math.abs(document.querySelector('.form-drawer-footer').closest('.ant-drawer-footer').getBoundingClientRect().bottom - 420) <= 1");
+    state.keyboardScroll = await evaluate(client, `(() => {
+      const body = document.querySelector('.form-drawer .ant-drawer-body');
+      const footer = document.querySelector('.form-drawer-footer');
+      const fixedBottom = footer.getBoundingClientRect().bottom;
+      body.scrollTop = body.scrollHeight;
+      return body.scrollTop > 0 && footer.getBoundingClientRect().bottom === fixedBottom;
+    })()`);
+  }
   if (state.mode === "save") {
-    await click(client, ".transactions-drawer-actions button:last-child");
+    await click(client, ".form-drawer-primary-actions button:last-child");
     await waitFor(client, "!document.querySelector('.transactions-create-form')");
   }
 }
@@ -98,7 +116,7 @@ async function collectMetrics(client, state) {
       buttonTextUnclipped: Array.from(form?.querySelectorAll('.transaction-type-buttons button') ?? []).every(e => e.scrollWidth<=e.clientWidth+1 && e.scrollHeight<=e.clientHeight+1),
     };
   })()`);
-  return { name: state.name, mode: state.mode, russian: state.russian ?? false, viewport: state.viewport, screenshot: state.screenshot, dataMode: "fixture", noAutomaticCategory: state.noAutomaticCategory ?? true, ...metrics };
+  return { name: state.name, mode: state.mode, russian: state.russian ?? false, viewport: state.viewport, screenshot: state.screenshot, dataMode: "fixture", noAutomaticCategory: state.noAutomaticCategory ?? true, keyboard: state.keyboard, keyboardScroll: state.keyboardScroll, ...metrics };
 }
 
 runVisualQaScript(import.meta.url, {
@@ -125,10 +143,9 @@ runVisualQaScript(import.meta.url, {
   }),
   collectAdditionalFailures: results => results.flatMap(state => {
     const failures = [];
-    const expectedTitles = state.russian ? { expense:"Новый расход", income:"Новый доход", correction:"Коррекция баланса", internalTransfer:"Внутренний перевод" }
-      : { expense:"New expense", income:"New income", transfer:"New transfer", correction:"Balance correction", internalTransfer:"Internal transfer" };
+    const expectedTitle = state.russian ? "Добавить транзакцию" : "Add transaction";
     if (state.mode !== "save" && state.selectedTypeCount !== 1) failures.push(`${state.name}: selected state ambiguous`);
-    if (expectedTitles[state.mode] && state.title !== expectedTitles[state.mode]) failures.push(`${state.name}: wrong dynamic heading`);
+    if (state.mode !== "save" && state.title !== expectedTitle) failures.push(`${state.name}: wrong drawer heading`);
     if (!state.noAutomaticCategory) failures.push(`${state.name}: category automatically selected`);
     if (!state.popupWithinViewport || !state.controlsWithinDrawer || !state.buttonTextUnclipped) failures.push(`${state.name}: clipped controls or popup overflow`);
     if (["expense", "income"].includes(state.mode) && !state.amountEmpty) failures.push(`${state.name}: amount prepopulated`);
@@ -136,6 +153,7 @@ runVisualQaScript(import.meta.url, {
     if (state.mode === "currency" && (state.amount !== "12.50" || !state.currencyFeedback.includes("USD"))) failures.push(`${state.name}: currency change lost amount/feedback`);
     if (state.mode === "comment" && state.comment !== "Lunch #food @family") failures.push(`${state.name}: collapsed comment lost markers`);
     if (state.mode === "transfer" && state.currencies.join("|") !== "USD|PLN") failures.push(`${state.name}: transfer currencies lost`);
+    if (state.keyboard && !state.keyboardScroll) failures.push(`${state.name}: footer moved while the form scrolled`);
     if (state.mode === "category-search" && (!state.searchText.includes("Living") || !state.searchText.includes("Groceries") || state.searchText.includes("Transport"))) failures.push(`${state.name}: nested search lost hierarchy/filtering`);
     if (state.mode === "save" && state.drawerOpen) failures.push(`${state.name}: save did not close drawer`);
     return failures;

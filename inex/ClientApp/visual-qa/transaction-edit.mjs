@@ -7,10 +7,11 @@ const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
 const fixture = transactions.fixture;
 const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/transaction-edit");
 const states = [
-  ...[1440, 1024, 390, 360].map(width => ({ name: `expense-${width}`, mode: "expense", viewport: { width, height: 900 } })),
+  ...[1920, 1440, 1280, 1024, 768, 390, 360].map(width => ({ name: `expense-${width}`, mode: "expense", viewport: { width, height: 900 } })),
   { name: "expense-ru-360", mode: "expense", russian: true, viewport: { width: 360, height: 900 } },
   ...["income", "transfer", "correction", "category-search", "currency", "date", "comment", "delete-confirmation"].map(mode => ({ name: `${mode}-360`, mode, viewport: { width: 360, height: 900 } })),
   ...["save", "failure", "retry", "delete"].map(mode => ({ name: `${mode}-390`, mode, viewport: { width: 390, height: 900 } })),
+  ...["cancel-clean", "cancel-draft"].map(mode => ({ name: `${mode}-390`, mode, viewport: { width: 390, height: 900 } })),
 ].map(state => ({ ...state, screenshot: `${state.name}.png`, screenshotMode: "viewport",
   scenario: state.mode === "correction" ? "correction-edit" : state.mode === "failure" ? "edit-failure" : state.mode === "retry" ? "edit-retry" : state.russian ? "populated-ru" : "populated" }));
 
@@ -28,8 +29,8 @@ async function applyInteraction(client, state) {
   await waitFor(client, `Boolean(document.querySelector('${form} #edit_amount'))`);
   state.initial = await evaluate(client, `({amount:document.querySelector('#edit_amount').value,comment:document.querySelector('${comment}')?.value,
     systemReadOnly:document.querySelector('#category')?.readOnly??false,
-    reasonRequired:Boolean(document.querySelector('${form} .ant-form-item-required')),
-    saveDisabled:document.querySelector('${form} .transactions-drawer-actions button:last-child').disabled})`);
+    reasonRequired:Boolean(document.querySelector('${form} .ant-form-item-required[for^=transaction-comment]')),
+    saveDisabled:document.querySelector('.form-drawer-primary-actions button:last-child').disabled})`);
 
   if (state.mode === "category-search") {
     await click(client, "#category");
@@ -52,13 +53,28 @@ async function applyInteraction(client, state) {
     state.collapsed = await evaluate(client, `!document.querySelector('${comment}')`);
     await click(client, ".transaction-comment-toggle");
   }
+  if (state.mode === "cancel-draft") {
+    await setInputValue(client, comment, "Unsaved fixture draft");
+    await click(client, ".form-drawer-primary-actions button:first-child");
+    await waitFor(client, "Boolean(document.querySelector('.ant-modal .ant-btn-default'))");
+    await click(client, ".ant-modal .ant-btn-default");
+    state.keptDraft = await evaluate(client, `document.querySelector('${comment}').value === 'Unsaved fixture draft'`);
+    await click(client, ".form-drawer-primary-actions button:first-child");
+    await waitFor(client, "Boolean(document.querySelector('.ant-modal .ant-btn-primary'))");
+    await click(client, ".ant-modal .ant-btn-primary");
+    await waitFor(client, `!document.querySelector('${form}')`);
+  }
+  if (state.mode === "cancel-clean") {
+    await click(client, ".form-drawer-primary-actions button:first-child");
+    await waitFor(client, `!document.querySelector('${form}') && !document.querySelector('.ant-modal')`);
+  }
   if (["save", "failure", "retry"].includes(state.mode)) {
     await setInputValue(client, comment, `${state.initial.comment} updated`);
-    await click(client, `${form} .transactions-drawer-actions button:last-child`);
+    await click(client, `.form-drawer-primary-actions button:last-child`);
     if (state.mode !== "save") {
       await waitFor(client, `Boolean(document.querySelector('${form}'))&&document.body.innerText.includes('Controlled transaction update failure')`);
       state.failedDraftRetained = await evaluate(client, `document.querySelector('${comment}').value===${JSON.stringify(`${state.initial.comment} updated`)}`);
-      if (state.mode === "retry") await click(client, `${form} .transactions-drawer-actions button:last-child`);
+      if (state.mode === "retry") await click(client, `.form-drawer-primary-actions button:last-child`);
     }
     if (state.mode !== "failure") {
       await waitFor(client, `!document.querySelector('${form}')&&document.activeElement?.getAttribute('data-transaction-id')==='501'`);
@@ -66,7 +82,7 @@ async function applyInteraction(client, state) {
     }
   }
   if (["delete", "delete-confirmation"].includes(state.mode)) {
-    await click(client, `${form} .transactions-drawer-actions button:first-child`);
+    await click(client, `.form-drawer-footer > button`);
     await waitFor(client, "Boolean(document.querySelector('.ant-popconfirm:not(.ant-popover-hidden)'))");
     if (state.mode === "delete") {
       await click(client, ".ant-popconfirm:not(.ant-popover-hidden) .ant-btn-primary");
@@ -81,10 +97,10 @@ async function collectMetrics(client, state) {
     const form=document.querySelector('${form}'),drawer=document.querySelector('.ant-drawer-open .ant-drawer-content-wrapper')?.getBoundingClientRect();
     const overlay=document.querySelector('${popup}')??document.querySelector('.ant-picker-dropdown:not(.ant-picker-dropdown-hidden)')??document.querySelector('.ant-popconfirm:not(.ant-popover-hidden)');
     const p=overlay?.getBoundingClientRect(),amount=document.querySelector('#edit_amount');
-    const actions=Array.from(form?.querySelectorAll('.transactions-drawer-actions button')??[]);
+    const actions=Array.from(document.querySelector('.ant-drawer-open .form-drawer-footer')?.querySelectorAll('button')??[]);
     return {hasHorizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,expectsMobileBottomNav:false,drawerOpen:Boolean(form),
       drawerWithinViewport:!drawer||(drawer.left>=-1&&drawer.right<=innerWidth+1),
-      fieldLabels:Array.from(form?.querySelectorAll('.ant-form-item-label')??[]).map(item=>item.textContent),
+      fieldLabels:Array.from(form?.querySelectorAll('.ant-form-item-label')??[]).map(item=>item.querySelector('label')?.textContent),
       amount:amount?.value,amountFontSize:amount?parseFloat(getComputedStyle(amount).fontSize):null,
       comment:form?.querySelector('input[id^=transaction-comment]')?.value,
       popupWithinViewport:!p||(p.left>=-1&&p.right<=innerWidth+1&&p.top>=-1&&p.bottom<=innerHeight+1),
@@ -143,6 +159,7 @@ runVisualQaScript(import.meta.url, {
     if (state.mode==="currency"&&(state.amount!=="-84.5"||!state.currencyFeedback.includes("USD"))) failures.push(`${state.name}: currency change lost number/feedback`);
     if (state.mode==="comment"&&(!state.collapsed||state.comment!==state.initial.comment)) failures.push(`${state.name}: comment disclosure lost text`);
     if (["failure","retry"].includes(state.mode)&&!state.failedDraftRetained) failures.push(`${state.name}: failed save lost draft`);
+    if (state.mode === "cancel-draft" && (!state.keptDraft || state.drawerOpen)) failures.push(`${state.name}: discard flow lost draft or left drawer open`);
     if (["save","retry","delete"].includes(state.mode)&&(state.drawerOpen||!state.focusReturned)) failures.push(`${state.name}: mutation did not close/return focus`);
     return failures;
   }),

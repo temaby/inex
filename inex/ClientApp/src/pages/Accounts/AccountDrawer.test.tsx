@@ -88,7 +88,7 @@ describe("Account drawer", () => {
         fireEvent.click(overview);
         fireEvent.change(screen.getByRole("textbox", { name: "Name" }), { target: { value: "Travel cash" } });
         await selectCurrency("USD - US Dollar");
-        fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+        fireEvent.click(screen.getByRole("button", { name: "Create" }));
 
         await waitFor(() => expect(mutationState.createAccount).toHaveBeenCalledWith({
             currencyId: 1,
@@ -101,12 +101,15 @@ describe("Account drawer", () => {
         expect(onMutationSuccess).toHaveBeenCalledWith("create");
     });
 
-    it("hydrates, labels, and saves the edited favourite setting", async () => {
+    it("hydrates, labels, and saves the edited account settings", async () => {
         const { onMutationSuccess } = renderDrawer(editSession);
+        const active = screen.getByRole("switch", { name: "Active account" });
         const overview = screen.getByRole("switch", { name: "Show in overviews" });
         const save = screen.getByRole("button", { name: "Save" });
+        expect(active).toBeChecked();
         expect(overview).not.toBeChecked();
         expect(save).toBeDisabled();
+        fireEvent.click(active);
         fireEvent.click(overview);
         fireEvent.click(save);
 
@@ -114,6 +117,7 @@ describe("Account drawer", () => {
             id: 7,
             key: "cash",
             currencyId: 1,
+            isEnabled: false,
             isFavourite: true,
         })));
         expect(onMutationSuccess).toHaveBeenCalledWith("update");
@@ -121,7 +125,7 @@ describe("Account drawer", () => {
 
     it("validates the required fields before creating an account", async () => {
         renderDrawer({ mode: "create" });
-        fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+        fireEvent.click(screen.getByRole("button", { name: "Create" }));
         expect(await screen.findByText("Name is required")).toBeVisible();
         expect(await screen.findByText("Currency is required")).toBeVisible();
         expect(mutationState.createAccount).not.toHaveBeenCalled();
@@ -160,11 +164,19 @@ describe("Account drawer", () => {
         expect(onMutationSuccess).not.toHaveBeenCalled();
     });
 
-    it("deletes only after confirmation", async () => {
+    it.each([
+        { outcome: "successful deletion", blocked: false },
+        { outcome: "a pending internal transfer", blocked: true },
+    ])("handles $outcome only after delete confirmation", async ({ blocked }) => {
+        if (blocked) {
+            mutationState.deleteAccount.mockReturnValueOnce({
+                unwrap: () => Promise.reject({ data: { rule: "internal-transfer-pending" } }),
+            });
+        }
         const { onMutationSuccess } = renderDrawer(editSession);
         const user = userEvent.setup();
         const trigger = screen.getByRole("button", { name: "Delete" });
-        const footer = trigger.closest(".inex-drawer-actions--sticky");
+        const footer = trigger.closest(".ant-drawer-footer");
         expect(footer).toContainElement(screen.getByRole("button", { name: "Cancel" }));
         expect(footer).toContainElement(screen.getByRole("button", { name: "Save" }));
 
@@ -177,6 +189,11 @@ describe("Account drawer", () => {
         await user.click(trigger);
         await user.click((await screen.findAllByRole("button", { name: "Delete" }))[1]);
         await waitFor(() => expect(mutationState.deleteAccount).toHaveBeenCalledWith(7));
-        expect(onMutationSuccess).toHaveBeenCalledWith("delete");
+        if (blocked) {
+            expect(await screen.findByRole("alert")).toHaveTextContent(translations.errors["internal-transfer-pending"]);
+            expect(onMutationSuccess).not.toHaveBeenCalled();
+        } else {
+            expect(onMutationSuccess).toHaveBeenCalledWith("delete");
+        }
     });
 });

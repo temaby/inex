@@ -28,13 +28,10 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({
         t: (key: string) => ({
             "categories.systemGroup": "System",
-            "transactions.cancel": "Cancel",
+            "common.cancel": "Cancel",
+            "common.create": "Create",
             "transactions.expense": "Expense",
             "transactions.income": "Income",
-            "transactions.saveExpense": "Save expense",
-            "transactions.saveIncome": "Save income",
-            "transactions.saveTransfer": "Save transfer",
-            "transactions.saveInternalTransfer": "Save internal transfer",
             "transactions.saving": "Saving...",
             "transactions.transfer": "Transfer",
             "transactions.internalTransfer": "Internal transfer",
@@ -101,11 +98,22 @@ vi.mock("./TransactionCreateExpenseForm", () => ({
 }));
 
 vi.mock("./TransactionCreateIncomeForm", () => ({
-    default: function TransactionCreateIncomeFormMock({ validationErrors, toAccount, onSetToAccount }: { validationErrors: Record<string, string | undefined>; toAccount: { id: number }; onSetToAccount: (item: { key: string }) => void }) {
+    default: function TransactionCreateIncomeFormMock({ validationErrors, toAccount, onSetToAccount, onSetToAmount, onSetCategory }: {
+        validationErrors: Record<string, string | undefined>;
+        toAccount: { id: number };
+        onSetToAccount: (item: { key: string }) => void;
+        onSetToAmount: (amount: number) => void;
+        onSetCategory: (item: { key: string }) => void;
+    }) {
         return (
             <div data-testid="income-form">
                 <output data-testid="income-account">{toAccount.id}</output>
                 <button type="button" onClick={() => onSetToAccount({ key: "2" })}>Choose income account</button>
+                <button type="button" onClick={() => {
+                    onSetToAccount({ key: "1" });
+                    onSetToAmount(12.5);
+                    onSetCategory({ key: "10" });
+                }}>Fill income</button>
                 {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
             </div>
         );
@@ -113,9 +121,21 @@ vi.mock("./TransactionCreateIncomeForm", () => ({
 }));
 
 vi.mock("./TransactionCreateTransferForm", () => ({
-    default: function TransactionCreateTransferFormMock({ validationErrors }: { validationErrors: Record<string, string | undefined> }) {
+    default: function TransactionCreateTransferFormMock({ validationErrors, onSetFromAccount, onSetToAccount, onSetFromAmount, onSetToAmount }: {
+        validationErrors: Record<string, string | undefined>;
+        onSetFromAccount: (item: { key: string }) => void;
+        onSetToAccount: (item: { key: string }) => void;
+        onSetFromAmount: (amount: number) => void;
+        onSetToAmount: (amount: number) => void;
+    }) {
         return (
             <div data-testid="transfer-form">
+                <button type="button" onClick={() => {
+                    onSetFromAccount({ key: "1" });
+                    onSetToAccount({ key: "2" });
+                    onSetFromAmount(10);
+                    onSetToAmount(2.5);
+                }}>Fill transfer</button>
                 {Object.values(validationErrors).map((error) => error ? <div key={error}>{error}</div> : null)}
             </div>
         );
@@ -181,10 +201,11 @@ const categories: CategoryResponse[] = [
     },
 ];
 
-const renderCreateForm = () =>
+const renderCreateForm = (availableAccounts = accounts) =>
     render(
         <TransactionCreate
-            accounts={accounts}
+            open
+            accounts={availableAccounts}
             categories={categories}
             onCancel={() => undefined}
             onSubmit={() => undefined}
@@ -220,26 +241,50 @@ describe("TransactionCreate", () => {
         mutationState.createTransaction.mockReturnValueOnce({ unwrap: () => new Promise((_, reject) => { rejectSave = reject; }) });
         const user = userEvent.setup(); renderCreateForm();
         await user.click(screen.getByRole("button", { name: "Fill expense" }));
-        await user.dblClick(screen.getByRole("button", { name: "Save expense" }));
+        await user.dblClick(screen.getByRole("button", { name: "Create" }));
         expect(mutationState.createTransaction).toHaveBeenCalledTimes(1);
         expect(mutationState.createTransaction).toHaveBeenCalledWith(expect.objectContaining({ accountId: 1, categoryId: 10, amount: -12.5 }));
         rejectSave({ response: { status: 503, data: {} } });
         await waitFor(() => expect(mutationState.dispatch).toHaveBeenCalled());
         expect(screen.getByTestId("expense-amount")).toHaveTextContent("12.5");
         mutationState.createTransaction.mockReturnValueOnce({ unwrap: () => Promise.resolve() });
-        await user.click(screen.getByRole("button", { name: "Save expense" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
         expect(mutationState.createTransaction).toHaveBeenCalledTimes(2);
+    });
+
+    it("creates income with its positive amount from the fixed footer", async () => {
+        const user = userEvent.setup();
+        mutationState.createTransaction.mockReturnValueOnce({ unwrap: () => Promise.resolve() });
+        renderCreateForm();
+        await user.click(screen.getByRole("button", { name: "Income" }));
+        await user.click(screen.getByRole("button", { name: "Fill income" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
+        expect(mutationState.createTransaction).toHaveBeenCalledWith(expect.objectContaining({
+            accountId: 1, categoryId: 10, amount: 12.5,
+        }));
+    });
+
+    it("creates a transfer with both account IDs and currency amounts from the fixed footer", async () => {
+        const user = userEvent.setup();
+        mutationState.createTransfer.mockReturnValueOnce({ unwrap: () => Promise.resolve() });
+        renderCreateForm([...accounts, { ...accounts[0], id: 2, currencyId: 2, currency: "EUR" }]);
+        await user.click(screen.getByRole("button", { name: "Transfer" }));
+        await user.click(screen.getByRole("button", { name: "Fill transfer" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
+        expect(mutationState.createTransfer).toHaveBeenCalledWith(expect.objectContaining({
+            accountFromId: 1, accountToId: 2, amountFrom: 10, amountTo: 2.5,
+        }));
     });
     it("requires a correction reason and uses its dedicated endpoint without a recipient", async () => {
         const user = userEvent.setup(); renderCreateForm();
         await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
         await user.click(screen.getByRole("menuitem", { name: "transactions.correction" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
-        await user.click(screen.getByRole("button", { name: "transactions.saveCorrection" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
         expect(mutationState.createCorrection).not.toHaveBeenCalled();
         expect(screen.getByText("errors.correction.reason_required")).toBeInTheDocument();
         await user.type(screen.getByLabelText("Reason"), "Cash recount #audit");
-        await user.click(screen.getByRole("button", { name: "transactions.saveCorrection" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
         expect(mutationState.createCorrection).toHaveBeenCalledWith(expect.objectContaining({ accountId: 1, amount: 25, direction: "increase", comment: "Cash recount #audit" }));
         expect(mutationState.createLinked).not.toHaveBeenCalled();
         expect(mutationState.createTransaction).not.toHaveBeenCalled();
@@ -268,7 +313,7 @@ describe("TransactionCreate", () => {
     it("keeps the save action enabled when no create mutation is running", () => {
         renderCreateForm();
 
-        expect(screen.getByRole("button", { name: "Save expense" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "Create" })).toBeEnabled();
         expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
     });
 
@@ -278,7 +323,7 @@ describe("TransactionCreate", () => {
         renderCreateForm();
 
         expect(screen.getByRole("button", { name: "Saving..." })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     });
 
     it("disables save while the transfer create mutation is running", () => {
@@ -287,14 +332,14 @@ describe("TransactionCreate", () => {
         renderCreateForm();
 
         expect(screen.getByRole("button", { name: "Saving..." })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     });
 
     it("blocks empty expense submits with field validation errors", async () => {
         const user = userEvent.setup();
 
         renderCreateForm();
-        await user.click(screen.getByRole("button", { name: "Save expense" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
 
         expect(mutationState.createTransaction).not.toHaveBeenCalled();
         expect(screen.getByText("Please select a valid account")).toBeInTheDocument();
@@ -307,7 +352,7 @@ describe("TransactionCreate", () => {
 
         renderCreateForm();
         await user.click(screen.getByRole("button", { name: "Transfer" }));
-        await user.click(screen.getByRole("button", { name: "Save transfer" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
 
         expect(mutationState.createTransfer).not.toHaveBeenCalled();
         expect(screen.getByText("Please select a valid source account")).toBeInTheDocument();
@@ -322,7 +367,7 @@ describe("TransactionCreate", () => {
         renderCreateForm();
         await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
         await user.click(screen.getByRole("menuitem", { name: "Internal transfer" }));
-        await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
 
         expect(screen.getByTestId("internal-transfer-form")).toBeInTheDocument();
         expect(mutationState.createInternalTransfer).not.toHaveBeenCalled();
@@ -337,7 +382,7 @@ describe("TransactionCreate", () => {
         await user.click(screen.getByRole("button", { name: "transactions.moreTypes" }));
         await user.click(screen.getByRole("menuitem", { name: "Internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
-        await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
 
         expect(mutationState.createInternalTransfer).toHaveBeenCalledWith(expect.objectContaining({
             accountId: 1,
@@ -353,7 +398,7 @@ describe("TransactionCreate", () => {
         await user.click(screen.getByRole("menuitem", { name: "Internal transfer" }));
         await user.click(screen.getByRole("button", { name: "Set valid internal transfer" }));
         await user.click(screen.getByRole("combobox", { name: "" })); await user.click(screen.getByTitle("Linked QA"));
-        await user.click(screen.getByRole("button", { name: "Save internal transfer" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
         expect(mutationState.createLinked).toHaveBeenCalledWith(expect.objectContaining({ linkedUserId: 2, accountId: 1, amount: 25, direction: "incoming", submissionKey: expect.any(String) }));
         expect(mutationState.createInternalTransfer).not.toHaveBeenCalled();
     });
@@ -362,7 +407,7 @@ describe("TransactionCreate", () => {
 
 describe("TransactionCreate account recommendations", () => {
     const recommendationAccounts = [accounts[0], { ...accounts[0], id: 2, key: "bank", name: "Bank" }, { ...accounts[0], id: 3, isEnabled: false }];
-    const form = () => <TransactionCreate accounts={recommendationAccounts} categories={categories} onCancel={() => undefined} onSubmit={() => undefined} />;
+    const form = () => <TransactionCreate open accounts={recommendationAccounts} categories={categories} onCancel={() => undefined} onSubmit={() => undefined} />;
     const selectMode = async (label: string) => {
         const user = userEvent.setup();
         await user.click(screen.getByRole("button", { name: label }));
@@ -383,7 +428,7 @@ describe("TransactionCreate account recommendations", () => {
         await selectMode("Income");
         expect(screen.getByTestId("income-account")).toHaveTextContent("2");
         await selectMode("Transfer");
-        await userEvent.click(screen.getByRole("button", { name: "Save transfer" }));
+        await userEvent.click(screen.getByRole("button", { name: "Create" }));
         expect(screen.getByText("Please select a valid source account")).toBeInTheDocument();
         expect(screen.getByText("Please select a valid destination account")).toBeInTheDocument();
         await selectMode("Expense");

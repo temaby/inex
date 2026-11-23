@@ -205,7 +205,7 @@ describe("Accounts inventory and editor", () => {
         fireEvent.change(await screen.findByRole("textbox", { name: "accounts.name" }), { target: { value: "Cash wallet" } });
         fireEvent.mouseDown(screen.getByRole("combobox", { name: "accounts.currency" }));
         await user.click(await screen.findByText("PLN"));
-        await user.click(screen.getByRole("button", { name: "accounts.createAccount" }));
+        await user.click(screen.getByRole("button", { name: "common.create" }));
 
         await waitFor(() => {
             expect(document.activeElement).toHaveTextContent("accounts.addAccount");
@@ -383,7 +383,7 @@ describe("Accounts inventory and editor", () => {
         await user.click(information);
         expect(information.parentElement).toHaveAttribute("open");
         expect(within(drawer).getByText("accounts.snapshot.currentBalance")).toBeVisible();
-        await user.click(within(drawer).getByRole("button", { name: "accounts.cancel" }));
+        await user.click(within(drawer).getByRole("button", { name: "common.cancel" }));
 
         await waitFor(() => expect(drawer).not.toBeInTheDocument());
         expect(accountRow).toHaveFocus();
@@ -430,14 +430,14 @@ describe("Accounts inventory and editor", () => {
         await user.keyboard("{Enter}");
         const firstDrawer = await screen.findByRole("dialog");
         expect(within(firstDrawer).getByRole("textbox", { name: "accounts.name" })).toHaveValue("Archive");
-        await user.click(within(firstDrawer).getByRole("button", { name: "accounts.cancel" }));
+        await user.click(within(firstDrawer).getByRole("button", { name: "common.cancel" }));
         await waitFor(() => expect(row).toHaveFocus());
 
         await user.keyboard(" ");
         const drawer = await screen.findByRole("dialog");
         const name = within(drawer).getByRole("textbox", { name: "accounts.name" });
         await user.type(name, " updated");
-        await user.click(within(drawer).getByRole("button", { name: "accounts.save" }));
+        await user.click(within(drawer).getByRole("button", { name: "common.save" }));
 
         expect(await screen.findByRole("button", { name: "Edit account Archive updated" })).toBeVisible();
         await waitFor(() => expect(drawer).not.toBeInTheDocument());

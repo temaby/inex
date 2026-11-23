@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 import { Alert, Button, Form, Input, Modal, Select, Switch } from "antd";
 import { useTranslation } from "react-i18next";
 
-import { InExButton, InExDrawer, Num, RECORD_EDITOR_DRAWER_WIDTH } from "../../components/primitives";
+import { InExButton, Num } from "../../components/primitives";
+import { FormDrawer } from "../../components/primitives/FormDrawer";
 import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import {
     type CategoryResponse,
@@ -57,7 +58,8 @@ export const CategoryDrawer = ({
     afterOpenChange,
     onMutationSuccess,
 }: CategoryDrawerProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
     const [createCategory] = useCreateCategoryMutation();
     const [updateCategory] = useUpdateCategoryMutation();
     const [deleteCategory] = useDeleteCategoryMutation();
@@ -135,44 +137,38 @@ export const CategoryDrawer = ({
 
     return (
         <>
-            <InExDrawer
+            <FormDrawer
                 afterOpenChange={afterOpenChange}
+                busy={busy}
+                error={formError}
+                deleteAction={category && !locked && (
+                    <Button
+                        aria-haspopup="dialog"
+                        danger
+                        disabled={busy}
+                        htmlType="button"
+                        loading={pendingMutation === "delete"}
+                        onClick={() => setConfirmation({ action: "delete", open: true })}
+                        type="text"
+                    >
+                        {t("common.delete")}
+                    </Button>
+                )}
                 onClose={requestClose}
                 open={open}
-                subtitle={category?.name ?? t("categories.addDrawerSubtitle")}
-                title={t(category ? "categories.editDrawerTitle" : "categories.addDrawerTitle")}
-                width={RECORD_EDITOR_DRAWER_WIDTH}
-                footer={(
-                    <div className={`category-drawer-footer${category && !locked ? " category-drawer-footer--edit" : ""}`}>
-                        {category && !locked && (
-                            <Button
-                                aria-haspopup="dialog"
-                                danger
-                                disabled={busy}
-                                htmlType="button"
-                                loading={pendingMutation === "delete"}
-                                onClick={() => setConfirmation({ action: "delete", open: true })}
-                                type="text"
-                            >
-                                {t("common.delete")}
-                            </Button>
-                        )}
-                        <div className="inex-drawer-actions category-drawer-primary-actions">
-                            <InExButton disabled={busy} onClick={requestClose}>{t("common.cancel")}</InExButton>
-                            {!locked && (
-                                <InExButton
-                                    aria-busy={isSaving}
-                                    disabled={busy || Boolean(category && !dirty)}
-                                    form={FORM_ID}
-                                    kind="primary"
-                                    type="submit"
-                                >
-                                    {t(isSaving ? "categories.saving" : category ? "common.save" : "common.create")}
-                                </InExButton>
-                            )}
-                        </div>
-                    </div>
+                submitAction={!locked && (
+                    <InExButton
+                        aria-busy={isSaving}
+                        disabled={busy || Boolean(category && !dirty)}
+                        form={FORM_ID}
+                        kind="primary"
+                        type="submit"
+                    >
+                        {t(isSaving ? "categories.saving" : category ? "common.save" : "common.create")}
+                    </InExButton>
                 )}
+                subtitle={category?.name}
+                title={t(category ? "categories.editDrawerTitle" : "categories.addDrawerTitle")}
             >
                 <Form<CategoryFormValues>
                     disabled={locked || busy}
@@ -190,8 +186,7 @@ export const CategoryDrawer = ({
                     scrollToFirstError={{ focus: true }}
                 >
                     {locked && <Alert className="categories-alert" message={t("categories.drawer.systemNotice")} showIcon type="info" />}
-                    {formError && <Alert className="categories-alert" message={formError} showIcon type="error" />}
-                    <section aria-labelledby="category-basic-information" className="category-drawer-section">
+                    <section aria-labelledby="category-basic-information" className="form-drawer-section">
                         <h2 id="category-basic-information">{t("categories.drawer.basicInformation")}</h2>
                         <Form.Item
                             name="name"
@@ -233,9 +228,9 @@ export const CategoryDrawer = ({
                             <Input placeholder={t("categories.descriptionPlaceholder")} />
                         </Form.Item>
                     </section>
-                    <section aria-labelledby="category-settings" className="category-drawer-section category-drawer-settings">
+                    <section aria-labelledby="category-settings" className="form-drawer-section">
                         <h2 id="category-settings">{t("categories.drawer.settings")}</h2>
-                        <div className="category-drawer-setting">
+                        <div className="form-drawer-setting">
                             <label htmlFor="category-active">{t("categories.drawer.activeSetting")}</label>
                             <Form.Item name="isEnabled" noStyle valuePropName="checked">
                                 <Switch id="category-active" />
@@ -243,19 +238,19 @@ export const CategoryDrawer = ({
                         </div>
                     </section>
                     {category && snapshot && (
-                        <details className="category-drawer-information">
+                        <details className="form-drawer-information" data-qa="category-drawer-information">
                             <summary>{t("categories.drawer.information")}</summary>
-                            <p>{snapshot.periodLabel}</p>
+                            <p className="category-drawer-period">{snapshot.periodLabel}</p>
                             <dl className="category-drawer-snapshot">
                                 <div>
                                     <dt>{t(`categories.snapshot.${snapshot.kind === "income" ? "income" : "spend"}`)}</dt>
                                     <dd>{snapshot.amount != null && snapshot.amount > 0
-                                        ? <Num value={snapshot.amount} currency={snapshot.currency} kind={snapshot.kind} />
+                                        ? <Num value={snapshot.amount} currency={snapshot.currency} fractionDigits="currency" kind={snapshot.kind} locale={locale} />
                                         : "—"}</dd>
                                 </div>
                                 <div>
                                     <dt>{t("categories.snapshot.transactions")}</dt>
-                                    <dd>{snapshot.transactionCount || "—"}</dd>
+                                    <dd>{snapshot.transactionCount ? snapshot.transactionCount.toLocaleString(locale) : "—"}</dd>
                                 </div>
                                 <div>
                                     <dt>{t("categories.snapshot.budget")}</dt>
@@ -263,7 +258,7 @@ export const CategoryDrawer = ({
                                     {snapshot.budget && (
                                         <dd className="category-drawer-snapshot__budget">
                                             {snapshot.budget.name}{" "}
-                                            <Num value={snapshot.budget.value} currency={snapshot.currency} kind="neutral" size={12} />
+                                            <Num value={snapshot.budget.value} currency={snapshot.currency} fractionDigits="currency" kind="neutral" locale={locale} size={12} />
                                         </dd>
                                     )}
                                 </div>
@@ -275,7 +270,7 @@ export const CategoryDrawer = ({
                         </details>
                     )}
                 </Form>
-            </InExDrawer>
+            </FormDrawer>
             {confirmation && (
                 <Modal
                     afterClose={finishConfirmation}

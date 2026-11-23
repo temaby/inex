@@ -16,6 +16,8 @@ export interface InExDrawerProps {
     children: React.ReactNode;
     footer?: React.ReactNode;
     footerAlign?: "start" | "end" | "between";
+    rootClassName?: string;
+    rootStyle?: React.CSSProperties;
 }
 
 export const InExDrawer: React.FC<InExDrawerProps> = ({
@@ -29,6 +31,8 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
     children,
     footer,
     footerAlign = "end",
+    rootClassName,
+    rootStyle,
 }) => {
     const drawerWidth = `min(${width}px, 100vw)`;
     const footerJustifyContent: Record<NonNullable<InExDrawerProps["footerAlign"]>, React.CSSProperties["justifyContent"]> = {
@@ -38,7 +42,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
     };
 
     const titleNode = (
-        <div>
+        <div className="inex-drawer-heading">
             <div
                 style={{
                     color: "var(--fg-1)",
@@ -50,7 +54,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
                 {title}
             </div>
             {subtitle && (
-                <div style={{ color: "var(--fg-3)", fontSize: 13, marginTop: 2, overflowWrap: "anywhere" }}>
+                <div className="inex-drawer-subtitle" style={{ color: "var(--fg-3)", fontSize: 13, marginTop: 2, overflowWrap: "anywhere" }}>
                     {subtitle}
                 </div>
             )}
@@ -63,6 +67,8 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
             closeIcon={<X color="var(--fg-3)" size={20} />}
             onClose={onClose}
             open={open}
+            rootClassName={rootClassName}
+            rootStyle={rootStyle}
             footer={footer}
             styles={{
                 body: { padding: bodyPadding },
