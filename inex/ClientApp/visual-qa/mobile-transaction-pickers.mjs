@@ -96,8 +96,9 @@ async function applyInteraction(client, state) {
     state.scrollWhileOpenPassed = await evaluate(client, `(() => {
       const body = document.querySelector('.ant-drawer-body');
       const before = body.scrollTop;
-      body.scrollTop += 40;
-      return body.scrollTop > before;
+      const scrollRange = body.scrollHeight - body.clientHeight;
+      body.scrollTop += before < scrollRange / 2 ? 40 : -40;
+      return body.scrollTop !== before;
     })()`);
     await wait(300);
   }

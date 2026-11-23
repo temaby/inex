@@ -16,6 +16,7 @@ export interface InExDrawerProps {
     children: React.ReactNode;
     footer?: React.ReactNode;
     footerAlign?: "start" | "end" | "between";
+    showFooterSeparator?: boolean;
     rootClassName?: string;
     rootStyle?: React.CSSProperties;
 }
@@ -31,6 +32,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
     children,
     footer,
     footerAlign = "end",
+    showFooterSeparator = true,
     rootClassName,
     rootStyle,
 }) => {
@@ -74,7 +76,7 @@ export const InExDrawer: React.FC<InExDrawerProps> = ({
                 body: { padding: bodyPadding },
                 footer: {
                     alignItems: "center",
-                    borderTop: "1px solid var(--border-1)",
+                    borderTop: `1px solid ${showFooterSeparator ? "var(--border-1)" : "transparent"}`,
                     display: "flex",
                     flexWrap: "wrap",
                     gap: 10,

@@ -411,6 +411,48 @@ export async function waitFor(client, predicateExpression, timeoutMs = 10000) {
   throw new Error(`Timed out waiting for browser condition: ${predicateExpression}`);
 }
 
+export const formDrawerLayoutExpression = `(() => {
+  const panel = document.querySelector('.form-drawer.ant-drawer-open .ant-drawer-content');
+  const body = panel?.querySelector('.ant-drawer-body');
+  const content = body?.querySelector('.form-drawer-content');
+  const footer = panel?.querySelector('.ant-drawer-footer');
+  const actions = footer?.querySelector('.form-drawer-footer');
+  if (!content || !actions) return null;
+
+  const footerRect = footer.getBoundingClientRect();
+  const panelBottom = panel.getBoundingClientRect().bottom;
+  const scrollable = body.scrollHeight > body.clientHeight;
+  const separator = getComputedStyle(footer).borderTopColor !== 'rgba(0, 0, 0, 0)';
+  const gap = actions.getBoundingClientRect().top - content.getBoundingClientRect().bottom;
+  const positioned = Math.abs(body.getBoundingClientRect().bottom - footerRect.top) <= 1
+    && footerRect.bottom <= panelBottom + 1 && panel.scrollHeight <= panel.clientHeight
+    && (scrollable ? separator && Math.abs(footerRect.bottom - panelBottom) <= 1 : !separator && gap >= 24 && gap <= 32);
+
+  return { footerBottom: footerRect.bottom, positioned, scrollable };
+})()`;
+
+export async function verifyAdaptiveDrawerDisclosure(client, { width, height }, selector) {
+  const disclosure = `document.querySelector(${JSON.stringify(selector)})`;
+  const toggle = () => evaluate(client, `${disclosure}.querySelector('summary').click()`);
+  const resize = (height) => client.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
+  const waitForLayout = (height, expanded) => waitFor(client, `(() => {
+    const layout = ${formDrawerLayoutExpression};
+    return innerHeight === ${height} && ${disclosure}?.open === ${expanded}
+      && layout?.positioned && layout.scrollable === ${expanded};
+  })()`);
+
+  await waitForLayout(height, false);
+  const compactHeight = Math.ceil(await evaluate(client, `${formDrawerLayoutExpression}.footerBottom`)) + 8;
+  await resize(compactHeight);
+  await waitForLayout(compactHeight, false);
+  await toggle();
+  await waitForLayout(compactHeight, true);
+  await toggle();
+  await waitForLayout(compactHeight, false);
+  await resize(height);
+  await waitForLayout(height, false);
+}
+
 export function clickButtonByTextExpression(label) {
   return `(() => {
     const label = ${JSON.stringify(label)};

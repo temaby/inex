@@ -1,6 +1,6 @@
 import path from "node:path";
 import { visualQaConfig as transactions } from "./transactions.mjs";
-import { buildCommonChecks, evaluate, fixedDateInitScript, jsonResponse, resolveVisualQaPaths,
+import { buildCommonChecks, evaluate, fixedDateInitScript, formDrawerLayoutExpression, jsonResponse, resolveVisualQaPaths,
   runBrowserState, runVisualQaScript, setInputValue, wait, waitFor } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
@@ -10,12 +10,63 @@ const states = [
   ...[1920, 1440, 1280, 1024, 768, 390, 360].flatMap(width => ["expense", "income"].map(mode => ({ name: `${mode}-${width}`, mode, viewport: { width, height: 900 } }))),
   ...["expense", "income", "correction", "internalTransfer"].map(mode => ({ name: `${mode}-ru-360`, mode, russian: true, viewport: { width: 360, height: 900 } })),
   ...["transfer", "correction", "internalTransfer", "category-search", "date", "comment", "currency", "save"].map(mode => ({ name: `${mode}-390`, mode, viewport: { width: 390, height: 900 } })),
+  { name: "adaptive-footer-390", mode: "adaptive", viewport: { width: 390, height: 900 } },
+  { name: "internal-transfer-overflow-360", mode: "internalTransfer", overflow: true, viewport: { width: 360, height: 440 } },
   { name: "transfer-keyboard-360", mode: "transfer", keyboard: true, viewport: { width: 360, height: 750 } },
+  { name: "transfer-keyboard-1024", mode: "transfer", keyboard: true, viewport: { width: 1024, height: 750 } },
 ].map(state => ({ ...state, screenshot: `${state.name}.png`, screenshotMode: "viewport", scenario: state.russian ? "default-account-ru" : "default-account" }));
 
 async function click(client, selector) {
   await evaluate(client, `(() => { const element = document.querySelector(${JSON.stringify(selector)}); if (!element) throw new Error('Missing target: ' + ${JSON.stringify(selector)}); element.scrollIntoView({block:'nearest'}); element.click(); })()`);
   await wait(100);
+}
+
+async function waitForFooter(client, scrollable) {
+  await waitFor(client, `(() => {
+    const layout = ${formDrawerLayoutExpression};
+    if (!layout?.positioned || layout.scrollable !== ${scrollable}) return false;
+    const drawer = document.querySelector('.form-drawer.ant-drawer-open .ant-drawer-content');
+    const body = drawer.querySelector('.ant-drawer-body');
+    if (body.scrollWidth > body.clientWidth) return false;
+    if (!${scrollable}) return layout.footerBottom < drawer.getBoundingClientRect().bottom - 1;
+    const content = body.querySelector('.form-drawer-content');
+    const footer = drawer.querySelector('.ant-drawer-footer');
+    const originalScroll = body.scrollTop;
+    body.scrollTop = body.scrollHeight;
+    const finalFieldReachable = body.scrollTop > 0
+      && content.getBoundingClientRect().bottom <= body.getBoundingClientRect().bottom - 1;
+    body.scrollTop = originalScroll;
+    return finalFieldReachable && footer.getBoundingClientRect().bottom === layout.footerBottom;
+  })()`);
+}
+
+async function verifyAdaptiveFooter(client, width) {
+  const resize = (width, height) => client.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
+  const height = Math.ceil(await evaluate(client, `${formDrawerLayoutExpression}.footerBottom`)) + 8;
+  await resize(width, height);
+  await waitForFooter(client, false);
+  await click(client, ".transaction-comment-toggle");
+  await waitForFooter(client, true);
+  await click(client, ".transaction-comment-toggle");
+  await waitForFooter(client, false);
+  await click(client, ".transaction-type-more");
+  await waitFor(client, "Boolean(document.querySelector('.ant-dropdown:not(.ant-dropdown-hidden)'))");
+  await evaluate(client, "Array.from(document.querySelectorAll('.ant-dropdown-menu-item')).find(item => item.textContent.trim() === 'Internal transfer').click()");
+  await waitForFooter(client, true);
+  await click(client, ".transaction-type-buttons button:first-child");
+  await waitForFooter(client, false);
+  await click(client, ".form-drawer-primary-actions button:last-child");
+  await waitFor(client, "Boolean(document.querySelector('.form-drawer .ant-form-item-explain-error'))");
+  await waitForFooter(client, false);
+  await resize(width, height - 40);
+  await waitForFooter(client, true);
+  await click(client, ".transaction-type-buttons button:nth-child(2)");
+  await waitFor(client, "Boolean(document.querySelector('#income_amount')) && !document.querySelector('.form-drawer .ant-form-item-has-error')");
+  await waitForFooter(client, true);
+  await resize(1280, 900);
+  await waitForFooter(client, false);
+  await resize(width, 900);
+  await waitForFooter(client, false);
 }
 
 async function applyInteraction(client, state) {
@@ -32,10 +83,13 @@ async function applyInteraction(client, state) {
     await evaluate(client, `Array.from(document.querySelectorAll('.ant-dropdown-menu-item')).find(b => b.textContent.trim() === ${JSON.stringify(labels[state.mode])}).click()`);
   }
   await wait(250);
-  if (["expense", "income", "save", "currency", "comment", "category-search"].includes(state.mode)) {
+  if (["expense", "income", "adaptive", "save", "currency", "comment", "category-search"].includes(state.mode)) {
     await waitFor(client, "document.querySelectorAll('.transaction-category-shortcuts button').length > 0");
     state.noAutomaticCategory = await evaluate(client, "document.querySelectorAll('.transaction-category-shortcuts button[aria-pressed=true]').length === 0");
   }
+  if (["expense", "income", "adaptive"].includes(state.mode)) await waitForFooter(client, false);
+  if (state.mode === "adaptive") await verifyAdaptiveFooter(client, state.viewport.width);
+  if (state.overflow) await waitForFooter(client, true);
   if (state.mode === "transfer") {
     await click(client, "#transfer_from_account");
     await evaluate(client, "Array.from(document.querySelectorAll('.inex-picker-popup:not(.ant-popover-hidden) .ant-menu-item')).find(b=>b.textContent.includes('USD operating')).click()");
@@ -74,6 +128,7 @@ async function applyInteraction(client, state) {
       viewport.dispatchEvent(new Event('resize'));
     })()`);
     await waitFor(client, "Math.abs(document.querySelector('.form-drawer-footer').closest('.ant-drawer-footer').getBoundingClientRect().bottom - 420) <= 1");
+    await waitForFooter(client, true);
     state.keyboardScroll = await evaluate(client, `(() => {
       const body = document.querySelector('.form-drawer .ant-drawer-body');
       const footer = document.querySelector('.form-drawer-footer');

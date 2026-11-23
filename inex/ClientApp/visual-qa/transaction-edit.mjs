@@ -1,6 +1,6 @@
 import path from "node:path";
 import { visualQaConfig as transactions } from "./transactions.mjs";
-import { buildCommonChecks, evaluate, fixedDateInitScript, jsonResponse, problemResponse,
+import { buildCommonChecks, evaluate, fixedDateInitScript, formDrawerLayoutExpression, jsonResponse, problemResponse,
   resolveVisualQaPaths, runBrowserState, runVisualQaScript, setInputValue, wait, waitFor } from "./harness.mjs";
 
 const { clientRoot, repoRoot } = resolveVisualQaPaths(import.meta.url);
@@ -9,6 +9,7 @@ const outputDir = path.join(repoRoot, "docs/implementation/visual-qa/transaction
 const states = [
   ...[1920, 1440, 1280, 1024, 768, 390, 360].map(width => ({ name: `expense-${width}`, mode: "expense", viewport: { width, height: 900 } })),
   { name: "expense-ru-360", mode: "expense", russian: true, viewport: { width: 360, height: 900 } },
+  { name: "expense-overflow-390", mode: "expense", overflow: true, viewport: { width: 390, height: 455 } },
   ...["income", "transfer", "correction", "category-search", "currency", "date", "comment", "delete-confirmation"].map(mode => ({ name: `${mode}-360`, mode, viewport: { width: 360, height: 900 } })),
   ...["save", "failure", "retry", "delete"].map(mode => ({ name: `${mode}-390`, mode, viewport: { width: 390, height: 900 } })),
   ...["cancel-clean", "cancel-draft"].map(mode => ({ name: `${mode}-390`, mode, viewport: { width: 390, height: 900 } })),
@@ -31,6 +32,18 @@ async function applyInteraction(client, state) {
     systemReadOnly:document.querySelector('#category')?.readOnly??false,
     reasonRequired:Boolean(document.querySelector('${form} .ant-form-item-required[for^=transaction-comment]')),
     saveDisabled:document.querySelector('.form-drawer-primary-actions button:last-child').disabled})`);
+  if (state.overflow) {
+    await waitFor(client, `(() => {
+      const layout = ${formDrawerLayoutExpression};
+      return layout?.positioned && layout.scrollable;
+    })()`);
+    await evaluate(client, `document.querySelector('${comment}').scrollIntoView({ block: 'nearest' })`);
+    await waitFor(client, `(() => {
+      const field = document.querySelector('${comment}');
+      const body = field.closest('.ant-drawer-body');
+      return body.scrollTop > 0 && field.getBoundingClientRect().bottom <= body.getBoundingClientRect().bottom;
+    })()`);
+  }
 
   if (state.mode === "category-search") {
     await click(client, "#category");

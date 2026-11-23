@@ -25,8 +25,25 @@ interface FormDrawerProps extends Pick<InExDrawerProps, "open" | "onClose" | "af
 
 export const FormDrawer = ({ busy, children, deleteAction, error, submitAction, ...drawer }: FormDrawerProps) => {
     const { t } = useTranslation();
+    const [content, setContent] = React.useState<HTMLDivElement | null>(null);
+    const [scrollable, setScrollable] = React.useState(false);
     const [viewportStyle, setViewportStyle] = React.useState<React.CSSProperties>();
     const errorRef = React.useRef<HTMLDivElement>(null);
+
+    React.useLayoutEffect(() => {
+        const body = content?.parentElement;
+        if (!drawer.open || !content || !body) return;
+
+        // Flex layout positions the actions. Overflow only controls the separator.
+        const updateSeparator = () => setScrollable(body.scrollHeight > body.clientHeight);
+        updateSeparator();
+
+        if (typeof ResizeObserver === "undefined") return;
+        const observer = new ResizeObserver(updateSeparator);
+        observer.observe(body);
+        observer.observe(content);
+        return () => observer.disconnect();
+    }, [content, drawer.open]);
 
     React.useEffect(() => {
         if (drawer.open && error) errorRef.current?.scrollIntoView?.({ block: "nearest" });
@@ -57,6 +74,7 @@ export const FormDrawer = ({ busy, children, deleteAction, error, submitAction, 
         <ConfigProvider theme={formTheme}>
             <InExDrawer
                 {...drawer}
+                bodyPadding="24px 24px 14px"
                 footer={(
                     <div className="form-drawer-footer">
                         {deleteAction}
@@ -68,10 +86,13 @@ export const FormDrawer = ({ busy, children, deleteAction, error, submitAction, 
                 )}
                 rootClassName="form-drawer"
                 rootStyle={viewportStyle}
+                showFooterSeparator={scrollable}
                 width={RECORD_EDITOR_DRAWER_WIDTH}
             >
-                {error && <div className="form-drawer-error" ref={errorRef}><Alert message={error} showIcon type="error" /></div>}
-                {children}
+                <div className="form-drawer-content" ref={setContent}>
+                    {error && <div className="form-drawer-error" ref={errorRef}><Alert message={error} showIcon type="error" /></div>}
+                    {children}
+                </div>
             </InExDrawer>
         </ConfigProvider>
     );
