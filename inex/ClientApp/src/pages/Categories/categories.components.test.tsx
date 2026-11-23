@@ -4,20 +4,26 @@ import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 
+import en from "../../../public/locales/en/translation.json";
 import ru from "../../../public/locales/ru/translation.json";
 import type { CategoryResponse } from "../../store/categories/categories-api";
+import { CategoriesHero } from "./CategoriesHero";
 import { CategoriesToolbar } from "./CategoriesToolbar";
 import { CategoryRow } from "./CategoryRow";
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
-        i18n: { language: "ru" },
+        i18n: translations,
         t: (key: string, options?: { count?: number; date?: string }) => translations.t(key, options),
     }),
 }));
 
 const translations = createInstance();
-await translations.init({ lng: "ru", resources: { ru: { translation: ru } } });
+await translations.init({
+    lng: "ru",
+    resources: { en: { translation: en }, ru: { translation: ru } },
+    interpolation: { escapeValue: false },
+});
 
 const category = (overrides: Partial<CategoryResponse> = {}): CategoryResponse => ({
     id: 1,
@@ -29,6 +35,55 @@ const category = (overrides: Partial<CategoryResponse> = {}): CategoryResponse =
     isSystem: false,
     systemCode: null,
     ...overrides,
+});
+
+describe("Categories financial overview", () => {
+    it.each([
+        ["ru", "USD", "1\u00a0234\u00a0567,13", "1\u00a0234\u00a0567,12", "0,01", "<0,1\u00a0%", "100\u00a0% от итога"],
+        ["en", "USD", "1,234,567.13", "1,234,567.12", "0.01", "<0.1%", "100% of total"],
+        ["en", "JPY", "1,234,567", "1,234,567", "0", "<0.1%", "100% of total"],
+        ["ru", "KWD", "1\u00a0234\u00a0567,133", "1\u00a0234\u00a0567,123", "0,010", "<0,1\u00a0%", "100\u00a0% от итога"],
+    ])("formats %s amounts in %s at the currency's precision", async (
+        locale, currency, totalAmount, largeAmount, smallAmount, smallShare, topShare,
+    ) => {
+        await translations.changeLanguage(locale);
+        try {
+            const main = category({ name: "Household expenses and other recurring purchases" });
+            const tiny = category({ id: 2, name: "Fees" });
+            const mainSpend = 1_234_567.123;
+            const totalSpend = mainSpend + 0.01;
+            const { container } = render(
+                <CategoriesHero
+                    categories={[main, tiny]}
+                    periodLabel="April 2026"
+                    stats={{
+                        available: true,
+                        byCategoryId: new Map(),
+                        currency,
+                        distribution: [
+                            { key: "1", label: main.name, value: mainSpend, share: mainSpend / totalSpend },
+                            { key: "2", label: tiny.name, value: 0.01, share: 0.01 / totalSpend },
+                        ],
+                        period: { year: 2026, month: 4 },
+                        totalSpend,
+                        topParent: main,
+                        topParentSpend: mainSpend,
+                    }}
+                />,
+            );
+            const displayedAmounts = Array.from(container.querySelectorAll('[role="text"] > span'), (element) => element.textContent);
+            expect(displayedAmounts).toEqual(
+                [totalAmount, largeAmount, largeAmount, smallAmount].map((amount) => `${amount} ${currency}`),
+            );
+            expect(screen.getByText(main.name, { selector: ".categories-hero__legend-label" })).toBeVisible();
+            expect(screen.getByText(topShare, { normalizer: (text) => text })).toBeVisible();
+            expect(screen.getByText(smallShare, { normalizer: (text) => text })).toBeVisible();
+            const chartSegments = screen.getAllByRole("img");
+            expect(chartSegments[1]).toHaveAttribute("aria-label", `${tiny.name} ${smallShare}`);
+        } finally {
+            await translations.changeLanguage("ru");
+        }
+    });
 });
 
 const renderRow = (overrides: Partial<ComponentProps<typeof CategoryRow>> = {}) => {

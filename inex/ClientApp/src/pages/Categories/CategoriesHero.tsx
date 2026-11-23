@@ -22,7 +22,8 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
     periodLabel,
     stats,
 }) => {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
 
     if (loading) {
         return (
@@ -43,9 +44,16 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
     const noSpendDescription = stats.available
         ? t("categories.hero.noSpendDescription")
         : t("categories.hero.unavailableDescription");
-    const topParentShare = stats.totalSpend > 0
-        ? Math.round((stats.topParentSpend / stats.totalSpend) * 100)
-        : 0;
+    const shareFormatter = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 1 });
+    const smallShareThreshold = 0.001;
+    const formatShare = (share: number) => share > 0 && share < smallShareThreshold
+        ? t("categories.hero.smallShare", { percent: shareFormatter.format(smallShareThreshold) })
+        : shareFormatter.format(share);
+    const distribution = stats.distribution.map((item) => ({
+        ...item,
+        label: item.key === "other" ? t("categories.hero.other") : item.label,
+        shareLabel: formatShare(item.share),
+    }));
     const distributionColorMap = (() => {
         const preferredColors: Record<string, string | undefined> = {};
 
@@ -75,8 +83,10 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                             currency={stats.currency}
                             currencyDataQa="hero-primary-currency"
                             currencySize="sm"
-                            fractionDigits={0}
+                            fractionDigits="currency"
                             kind="expense"
+                            locale={locale}
+                            wrap
                         />
                     ) : (
                         <span className="categories-hero__dash">-</span>
@@ -94,11 +104,16 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
                                     value={stats.topParentSpend}
                                     currency={stats.currency}
                                     currencySize="sm"
-                                    fractionDigits={0}
+                                    fractionDigits="currency"
                                     kind="expense"
-                                    size={13}
+                                    locale={locale}
+                                    wrap
                                 />
-                                <small>{t("categories.hero.ofTotal", { percent: topParentShare })}</small>
+                                <small>
+                                    {t("categories.hero.ofTotal", {
+                                        percent: formatShare(stats.topParentSpend / stats.totalSpend),
+                                    })}
+                                </small>
                             </span>
                         </div>
                     ) : (
@@ -108,62 +123,47 @@ export const CategoriesHero: React.FC<CategoriesHeroProps> = ({
             </div>
             <div className="categories-hero__details">
                 {hasSpend ? (
-                    <div className="categories-hero__distribution" aria-label={t("categories.hero.byCategory")}>
-                        <div className="categories-hero__distribution-head">
-                            <div>
-                                <div className="categories-eyebrow" data-qa="hero-distribution-eyebrow">
-                                    {t("categories.hero.byCategory")}
-                                </div>
-                            </div>
+                    <div className="categories-hero__distribution" aria-label={t("categories.hero.byCategory")} role="group">
+                        <div className="categories-eyebrow" data-qa="hero-distribution-eyebrow">
+                            {t("categories.hero.byCategory")}
                         </div>
                         <div className="categories-hero__distribution-bar" data-qa="hero-distribution-bar">
-                            {stats.distribution.map((item) => {
-                                const label = item.key === "other"
-                                    ? t("categories.hero.other")
-                                    : item.label;
-                                return (
-                                    <span
-                                        aria-label={`${label} ${Math.round(item.share * 100)}%`}
-                                        className="categories-hero__distribution-segment"
-                                        key={item.key}
-                                        style={{
-                                            background: distributionColorMap[item.key],
-                                            width: `${Math.max(item.share * 100, 2)}%`,
-                                        }}
-                                    />
-                                );
-                            })}
+                            {distribution.map((item) => (
+                                <span
+                                    aria-label={`${item.label} ${item.shareLabel}`}
+                                    className="categories-hero__distribution-segment"
+                                    key={item.key}
+                                    role="img"
+                                    style={{
+                                        background: distributionColorMap[item.key],
+                                        width: `${Math.max(item.share * 100, 2)}%`,
+                                    }}
+                                />
+                            ))}
                         </div>
                         <div className="categories-hero__legend" data-qa="hero-distribution-legend">
-                            {stats.distribution.map((item) => {
-                                const label = item.key === "other"
-                                    ? t("categories.hero.other")
-                                    : item.label;
-
-                                return (
-                                    <div className="categories-hero__legend-item" key={item.key}>
-                                        <span
-                                            className="categories-hero__legend-swatch"
-                                            style={{ background: distributionColorMap[item.key] }}
-                                        />
-                                        <span className="categories-hero__legend-copy">
-                                            <strong title={label}>{label}</strong>
-                                            <small>
-                                                <Num
-                                                    value={item.value}
-                                                    currency={stats.currency}
-                                                    kind="expense"
-                                                    size={11}
-                                                    currencySize="sm"
-                                                />
-                                            </small>
-                                        </span>
-                                        <small className="categories-hero__legend-share">
-                                            {Math.round(item.share * 100)}%
+                            {distribution.map((item) => (
+                                <div className="categories-hero__legend-item" key={item.key}>
+                                    <span
+                                        className="categories-hero__legend-swatch"
+                                        style={{ background: distributionColorMap[item.key] }}
+                                    />
+                                    <strong className="categories-hero__legend-label">{item.label}</strong>
+                                    <div className="categories-hero__legend-metrics">
+                                        <small className="categories-hero__legend-amount">
+                                            <Num
+                                                value={item.value}
+                                                currency={stats.currency}
+                                                fractionDigits="currency"
+                                                kind="expense"
+                                                locale={locale}
+                                                wrap
+                                            />
                                         </small>
+                                        <small className="categories-hero__legend-share">{item.shareLabel}</small>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 ) : (

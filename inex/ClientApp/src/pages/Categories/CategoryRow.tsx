@@ -11,7 +11,6 @@ interface CategoryRowProps {
     depth: number;
     hasChildren: boolean;
     isCollapsed: boolean;
-    isIncomeRoot?: boolean;
     readOnly?: boolean;
     paletteColor: string;
     stats?: CategorySpendStat;
@@ -26,7 +25,6 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     depth,
     hasChildren,
     isCollapsed,
-    isIncomeRoot = false,
     readOnly = false,
     paletteColor,
     stats,
@@ -69,7 +67,6 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
         "inex-hierarchy-row",
         hasChildren ? "inex-hierarchy-row--parent" : "inex-hierarchy-row--leaf",
         rowKindClass,
-        isIncomeRoot ? "category-row--income-root" : "",
         !category.isEnabled ? "is-disabled" : "",
     ]
         .filter(Boolean)

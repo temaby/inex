@@ -19,6 +19,7 @@ export interface NumProps {
     locale?: string;
     size?: string | number;
     currencySize?: "same" | "sm";
+    wrap?: boolean;
     dataQa?: string;
     valueDataQa?: string;
     currencyDataQa?: string;
@@ -91,6 +92,7 @@ export const Num: React.FC<NumProps> = ({
     locale,
     size,
     currencySize = "same",
+    wrap = false,
     dataQa,
     valueDataQa,
     currencyDataQa,
@@ -111,12 +113,15 @@ export const Num: React.FC<NumProps> = ({
         color: muted ? "var(--fg-3)" : colorMap[resolvedKind],
         display: "inline-flex",
         alignItems: "baseline",
-        gap: 3,
+        gap: wrap ? "0 3px" : 3,
+        flexWrap: wrap ? "wrap" : undefined,
         fontFamily: "var(--font-num)",
         fontFeatureSettings: "\"tnum\" 1",
         fontVariantNumeric: "tabular-nums",
         fontSize: size,
-        whiteSpace: "nowrap",
+        maxWidth: wrap ? "100%" : undefined,
+        whiteSpace: wrap ? "normal" : "nowrap",
+        overflowWrap: wrap ? "anywhere" : undefined,
     };
 
     const currencyStyle: React.CSSProperties = {
@@ -134,6 +139,7 @@ export const Num: React.FC<NumProps> = ({
                 {shouldSplitCurrency ? (
                     <>
                         <span>{formattedValue}</span>
+                        {wrap && " "}
                         <span data-qa={currencyDataQa} style={currencyStyle}>{currency}</span>
                     </>
                 ) : visibleValue}
