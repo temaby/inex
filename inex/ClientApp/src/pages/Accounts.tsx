@@ -32,14 +32,10 @@ import AccountDrawer, { type AccountDrawerSession, type AccountMutation, type Cu
 import { useCollapsedTreeNodeIds } from "./tree-expansion-preferences";
 import {
     AccountDisplay,
+    buildAccountOverview,
     buildDisplayAccounts,
     getAccountDisplayDescription,
     getBaseCurrency,
-    getTotalAbsBaseValue,
-    getTotalBaseValue,
-    hasBaseValues,
-    makeCurrencyDistribution,
-    makeCurrencyGroups,
     normalizeAccountSearch,
     sortAccountsByBaseValue,
 } from "./Accounts/accounts-utils";
@@ -139,9 +135,7 @@ const Accounts = () => {
     const accounts = accountsQuery.currentData ?? [];
     const accountIds = useMemo(() => accounts.map((account) => account.id), [accounts]);
     const summaryQuery = useGetAccountsSummaryQuery(
-        selectedLinkedUserId === null
-            ? accountIds
-            : { ids: accountIds, linkedUserId: selectedLinkedUserId },
+        { ids: accountIds, linkedUserId: selectedLinkedUserId, mode: "all" },
         { skip: accountIds.length === 0 },
     );
     const summaries = summaryQuery.currentData ?? [];
@@ -149,11 +143,6 @@ const Accounts = () => {
     useEffect(() => {
         setDrawerState((current) => current?.ownerId === selectedLinkedUserId ? current : null);
     }, [selectedLinkedUserId]);
-    const summaryIds = useMemo(
-        () => new Set(summaries.map((summary) => summary.id)),
-        [summaries],
-    );
-
     const displayAccounts = useMemo(
         () => buildDisplayAccounts(accounts, summaries, baseCurrency, exchangeRates),
         [accounts, baseCurrency, exchangeRates, summaries],
@@ -174,53 +163,27 @@ const Accounts = () => {
         );
     }, [scopedAccounts, search]);
 
-    const totalBaseValue = useMemo(
-        () => getTotalBaseValue(scopedAccounts),
-        [scopedAccounts],
-    );
-
-    const totalAbsBaseValue = useMemo(
-        () => getTotalAbsBaseValue(scopedAccounts),
-        [scopedAccounts],
-    );
-
-    const hasScopedBaseValues = useMemo(
-        () => hasBaseValues(scopedAccounts),
-        [scopedAccounts],
-    );
-
-    const hasCompleteScopedBaseValues = useMemo(
-        () => hasScopedBaseValues
-            && scopedAccounts.every((account) => summaryIds.has(account.id) && account.baseValue !== null),
-        [hasScopedBaseValues, scopedAccounts, summaryIds],
-    );
-
-    const equivalentShareTotal = hasCompleteScopedBaseValues ? totalAbsBaseValue : null;
-
-    const thisMonthNet = useMemo(
-        () => scopedAccounts.reduce((sum, account) => sum + (account.thisMonthNetBase ?? 0), 0),
-        [scopedAccounts],
-    );
-
-    const groups = useMemo(
-        () => makeCurrencyGroups(searchedAccounts, equivalentShareTotal),
-        [equivalentShareTotal, searchedAccounts],
-    );
-
-    const allDistributionGroups = useMemo(
-        () => makeCurrencyGroups(scopedAccounts, equivalentShareTotal),
-        [equivalentShareTotal, scopedAccounts],
-    );
-
-    const distributionGroups = useMemo(
-        () => makeCurrencyDistribution(allDistributionGroups, t("accounts.hero.other")),
-        [allDistributionGroups, t],
+    const {
+        totalBaseValue, totalAbsBaseValue, thisMonthNet, groups: scopedGroups,
+        distribution, distributionUnavailable, hasMixedSigns,
+    } = useMemo(
+        () => buildAccountOverview(scopedAccounts, t("accounts.hero.other")),
+        [scopedAccounts, t],
     );
 
     const distributionColorMap = useMemo(
-        () => buildUniqueDistributionColors(distributionGroups.map((group) => group.key)),
-        [distributionGroups],
+        () => buildUniqueDistributionColors(distribution.map((group) => group.key)),
+        [distribution],
     );
+
+    const groups = useMemo(() => {
+        if (searchedAccounts === scopedAccounts) return scopedGroups;
+        const visibleAccounts = new Set(searchedAccounts);
+        return scopedGroups.flatMap((group) => {
+            const matchingAccounts = group.accounts.filter((account) => visibleAccounts.has(account));
+            return matchingAccounts.length > 0 ? [{ ...group, accounts: matchingAccounts }] : [];
+        });
+    }, [scopedAccounts, scopedGroups, searchedAccounts]);
 
     const previousMonthLabel = useMemo(() => {
         const current = new Date();
@@ -244,7 +207,7 @@ const Accounts = () => {
         ? t("accounts.inventory.searchResults", { visible: searchedAccounts.length, count: scopedCount })
         : t("accounts.inventory.summary", {
             accounts: t("accounts.inventory.accountCount", { count: scopedCount }),
-            currencies: t("accounts.inventory.currencyCount", { count: allDistributionGroups.length }),
+            currencies: t("accounts.inventory.currencyCount", { count: scopedGroups.length }),
         });
     const shareFormatter = useMemo(() => createFixedAmountFormatter(i18n.language, 1), [i18n.language]);
     const isInitialLoading = accountsQuery.isLoading && accounts.length === 0;
@@ -252,13 +215,10 @@ const Accounts = () => {
     const hasLoadError = accountsQuery.isError && accounts.length === 0;
     const hasPartialError = (accountsQuery.isError || summaryQuery.isError) && accounts.length > 0;
     const loadErrorDetail = getErrorDetail(accountsQuery.error);
-    const lastMonthBase = totalBaseValue - thisMonthNet;
-    const hasMonthNetValues = scopedAccounts.length > 0
-        && scopedAccounts.every((account) => summaryIds.has(account.id) && account.thisMonthNetBase !== null);
-    const momPercent = hasCompleteScopedBaseValues && hasMonthNetValues && lastMonthBase !== 0
+    const lastMonthBase = totalBaseValue !== null && thisMonthNet !== null ? totalBaseValue - thisMonthNet : null;
+    const momPercent = thisMonthNet !== null && lastMonthBase !== null && lastMonthBase !== 0
         ? (thisMonthNet / Math.abs(lastMonthBase)) * 100
         : null;
-    const canRenderHeroDelta = Boolean(baseCurrency) && momPercent !== null;
 
     const clearFilters = () => {
         setSearch("");
@@ -410,7 +370,7 @@ const Accounts = () => {
     };
 
     const renderHeroDelta = () => {
-        if (!canRenderHeroDelta) {
+        if (!baseCurrency || thisMonthNet === null || momPercent === null || !Number.isFinite(momPercent)) {
             return t("accounts.hero.momUnavailable", { period: previousMonthLabel });
         }
 
@@ -418,7 +378,7 @@ const Accounts = () => {
             <React.Fragment>
                 <span className="accounts-hero__delta-main">
                     <Num
-                        currency={baseCurrency ?? undefined}
+                        currency={baseCurrency}
                         kind={thisMonthNet < 0 ? "expense" : "income"}
                         signage="signed"
                         fractionDigits={0}
@@ -466,24 +426,21 @@ const Accounts = () => {
         );
     };
 
-    const renderRowShare = (account: AccountDisplay, share: number | null) => {
-        if (account.value === 0) return t("accounts.emptyShare");
+    const formatShare = (share: number | null, smallShareThreshold = 0.1) => {
         if (share === null) return t("accounts.equivalent.unavailable");
-
-        const signedShare = (account.baseValue ?? 0) < 0 ? -share : share;
-        if (share > 0 && share < 0.05) {
-            return t(signedShare < 0 ? "accounts.smallNegativeShare" : "accounts.smallPositiveShare", {
-                value: shareFormatter.format(signedShare < 0 ? -0.1 : 0.1),
+        if (share !== 0 && Math.abs(share) < smallShareThreshold) {
+            return t(share < 0 ? "accounts.smallNegativeShare" : "accounts.smallPositiveShare", {
+                value: shareFormatter.format(share < 0 ? -0.1 : 0.1),
             });
         }
-        return t("accounts.shareOfNetWorth", { value: shareFormatter.format(signedShare) });
+        return t("accounts.shareOfNetWorth", { value: shareFormatter.format(share) });
     };
 
     const renderRow = (account: AccountDisplay, groupColor?: string) => {
-        const share = account.baseValue === null || equivalentShareTotal === null
+        const share = account.baseValue === null || totalAbsBaseValue === null
             ? null
-            : equivalentShareTotal > 0
-                ? Math.abs(account.baseValue / equivalentShareTotal) * 100
+            : totalAbsBaseValue > 0
+                ? (account.baseValue / totalAbsBaseValue) * 100
                 : 0;
         const rowActionLabel = t(isLinkedMode ? "accounts.viewAccountAction" : "accounts.editAccountAction", { name: account.name });
         const rowId = `account-row-${account.id}`;
@@ -547,7 +504,7 @@ const Accounts = () => {
                         </span>
                     )}
                     <span className="accounts-row__share" id={`${rowId}-share`}>
-                        {renderRowShare(account, share)}
+                        {account.value === 0 ? t("accounts.emptyShare") : formatShare(share, 0.05)}
                     </span>
                 </button>
             </div>
@@ -625,11 +582,17 @@ const Accounts = () => {
                 }}
                 renderBranch={(group, branch) => {
                     const groupColor = currencyMarkerColor(group.currency);
+                    const groupId = `accounts-group-${group.currency}`;
+                    const groupShare = group.subtotal === 0
+                        ? t("accounts.emptyShare")
+                        : group.share === null
+                            ? t("accounts.shareUnavailable")
+                            : formatShare(group.share);
 
                     return (
                         <div className="accounts-group">
                             <HierarchyBranchToggle
-                                ariaDescribedBy={`accounts-group-${group.currency}-count accounts-group-${group.currency}-balance`}
+                                ariaDescribedBy={`${groupId}-count ${groupId}-balance ${groupId}-share`}
                                 ariaLabel={t(branch.isCollapsed ? "accounts.group.expand" : "accounts.group.collapse", {
                                     currency: group.currency,
                                 })}
@@ -645,13 +608,13 @@ const Accounts = () => {
                                         style={{ background: groupColor }}
                                     />
                                     <strong className="accounts-group__title">{group.currency}</strong>
-                                    <span className="accounts-group__count" id={`accounts-group-${group.currency}-count`}>
-                                        {t("accounts.inventory.accountCount", { count: group.accounts.length })}
+                                    <span className="accounts-group__count" id={`${groupId}-count`}>
+                                        {t("accounts.inventory.accountCount", { count: group.accountCount })}
                                     </span>
                                 </span>
-                                <span className="accounts-group__balance" id={`accounts-group-${group.currency}-balance`}>
+                                <span className="accounts-group__balance" id={`${groupId}-balance`}>
                                     <span className="accounts-group__subtotal">
-                                        {group.accounts.every((account) => account.value !== undefined)
+                                        {group.subtotal !== null
                                             ? renderMoney(group.subtotal, group.currency)
                                             : t("accounts.hero.balanceUnavailable")}
                                     </span>
@@ -659,6 +622,9 @@ const Accounts = () => {
                                         approx: group.currency !== baseCurrency,
                                         className: "accounts-group__base",
                                     })}
+                                </span>
+                                <span className="accounts-group__share" id={`${groupId}-share`}>
+                                    {groupShare}
                                 </span>
                             </HierarchyBranchToggle>
                         </div>
@@ -750,7 +716,7 @@ const Accounts = () => {
                         <div className="accounts-hero__net">
                             <div className="accounts-eyebrow" data-qa="hero-primary-label">{t("accounts.hero.totalInAccounts")}</div>
                             <div className="accounts-hero__value" data-qa="hero-primary-value">
-                                {hasCompleteScopedBaseValues
+                                {totalBaseValue !== null
                                     ? (
                                         <Num
                                             currency={baseCurrency ?? undefined}
@@ -764,7 +730,7 @@ const Accounts = () => {
                                             value={totalBaseValue}
                                         />
                                     )
-                                    : <span>{t("accounts.hero.balanceUnavailable")}</span>}
+                                    : <span className="accounts-muted-metric">{t("accounts.hero.balanceUnavailable")}</span>}
                             </div>
                             <div className="accounts-hero__delta" data-qa="hero-secondary-text">
                                 {renderHeroDelta()}
@@ -790,25 +756,29 @@ const Accounts = () => {
                                     : t("accounts.equivalent.unavailable")}
                                 className="accounts-distribution"
                             >
-                                {distributionGroups.length > 0 ? (
+                                {distributionUnavailable ? (
                                     <React.Fragment>
-                                        {hasCompleteScopedBaseValues && (
-                                            <div className="accounts-distribution__stack" aria-hidden="true" data-qa="hero-distribution-bar">
-                                                {distributionGroups.map((group) => (
-                                                    <span
-                                                        aria-label={`${group.label} ${group.share.toFixed(1)}%`}
-                                                        className="accounts-distribution__segment"
-                                                        key={group.key}
-                                                        style={{
-                                                            background: distributionColorMap[group.key],
-                                                            width: `${getCurrencySegmentWidth(group.share)}%`,
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
+                                        <div aria-hidden="true" className="accounts-distribution__stack" />
+                                        <div className="accounts-muted-metric" role="status">
+                                            {t(`accounts.hero.distributionUnavailable.${distributionUnavailable}`)}
+                                        </div>
+                                    </React.Fragment>
+                                ) : distribution.length > 0 ? (
+                                    <React.Fragment>
+                                        <div className="accounts-distribution__stack" aria-hidden="true" data-qa="hero-distribution-bar">
+                                            {distribution.map((group) => (
+                                                <span
+                                                    className="accounts-distribution__segment"
+                                                    key={group.key}
+                                                    style={{
+                                                        background: distributionColorMap[group.key],
+                                                        width: `${getCurrencySegmentWidth(group.widthPercent)}%`,
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
                                         <div className="accounts-distribution__legend" data-qa="hero-distribution-legend">
-                                            {distributionGroups.map((group) => (
+                                            {distribution.map((group) => (
                                                 <div className="accounts-distribution__item" key={group.key}>
                                                     <span
                                                         className="accounts-currency-dot"
@@ -821,11 +791,12 @@ const Accounts = () => {
                                                         })}
                                                     </span>
                                                     <small className="accounts-distribution__share">
-                                                        {`${group.share.toFixed(1)}%`}
+                                                        {formatShare(group.share)}
                                                     </small>
                                                 </div>
                                             ))}
                                         </div>
+                                        {hasMixedSigns && <div className="accounts-muted-metric">{t("accounts.hero.signedDistribution")}</div>}
                                     </React.Fragment>
                                 ) : (
                                     <div className="accounts-muted-metric">{t("accounts.hero.noDistribution")}</div>

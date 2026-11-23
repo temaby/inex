@@ -1,8 +1,5 @@
 import type { AccountResponse, AccountSummary } from "../../store/accounts/accounts-api";
-import {
-  buildTopDistribution,
-  type DistributionItem,
-} from "../../utils/distribution";
+import { buildTopDistribution } from "../../utils/distribution";
 
 export interface ExchangeRateLike {
   currencyFrom: string;
@@ -20,18 +17,10 @@ export interface AccountDisplay extends AccountResponse {
 export interface CurrencyGroup {
   currency: string;
   accounts: AccountDisplay[];
-  subtotal: number;
+  accountCount: number;
+  subtotal: number | null;
   baseSubtotal: number | null;
   share: number | null;
-  sortValue: number;
-}
-
-export interface CurrencyDistributionGroup {
-  key: string;
-  label: string;
-  baseSubtotal: number;
-  share: number;
-  isOther: boolean;
 }
 
 export const toFixedMoney = (value: number): number => Math.round(value * 100) / 100;
@@ -61,8 +50,8 @@ export const toBaseCurrencyAmount = (
   baseCurrency: string | null,
   exchangeRates: ExchangeRateLike[],
 ): number | null => {
-  if (!baseCurrency) return null;
-  if (currency === baseCurrency) return value;
+  if (!baseCurrency || !Number.isFinite(value)) return null;
+  if (value === 0 || currency === baseCurrency) return value;
 
   const rate = exchangeRates.find((item) =>
     item.currencyFrom === baseCurrency && item.currencyTo === currency,
@@ -70,7 +59,8 @@ export const toBaseCurrencyAmount = (
 
   if (!rate || !Number.isFinite(rate.rate) || rate.rate <= 0) return null;
 
-  return value / rate.rate;
+  const converted = value / rate.rate;
+  return Number.isFinite(converted) ? converted : null;
 };
 
 export const buildDisplayAccounts = (
@@ -83,19 +73,19 @@ export const buildDisplayAccounts = (
 
   return accounts.map((account) => {
     const summary = summaryById.get(account.id);
-    const baseValue = summary
-      ? toBaseCurrencyAmount(summary.value, summary.currency, baseCurrency, exchangeRates)
-      : null;
-    const thisMonthNetBase = summary
-      ? toBaseCurrencyAmount(summary.thisMonthNet, summary.currency, baseCurrency, exchangeRates)
-      : null;
+    const value = summary && Number.isFinite(summary.value) ? summary.value : undefined;
+    const thisMonthNet = summary && Number.isFinite(summary.thisMonthNet) ? summary.thisMonthNet : undefined;
 
     return {
       ...account,
-      value: summary?.value,
-      thisMonthNet: summary?.thisMonthNet,
-      baseValue,
-      thisMonthNetBase,
+      value,
+      thisMonthNet,
+      baseValue: summary && value !== undefined
+        ? toBaseCurrencyAmount(value, summary.currency, baseCurrency, exchangeRates)
+        : null,
+      thisMonthNetBase: summary && thisMonthNet !== undefined
+        ? toBaseCurrencyAmount(thisMonthNet, summary.currency, baseCurrency, exchangeRates)
+        : null,
     };
   });
 };
@@ -125,45 +115,47 @@ export const sortAccountsByBaseValue = (accounts: AccountDisplay[]): AccountDisp
     return compareNames(a, b);
   });
 
-export const getTotalBaseValue = (accounts: AccountDisplay[]): number =>
-  accounts.reduce((sum, account) => sum + (account.baseValue ?? 0), 0);
+const sumKnownAmounts = (
+  accounts: AccountDisplay[],
+  getAmount: (account: AccountDisplay) => number | null | undefined,
+): number | null => {
+  let total = 0;
+  for (const account of accounts) {
+    const amount = getAmount(account);
+    if (amount == null) return null;
+    total += amount;
+  }
+  return Number.isFinite(total) ? total : null;
+};
 
-export const getTotalAbsBaseValue = (accounts: AccountDisplay[]): number =>
-  accounts.reduce((sum, account) => sum + Math.abs(account.baseValue ?? 0), 0);
-
-export const hasBaseValues = (accounts: AccountDisplay[]): boolean =>
-  accounts.some((account) => account.baseValue !== null);
-
-export const makeCurrencyGroups = (
-  items: AccountDisplay[],
-  totalAbsBaseValue: number | null,
-): CurrencyGroup[] => {
+export const buildAccountOverview = (accounts: AccountDisplay[], otherLabel: string) => {
+  const totalBaseValue = accounts.length > 0 ? sumKnownAmounts(accounts, (account) => account.baseValue) : null;
+  const thisMonthNet = sumKnownAmounts(accounts, (account) => account.thisMonthNetBase);
+  // Individual account rows retain their signed share of the absolute account balances.
+  const totalAbsBaseValue = totalBaseValue === null ? null : sumKnownAmounts(accounts, (account) =>
+    account.baseValue === null ? null : Math.abs(account.baseValue),
+  );
   const byCurrency = new Map<string, AccountDisplay[]>();
-  for (const account of items) {
-    byCurrency.set(account.currency, [...(byCurrency.get(account.currency) ?? []), account]);
+  for (const account of accounts) {
+    const group = byCurrency.get(account.currency);
+    if (group) group.push(account);
+    else byCurrency.set(account.currency, [account]);
   }
 
-  return Array.from(byCurrency.entries())
+  const currencyTotals = Array.from(byCurrency.entries())
     .map(([currency, groupAccounts]) => {
-      const sortedAccounts = sortAccountsByBaseValue(groupAccounts);
-      const hasCompleteBaseValues = groupAccounts.length > 0
-        && groupAccounts.every((account) => account.value !== undefined && account.baseValue !== null);
-      const subtotal = groupAccounts.reduce((sum, account) => sum + (account.value ?? 0), 0);
-      const baseSubtotal = hasCompleteBaseValues
-        ? groupAccounts.reduce((sum, account) => sum + (account.baseValue ?? 0), 0)
-        : null;
+      const subtotal = sumKnownAmounts(groupAccounts, (account) => account.value);
+      const baseSubtotal = sumKnownAmounts(groupAccounts, (account) => account.baseValue);
       const sortValue = baseSubtotal === null
         ? 0
         : groupAccounts.reduce((sum, account) => sum + Math.abs(account.baseValue ?? 0), 0);
-      const share = baseSubtotal !== null && totalAbsBaseValue !== null
-        ? totalAbsBaseValue > 0
-          ? (sortValue / totalAbsBaseValue) * 100
-          : 0
+      const share = baseSubtotal !== null && totalBaseValue
+        ? (baseSubtotal / totalBaseValue) * 100
         : null;
 
       return {
         currency,
-        accounts: sortedAccounts,
+        accounts: sortAccountsByBaseValue(groupAccounts),
         subtotal,
         baseSubtotal,
         share,
@@ -181,26 +173,50 @@ export const makeCurrencyGroups = (
 
       return a.currency.localeCompare(b.currency);
     });
-};
 
-export const makeCurrencyDistribution = (
-  groups: CurrencyGroup[],
-  otherLabel: string,
-): CurrencyDistributionGroup[] =>
-  buildTopDistribution<CurrencyGroup>(
-    groups
-      .filter((group) => group.baseSubtotal !== null)
-      .map((group) => ({
-        key: group.currency,
-        label: group.currency,
-        value: group.sortValue,
-        payload: group,
-      })),
-    { otherLabel },
-  ).map((item: DistributionItem<CurrencyGroup>) => ({
-    key: item.key,
-    label: item.label,
-    baseSubtotal: item.isOther ? item.value : item.payload?.baseSubtotal ?? item.value,
-    share: item.share * 100,
-    isOther: item.isOther,
+  const hasUnavailableBalances = currencyTotals.some((group) => group.subtotal === null);
+  const hasUnavailableRates = accounts.some((account) => account.value !== undefined && account.baseValue === null);
+  const hasInvalidTotals = accounts.length > 0 && (totalBaseValue === null || totalAbsBaseValue === null
+    || currencyTotals.some((group) => group.baseSubtotal === null || (group.share !== null && !Number.isFinite(group.share))));
+  const distributionUnavailable = hasUnavailableBalances ? "balancesUnavailable"
+    : hasUnavailableRates ? "ratesUnavailable"
+      : hasInvalidTotals ? "valuesUnavailable"
+        : totalBaseValue === 0 && totalAbsBaseValue !== 0 ? "netZero"
+          : null;
+
+  const groups: CurrencyGroup[] = currencyTotals.map((group) => ({
+    currency: group.currency,
+    accounts: group.accounts,
+    accountCount: group.accounts.length,
+    subtotal: group.subtotal,
+    baseSubtotal: group.baseSubtotal,
+    share: distributionUnavailable ? null : group.share,
   }));
+  const distributionItems = groups.flatMap(({ currency, baseSubtotal, share }) =>
+    baseSubtotal === null || baseSubtotal === 0 || share === null ? [] : [{
+      key: currency,
+      label: currency,
+      value: Math.abs(baseSubtotal),
+      payload: { baseSubtotal },
+    }],
+  ).sort((a, b) => b.value - a.value);
+  const hasMixedSigns = distributionItems.some(({ payload }) => payload.baseSubtotal < 0)
+    && distributionItems.some(({ payload }) => payload.baseSubtotal > 0);
+  // Keep opposing balances visible instead of letting them cancel inside "Other".
+  const distribution = totalBaseValue ? buildTopDistribution(distributionItems, {
+    maxItems: hasMixedSigns ? distributionItems.length : undefined,
+    otherLabel,
+  }).map((item) => {
+    const baseSubtotal = item.payload?.baseSubtotal ?? Math.sign(totalBaseValue) * item.value;
+    return {
+      key: item.key,
+      label: item.label,
+      baseSubtotal,
+      share: (baseSubtotal / totalBaseValue) * 100,
+      // The stacked bar uses magnitudes, since signed shares can be negative or above 100%.
+      widthPercent: item.share * 100,
+    };
+  }) : [];
+
+  return { totalBaseValue, totalAbsBaseValue, thisMonthNet, groups, distribution, distributionUnavailable, hasMixedSigns };
+};

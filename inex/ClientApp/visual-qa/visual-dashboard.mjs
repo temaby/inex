@@ -435,6 +435,7 @@ async function collectMetrics(client, state) {
       monthNextDisabled: document.querySelector('[data-qa=visual-month-next]')?.disabled,
       monthCurrentVisible: Boolean(document.querySelector('[data-qa=visual-month-current]')),
       balanceNow: document.querySelector('[data-qa=visual-balance-now]')?.textContent,
+      moneyHeaderHasIcon: Boolean(cards[1]?.querySelector('h2')?.parentElement?.querySelector('svg') || cards[1]?.querySelector('.visual-dashboard-icon')),
       monthControlsBounds: (() => { const r = document.querySelector('[data-qa=visual-month-controls]')?.getBoundingClientRect(); return r ? {left:r.left,right:r.right,width:r.width} : null; })(),
       pickerBounds: window.__monthPickerBounds,
       scrollTop: window.scrollY,
@@ -576,6 +577,7 @@ function collectAdditionalFailures(results) {
       if (state.visual || state.chartCount !== 3) failures.push(`${state.name}: classic default changed`);
       continue;
     }
+    if (state.moneyHeaderHasIcon) failures.push(`${state.name}: decorative icon in the money card header`);
     if (state.scenario.startsWith("round-") && state.balance?.replace(/\D/g, "") !== (state.scenario === "round-up" ? "23866" : "23865")) failures.push(`${state.name}: balance is not rounded to the nearest whole unit`);
     if (state.accountPickerVisible || state.distributionCaptionVisible) failures.push(`${state.name}: removed account controls are visible`);
     if (state.balanceFractional || state.bodyTextTooSmall) failures.push(`${state.name}: balance precision or readable typography incorrect`);

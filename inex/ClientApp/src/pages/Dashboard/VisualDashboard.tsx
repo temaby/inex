@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Alert, DatePicker, Spin } from "antd";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowRight, ArrowUp, ArrowLeftRight, ChevronLeft, ChevronRight, Plus, Wallet } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, ArrowLeftRight, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
@@ -291,10 +291,10 @@ const VisualDashboard = ({ data }: { data: DashboardData }) => {
 
                     <div className="visual-dashboard-right-column">
                     <section aria-labelledby="visual-money-title" className="visual-dashboard-card visual-dashboard-money" data-qa="visual-money">
-                        <div className="visual-dashboard-card__header">
-                            <div><h2 id="visual-money-title">{t("dashboard.visual.moneyTitle")}</h2><p><span data-qa="visual-balance-now">{t("dashboard.visual.balanceNow")}</span>{" · "}<span>{t("dashboard.visual.moneyHint")}</span></p></div>
-                            <span className="visual-dashboard-icon"><Wallet size={21} aria-hidden="true" /></span>
-                        </div>
+                        <header>
+                            <h2 id="visual-money-title">{t("dashboard.visual.moneyTitle")}</h2>
+                            <p><span data-qa="visual-balance-now">{t("dashboard.visual.balanceNow")}</span>{" · "}<span>{t("dashboard.visual.moneyHint")}</span></p>
+                        </header>
                         <Spin spinning={moneyPending} tip={t("dashboard.balance.loading")}>
                             {moneyError ? (
                                 <div className="visual-dashboard-state" role="alert">{t("dashboard.balance.error")}</div>

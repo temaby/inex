@@ -541,6 +541,7 @@
     "clearSearch": "Clear search",
     "filteringBy": "Filtering by \"{{query}}\"",
     "shareOfNetWorth": "{{value}}%",
+    "shareUnavailable": "Share unavailable",
     "emptyShare": "—",
     "smallPositiveShare": "<{{value}}%",
     "smallNegativeShare": ">{{value}}%",
@@ -607,6 +608,13 @@
       "byValue": "By current balance",
       "byCount": "By account count",
       "noDistribution": "No currencies to display",
+      "distributionUnavailable": {
+        "balancesUnavailable": "Some selected accounts have unavailable balances.",
+        "ratesUnavailable": "Exchange rates are missing for some selected balances.",
+        "valuesUnavailable": "The selected balances could not be totaled.",
+        "netZero": "Shares are unavailable because the balances net to zero."
+      },
+      "signedDistribution": "Bar widths show balance sizes. Percentages include the effect of negative balances.",
       "other": "Other"
     },
     "loading": {

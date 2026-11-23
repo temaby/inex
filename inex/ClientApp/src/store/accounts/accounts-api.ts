@@ -48,20 +48,17 @@ export type AccountsQueryArgs = string | {
 export type AccountsSummaryQueryArgs = number[] | {
   ids: number[];
   linkedUserId?: number | null;
+  mode?: "active" | "all";
 };
 
 function normalizeAccountsQueryArgs(args: AccountsQueryArgs) {
   return typeof args === "string" ? { mode: args, linkedUserId: null } : args;
 }
 
-function normalizeAccountsSummaryQueryArgs(args: AccountsSummaryQueryArgs) {
-  return Array.isArray(args) ? { ids: args, linkedUserId: null } : args;
-}
-
-function buildAccountsSummaryUrl(ids: number[], linkedUserId?: number | null): string {
+function buildAccountsSummaryUrl({ ids, linkedUserId, mode = "active" }: Exclude<AccountsSummaryQueryArgs, number[]>): string {
   const idsQuery = ids.map((id, i) => `ids[${i}]=${id}`).join("&");
   const linkedUserQuery = linkedUserId == null ? "" : `&linkedUserId=${linkedUserId}`;
-  return `/accounts/details?mode=active&${idsQuery}${linkedUserQuery}`;
+  return `/accounts/details?mode=${mode}&${idsQuery}${linkedUserQuery}`;
 }
 
 export const accountsApi = createApi({
@@ -91,10 +88,7 @@ export const accountsApi = createApi({
           : [{ type: "Account", id: "LIST" }],
     }),
     getAccountsSummary: builder.query<AccountSummary[], AccountsSummaryQueryArgs>({
-      query: (args) => {
-        const { ids, linkedUserId } = normalizeAccountsSummaryQueryArgs(args);
-        return { url: buildAccountsSummaryUrl(ids, linkedUserId) };
-      },
+      query: (args) => ({ url: buildAccountsSummaryUrl(Array.isArray(args) ? { ids: args } : args) }),
       transformResponse: (response: ListResponse<AccountSummary>) =>
         response.data ?? [],
       providesTags: (result) =>

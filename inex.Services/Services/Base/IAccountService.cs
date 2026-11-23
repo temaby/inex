@@ -11,7 +11,7 @@ public interface IAccountService : IInExService
 {
     Task<AccountResponse> GetAsync(int id, int userId, CancellationToken ct = default);
     ListResponse<AccountResponse> Get(int userId, ActivityMode mode);
-    ListResponse<AccountSummary> GetDetails(int userId, IEnumerable<int> ids);
+    ListResponse<AccountSummary> GetDetails(int userId, IEnumerable<int> ids, bool includeInactive = false);
     Task<CreatedResponse> CreateAsync(CreateAccountRequest itemDTO, int userId, CancellationToken ct = default);
     Task<AccountResponse> UpdateAsync(int id, UpdateAccountRequest itemDTO, int userId, CancellationToken ct = default);
 }
