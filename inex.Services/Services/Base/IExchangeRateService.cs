@@ -10,4 +10,5 @@ public interface IExchangeRateService
     Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default);
     Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default);
     Task<ListResponse<ExchangeRateResponse>> GetCached(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default);
+    Task<ListResponse<ExchangeRateResponse>> GetForDates(int userId, IReadOnlyCollection<(DateTime Date, string Currency)> requiredRates, string baseCurrency, CancellationToken ct = default);
 }

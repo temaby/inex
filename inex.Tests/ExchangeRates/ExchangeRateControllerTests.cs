@@ -224,6 +224,9 @@ public class ExchangeRateControllerTests : IClassFixture<InExWebApplicationFacto
         public Task<ListResponse<ExchangeRateResponse>> Get(int userId, DateTime date, string baseCurrency = "", CancellationToken ct = default)
             => throw new InvalidOperationException("Single-date retrieval must not be used for ranges.");
 
+        public Task<ListResponse<ExchangeRateResponse>> GetForDates(int userId, IReadOnlyCollection<(DateTime Date, string Currency)> requiredRates, string baseCurrency, CancellationToken ct = default)
+            => throw new NotSupportedException();
+
         public Task<ListResponse<ExchangeRateResponse>> GetCached(int userId, DateTime start, DateTime end, string baseCurrency = "", CancellationToken ct = default)
         {
             Assert.Equal((userId, start, end), Request);

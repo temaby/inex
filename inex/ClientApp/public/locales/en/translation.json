@@ -1036,6 +1036,10 @@
     "budgetSummaryCaption": "Remaining budget by category, with spent and budgeted values.",
     "historySummaryTitle": "Cash flow chart data summary",
     "historySummaryCaption": "Monthly income, expenses and net cash flow.",
+    "historyReportError": "Couldn't load the cash flow report.",
+    "historyLoading": "Loading the cash flow report…",
+    "historyRatesUnavailable": "Some exchange rates for this year's transactions are unavailable.",
+    "retry": "Retry",
     "overBudget": "Over budget",
     "viewCategoryReport": "View category report",
     "hub": {

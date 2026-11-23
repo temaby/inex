@@ -215,6 +215,40 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
             .GetProperty("netWorth").GetDecimal());
     }
 
+    [Fact]
+    public async Task History2024_UsesTheCachedRateAndReportsAnUnavailableArchivedRate()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        int userId = await GetCurrentUserIdAsync(client);
+        var date = new DateTime(2024, 2, 29);
+        var eur = new Currency { Key = "EUR", Name = "Euro" };
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<InExDbContext>();
+        db.Add(eur);
+        db.Add(new ExchangeRate { Created = date, FromCode = "USD", ToCode = "EUR", Rate = 2m });
+        await db.SaveChangesAsync();
+        int accountId = await CreateAccountAsync(client, "history-2024-eur", eur.Id);
+        int categoryId = await CreateCategoryAsync(client, "history-2024-category");
+        await CreateTransactionAsync(client, accountId, categoryId, date, -120m);
+
+        using var response = await client.GetAsync("/api/reports/history/2024?currency=USD");
+
+        response.EnsureSuccessStatusCode();
+        JsonElement[] months = (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("data").EnumerateArray().ToArray();
+        Assert.Equal(12, months.Length);
+        Assert.Equal(-60m, months[1].GetProperty("expense").GetDecimal());
+
+        await CreateTransactionAsync(client, accountId, categoryId, date.AddDays(1), -80m);
+        var account = await db.Set<Account>().SingleAsync(item => item.Id == accountId && item.UserId == userId);
+        account.IsEnabled = false;
+        await db.SaveChangesAsync();
+
+        using var incomplete = await client.GetAsync("/api/reports/history/2024?currency=USD");
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, incomplete.StatusCode);
+        Assert.Equal("incomplete-cash-flow-data", (await incomplete.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("rule").GetString());
+    }
+
     [Theory]
     [InlineData(UserAccountLinkStatus.Pending)]
     [InlineData(UserAccountLinkStatus.Rejected)]
@@ -404,13 +438,13 @@ public class ReportsControllerTests : IClassFixture<InExWebApplicationFactory>
         await db.SaveChangesAsync();
     }
 
-    private static async Task<int> CreateAccountAsync(HttpClient client, string key)
+    private static async Task<int> CreateAccountAsync(HttpClient client, string key, int currencyId = 1)
     {
         var response = await client.PostAsJsonAsync("/api/accounts", new
         {
             key,
             name = key,
-            currencyId = 1,
+            currencyId,
             isEnabled = true,
         });
         response.EnsureSuccessStatusCode();

@@ -44,50 +44,60 @@ public partial class ReportService : Service, IReportService
     {
         var start = new DateTime(year, 1, 1);
         var end = new DateTime(year, 12, 31);
+        DateTime today = _clock.UtcNow.Date;
+        DateTime lastActivityDate = end < today ? end : today;
+        if (string.IsNullOrEmpty(currency))
+        {
+            currency = GetUserBaseCurrency(userId);
+        }
 
-        // 1. Get all transactions for the year
         var filters = new Dictionary<string, string>
+        {
+            ["start"] = start.ToString("yyyy-MM-dd"),
+            ["end"] = lastActivityDate.AddTicks(TimeSpan.TicksPerDay - 1).ToString("yyyy-MM-dd HH:mm:ss.fffffff")
+        };
+        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(account => account.Id);
+        var systemCategoryIds = _categoryService.Get(userId, ActivityMode.ALL).Data
+            .Where(category => category.IsSystem).Select(category => category.Id).ToHashSet();
+        var transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data
+            .Where(transaction => !systemCategoryIds.Contains(transaction.CategoryId))
+            .Select(transaction => (Transaction: transaction, Currency: accounts.GetValueOrDefault(transaction.AccountId)?.Currency ?? currency))
+            .ToList();
+
+        var requiredRates = transactions
+            .Where(item => item.Transaction.Amount != 0 && !string.Equals(item.Currency, currency, StringComparison.OrdinalIgnoreCase))
+            .Select(item => (Date: item.Transaction.Created.Date, item.Currency))
+            .ToArray();
+        var rateMap = new Dictionary<(string, DateTime), decimal>(StringTupleDateComparer.Instance);
+        if (requiredRates.Length > 0)
+        {
+            var rates = await _exchangeRateService.GetForDates(userId, requiredRates, currency, ct);
+            foreach (var rate in rates.Data.Where(rate => rate.Rate > 0))
             {
-                { "start", start.ToString("yyyy-MM-dd") },
-                { "end", end.ToString("yyyy-MM-dd") }
-            };
-        var transactions = _transactionService.Get(userId, ActivityMode.ALL, filters).Data;
+                rateMap.TryAdd((rate.CurrencyTo, rate.Date.Date), rate.Rate);
+            }
+        }
 
-        // 2. Get Exchange Rates for the entire year
-        var rates = (await _exchangeRateService.Get(userId, start, end, currency, ct)).Data;
-        var rateMap = new Dictionary<(string, DateTime), ExchangeRateResponse>();
-        foreach (var r in rates) rateMap.TryAdd((r.CurrencyTo, r.Date.Date), r);
-
-        // 3. Get Accounts (to know transaction currency)
-        var accounts = _accountService.Get(userId, ActivityMode.ALL).Data.ToDictionary(a => a.Id);
-
-        // 4. Get Categories (to exclude system transfers)
-        var categories = _categoryService.Get(userId, ActivityMode.ALL).Data;
-        var systemCategoryIds = categories.Where(c => c.IsSystem).Select(c => c.Id).ToList();
-
+        var transactionsByMonth = transactions.ToLookup(item => item.Transaction.Created.Month);
         var result = new List<MonthlyHistoryResponse>();
 
         for (int month = 1; month <= 12; month++)
         {
-            var monthTransactions = transactions
-                .Where(t => t.Created.Month == month && !systemCategoryIds.Contains(t.CategoryId));
-
             decimal income = 0;
             decimal expense = 0;
 
-            foreach (var t in monthTransactions)
+            foreach (var (transaction, accountCurrency) in transactionsByMonth[month])
             {
-                // Determine transaction currency
-                accounts.TryGetValue(t.AccountId, out var account);
-                var tCurrency = account?.Currency ?? currency;
-
-                // Convert amount if needed
-                decimal amount = t.Amount;
-                if (tCurrency != currency)
+                decimal amount = transaction.Amount;
+                if (amount != 0 && !string.Equals(accountCurrency, currency, StringComparison.OrdinalIgnoreCase))
                 {
-                    rateMap.TryGetValue((tCurrency, t.Created.Date), out var rate);
-                    if (rate != null && rate.Rate != 0)
-                        amount = t.Amount / rate.Rate;
+                    if (!rateMap.TryGetValue((accountCurrency, transaction.Created.Date), out decimal rate))
+                    {
+                        throw new DomainRuleException("incomplete-cash-flow-data",
+                            $"A {accountCurrency} exchange rate is unavailable for {transaction.Created:yyyy-MM-dd}.");
+                    }
+
+                    amount /= rate;
                 }
 
                 if (amount > 0) income += amount;

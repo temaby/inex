@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Alert, Button, Spin } from "antd";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -24,7 +25,7 @@ const ReportMonthlyHistory = () => {
     (account) => account.id === state.linkedAccount.selectedLinkedUserId,
   ));
   const currency = selectedLinkedAccount?.baseCurrency ?? "USD";
-  const { currentData: historyResponse, isFetching: isLoading } = useGetHistoryReportQuery({
+  const { currentData: historyResponse, error, isError, isFetching: isLoading, refetch } = useGetHistoryReportQuery({
     year,
     currency,
     linkedUserId: selectedLinkedUserId,
@@ -49,6 +50,28 @@ const ReportMonthlyHistory = () => {
       longMonth: formatters.longMonth.format(monthDate),
     };
   }), [historyResponse, formatters, year]);
+
+  if (isError) {
+    const missingRates = error && "data" in error && typeof error.data === "object" && error.data !== null
+      && "rule" in error.data && error.data.rule === "incomplete-cash-flow-data";
+    return (
+      <div className="reports-workspace cash-flow-report">
+        <Alert
+          type="error"
+          message={t(missingRates ? "reports.historyRatesUnavailable" : "reports.historyReportError")}
+          action={<Button onClick={() => void refetch()}>{t("reports.retry")}</Button>}
+        />
+      </div>
+    );
+  }
+
+  if (!historyResponse) {
+    return (
+      <div className="reports-workspace cash-flow-report" role="status" aria-busy={isLoading}>
+        <Spin size="small" /> {t("reports.historyLoading")}
+      </div>
+    );
+  }
 
   const totals = history.reduce(
     (acc, curr) => ({
