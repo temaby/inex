@@ -24,6 +24,80 @@ public class ReportServiceTests
     private static readonly DateTime ClockNow = new(2026, 5, 15, 10, 0, 0, DateTimeKind.Utc);
 
     [Fact]
+    public async Task GetMonthlyHistory_RequestsOnlyRatesForReportedTransactions()
+    {
+        var expenseDate = new DateTime(2024, 2, 29);
+        var incomeDate = new DateTime(2024, 12, 31, 23, 59, 59);
+        var expectedRates = new[] { (expenseDate, "EUR") };
+        var exchangeRates = new Mock<IExchangeRateService>(MockBehavior.Strict);
+        exchangeRates.Setup(service => service.GetForDates(UserId,
+                It.Is<IReadOnlyCollection<(DateTime, string)>>(rates => rates.SequenceEqual(expectedRates)),
+                "USD", CancellationToken.None))
+            .ReturnsAsync(new ListResponse<ExchangeRateResponse> { Data = [Rate("EUR", 2m, expenseDate)] });
+        var service = CreateService(
+            categories: [Category(10, "Food", isEnabled: false), Category(11, "Transfer", isSystem: true)],
+            accounts: [Account(20, "EUR", isEnabled: false), Account(21, "USD"), Account(22, "GEL")],
+            transactions:
+            [
+                Transaction(1, 20, 10, -120m, expenseDate.AddHours(8)),
+                Transaction(2, 21, 10, 100m, incomeDate),
+                Transaction(3, 22, 11, -1000m, expenseDate),
+                Transaction(4, 22, 10, 0m, expenseDate),
+                Transaction(5, 22, 10, -200m, new DateTime(2025, 1, 1))
+            ],
+            rates: [], exchangeRateServiceOverride: exchangeRates);
+
+        var months = (await service.GetMonthlyHistory(UserId, 2024, "USD")).Data.ToList();
+
+        Assert.Equal(12, months.Count);
+        Assert.Equal(-60m, months[1].Expense);
+        Assert.Equal(-60m, months[1].Savings);
+        Assert.Equal(100m, months[11].Income);
+        Assert.Equal(40m, months.Sum(month => month.Savings));
+        exchangeRates.Verify(service => service.GetForDates(UserId,
+            It.Is<IReadOnlyCollection<(DateTime, string)>>(rates => rates.SequenceEqual(expectedRates)),
+            "USD", CancellationToken.None), Times.Once);
+        exchangeRates.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetMonthlyHistory_WhenRequiredRateIsMissing_RejectsUnconvertedTotals()
+    {
+        var date = new DateTime(2024, 1, 1);
+        var exchangeRates = new Mock<IExchangeRateService>();
+        exchangeRates.Setup(service => service.GetForDates(UserId,
+                It.IsAny<IReadOnlyCollection<(DateTime, string)>>(), "USD", CancellationToken.None))
+            .ReturnsAsync(new ListResponse<ExchangeRateResponse> { Data = [Rate("EUR", 0m, date)] });
+        var service = CreateService(
+            categories: [Category(10, "Food")], accounts: [Account(20, "EUR")],
+            transactions: [Transaction(1, 20, 10, -120m, date)], rates: [],
+            exchangeRateServiceOverride: exchangeRates);
+
+        var error = await Assert.ThrowsAsync<DomainRuleException>(() => service.GetMonthlyHistory(UserId, 2024, "USD"));
+
+        Assert.Equal("incomplete-cash-flow-data", error.Rule);
+    }
+
+    [Fact]
+    public async Task GetMonthlyHistory_CurrentYearIncludesTodayAndExcludesFutureTransactions()
+    {
+        var exchangeRates = new Mock<IExchangeRateService>(MockBehavior.Strict);
+        var service = CreateService(
+            categories: [Category(10, "Food")], accounts: [Account(20, "USD"), Account(21, "EUR")],
+            transactions:
+            [
+                Transaction(1, 20, 10, 120m, ClockNow),
+                Transaction(2, 21, 10, -50m, ClockNow.AddDays(1))
+            ],
+            rates: [], exchangeRateServiceOverride: exchangeRates);
+
+        var months = (await service.GetMonthlyHistory(UserId, ClockNow.Year, "USD")).Data.ToList();
+
+        Assert.Equal(120m, months.Sum(month => month.Savings));
+        exchangeRates.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task GetCategoriesReportData_IncludesInactiveUserCategoriesAndExcludesUnknownCategories()
     {
         var inactiveCategory = Category(id: 10, name: "Old Groceries", isEnabled: false);

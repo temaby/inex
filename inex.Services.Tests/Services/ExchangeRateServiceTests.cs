@@ -108,6 +108,88 @@ public class ExchangeRateServiceTests
             });
     }
 
+    [Fact]
+    public async Task GetForDates_WhenRequiredPairsAreCached_SkipsSynchronizationAcrossTheYear()
+    {
+        var start = new DateTime(2024, 1, 1);
+        var end = new DateTime(2024, 12, 31);
+        _exchangeRateRepoMock.Setup(repository => repository.Get(true, null)).Returns(
+            RatesFor(start, "USD", "EUR").Concat(RatesFor(end, "USD", "PLN")).AsAsyncQueryable());
+
+        var result = await CreateSut().GetForDates(1, [(start, "eur"), (end, "PLN")], "USD");
+
+        Assert.Equal(2, result.Data.Count());
+        _accountRepoMock.VerifyNoOtherCalls();
+        _clientMock.VerifyNoOtherCalls();
+        _fallbackClientMock.VerifyNoOtherCalls();
+        _nbrbClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetForDates_SynchronizesOnlyMissingRequiredPairsForEnabledAccounts()
+    {
+        var cachedDate = new DateTime(2024, 1, 1);
+        var missingDate = new DateTime(2024, 12, 31);
+        _accountRepoMock.Setup(repository => repository.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, ("EUR", true), ("PLN", true), ("GEL", true), ("BYR", false)));
+        var recorded = RatesFor(cachedDate, "USD", "EUR").ToList();
+        _exchangeRateRepoMock.Setup(repository => repository.Get(It.IsAny<bool>(), null))
+            .Returns(() => recorded.AsAsyncQueryable());
+        _exchangeRateRepoMock.Setup(repository => repository.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback((ExchangeRate rate, CancellationToken _) => recorded.Add(rate));
+        _fallbackClientMock.Setup(client => client.GetRatesForRangeAsync(missingDate.AddDays(-7), missingDate, "USD",
+                It.Is<string[]>(currencies => currencies.SequenceEqual(new[] { "PLN" })), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
+            {
+                [missingDate] = new() { Data = new() { ["PLN"] = new() { Code = "PLN", Value = 4m } } }
+            });
+
+        var result = await CreateSut().GetForDates(1,
+            [(cachedDate, "EUR"), (missingDate, "PLN"), (missingDate, "BYR")], "USD");
+
+        Assert.Equal(new[] { "EUR", "PLN" }, result.Data.Select(rate => rate.CurrencyTo));
+        _fallbackClientMock.Verify(client => client.GetRatesForRangeAsync(missingDate.AddDays(-7), missingDate, "USD",
+            It.Is<string[]>(currencies => currencies.SequenceEqual(new[] { "PLN" })), It.IsAny<CancellationToken>()), Times.Once);
+        _fallbackClientMock.VerifyNoOtherCalls();
+        _clientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetForDates_PreservesCompletedBatchesWhenALaterProviderCallIsCanceled()
+    {
+        var weekend = new DateTime(2024, 1, 6);
+        var tradingDate = weekend.AddDays(-1);
+        var date = new DateTime(2024, 12, 31);
+        using var request = new CancellationTokenSource();
+        _accountRepoMock.Setup(repository => repository.Get(true, null, It.IsAny<Expression<Func<Account, object>>>()))
+            .Returns(AccountsFor(1, "PLN"));
+        var recorded = new List<ExchangeRate>();
+        _exchangeRateRepoMock.Setup(repository => repository.Get(It.IsAny<bool>(), null))
+            .Returns(() => recorded.AsAsyncQueryable());
+        _exchangeRateRepoMock.Setup(repository => repository.CreateAsync(It.IsAny<ExchangeRate>(), It.IsAny<CancellationToken>()))
+            .Callback((ExchangeRate rate, CancellationToken _) => recorded.Add(rate));
+        _fallbackClientMock.Setup(client => client.GetRatesForRangeAsync(weekend.AddDays(-7), weekend, "USD", It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<DateTime, ExchangeRateResponse>
+            {
+                [tradingDate] = new() { Data = new() { ["PLN"] = new() { Code = "PLN", Value = 4m } } }
+            });
+        _fallbackClientMock.Setup(client => client.GetRatesForRangeAsync(date.AddDays(-7), date, "USD", It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+            .Returns((DateTime _, DateTime _, string _, string[] _, CancellationToken cancellationToken) =>
+            {
+                request.Cancel();
+                return Task.FromCanceled<Dictionary<DateTime, ExchangeRateResponse>>(cancellationToken);
+            });
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => CreateSut().GetForDates(1, [(weekend, "PLN"), (date, "PLN")], "USD", request.Token));
+
+        var saved = Assert.Single(recorded);
+        Assert.Equal(weekend, saved.Created);
+        Assert.Equal(4m, saved.Rate);
+        _clientMock.VerifyNoOtherCalls();
+        _nbrbClientMock.VerifyNoOtherCalls();
+        _uowMock.Verify(uow => uow.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     // Ensures this regression test fails if grouping occurs before ToListAsync materializes the query.
     private static IQueryable<T> AsAsyncQueryableRejectingProviderSideGrouping<T>(IEnumerable<T> source) =>
         new ProviderSideGroupingRejectedAsyncQueryable<T>(source.AsQueryable());
@@ -250,7 +332,7 @@ public class ExchangeRateServiceTests
             .Returns(AccountsFor(1, "USD"));
 
         // No rates cached — service will call the provider.
-        _exchangeRateRepoMock.Setup(r => r.Get(true, null))
+        _exchangeRateRepoMock.Setup(r => r.Get(It.IsAny<bool>(), null))
             .Returns(EmptyRates());
 
         // Provider returns empty (e.g. network error or unsupported date).
