@@ -753,16 +753,12 @@
       "activeOnly": "Только активные",
       "all": "Все"
     },
-    "activity": {
-      "title": "Активность",
-      "txn": "транз.",
-      "txns": "транз.",
-      "last": "посл.",
-      "lastActive": "посл. {{date}}",
-      "periodCurrency": "{{currency}} · {{period}}",
-      "noTransactions": "Нет активности",
+    "operations": {
+      "title": "Операции",
+      "lastTransaction": "Последняя операция: {{date}}",
+      "noTransactions": "Нет расходных операций",
       "noSpend": "Нет расходов",
-      "unavailable": "Активность недоступна",
+      "unavailable": "Расходные операции недоступны",
       "spendUnavailable": "Расходы недоступны"
     },
     "search": {

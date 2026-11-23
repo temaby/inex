@@ -739,16 +739,12 @@
       "activeOnly": "Active only",
       "all": "All"
     },
-    "activity": {
-      "title": "Activity",
-      "txn": "txn",
-      "txns": "txns",
-      "last": "last",
-      "lastActive": "last {{date}}",
-      "periodCurrency": "{{currency}} · {{period}}",
-      "noTransactions": "No activity",
+    "operations": {
+      "title": "Transactions",
+      "lastTransaction": "Last transaction: {{date}}",
+      "noTransactions": "No expense transactions",
       "noSpend": "No spend",
-      "unavailable": "Activity unavailable",
+      "unavailable": "Expense transactions unavailable",
       "spendUnavailable": "Spend unavailable"
     },
     "search": {
