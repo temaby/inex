@@ -6,6 +6,7 @@ import {
   createApiFixtureHandler,
   evaluate,
   fixedDateInitScript,
+  formDrawerLayoutExpression,
   jsonResponse,
   loadFixture,
   playwrightInstalled,
@@ -13,6 +14,7 @@ import {
   resolveVisualQaPaths,
   runBrowserState,
   runVisualQaScript,
+  verifyAdaptiveDrawerDisclosure,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -378,6 +380,7 @@ async function applyInteraction(client, state, fixture) {
         throw new Error(`${state.name}: account list changed from ${listBeforeEdit} to ${listAfterEdit}`);
       }
       if (openInformation) {
+        await verifyAdaptiveDrawerDisclosure(client, state.viewport, accountInformationSelector);
         await evaluate(client, `document.querySelector(${JSON.stringify(`${accountInformationSelector} > summary`)})?.click()`);
         await waitFor(client, `Boolean(document.querySelector(${JSON.stringify(`${accountInformationSelector}[open]`)}))`);
         await evaluate(client, `document.querySelector(${JSON.stringify(accountInformationSelector)})?.scrollIntoView({ block: "end" })`);
@@ -437,10 +440,10 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const drawerBody = drawer?.querySelector(".ant-drawer-body");
     const drawerFooter = drawer?.querySelector(".form-drawer-footer");
-    const drawerFooterEdge = drawerFooter?.closest(".ant-drawer-footer")?.getBoundingClientRect().bottom;
     const drawerTitleLines = drawer?.querySelector(".ant-drawer-title > div")?.children;
     const drawerActions = Array.from(drawerFooter?.querySelectorAll("button") ?? []);
     const footerBounds = drawerFooter?.getBoundingClientRect();
+    const drawerLayout = ${formDrawerLayoutExpression};
     const [deleteBounds, cancelBounds, saveBounds] = drawerActions.map((button) => button.getBoundingClientRect());
     const centerY = (rect) => (rect.top + rect.bottom) / 2;
     const editActionsAligned = drawerActions.length === 3 && footerBounds
@@ -539,7 +542,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerHasClose: Boolean(drawer?.querySelector(".ant-drawer-close")),
       drawerActions: drawerActions.map((button) => button.innerText.trim()),
       editActionsAligned: Boolean(editActionsAligned),
-      drawerActionsWithinViewport: actionsWithinViewport && Boolean(drawerRect && Math.abs(drawerFooterEdge - drawerRect.bottom) <= 1),
+      drawerActionsWithinViewport: Boolean(drawerFooter && actionsWithinViewport),
+      drawerFooterFollowsContent: drawerLayout?.positioned ?? false,
       drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
       drawerSwitchCount: drawer?.querySelectorAll('[role="switch"]').length ?? 0,
       accountInformationPresent: Boolean(accountInformation),
@@ -638,6 +642,9 @@ function collectAdditionalFailures(stateResults) {
       if (state.drawerBodyOverflow || !state.drawerActionsWithinViewport || (isEdit && !state.editActionsAligned)
         || JSON.stringify(state.drawerActions) !== JSON.stringify(expectedActions)) {
         failures.push(`${state.name}: drawer body or footer overflows, or footer actions are incorrect`);
+      }
+      if (!state.drawerFooterFollowsContent) {
+        failures.push(`${state.name}: footer spacing, separator, or position does not match form overflow`);
       }
       if (state.drawerSwitchCount !== 2 || state.inlineEditPanelPresent) {
         failures.push(`${state.name}: expected two account settings switches and no inline edit panel`);
@@ -817,6 +824,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "desktop search control is 260px wide and right-aligned in the toolbar",
       "create and edit drawers match the transaction drawer width and fit the viewport",
       "drawer buttons and settings switches fit desktop and mobile screens",
+      "drawer actions follow the form or stay at the bottom when the form scrolls",
       "edit drawer actions align with Delete on the left and Cancel and Save on the right",
       "expanded account information uses localized Russian balances and exchange rates",
       "account information starts collapsed and expands without changing the grouped list",

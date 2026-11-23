@@ -6,6 +6,7 @@ import {
   createApiFixtureHandler,
   evaluate,
   fixedDateInitScript,
+  formDrawerLayoutExpression,
   jsonResponse,
   loadFixture,
   playwrightInstalled,
@@ -13,6 +14,7 @@ import {
   resolveVisualQaPaths,
   runBrowserState,
   runVisualQaScript,
+  verifyAdaptiveDrawerDisclosure,
   wait,
   waitFor,
 } from "./harness.mjs";
@@ -30,6 +32,7 @@ const authUser = {
 };
 
 const defaultViewportHeight = 900;
+const categoryInformationSelector = '[data-qa="category-drawer-information"]';
 
 const states = [
   {
@@ -303,13 +306,14 @@ async function applyInteraction(client, state) {
       return;
     case "open-edit-information":
       await openEditDrawer(client, "Groceries");
+      await verifyAdaptiveDrawerDisclosure(client, state.viewport, categoryInformationSelector);
       await evaluate(client, `(() => {
-        const summary = document.querySelector('[data-qa="category-drawer-information"] summary');
+        const summary = document.querySelector(${JSON.stringify(`${categoryInformationSelector} > summary`)});
         summary.click();
         const drawerBody = summary.closest('.ant-drawer-body');
         drawerBody.scrollTop = drawerBody.scrollHeight;
       })()`);
-      await waitFor(client, `Boolean(document.querySelector('[data-qa="category-drawer-information"][open]'))`);
+      await waitFor(client, `Boolean(document.querySelector(${JSON.stringify(`${categoryInformationSelector}[open]`)}))`);
       return;
     case "collapse-first-branch":
       await evaluate(client, `(() => {
@@ -369,7 +373,9 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const drawerBody = drawer?.querySelector('.ant-drawer-body');
     const drawerFooter = drawer?.querySelector('.ant-drawer-footer');
-    const information = drawer?.querySelector('[data-qa="category-drawer-information"]');
+    const drawerFooterRect = drawerFooter?.getBoundingClientRect();
+    const drawerLayout = ${formDrawerLayoutExpression};
+    const information = drawer?.querySelector(${JSON.stringify(categoryInformationSelector)});
     const rows = Array.from(document.querySelectorAll(".category-row"));
     const columnHeaders = Array.from(document.querySelectorAll(".categories-list .inex-list-panel__columns span"));
     const firstRowCells = rows[0]
@@ -462,9 +468,9 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerWithinViewport: drawerRect ? drawerRect.left >= 0 && drawerRect.right <= window.innerWidth : null,
       drawerBounds: drawerRect ? { left: drawerRect.left, right: drawerRect.right, width: drawerRect.width } : null,
       drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
-      drawerFooterVisible: Boolean(drawerFooter && drawerRect
-        && Math.abs(drawerFooter.getBoundingClientRect().bottom - drawerRect.bottom) <= 1
+      drawerFooterVisible: Boolean(drawerFooterRect && drawerRect && drawerFooterRect.top >= 0
         && drawerRect.bottom <= window.innerHeight + 1),
+      drawerFooterFollowsContent: drawerLayout?.positioned ?? false,
       drawerSaveDisabled: Boolean(drawerFooter?.querySelector('button[type="submit"][disabled]')),
       drawerHasDelete: Boolean(drawerFooter?.querySelector('.ant-btn-dangerous')),
       drawerHasSwitch: Boolean(drawerBody?.querySelector('button[role="switch"]')),
@@ -660,6 +666,9 @@ function collectAdditionalFailures(stateResults) {
           state.drawerBodyOverflow || !state.drawerFooterVisible || !state.drawerHasSwitch) {
         failures.push(`${state.name}: drawer width, viewport, switch, or footer check failed`);
       }
+      if (!state.drawerFooterFollowsContent) {
+        failures.push(`${state.name}: footer spacing, separator, or position does not match form overflow`);
+      }
       const info = state.interaction === "open-edit-information" ? "expanded" : "collapsed";
       if (editing && (!state.drawerHasDelete || !state.drawerSaveDisabled || !state.drawerParentReadOnly ||
           !state.drawerPreservesRowHeights || state.drawerInformation !== info)) {
@@ -741,6 +750,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "visible USD equivalent label is absent from Categories hero distribution",
       "only Status uses the visible uppercase small-label treatment",
       "category create and edit drawers match the shared width and keep their footers accessible",
+      "drawer actions follow the form or stay at the bottom when the form scrolls",
       "opening the editor preserves row heights and the chevron only toggles its branch",
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
