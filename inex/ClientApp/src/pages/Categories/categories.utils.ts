@@ -250,44 +250,6 @@ const isInPeriod = (value: string, period: CategoryPeriod): boolean => {
     return date.getFullYear() === period.year && date.getMonth() + 1 === period.month;
 };
 
-// The tree only needs to know the direction of each root's activity, before currency conversion.
-export const getIncomeRootCategoryIds = (
-    categories: CategoryResponse[],
-    transactions: TransactionResponse[] | null,
-    period: CategoryPeriod,
-): ReadonlySet<number> => {
-    const incomeRoots = new Set<number>();
-    if (!transactions?.length) return incomeRoots;
-
-    const expenseRoots = new Set<number>();
-    const categoriesById = new Map(categories.map((category) => [category.id, category]));
-    const rootsByCategoryId = new Map<number, number | null>();
-
-    for (const transaction of transactions) {
-        if (transaction.amount === 0 || !isInPeriod(transaction.created, period)) continue;
-        const category = categoriesById.get(transaction.categoryId);
-        if (!category || isSystemCategory(category)) continue;
-
-        if (!rootsByCategoryId.has(category.id)) {
-            const visited = new Set<number>();
-            let root: CategoryResponse | undefined = category;
-            while (root?.parentId != null && !visited.has(root.id)) {
-                visited.add(root.id);
-                root = categoriesById.get(root.parentId);
-            }
-            rootsByCategoryId.set(category.id, root && root.parentId == null && !isSystemCategory(root) ? root.id : null);
-        }
-
-        const rootId = rootsByCategoryId.get(category.id);
-        if (rootId == null) continue;
-        if (transaction.amount > 0) incomeRoots.add(rootId);
-        if (transaction.amount < 0) expenseRoots.add(rootId);
-    }
-
-    expenseRoots.forEach((id) => incomeRoots.delete(id));
-    return incomeRoots;
-};
-
 // Categories have no income/expense type. Use income for branches with only income activity in this period.
 export const getCategoryIncomeSnapshot = (
     category: CategoryResponse,

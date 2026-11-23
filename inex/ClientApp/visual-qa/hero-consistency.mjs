@@ -347,7 +347,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       : null;
     const marker = first('[data-qa="hero-distribution-legend"] span');
     const legendLabel = first('[data-qa="hero-distribution-legend"] strong');
-    const legendAmount = first('[data-qa="hero-distribution-legend"] small, [data-qa="hero-distribution-legend"] .accounts-distribution__amount');
+    const legendAmount = first('.accounts-distribution__amount, .categories-hero__legend-amount');
     const legendShare = first('[data-qa="hero-distribution-legend"] .accounts-distribution__share, [data-qa="hero-distribution-legend"] .categories-hero__legend-share');
     const dashboardTopCards = Array.from(document.querySelectorAll('.dashboard-panel'));
     const dashboardPosition = first('[data-qa="dashboard-position"]');
@@ -495,11 +495,15 @@ function collectAdditionalFailures(stateResults) {
       if (!state.heroPrimaryCurrencies.length) failures.push(`${state.name}: missing hero primary currency selector`);
     }
 
-    if (["accounts", "categories", "budgets"].includes(state.page) && state.heroPrimaryValueHasDecimal) {
+    if (["accounts", "budgets"].includes(state.page) && state.heroPrimaryValueHasDecimal) {
       failures.push(`${state.name}: primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
     }
-    if (["accounts", "categories", "budgets"].includes(state.page) && state.heroSecondaryTextHasDecimal) {
+    if (["accounts", "budgets"].includes(state.page) && state.heroSecondaryTextHasDecimal) {
       failures.push(`${state.name}: secondary hero value still shows decimal digits: ${state.heroSecondaryText?.text ?? ""}`);
+    }
+    if (state.page === "categories" && (!/\.\d{2} USD/.test(state.heroPrimaryValueText) ||
+        !/\.\d{2} USD/.test(state.heroSecondaryText?.text ?? ""))) {
+      failures.push(`${state.name}: Categories overview is missing USD minor digits`);
     }
 
     if (state.page !== "transactions" && state.page !== "dashboard" && !state.heroDistributionBar) {
@@ -719,8 +723,8 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
     ],
     assertions: [
       "Accounts, Categories, and Budgets hero summary width and divider offset match at desktop width",
-      "Accounts, Categories, and Budgets primary hero values are rounded with no visible decimal digits",
-      "Accounts, Categories, and Budgets secondary hero summary values are rounded with no visible decimal digits",
+      "Accounts and Budgets hero summary values are rounded with no visible decimal digits",
+      "Categories hero summary amounts display USD minor digits",
       "Accounts hero period label is on a separate line from the delta amount/percent",
       "Categories hero does not show visible Change from period copy",
       "Accounts, Categories, and Budgets distribution/burn-rate eyebrow typography matches",

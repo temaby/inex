@@ -221,10 +221,12 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         }
         const categories = fixture.categoriesVisualFixtureCategories;
         return jsonResponse({
-          data: scenario === "empty" ? [] : categories.map((category) =>
-            scenario === "populated-ru" && category.key === "archived"
-              ? { ...category, name: "Архивные покупки и расходы на содержание дома" }
-              : category),
+          data: scenario === "empty" ? [] : categories.map((category) => {
+            if (scenario !== "populated-ru") return category;
+            if (category.key === "archived") return { ...category, name: "Архивные покупки и расходы на содержание дома" };
+            if (category.key === "home") return { ...category, name: "Жильё, коммунальные услуги и содержание дома" };
+            return category;
+          }),
         });
       }
       if (url.pathname === "/api/budgets" && method === "GET") {
@@ -337,7 +339,7 @@ async function openEditDrawer(client, name) {
 
 async function waitForCategoriesReady(client, state) {
   const title = state.locale === "ru" ? "Категории" : "Categories";
-  await waitFor(client, `document.body.innerText.includes(${JSON.stringify(title)})`);
+  await waitFor(client, `document.body?.innerText.includes(${JSON.stringify(title)})`);
 
   if (state.scenario === "categories-error") {
     await waitFor(client, "document.body.innerText.includes('Failed to load categories')");
@@ -418,6 +420,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       };
     };
     const colorOf = (element) => element ? window.getComputedStyle(element).backgroundColor : null;
+    const incomeRow = rows.find((row) => row.querySelector('.category-row__title strong')?.textContent === 'Income');
+    const otherRootRow = rows.find((row) => row !== incomeRow && !row.classList.contains('category-row--child'));
     const heroRect = geometry(hero);
     const heroSummaryRect = geometry(heroSummary);
     const heroStyle = hero ? window.getComputedStyle(hero) : null;
@@ -472,8 +476,8 @@ async function collectMetrics(client, state, apiRequestCount) {
       rowHasBudgetBadge: rows.some((row) => row.querySelector('.category-row__chip--budget')),
       rowHasSpendSubtitle: rows.some((row) => row.querySelector('.category-row__spent small')),
       drawerHasGroceriesBudget: Boolean(information?.textContent.includes('Groceries cap')),
-      incomeRootNames: rows.filter((row) => row.classList.contains('category-row--income-root'))
-        .map((row) => row.querySelector('.category-row__title strong')?.textContent),
+      incomeRowMatchesRootBackground: incomeRow && colorOf(incomeRow) === colorOf(otherRootRow),
+      incomeRowMarkerColor: colorOf(incomeRow?.querySelector('.category-row__swatch')),
       operationsHeader: columnHeaders[2]?.textContent,
       visibleOperationDates: rows.flatMap((row) => {
         const date = row.querySelector('.category-row__operations time');
@@ -506,14 +510,15 @@ async function collectMetrics(client, state, apiRequestCount) {
       distributionLegendItemCount: legendItems.length,
       distributionSegmentColors: distributionSegments.map(colorOf),
       distributionLegendMarkerColors: legendMarkers.map(colorOf),
-      distributionLegendLabels: legendItems.map((item) => {
-        const label = item.querySelector(".categories-hero__legend-copy strong");
-        return label ? label.textContent.trim() : "";
-      }),
+      distributionLegendLabels: legendItems.map((item) => item.querySelector(".categories-hero__legend-label")?.textContent.trim()),
+      distributionLegendAmounts: legendItems.map((item) => item.querySelector(".categories-hero__legend-amount")?.textContent.replace(/\\s+/g, " ").trim()),
+      distributionLegendShares: legendItems.map((item) => item.querySelector(".categories-hero__legend-share")?.textContent.trim()),
+      distributionSegmentLabels: distributionSegments.map((segment) => segment.getAttribute("aria-label")),
+      heroHasInternalOverflow: Array.from(hero?.querySelectorAll(
+        ".categories-hero__amount, .categories-hero__note, .categories-hero__legend-item",
+      ) ?? []).some((element) => element.scrollWidth > element.clientWidth + 1),
       heroPrimaryValueText: heroPrimaryValue ? heroPrimaryValue.textContent.trim().replace(/\\s+/g, " ") : "",
-      heroPrimaryValueHasDecimal: heroPrimaryValue ? /\\d[\\d,]*\\.\\d/.test(heroPrimaryValue.textContent) : null,
       heroSecondaryText: heroSecondaryText ? heroSecondaryText.textContent.trim().replace(/\\s+/g, " ") : "",
-      heroSecondaryTextHasDecimal: heroSecondaryText ? /\\d[\\d,]*\\.\\d/.test(heroSecondaryText.textContent) : null,
       heroComparisonVisible: heroSecondaryText ? /\\bChange from\\b/.test(heroSecondaryText.textContent) : false,
       toolbarLabels,
       columnAlignmentDeltas,
@@ -597,11 +602,27 @@ function collectAdditionalFailures(stateResults) {
     if (state.usdEquivalentVisibleInHeroDistribution) {
       failures.push(`${state.name}: Categories hero distribution still shows visible USD equivalent label`);
     }
-    if (state.heroPrimaryValueHasDecimal) {
-      failures.push(`${state.name}: Categories primary hero value still shows decimal digits: ${state.heroPrimaryValueText}`);
+    const formatAmount = (value) => `${new Intl.NumberFormat(state.locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value).replace(/\s+/g, " ")} USD`;
+    const distributionAmounts = [1450, 186.5, 90, 80, 130];
+    const total = 1936.5;
+    const shareFormatter = new Intl.NumberFormat(state.locale, { style: "percent", maximumFractionDigits: 1 });
+    if (state.heroPrimaryValueText !== formatAmount(total) ||
+        !state.heroSecondaryText.includes(formatAmount(1450)) ||
+        !state.heroSecondaryText.includes(shareFormatter.format(1450 / total).replace(/\s+/g, " "))) {
+      failures.push(`${state.name}: Categories hero total or largest expense has incorrect locale formatting`);
     }
-    if (state.heroSecondaryTextHasDecimal) {
-      failures.push(`${state.name}: Categories secondary hero value still shows decimal digits: ${state.heroSecondaryText}`);
+    if (state.distributionLegendItemCount !== distributionAmounts.length || distributionAmounts.some((value, index) =>
+      state.distributionLegendAmounts[index] !== formatAmount(value) ||
+      state.distributionLegendShares[index] !== shareFormatter.format(value / total) ||
+      state.distributionSegmentLabels[index] !== `${state.distributionLegendLabels[index]} ${state.distributionLegendShares[index]}`
+    )) {
+      failures.push(`${state.name}: Categories legend amounts or chart percentages have incorrect locale formatting`);
+    }
+    if (state.heroHasInternalOverflow) {
+      failures.push(`${state.name}: Categories hero contents exceed their section or legend item`);
     }
     if (state.heroComparisonVisible) {
       failures.push(`${state.name}: Categories hero still shows visible Change from period copy`);
@@ -619,12 +640,14 @@ function collectAdditionalFailures(stateResults) {
       failures.push(`${state.name}: a row still shows a budget badge or a spend period subtitle`);
     }
     if (state.rowCount > 0) {
-      const bySpend = state.interaction === "select-spend-view" || state.interaction === "open-edit-from-spend";
-      const expectedIncomeRoots = bySpend ? [] : ["Income"];
       const operationsHeader = state.locale === "ru" ? "Операции" : "Transactions";
       if (state.operationsHeader !== operationsHeader || state.visibleOperationDates.length === 0 || state.operationTextDoesNotFit ||
-          state.smallestRowHeight < 44 || JSON.stringify(state.incomeRootNames) !== JSON.stringify(expectedIncomeRoots)) {
-        failures.push(`${state.name}: the operations label, visible dates, row targets, or income styling did not match`);
+          state.smallestRowHeight < 44) {
+        failures.push(`${state.name}: the operations label, visible dates, or row targets did not match`);
+      }
+      const incomeVisible = [null, "show-all", "collapse-first-branch"].includes(state.interaction);
+      if (incomeVisible && (!state.incomeRowMatchesRootBackground || state.incomeRowMarkerColor !== "rgb(147, 51, 234)")) {
+        failures.push(`${state.name}: Income does not use the standard root background and its original fixture marker color`);
       }
     }
     if (state.interaction === "open-edit-information" && !state.drawerHasGroceriesBudget) {
@@ -712,8 +735,8 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "displayed category legend colors are unique",
       "legend marker colors match corresponding bar segment colors",
       "Other segment is rendered from the fixture distribution",
-      "primary hero value is rounded with no visible decimal digits",
-      "secondary hero top-category amount is rounded with no visible decimal digits",
+      "hero total, largest expense, and legend amounts use localized currency precision",
+      "legend percentages and chart labels use the same localized shares without overflowing",
       "visible Change from period copy is absent from the Categories hero summary",
       "visible USD equivalent label is absent from Categories hero distribution",
       "only Status uses the visible uppercase small-label treatment",
@@ -724,7 +747,7 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "desktop category table headers align with rendered row columns",
       "rows omit budget badges and period subtitles while the drawer retains the budget",
       "operation counts stay on one line and last-operation dates remain visible on mobile",
-      "only the income root receives distinctive styling in the tree",
+      "the income root uses the standard root background and retains its category marker",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

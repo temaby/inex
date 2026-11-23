@@ -36,7 +36,6 @@ import {
     flattenCategoryTree,
     getCategoryBaseCurrency,
     getCategoryIncomeSnapshot,
-    getIncomeRootCategoryIds,
     includeAncestorCategories,
     sortLeafCategoriesBySpend,
 } from "./Categories/categories.utils";
@@ -393,10 +392,6 @@ const Categories = () => {
         () => buildBudgetCategoryIndex(budgetsForPeriod, categoryStats.period, categories),
         [budgetsForPeriod, categories, categoryStats.period],
     );
-    const incomeRootIds = React.useMemo(
-        () => getIncomeRootCategoryIds(categories, currentPeriodTransactions, period),
-        [categories, currentPeriodTransactions, period],
-    );
 
     const openedCategory = drawerState?.session.mode === "edit" ? drawerState.session.category : undefined;
     const snapshot = React.useMemo<CategorySnapshot | undefined>(() => {
@@ -478,7 +473,6 @@ const Categories = () => {
             depth={depth}
             hasChildren={view === "tree" && hasChildren}
             isCollapsed={collapsedCategoryIds.has(String(category.id))}
-            isIncomeRoot={view === "tree" && depth === 0 && incomeRootIds.has(category.id)}
             readOnly={isLinkedMode}
             paletteColor={categoryPaletteColor(category, categories)}
             stats={categoryStats.byCategoryId.get(category.id)}
