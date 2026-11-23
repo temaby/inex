@@ -36,7 +36,9 @@ vi.mock("react-i18next", async (importOriginal) => ({
     useTranslation: () => ({
         i18n: locale,
         t: (key: string, options?: Record<string, unknown>) => {
-            if (key.startsWith("accounts.inventory.") || key.endsWith("Share")) {
+            if (key.startsWith("accounts.inventory.") || key.endsWith("Share") || key === "accounts.shareOfNetWorth"
+                || key === "accounts.shareUnavailable" || key === "accounts.hero.balanceUnavailable"
+                || key.startsWith("accounts.hero.distributionUnavailable.")) {
                 return translations.getFixedT(locale.language)(key, options);
             }
             const labels: Record<string, string> = {
@@ -173,7 +175,7 @@ describe("Accounts inventory and editor", () => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: [] } };
             }
-            if (url === "/accounts/details?mode=active&ids[0]=1") {
+            if (url === "/accounts/details?mode=all&ids[0]=1") {
                 return { data: { data: [] } };
             }
             return { data: null };
@@ -217,7 +219,7 @@ describe("Accounts inventory and editor", () => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: populatedAccounts } };
             }
-            if (url.startsWith("/accounts/details?mode=active")) {
+            if (url.startsWith("/accounts/details?mode=all")) {
                 return { data: { data: populatedSummaries } };
             }
             return { data: null };
@@ -281,7 +283,7 @@ describe("Accounts inventory and editor", () => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: accountsVisualFixtureAccounts } };
             }
-            if (url.startsWith("/accounts/details?mode=active")) {
+            if (url.startsWith("/accounts/details?mode=all")) {
                 return { data: { data: accountsVisualFixtureSummaries } };
             }
             return { data: null };
@@ -322,7 +324,7 @@ describe("Accounts inventory and editor", () => {
         window.localStorage.setItem(getTreeExpansionStorageKey("accounts", 1), JSON.stringify(["UZS", "removed-currency"]));
         apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
             if (url === "/accounts?mode=ALL") return { data: { data: accountsVisualFixtureAccounts } };
-            if (url.startsWith("/accounts/details?mode=active")) return { data: { data: accountsVisualFixtureSummaries } };
+            if (url.startsWith("/accounts/details?mode=all")) return { data: { data: accountsVisualFixtureSummaries } };
             return { data: null };
         });
         apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
@@ -345,7 +347,7 @@ describe("Accounts inventory and editor", () => {
             if (url === "/accounts?mode=ALL") {
                 return { data: { data: accountsVisualFixtureAccounts } };
             }
-            if (url.startsWith("/accounts/details?mode=active")) {
+            if (url.startsWith("/accounts/details?mode=all")) {
                 return { data: { data: accountsVisualFixtureSummaries } };
             }
             return { data: null };
@@ -449,6 +451,68 @@ describe("Accounts inventory and editor", () => {
         expect(search).toHaveValue("Archive");
     });
 
+    it.each([
+        { scenario: "complete data", rate: true, balance: true, message: null },
+        { scenario: "a missing rate", rate: false, balance: true, message: "Exchange rates are missing for some selected balances." },
+        { scenario: "a missing balance", rate: true, balance: false, message: "Some selected accounts have unavailable balances." },
+    ])("keeps totals, groups, and chart synchronized across scope changes with $scenario", async ({ rate, balance, message }) => {
+        const archived = { ...populatedAccounts[2], currency: "EUR", currencyId: 20 };
+        const zeroAccount = { ...archived, id: 4, name: "Empty wallet", currency: "JPY", currencyId: 21 };
+        const accounts = [...populatedAccounts.slice(0, 2), archived, zeroAccount];
+        const summaries = [
+            ...populatedSummaries.slice(0, 2),
+            { ...zeroAccount, value: 0, thisMonthNet: 0 },
+            ...(balance ? [{ ...archived, value: 100, thisMonthNet: 0 }] : []),
+        ];
+        apiClientMock.mockImplementation(async ({ url }: { url: string }) => {
+            const data = url.startsWith("/accounts/details?mode=all") ? summaries : accounts;
+            return { data: { data } };
+        });
+        apiClientMock.get.mockResolvedValue({ data: accountsVisualFixtureCurrencies });
+        const rates = rate ? [{ ...accountsVisualFixtureRates[0], currencyTo: "EUR", rate: 2 }] : [];
+        const user = userEvent.setup();
+        const { container } = render(
+            <Provider store={makeStore(rates)}>
+                <MemoryRouter><Accounts /></MemoryRouter>
+            </Provider>,
+        );
+        const total = container.querySelector('[data-qa="hero-primary-value"]');
+        const groupShare = (code: string) => container.querySelector(`#accounts-group-${code}-share`);
+        const distributionShares = () => [...container.querySelectorAll(".accounts-distribution__share")]
+            .map((share) => share.textContent);
+        const segments = () => container.querySelectorAll(".accounts-distribution__segment");
+        await waitFor(() => expect(total).toHaveTextContent("150.00"));
+
+        for (let switchCount = 0; switchCount < 2; switchCount += 1) {
+            expect(groupShare("USD")).toHaveTextContent("100.0%");
+            expect(distributionShares()).toEqual(["100.0%"]);
+            expect(segments()).toHaveLength(1);
+            expect(groupShare("EUR")).toBeNull();
+
+            await user.click(screen.getByRole("button", { name: "All" }));
+            expect(groupShare("JPY")).toHaveTextContent("—");
+            const inactiveRow = screen.getByRole("button", { name: "Edit account Archive" });
+            expect(inactiveRow).toHaveTextContent(balance ? "100.00" : "Balance unavailable");
+            if (message) {
+                expect(total).toHaveTextContent("Balance unavailable");
+                expect(screen.getByText(message)).toBeVisible();
+                expect(groupShare("USD")).toHaveTextContent("Share unavailable");
+                expect(distributionShares()).toEqual([]);
+                expect(segments()).toHaveLength(0);
+            } else {
+                expect(total).toHaveTextContent("200.00");
+                expect(groupShare("USD")).toHaveTextContent("75.0%");
+                expect(groupShare("EUR")).toHaveTextContent("25.0%");
+                expect(distributionShares()).toEqual(["75.0%", "25.0%"]);
+                expect(segments()).toHaveLength(2);
+            }
+            await user.click(screen.getByRole("button", { name: "Active" }));
+            expect(total).toHaveTextContent("150.00");
+        }
+        expect(apiClientMock.mock.calls.filter(([{ url }]) => url.startsWith("/accounts/details")))
+            .toEqual([[expect.objectContaining({ url: "/accounts/details?mode=all&ids[0]=1&ids[1]=2&ids[2]=3&ids[3]=4" })]]);
+    });
+
     it("formats Russian amounts, pluralizes counts, and distinguishes zero from tiny signed shares", async () => {
         locale.language = "ru";
         const accounts = accountsVisualFixtureAccounts.slice(0, 4);
@@ -473,8 +537,11 @@ describe("Accounts inventory and editor", () => {
         const zeroRow = within(screen.getByRole("button", { name: "Edit account USD operating" }));
         expect(zeroRow.getAllByText("0,00 USD").length).toBeGreaterThan(0);
         expect(zeroRow.getByText("—")).toBeVisible();
+        expect(document.getElementById("accounts-group-USD-share")).toHaveTextContent("—");
         const tinyRow = within(screen.getByRole("button", { name: "Edit account PLN card" }));
         expect(tinyRow.getByText("<0,1%")).toBeVisible();
+        expect(document.getElementById("accounts-group-PLN-share")).toHaveTextContent("<0,1%");
+        expect(document.querySelector('[data-qa="hero-distribution-legend"]')).toHaveTextContent("<0,1%");
         const negativeRow = screen.getByRole("button", { name: "Edit account BYN reserve" });
         expect(within(negativeRow).getByText("-0,13 BYN")).toBeVisible();
         expect(negativeRow.querySelector(".accounts-row__share")).toHaveTextContent(/-.*0,1/);
@@ -511,7 +578,7 @@ describe("Accounts inventory and editor", () => {
             if (url === "/accounts?mode=ALL&linkedUserId=2") {
                 return { data: { data: populatedAccounts } };
             }
-            if (url.startsWith("/accounts/details?mode=active") && url.includes("linkedUserId=2")) {
+            if (url.startsWith("/accounts/details?mode=all") && url.includes("linkedUserId=2")) {
                 return { data: { data: populatedSummaries } };
             }
             return { data: null };

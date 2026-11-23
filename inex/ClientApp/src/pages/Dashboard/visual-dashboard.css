@@ -94,7 +94,6 @@
 .visual-dashboard-state { align-items: flex-start; display: flex; flex-direction: column; gap: 12px; justify-content: center; min-height: 130px; color: var(--fg-3); font-size: var(--fs-16); overflow-wrap: anywhere; }
 .visual-dashboard-state[role="alert"] { color: var(--expense-700); }
 .visual-dashboard-state--loading { min-height: 220px; }
-.visual-dashboard-icon { align-items: center; background: var(--income-50); border-radius: 14px; color: var(--income-700); display: flex; flex: 0 0 44px; height: 44px; justify-content: center; }
 .visual-dashboard-money__total > [role="text"] { display: block; font-size: clamp(23px, 2.3vw, 38px); font-weight: 650; letter-spacing: -0.04em; line-height: 1.25; }
 .visual-dashboard-money__total > [role="text"] [aria-hidden="true"] { flex-wrap: wrap; white-space: normal !important; overflow-wrap: anywhere; }
 .visual-dashboard-money__total p { font-size: var(--fs-14); }

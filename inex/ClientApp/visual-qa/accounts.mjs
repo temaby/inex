@@ -190,6 +190,7 @@ const states = [
     screenshot: "incomplete-rate-360.png",
     viewport: { width: 360, height: defaultViewportHeight },
     scenario: "incomplete-rate",
+    interaction: "select-all-scope",
   },
   {
     name: "load-error-390",
@@ -208,6 +209,9 @@ function withCurrencyNames(currencies) {
 
 function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef) {
   const currencies = withCurrencyNames(fixture.accountsVisualFixtureCurrencies);
+  const withArchivedEuros = (account, scenario) => scenario === "incomplete-rate" && !account.isEnabled
+    ? { ...account, name: "EUR archived wallet", currency: "EUR", currencyId: 7 }
+    : account;
 
   return createApiFixtureHandler({
     requestLog,
@@ -237,9 +241,7 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
       }
       if (url.pathname.startsWith("/api/exchange/rates/") && method === "GET") {
         return jsonResponse({
-          data: scenario === "incomplete-rate"
-            ? fixture.accountsVisualFixtureRates.filter((rate) => rate.currencyTo !== "GEL")
-            : fixture.accountsVisualFixtureRates,
+          data: fixture.accountsVisualFixtureRates,
         });
       }
       if (url.pathname === "/api/accounts" && method === "GET") {
@@ -247,16 +249,19 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
           return problemResponse("Accounts fixture failure", "Controlled Accounts load failure.", 500);
         }
         return jsonResponse({
-          data: scenario === "empty" ? [] : fixture.accountsVisualFixtureAccounts,
+          data: scenario === "empty" ? [] : fixture.accountsVisualFixtureAccounts.map((account) => withArchivedEuros(account, scenario)),
         });
       }
       if (url.pathname === "/api/accounts/details" && method === "GET") {
-        const summaries = fixture.accountsVisualFixtureSummaries;
+        const summaries = fixture.accountsVisualFixtureSummaries
+          .filter((account) => url.searchParams.get("mode") === "all" || account.isEnabled);
         return jsonResponse({
           data: scenario === "empty" ? [] : summaries.map((account) => (
             scenario === "drawer-info-ru" && account.name === "PLN card"
               ? { ...account, value: -9_999_999_999.99 }
-              : account
+              : scenario === "incomplete-rate" && !account.isEnabled
+                ? { ...withArchivedEuros(account, scenario), value: 125 }
+                : account
           )),
         });
       }
@@ -380,8 +385,9 @@ async function applyInteraction(client, state, fixture) {
       return;
     }
     case "select-all-scope":
+      await waitFor(client, "Boolean(document.querySelector('.accounts-distribution__segment'))");
       await evaluate(client, clickButtonByTextExpression("All"));
-      await waitFor(client, "document.body.innerText.includes('USD closed card')");
+      await waitFor(client, "Boolean(document.querySelector('.accounts-row.is-disabled'))");
       return;
     case "collapse-fixture-group": {
       const currency = fixture.accountsVisualFixtureMeta.collapsedStateCurrency;
@@ -559,6 +565,11 @@ async function collectMetrics(client, state, apiRequestCount) {
       toolbarSearchWidth: searchRect ? searchRect.width : null,
       toolbarSearchRightOffset: toolbarContentRight !== null && searchRect ? toolbarContentRight - searchRect.right : null,
       groupShareBarCount: groupShareBars.length,
+      groupShares: Object.fromEntries(groupButtons.map((button) => [
+        normalizeText(button.querySelector(".accounts-group__title")),
+        normalizeText(button.querySelector(".accounts-group__share")),
+      ])),
+      archivedBalance: normalizeText(rowAmount(rows.find((row) => row.classList.contains("is-disabled")))),
       heroDistributionBarCount: document.querySelectorAll('[data-qa="hero-distribution-bar"]').length,
       distributionSegmentCount: distributionSegments.length,
       distributionLegendItemCount: legendItems.length,
@@ -568,6 +579,7 @@ async function collectMetrics(client, state, apiRequestCount) {
         const label = item.querySelector(".accounts-distribution__copy strong");
         return label ? label.textContent.trim() : "";
       }),
+      distributionLegendShares: legendItems.map((item) => normalizeText(item.querySelector(".accounts-distribution__share"))),
       heroDistributionText: distribution ? distribution.innerText.replace(/\\s+/g, " ").trim() : "",
       momVisible: /\\bMoM\\b/.test(document.body.innerText),
       previousMonthVisible: document.body.innerText.includes(${JSON.stringify("from May 2026")}),
@@ -662,7 +674,7 @@ function collectAdditionalFailures(stateResults) {
     if (state.rowActionCount || state.visibleViewLabel) {
       failures.push(`${state.name}: a redundant row or view label is still visible`);
     }
-    if (state.interaction === "select-all-scope" && (state.listSummary !== "7 accounts · 6 currencies"
+    if (state.scenario === "populated" && state.interaction === "select-all-scope" && (state.listSummary !== "7 accounts · 6 currencies"
       || state.zeroRowAmount !== "0.00 USD" || state.zeroRowShare !== "—" || !state.zeroRowAmountMuted || !state.zeroRowNameRegular)) {
       failures.push(`${state.name}: scope counts or zero-value styling is incorrect`);
     }
@@ -683,6 +695,15 @@ function collectAdditionalFailures(stateResults) {
     }
     if (groupedPopulatedState && state.distributionSegmentCount !== state.distributionLegendItemCount) {
       failures.push(`${state.name}: Accounts distribution segment count ${state.distributionSegmentCount} does not match legend item count ${state.distributionLegendItemCount}`);
+    }
+    if (groupedPopulatedState && state.distributionLegendLabels.some((label, index) =>
+      Object.hasOwn(state.groupShares, label) && state.distributionLegendShares[index] !== state.groupShares[label])) {
+      failures.push(`${state.name}: account group shares do not match the legend`);
+    }
+    if (state.scenario === "incomplete-rate" && (state.heroPrimaryValueText !== "Balance unavailable"
+      || !state.heroDistributionText.includes("Exchange rates are missing") || state.distributionSegmentCount > 0
+      || state.distributionLegendItemCount > 0 || state.archivedBalance !== "125.00 EUR")) {
+      failures.push(`${state.name}: missing inactive rate produces partial percentages or hides the native balance`);
     }
     if (groupedPopulatedState && new Set(state.distributionSegmentColors).size !== state.distributionSegmentColors.length) {
       failures.push(`${state.name}: Accounts distribution segment colors are not unique`);

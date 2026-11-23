@@ -42,12 +42,14 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
     }
 
     [Fact]
-    public async Task DetailsForList_ForeignTransactionOnOwnedAccount_DoesNotAffectBalance()
+    public async Task DetailsForList_AllIncludesInactiveBalancesWithoutIncludingForeignData()
     {
         var userA = await CreateAuthenticatedClientAsync();
         var userB = await CreateAuthenticatedClientAsync();
         int accountId = await CreateAccountAsync(userA, "balance-owner-account");
         int inactiveAccountId = await CreateAccountAsync(userA, "balance-inactive-account", isEnabled: false);
+        int foreignAccountId = await CreateAccountAsync(userB, "balance-foreign-account", isEnabled: false);
+        int ownedCategoryId = await CreateCategoryAsync(userA, "balance-owner-category");
         int foreignCategoryId = await CreateCategoryAsync(userB, "balance-foreign-category");
 
         using (var scope = _factory.Services.CreateScope())
@@ -68,17 +70,43 @@ public class AccountsControllerTests : IClassFixture<InExWebApplicationFactory>
                 CreatedBy = foreignCategory.UserId,
                 UpdatedBy = foreignCategory.UserId,
             });
+            db.Transactions.Add(new Transaction
+            {
+                AccountId = inactiveAccountId,
+                CategoryId = ownedCategoryId,
+                UserId = ownedAccount.UserId,
+                Value = -125m,
+                Created = now.AddMonths(-1),
+                Updated = now,
+                CreatedBy = ownedAccount.UserId,
+                UpdatedBy = ownedAccount.UserId,
+            });
             await db.SaveChangesAsync();
         }
 
-        var response = await userA.GetAsync($"/api/accounts/details?mode=active&ids[0]={accountId}&ids[1]={inactiveAccountId}");
+        string url = $"/api/accounts/details?ids[0]={accountId}&ids[1]={inactiveAccountId}&ids[2]={foreignAccountId}";
+        var defaultSummaries = await GetSummariesAsync(url);
+        Assert.Equal(accountId, Assert.Single(defaultSummaries).GetProperty("id").GetInt32());
 
-        response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var summary = Assert.Single(body.GetProperty("data").EnumerateArray());
+        var summary = Assert.Single(await GetSummariesAsync($"{url}&mode=active"));
         Assert.Equal(accountId, summary.GetProperty("id").GetInt32());
         Assert.Equal(0m, summary.GetProperty("value").GetDecimal());
         Assert.Equal(0m, summary.GetProperty("thisMonthNet").GetDecimal());
+
+        var allSummaries = (await GetSummariesAsync($"{url}&mode=All"))
+            .ToDictionary(item => item.GetProperty("id").GetInt32());
+        Assert.Equal(2, allSummaries.Count);
+        Assert.Equal(0m, allSummaries[accountId].GetProperty("value").GetDecimal());
+        Assert.Equal(-125m, allSummaries[inactiveAccountId].GetProperty("value").GetDecimal());
+        Assert.False(allSummaries[inactiveAccountId].GetProperty("isEnabled").GetBoolean());
+
+        async Task<JsonElement.ArrayEnumerator> GetSummariesAsync(string requestUrl)
+        {
+            var response = await userA.GetAsync(requestUrl);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            return body.GetProperty("data").EnumerateArray();
+        }
     }
 
     // ── POST /api/accounts ────────────────────────────────────────────────────

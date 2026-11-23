@@ -56,6 +56,12 @@ npm run lint
 
 ## Evidence Summary
 
+### Accounts shares and Dashboard money card — 2026-11-23
+
+Data mode **fixture**. All 27 Accounts states passed at 1440, 1024, 390, and 360px. `populated-1440.png` and `populated-ru-360.png` show matching group and legend shares. `incomplete-rate-360.png` shows the All scope with a muted bar, a missing-rate explanation, and the archived account's native EUR balance. [Accounts fixture harness](../../../inex/ClientApp/visual-qa/accounts.mjs)
+
+All 11 focused Visual Dashboard states passed across the same widths. The money card header has no icon, and the account bar, selection details, favorites, and navigation remain usable. The full 94-state run reported four viewport assertions that reproduced on baseline `a2aee86` in the same browser. These are `month-picker-open-360`, `wallet-tiny-selected-360`, `single-parent-1440-800`, and `linked-russian-1440-900`. Recheck these assertions against the baseline on the same browser when comparing future captures. [Visual Dashboard fixture harness](../../../inex/ClientApp/visual-qa/visual-dashboard.mjs)
+
 ### Mobile transaction account/category pickers — 2026-11-06
 
 Data mode: **fixture**. Dedicated QA covers 17 states at 1440/1024/390/360px: account/category selection, nested children, Russian labels, long lists, mouse/touch scrolling, open-popup drawer scrolling, income/transfer creation, editing, and budget multiple selection. Every API request is intercepted. All 17 states PASS, including Tab/Escape dismissal, focus, popup attachment, and viewport bounds.

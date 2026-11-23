@@ -549,6 +549,7 @@
     "clearSearch": "Очистить поиск",
     "filteringBy": "Фильтр: \"{{query}}\"",
     "shareOfNetWorth": "{{value}}%",
+    "shareUnavailable": "Доля недоступна",
     "emptyShare": "—",
     "smallPositiveShare": "<{{value}}%",
     "smallNegativeShare": ">{{value}}%",
@@ -621,6 +622,13 @@
       "byValue": "По текущему балансу",
       "byCount": "По количеству счетов",
       "noDistribution": "Нет валют для отображения",
+      "distributionUnavailable": {
+        "balancesUnavailable": "Балансы некоторых выбранных счетов недоступны.",
+        "ratesUnavailable": "Для некоторых выбранных счетов нет курсов обмена.",
+        "valuesUnavailable": "Не удалось рассчитать общую сумму на выбранных счетах.",
+        "netZero": "Доли недоступны, поскольку сумма балансов равна нулю."
+      },
+      "signedDistribution": "Ширина сегментов отражает размер балансов. Доли учитывают отрицательные балансы.",
       "other": "Другое"
     },
     "loading": {

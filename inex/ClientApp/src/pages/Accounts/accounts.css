@@ -562,6 +562,7 @@
     display: none;
 }
 
+.accounts-group__share,
 .accounts-row__share {
     color: var(--fg-3);
     font-family: var(--font-num);
@@ -570,6 +571,11 @@
     font-weight: 600;
     line-height: 1.25;
     text-align: right;
+}
+
+.accounts-group__share {
+    grid-column: 3;
+    overflow-wrap: anywhere;
 }
 
 .accounts-row__currency {
@@ -803,7 +809,7 @@
     }
 
     .accounts-group__head.inex-hierarchy-toggle {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) auto;
         min-height: 0;
         padding: 10px 12px 8px 50px;
     }
@@ -814,7 +820,8 @@
     }
 
     .accounts-group__balance {
-        grid-column: 1;
+        grid-column: 1 / -1;
+        grid-row: 2;
     }
 
     .accounts-group__marker {
@@ -850,6 +857,11 @@
 
     .accounts-row__share {
         text-align: left;
+    }
+
+    .accounts-group__share {
+        grid-column: 2;
+        grid-row: 1;
     }
 
     .accounts-row__name,

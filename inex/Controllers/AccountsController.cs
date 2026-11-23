@@ -9,6 +9,7 @@ using inex.Services.Services.Base;
 using inex.Services.Services.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -78,15 +79,17 @@ public class AccountsController : ApiControllerBase
 
     /// <summary>Get details for a list of accounts for a user</summary>
     /// <param name="ids">Account ids</param>
+    /// <param name="mode">Use all to include inactive accounts. Defaults to active accounts.</param>
     /// <param name="linkedUserId">Optional actively linked user whose account summaries should be read</param>
     /// <returns>List of accounts with status</returns>
     [HttpGet]
     [Route(GetStatusRoute)]
     [ProducesResponseType(typeof(ListResponse<AccountSummary>), StatusCodes.Status200OK)]
-    public ActionResult DetailsForList([FromQuery] IEnumerable<int> ids, int? linkedUserId)
+    public ActionResult DetailsForList([FromQuery] IEnumerable<int> ids, int? linkedUserId, string? mode)
     {
         int readableUserId = _readScopeResolver.Resolve(CurrentUserId, linkedUserId);
-        ListResponse<AccountSummary> resultsDTO = _accountService.GetDetails(readableUserId, ids);
+        bool includeInactive = string.Equals(mode, nameof(ActivityMode.ALL), StringComparison.OrdinalIgnoreCase);
+        ListResponse<AccountSummary> resultsDTO = _accountService.GetDetails(readableUserId, ids, includeInactive);
         return Ok(resultsDTO);
     }
 

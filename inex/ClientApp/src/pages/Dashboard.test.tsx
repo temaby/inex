@@ -1070,6 +1070,10 @@ describe("Dashboard", () => {
     apiMocks.accounts.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
     apiMocks.accountSummaries.mockReturnValue({ currentData: accounts, isLoading: false, isError: false });
     const { container } = render(<Dashboard />);
+    const moneyCard = container.querySelector<HTMLElement>('[data-qa="visual-money"]')!;
+    expect(moneyCard.querySelector("header h2")).toHaveTextContent("dashboard.visual.moneyTitle");
+    expect(moneyCard.querySelector("header svg")).not.toBeInTheDocument();
+    expect(within(moneyCard).getByRole("link", { name: "dashboard.visual.allAccounts" })).toHaveAttribute("href", "/accounts");
     const rows = () => [...container.querySelectorAll<HTMLElement>('[data-qa="visual-favorite-accounts"] li')].map((row) => row.dataset.accountId);
     const originalRows = rows();
     const segment = (id: number) => container.querySelector<HTMLButtonElement>(`[data-qa="visual-account-bar"] [data-account-id="${id}"]`)!;

@@ -51,14 +51,14 @@ public class AccountService : InExService, IAccountService
         };
     }
 
-    public ListResponse<AccountSummary> GetDetails(int userId, IEnumerable<int> ids)
+    public ListResponse<AccountSummary> GetDetails(int userId, IEnumerable<int> ids, bool includeInactive = false)
     {
         var now = _clock.UtcNow;
         var monthStart = new DateTime(now.Year, now.Month, 1);
         var monthEnd = monthStart.AddMonths(1);
 
         IQueryable<Account> items = DbInEx.AccountRepository.Get(true, null, i => i.Currency)
-            .Where(i => i.UserId == userId && i.IsEnabled && ids.Contains(i.Id))
+            .Where(i => i.UserId == userId && (includeInactive || i.IsEnabled) && ids.Contains(i.Id))
             .OrderBy(i => i.Name);
 
         var accountDetails = DbInEx.TransactionRepository.Get(true)
