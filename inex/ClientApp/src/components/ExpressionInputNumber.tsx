@@ -5,6 +5,7 @@ import { Parser } from "expr-eval";
 interface ExpressionInputNumberProps {
     value?: number;
     onChange?: (value: number | null) => void;
+    onIncompleteChange?: (incomplete: boolean) => void;
     addonAfter?: React.ReactNode;
     precision?: number;
     placeholder?: string;
@@ -34,6 +35,7 @@ const evaluateExpression = (input: string): number | null => {
 const ExpressionInputNumber: React.FC<ExpressionInputNumberProps> = ({
     value,
     onChange,
+    onIncompleteChange,
     addonAfter,
     precision = 2,
     placeholder,
@@ -62,6 +64,7 @@ const ExpressionInputNumber: React.FC<ExpressionInputNumberProps> = ({
         setInput(strVal);
 
         const result = evaluateExpression(strVal);
+        onIncompleteChange?.(result === null && (!creation || strVal.trim() !== ""));
         // Creation publishes zero through its parent for incomplete input. Track
         // that emitted value so the parent echo does not erase an expression
         // while the user is still typing its next operand.

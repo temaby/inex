@@ -37,8 +37,8 @@ const drawerViewports = [
   { width: 360, height: defaultViewportHeight },
 ];
 const drawerLabels = {
-  en: { add: "Add account", edit: "Edit account", create: "Create account", save: "Save", cancel: "Cancel", delete: "Delete" },
-  ru: { add: "Добавить счёт", edit: "Редактировать счёт", create: "Создать счёт", save: "Сохранить", cancel: "Отмена", delete: "Удалить" },
+  en: { add: "Add account", edit: "Edit account", create: "Create", save: "Save", cancel: "Cancel", delete: "Delete" },
+  ru: { add: "Добавить счёт", edit: "Редактировать счёт", create: "Создать", save: "Сохранить", cancel: "Отмена", delete: "Удалить" },
 };
 const accountInformationSelector = '[data-qa="account-drawer-information"]';
 const accountListStateExpression = `JSON.stringify({
@@ -436,7 +436,8 @@ async function collectMetrics(client, state, apiRequestCount) {
     const drawer = document.querySelector(".ant-drawer-content-wrapper");
     const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
     const drawerBody = drawer?.querySelector(".ant-drawer-body");
-    const drawerFooter = drawer?.querySelector(".inex-drawer-actions");
+    const drawerFooter = drawer?.querySelector(".form-drawer-footer");
+    const drawerFooterEdge = drawerFooter?.closest(".ant-drawer-footer")?.getBoundingClientRect().bottom;
     const drawerTitleLines = drawer?.querySelector(".ant-drawer-title > div")?.children;
     const drawerActions = Array.from(drawerFooter?.querySelectorAll("button") ?? []);
     const footerBounds = drawerFooter?.getBoundingClientRect();
@@ -538,7 +539,7 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerHasClose: Boolean(drawer?.querySelector(".ant-drawer-close")),
       drawerActions: drawerActions.map((button) => button.innerText.trim()),
       editActionsAligned: Boolean(editActionsAligned),
-      drawerActionsWithinViewport: actionsWithinViewport,
+      drawerActionsWithinViewport: actionsWithinViewport && Boolean(drawerRect && Math.abs(drawerFooterEdge - drawerRect.bottom) <= 1),
       drawerBodyOverflow: Boolean(drawerBody && drawerBody.scrollWidth > drawerBody.clientWidth),
       drawerSwitchCount: drawer?.querySelectorAll('[role="switch"]').length ?? 0,
       accountInformationPresent: Boolean(accountInformation),
@@ -623,7 +624,7 @@ function collectAdditionalFailures(stateResults) {
     if (state.drawerMode) {
       const labels = drawerLabels[state.language];
       const isEdit = state.drawerMode === "edit";
-      const expectedWidth = Math.min(460, state.viewport.width);
+      const expectedWidth = state.viewport.width <= 768 ? state.viewport.width : 460;
       if (!state.drawerOpen || Math.abs(state.drawerBounds.width - expectedWidth) > 1) {
         failures.push(`${state.name}: drawer width must match the transaction drawer (${expectedWidth}px)`);
       }

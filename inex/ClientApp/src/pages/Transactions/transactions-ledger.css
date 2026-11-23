@@ -830,16 +830,12 @@
     }
 }
 
-.transactions-filter-form,
-.transactions-create-form,
-.transactions-edit-form {
+.transactions-filter-form {
     display: grid;
     gap: 14px;
 }
 
-.transactions-filter-form .ant-form-item,
-.transactions-create-form .ant-form-item,
-.transactions-edit-form .ant-form-item {
+.transactions-filter-form .ant-form-item {
     margin-bottom: 0;
 }
 
@@ -918,14 +914,6 @@
     min-width: 0;
     overflow-wrap: anywhere;
     white-space: normal;
-}
-
-.transactions-empty-drawer {
-    align-items: center;
-    color: var(--fg-4);
-    display: flex;
-    justify-content: center;
-    min-height: 120px;
 }
 
 .sr-only {

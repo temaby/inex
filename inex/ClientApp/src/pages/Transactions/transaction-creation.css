@@ -3,7 +3,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
-  margin-bottom: 4px;
   background: var(--bg-muted);
   border-radius: var(--radius-3);
 }
@@ -27,12 +26,19 @@
 }
 
 .transaction-type-buttons .transaction-type-more { grid-column: 1 / -1; }
-.transactions-create-form > .ant-form { display: grid; gap: 18px; }
+.transactions-create-form { display: grid; gap: var(--space-5); }
+
+.transactions-create-form > .ant-form > .ant-alert { margin-bottom: var(--space-5); }
+
+.transactions-create-form > .ant-form > .ant-form-item:last-child,
+.transactions-edit-form > .ant-form-item:last-child { margin-bottom: 0; }
 
 .transaction-creation-amount .ant-input {
-  min-height: 52px;
   font-size: 26px;
   font-variant-numeric: tabular-nums;
+  height: var(--space-12);
+  line-height: 1.2;
+  padding-block: 0;
 }
 
 .transaction-creation-amount .ant-input-group-addon {
@@ -48,8 +54,10 @@
 .transaction-category-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .transaction-category-shortcuts .ant-btn { height: auto; min-height: 40px; max-width: 100%; white-space: normal; }
 .transaction-creation-date { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.transaction-creation-date .ant-btn { padding-inline: 0; min-height: 40px; height: auto; white-space: normal; }
-.transaction-creation-date .ant-picker { min-width: 0; }
+.transaction-creation-date .ant-btn { min-height: 44px; height: auto; white-space: normal; }
+.transaction-creation-date .ant-btn-default { box-shadow: none; flex: 1; justify-content: flex-start; min-width: 0; text-align: start; }
+.transaction-creation-date .ant-btn-link { padding-inline: 0; }
+.transaction-creation-date .ant-picker { width: 100%; }
 .transaction-comment-toggle.ant-btn { min-height: 40px; padding-inline: 0; color: var(--fg-3); }
 .transaction-comment-popup { max-width: calc(100vw - 24px); }
 .transaction-comment-popup .ant-popover-inner { padding: 4px; }
@@ -57,7 +65,6 @@
 .transaction-comment-option { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: var(--radius-2); color: var(--fg-1); cursor: pointer; overflow-wrap: anywhere; }
 .transaction-comment-option[aria-selected="true"] { background: var(--bg-muted); color: var(--income-fg); }
 .transaction-comment-status { padding: 10px 12px; color: var(--fg-3); font-size: var(--fs-13); }
-.transactions-edit-form { gap: 18px; }
 
 @media (min-width: 480px) {
   .transaction-type-buttons { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -65,6 +72,5 @@
 }
 
 @media (max-width: 479px) {
-  .transactions-create-form .ant-form-item { margin-bottom: 18px; }
   .transactions-create-form .transaction-type-buttons .ant-btn { padding-inline: 6px; }
 }

@@ -10,5 +10,4 @@ export class TransactionEditState {
   date: Dayjs = dayjs();
   amount: number = 0;
   comment: string = "";
-  hasActiveChanges: boolean = false;
 }

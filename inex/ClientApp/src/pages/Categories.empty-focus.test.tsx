@@ -443,17 +443,25 @@ describe("Categories drawer and list", () => {
         { name: "historical transactions", rule: "category-delete-has-transactions" },
         { name: "historical budgets", rule: "category-delete-has-budgets" },
         { name: "no links", rule: null },
-    ])("handles the server's delete decision for $name after confirmation", async ({ rule }) => {
+        { name: "an unused subcategory", rule: null, child: true },
+    ])("handles the server's delete decision for $name after confirmation", async ({ rule, child }) => {
         const user = userEvent.setup();
+        const id = child ? 2 : 1;
+        const editedName = child ? "Groceries" : "Food";
+        const deleteUrl = `/categories/${id}`;
+        let categories = [category(1, "Food")];
+        if (child) categories.push(category(id, editedName, { parentId: 1 }));
         apiClientMock.mockImplementation(async ({ url, method }) => {
-            if (url === "/categories/1" && method === "delete" && rule) {
-                throw { response: { status: 422, data: { rule, detail: "Untranslated server message" } } };
+            if (url === deleteUrl && method === "delete") {
+                if (rule) {
+                    throw { response: { status: 422, data: { rule, detail: "Untranslated server message" } } };
+                }
+                categories = categories.filter((item) => item.id !== id);
             }
-            const categories = url === "/categories?mode=ALL" ? [category(1, "Food")] : [];
-            return { data: { data: categories } };
+            return { data: { data: url === "/categories?mode=ALL" ? [...categories] : [] } };
         });
         renderCategories();
-        await user.click(await screen.findByRole("button", { name: "Edit Food" }));
+        await user.click(await screen.findByRole("button", { name: `Edit ${editedName}` }));
         const deleteButton = within(await screen.findByRole("dialog")).getByRole("button", { name: "common.delete" });
         deleteButton.focus();
         await user.keyboard("{Enter}");
@@ -472,11 +480,13 @@ describe("Categories drawer and list", () => {
             expect(screen.getByRole("button", { name: "common.delete" })).toBeEnabled();
         } else {
             expect(await screen.findByText("categories.formSuccess.delete")).toBeVisible();
+            await waitFor(() => expect(screen.queryByRole("button", { name: `Edit ${editedName}` })).not.toBeInTheDocument());
+            if (child) expect(screen.getByRole("button", { name: "Edit Food" })).toBeVisible();
         }
-        expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({ url: "/categories/1", method: "delete" }));
+        expect(apiClientMock).toHaveBeenCalledWith(expect.objectContaining({ url: deleteUrl, method: "delete" }));
         expect(apiClientMock.get).not.toHaveBeenCalledWith("/budgets");
         expect(apiClientMock.get).not.toHaveBeenCalledWith("/transactions", {
-            params: { categoryId: 1, mode: "ALL", page: 1, pageSize: 1 },
+            params: { categoryId: id, mode: "ALL", page: 1, pageSize: 1 },
         });
     });
 });

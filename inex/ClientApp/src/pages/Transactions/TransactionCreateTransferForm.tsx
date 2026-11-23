@@ -26,6 +26,7 @@ interface TransactionCreateTransferFormProps {
     onSetToAmount: (value: number | null) => void;
     toAccount: AccountDetails;
     toAmount: number;
+    onAmountDraftChange?: (id: string, incomplete: boolean) => void;
     validationErrors: TransactionCreateValidationErrors;
 }
 
@@ -49,6 +50,7 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
     onSetToAmount,
     toAccount,
     toAmount,
+    onAmountDraftChange,
     validationErrors,
 }) => {
     const { t } = useTranslation();
@@ -56,11 +58,12 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
     const toCurrency = getSelectedCurrency(toAccount);
 
     return (
-        <Form layout="vertical" hideRequiredMark>
+        <Form layout="vertical">
             <Form.Item
                 help={validationErrors.fromAccount}
                 label={t("transactions.transferFrom")}
                 htmlFor="transfer_from_account"
+                required
                 validateStatus={validationErrors.fromAccount ? "error" : undefined}
             >
                 <Dropdown
@@ -77,9 +80,11 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
                 help={validationErrors.fromAmount}
                 label={t("transactions.amount")}
                 htmlFor="transfer_from_amount"
+                required
                 validateStatus={validationErrors.fromAmount ? "error" : undefined}
             >
                 <CreationAmount
+                    onAmountDraftChange={onAmountDraftChange}
                     currency={fromCurrency}
                     id="transfer_from_amount"
                     onChange={onSetFromAmount}
@@ -90,6 +95,7 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
                 help={validationErrors.toAccount}
                 label={t("transactions.transferTo")}
                 htmlFor="transfer_to_account"
+                required
                 validateStatus={validationErrors.toAccount ? "error" : undefined}
             >
                 <Dropdown
@@ -106,9 +112,11 @@ const TransactionCreateTransferForm: React.FC<TransactionCreateTransferFormProps
                 help={validationErrors.toAmount}
                 label={t("transactions.amount")}
                 htmlFor="transfer_to_amount"
+                required
                 validateStatus={validationErrors.toAmount ? "error" : undefined}
             >
                 <CreationAmount
+                    onAmountDraftChange={onAmountDraftChange}
                     currency={toCurrency}
                     id="transfer_to_amount"
                     onChange={onSetToAmount}

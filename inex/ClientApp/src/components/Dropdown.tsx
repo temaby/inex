@@ -167,6 +167,7 @@ const Dropdown = (props: DropdownProps) => {
                     aria-haspopup="menu"
                     aria-label={props.placeholder && props.selection?.length ? `${props.placeholder}: ${selectionText}` : selectionText}
                     className={css.trigger}
+                    data-picker-empty={selectionIds.length === 0 ? "" : undefined}
                     data-picker-id={props.id}
                     id={props.id}
                     onKeyDown={(event) => {

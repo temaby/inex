@@ -45,7 +45,7 @@ describe("TransactionCreate retained recommendation cache", () => {
         let resolveFresh!: (response: { data: { expenseAccountId: number; incomeAccountId: number } }) => void;
         let rejectFresh!: (error: unknown) => void;
         mockClient.mockImplementationOnce(() => new Promise((resolve, reject) => { resolveFresh = resolve; rejectFresh = reject; }));
-        const view = render(<Provider store={store}><TransactionCreate accounts={accounts} categories={[]} onCancel={() => undefined} onSubmit={() => undefined} /></Provider>);
+        const view = render(<Provider store={store}><TransactionCreate open accounts={accounts} categories={[]} onCancel={() => undefined} onSubmit={() => undefined} /></Provider>);
         await waitFor(() => expect(mockClient).toHaveBeenCalledTimes(2));
         expect(screen.getByTestId("selected-account")).toHaveTextContent("-1");
         expect(observedSelections).not.toContain(1);

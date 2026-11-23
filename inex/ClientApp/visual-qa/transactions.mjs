@@ -746,11 +746,11 @@ async function applyInteraction(client, state) {
       return;
     case "open-add-drawer":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New expense')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Add transaction')");
       return;
     case "open-add-drawer-and-select-account":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New expense')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Add transaction')");
       await evaluate(client, `(() => {
         const trigger = Array.from(document.querySelectorAll("[data-picker-id]")).find((item) => item.textContent?.includes("Select account"));
         if (!trigger) return false;
@@ -774,7 +774,7 @@ async function applyInteraction(client, state) {
       return;
     case "open-internal-transfer-drawer":
       await evaluate(client, clickButtonByTextExpression("Add transaction"));
-      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('New expense')");
+      await waitFor(client, "Boolean(document.querySelector('.ant-drawer-open')) && document.body.innerText.includes('Add transaction')");
       await selectTransactionType(client, "Internal transfer");
       await waitFor(client, "document.body.innerText.includes('Direction') && document.body.innerText.includes('Sent') && document.body.innerText.includes('Received')");
       return;

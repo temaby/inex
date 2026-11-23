@@ -28,6 +28,7 @@ const translate = (key: string) => ({
     "common.enterAmount": "Enter amount",
     "common.no": "No",
     "common.yes": "Yes",
+    "common.cancel": "Cancel",
     "transactions.account": "Account",
     "transactions.amount": "Amount",
     "transactions.category": "Category",
@@ -40,6 +41,7 @@ const translate = (key: string) => ({
     "transactions.date": "Date",
     "transactions.delete": "Delete",
     "transactions.deleteConfirm": "Delete transaction?",
+    "transactions.discardConfirm": "Discard unsaved transaction changes?",
     "transactions.save": "Save",
     "transactions.selectAccount": "Select account",
     "transactions.selectCategory": "Select category",
@@ -111,10 +113,10 @@ describe("TransactionEditForm", () => {
 
     it("keeps the signed amount and historical date when saving a comment, and follows the new field order", async () => {
         const onSuccess = vi.fn();
-        const { container } = render(<TransactionEditForm accounts={[account]} categories={[category]} record={record} onMutationSuccess={onSuccess} />);
+        render(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={[account]} categories={[category]} record={record} onMutationSuccess={onSuccess} />);
         expect(screen.getByRole("textbox", { name: "Amount" })).toHaveValue("-20");
         expect(screen.getByRole("button", { name: "April 30, 2020" })).toBeInTheDocument();
-        expect(Array.from(container.querySelectorAll(".ant-form-item-label label")).map(label => label.textContent)).toEqual(["Account", "Amount", "Category"]);
+        expect(Array.from(screen.getByRole("dialog").querySelectorAll(".ant-form-item-label label")).map(label => label.textContent)).toEqual(["Account", "Amount", "Category", "Date"]);
         fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Updated #food @family" } });
         fireEvent.click(screen.getByRole("button", { name: "Save" }));
         await waitFor(() => expect(mutationState.updateTransaction).toHaveBeenCalledWith({
@@ -124,19 +126,19 @@ describe("TransactionEditForm", () => {
     });
 
     it("starts an empty comment collapsed and resets its disclosure when switching records", () => {
-        const view = render(<TransactionEditForm accounts={[account]} categories={[category]} record={{ ...record, comment: null }} onMutationSuccess={vi.fn()} />);
+        const view = render(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={[account]} categories={[category]} record={{ ...record, comment: null }} onMutationSuccess={vi.fn()} />);
         expect(screen.queryByRole("textbox", { name: "Comment" })).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "Add comment" }));
         fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Draft" } });
         fireEvent.click(screen.getByRole("button", { name: "Hide comment" }));
-        view.rerender(<TransactionEditForm accounts={[account]} categories={[category]} record={{ ...record, id: 43, comment: "Next record" }} onMutationSuccess={vi.fn()} />);
+        view.rerender(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={[account]} categories={[category]} record={{ ...record, id: 43, comment: "Next record" }} onMutationSuccess={vi.fn()} />);
         expect(screen.getByRole("textbox", { name: "Comment" })).toHaveValue("Next record");
         expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     });
 
     it("preserves the numeric amount when changing account currency", async () => {
         const accounts = [account, { ...account, id: 2, name: "USD wallet", currency: "USD" }];
-        render(<TransactionEditForm accounts={accounts} categories={[category]} record={record} onMutationSuccess={vi.fn()} />);
+        render(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={accounts} categories={[category]} record={record} onMutationSuccess={vi.fn()} />);
         act(() => getLatestDropdownProps("account").onChange?.({ key: "2", keyPath: ["2"] }));
         expect(screen.getByRole("textbox", { name: "Amount" })).toHaveValue("-20");
         fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -144,7 +146,7 @@ describe("TransactionEditForm", () => {
     });
 
     it("keeps correction reasons visible and system categories read-only", () => {
-        render(<TransactionEditForm accounts={[account]} categories={[{ ...category, isSystem: true, systemCode: "correction" }]} record={{ ...record, comment: "" }} onMutationSuccess={vi.fn()} />);
+        render(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={[account]} categories={[{ ...category, isSystem: true, systemCode: "correction" }]} record={{ ...record, comment: "" }} onMutationSuccess={vi.fn()} />);
         expect(screen.getByRole("textbox", { name: "Reason" })).toHaveAttribute("maxlength", "255");
         expect(screen.getByRole("textbox", { name: "Category" })).toHaveAttribute("readonly");
         expect(screen.queryByRole("button", { name: "Add comment" })).not.toBeInTheDocument();
@@ -156,10 +158,20 @@ describe("TransactionEditForm", () => {
         expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     });
 
+    it("asks before closing an incomplete amount draft without making it saveable", async () => {
+        const onClose = vi.fn();
+        render(<TransactionEditForm open onClose={onClose} subtitle="Groceries" accounts={[account]} categories={[category]} record={record} onMutationSuccess={vi.fn()} />);
+        fireEvent.change(screen.getByRole("textbox", { name: "Amount" }), { target: { value: "-20+" } });
+        expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+        expect(await screen.findByText("Discard unsaved transaction changes?")).toBeInTheDocument();
+        expect(onClose).not.toHaveBeenCalled();
+    });
+
     it("retains the draft after update failure and allows retry", async () => {
         const onSuccess = vi.fn();
         mutationState.updateTransaction.mockReturnValueOnce({ unwrap: () => Promise.reject(new Error("Offline")) });
-        render(<TransactionEditForm accounts={[account]} categories={[category]} record={record} onMutationSuccess={onSuccess} />);
+        render(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={[account]} categories={[category]} record={record} onMutationSuccess={onSuccess} />);
         fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Retry #tag" } });
         fireEvent.click(screen.getByRole("button", { name: "Save" }));
         await waitFor(() => expect(mutationState.dispatch).toHaveBeenCalled());
@@ -171,7 +183,7 @@ describe("TransactionEditForm", () => {
 
     it("requires confirmation before deleting and returns to the ledger after success", async () => {
         const onSuccess = vi.fn();
-        render(<TransactionEditForm accounts={[account]} categories={[category]} record={record} onMutationSuccess={onSuccess} />);
+        render(<TransactionEditForm open onClose={vi.fn()} subtitle="Existing comment · April 30, 2020" accounts={[account]} categories={[category]} record={record} onMutationSuccess={onSuccess} />);
         fireEvent.click(screen.getByRole("button", { name: "Delete" }));
         expect(mutationState.deleteTransaction).not.toHaveBeenCalled();
         fireEvent.click(await screen.findByRole("button", { name: "Yes" }));
@@ -182,6 +194,9 @@ describe("TransactionEditForm", () => {
     it("retains an archived transaction account while editing another field", async () => {
         render(
             <TransactionEditForm
+                open
+                onClose={vi.fn()}
+                subtitle="Existing comment · April 30, 2020"
                 accounts={[account]}
                 categories={[{ id: 10, key: "groceries", name: "Groceries", description: "", isEnabled: true, isSystem: false, systemCode: "", children: [] }]}
                 onMutationSuccess={vi.fn()}
@@ -205,6 +220,9 @@ describe("TransactionEditForm", () => {
     it("offers only enabled categories while retaining a disabled historical category on save", async () => {
         render(
             <TransactionEditForm
+                open
+                onClose={vi.fn()}
+                subtitle="Existing comment · April 30, 2020"
                 accounts={[account]}
                 categories={[
                     { id: 1, key: "food", name: "Food", description: "", isEnabled: true, isSystem: false, systemCode: "", children: [] },
@@ -246,6 +264,9 @@ describe("TransactionEditForm", () => {
     it("saves a newly selected enabled category", async () => {
         render(
             <TransactionEditForm
+                open
+                onClose={vi.fn()}
+                subtitle="Existing comment · April 30, 2020"
                 accounts={[account]}
                 categories={[
                     { id: 1, key: "food", name: "Food", description: "", isEnabled: true, isSystem: false, systemCode: "", children: [] },

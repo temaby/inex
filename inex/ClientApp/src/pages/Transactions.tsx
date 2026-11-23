@@ -7,7 +7,6 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight, Plus, SlidersHorizontal,
 import { useLocation, useNavigate } from "react-router-dom";
 
 import BasicPage from "../layouts/BasicPage";
-import { TransactionType } from "../model/Transaction/TransactionType";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AccountResponse, useGetAccountsQuery, useGetAccountsSummaryQuery } from "../store/accounts/accounts-api";
 import { CategoryResponse, useGetCategoriesQuery } from "../store/categories/categories-api";
@@ -17,7 +16,6 @@ import { normalizeTransactionFilter, transactionsActions, transactionsDefaultFil
 import {
     InExButton,
     InExDrawer,
-    RECORD_EDITOR_DRAWER_WIDTH,
     Input,
     Num,
     SegmentedControl,
@@ -122,13 +120,12 @@ const Transactions = () => {
     const cachedRatesLoading = useAppSelector(state => state.rates.range?.loading ?? false);
     const cachedRatesCompletedKey = useAppSelector(state => state.rates.range?.completedKey ?? null);
 
-    const [addDrawerOpen, setAddDrawerOpen] = useState(false);
+    const [addDrawerState, setAddDrawerState] = useState<"closed" | "open" | "closing">("closed");
     const [accountBalancesPinned, setAccountBalancesPinned] = useState(readAccountBalancesPinnedPreference);
     const [accountBalancesOpen, setAccountBalancesOpen] = useState(readAccountBalancesPinnedPreference);
     const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [moreTypesOpen, setMoreTypesOpen] = useState(false);
     const moreTypesButton = useRef<HTMLButtonElement>(null);
-    const [createMode, setCreateMode] = useState<TransactionType>(TransactionType.EXPENSE);
     const [ledgerCount, setLedgerCount] = useState<TransactionListCount | null>(null);
     const [ledgerInitialLoading, setLedgerInitialLoading] = useState(false);
     const [ledgerRefreshToken, setLedgerRefreshToken] = useState(0);
@@ -326,7 +323,7 @@ const Transactions = () => {
         if (previousDataOwnerId.current === dataOwnerId) return;
 
         previousDataOwnerId.current = dataOwnerId;
-        setAddDrawerOpen(false);
+        setAddDrawerState("closed");
         setFilterDrawerOpen(false);
         applyServerFilter({
             ...canonicalFilter,
@@ -577,13 +574,12 @@ const Transactions = () => {
     const openAddDrawer = () => {
         if (isLinkedMode) return;
         dispatch(transactionsActions.setError({ error: null }));
-        setCreateMode(TransactionType.EXPENSE);
-        setAddDrawerOpen(true);
+        setAddDrawerState("open");
     };
 
     const closeAddDrawer = () => {
         dispatch(transactionsActions.setError({ error: null }));
-        setAddDrawerOpen(false);
+        setAddDrawerState("closing");
     };
 
     const toggleAccountBalancesPinned = useCallback(() => {
@@ -615,14 +611,6 @@ const Transactions = () => {
             )}
         </div>
     );
-
-    const addDrawerTitle = {
-        [TransactionType.EXPENSE]: t("transactions.newExpenseTitle"),
-        [TransactionType.INCOME]: t("transactions.newIncomeTitle"),
-        [TransactionType.TRANSFER]: t("transactions.newTransferTitle"),
-        [TransactionType.INTERNAL_TRANSFER]: t("transactions.newInternalTransferTitle"),
-        [TransactionType.CORRECTION]: t("transactions.newCorrectionTitle"),
-    }[createMode];
 
     const accountBalancesOverview = (
         <AccountBalancesCompanion
@@ -850,33 +838,22 @@ const Transactions = () => {
                 </section>
             </BasicPage>
 
-            {!isLinkedMode && <InExDrawer
-                onClose={closeAddDrawer}
-                open={addDrawerOpen}
-                title={addDrawerTitle}
-                width={RECORD_EDITOR_DRAWER_WIDTH}
-            >
-                {addDrawerOpen && (
-                    <TransactionCreate
-                        accounts={activeAccounts}
-                        categories={activeCategories}
-                        onCancel={closeAddDrawer}
-                        onModeChange={setCreateMode}
-                        onSubmit={() => {
-                            closeAddDrawer();
-                            setLedgerRefreshToken((token) => token + 1);
-                        }}
-                    />
-                )}
-                {formError && (
-                    <Alert
-                        className="transactions-form-error"
-                        message={formError}
-                        showIcon
-                        type="error"
-                    />
-                )}
-            </InExDrawer>}
+            {!isLinkedMode && addDrawerState !== "closed" && (
+                <TransactionCreate
+                    accounts={activeAccounts}
+                    afterOpenChange={open => {
+                        if (!open) setAddDrawerState(current => current === "closing" ? "closed" : current);
+                    }}
+                    categories={activeCategories}
+                    formError={formError}
+                    onCancel={closeAddDrawer}
+                    onSubmit={() => {
+                        closeAddDrawer();
+                        setLedgerRefreshToken(token => token + 1);
+                    }}
+                    open={addDrawerState === "open"}
+                />
+            )}
 
             <InExDrawer
                 bodyPadding={0}

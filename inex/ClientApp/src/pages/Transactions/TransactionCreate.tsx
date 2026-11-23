@@ -6,6 +6,7 @@ import type { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 
 import { InExButton } from "../../components/primitives";
+import { FormDrawer } from "../../components/primitives/FormDrawer";
 import { AccountDetails, defaultAccount } from "../../model/Account/AccountDetails";
 import { CategoryDetails, createCategoryDetails, getCategoriesTree } from "../../model/Category/CategoryDetails";
 import { TransactionSetState } from "../../model/Transaction/TransactionSetState";
@@ -23,6 +24,7 @@ import TransactionCreateIncomeForm from "./TransactionCreateIncomeForm";
 import TransactionCreateTransferForm from "./TransactionCreateTransferForm";
 import TransactionCreateInternalTransferForm from "./TransactionCreateInternalTransferForm";
 import { useRecentCategories } from "./useRecentCategories";
+import TransactionDiscardDialog from "./TransactionDiscardDialog";
 import "./transaction-creation.css";
 
 type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
@@ -30,8 +32,10 @@ type DropdownSelectInfo = Parameters<NonNullable<MenuProps["onSelect"]>>[0];
 interface TransactionCreateProps {
     accounts: AccountResponse[];
     categories: CategoryResponse[];
+    open: boolean;
+    afterOpenChange?: (open: boolean) => void;
+    formError?: string | null;
     onCancel: () => void;
-    onModeChange?: (mode: TransactionType) => void;
     onSubmit: () => void;
 }
 
@@ -135,8 +139,10 @@ const isSelectedEntity = (id: number | undefined): boolean => typeof id === "num
 const TransactionCreate: React.FC<TransactionCreateProps> = ({
     accounts,
     categories,
+    open,
+    afterOpenChange,
+    formError,
     onCancel,
-    onModeChange,
     onSubmit,
 }) => {
     const { t } = useTranslation();
@@ -160,7 +166,13 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const submittedTerms = React.useRef("");
     const [createLinkedInternalTransfer, { isLoading: isCreatingLinked }] = useCreateLinkedInternalTransferMutation();
     const [state, dispatchTransactionAction] = useReducer(reducer, undefined, createDefaultState);
+    const initialDate = React.useRef(state.date);
+    const [confirmDiscard, setConfirmDiscard] = React.useState(false);
     const [validationErrors, setValidationErrors] = React.useState<TransactionCreateValidationErrors>({});
+    const formContent = React.useRef<HTMLDivElement>(null);
+    const validationScrollRequested = React.useRef(false);
+    const incompleteAmounts = React.useRef(new Set<string>());
+    const appliedExpenseAccountId = React.useRef<number>();
     const [moreOpen, setMoreOpen] = React.useState(false);
     const moreButton = React.useRef<HTMLButtonElement>(null);
     React.useEffect(() => {
@@ -170,14 +182,15 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         }, 0);
         return () => window.clearTimeout(timer);
     }, [moreOpen]);
+    React.useEffect(() => {
+        if (!validationScrollRequested.current) return;
+        validationScrollRequested.current = false;
+        formContent.current?.querySelector(".ant-form-item-has-error")?.scrollIntoView?.({ block: "nearest" });
+    }, [validationErrors]);
     const [createTransactionMutation, { isLoading: isCreating }] = useCreateTransactionMutation();
     const [createTransferMutation, { isLoading: isCreatingTransfer }] = useCreateTransferMutation();
     const [createCorrectionMutation, { isLoading: isCreatingCorrection }] = useCreateCorrectionMutation();
     const [createInternalTransferMutation, { isLoading: isCreatingInternalTransfer }] = useCreateInternalTransferMutation();
-
-    React.useEffect(() => {
-        onModeChange?.(state.mode);
-    }, [onModeChange, state.mode]);
 
     const { currentData: defaultAccounts, isFetching: defaultsFetching, isError: defaultsFailed } = defaultAccountsQuery;
     React.useEffect(() => {
@@ -185,6 +198,7 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         if (state.mode !== TransactionType.EXPENSE && state.mode !== TransactionType.INCOME) return;
         const id = state.mode === TransactionType.EXPENSE ? defaultAccounts.expenseAccountId : defaultAccounts.incomeAccountId;
         const account = accounts.find(candidate => candidate.id === id && candidate.isEnabled);
+        if (state.mode === TransactionType.EXPENSE) appliedExpenseAccountId.current = account?.id;
         dispatchTransactionAction({ type: "APPLY_DEFAULT_ACCOUNT", mode: state.mode, value: account ? toAccountDetails(account) : defaultAccount });
         if (account) {
             setValidationErrors(previous => ({ ...previous, fromAccount: undefined, toAccount: undefined }));
@@ -203,6 +217,8 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 
     const setModeHandler = (mode: TransactionType) => {
         dispatchTransactionAction({ type: "SET_MODE", value: mode });
+        incompleteAmounts.current.clear();
+        appliedExpenseAccountId.current = undefined;
         setValidationErrors({});
         setLinkedUserId(undefined);
         submissionKey.current = crypto.randomUUID();
@@ -266,9 +282,32 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
 
     const resetAndClose = (close: () => void) => {
         dispatchTransactionAction({ type: "RESET" });
+        incompleteAmounts.current.clear();
         setValidationErrors({});
         dispatch(transactionsActions.setError({ error: null }));
         close();
+    };
+
+    const requestClose = () => {
+        if (!open || savingRef.current) return;
+        const dirty = state.mode !== TransactionType.EXPENSE
+            || incompleteAmounts.current.size > 0
+            || state.fromAmount !== 0
+            || state.toAmount !== 0
+            || (state.accountManuallySelected && state.fromAccount.id !== appliedExpenseAccountId.current)
+            || isSelectedEntity(state.category.id)
+            || state.comment !== ""
+            || !state.date?.isSame(initialDate.current, "day");
+        if (dirty) {
+            setConfirmDiscard(true);
+        } else {
+            resetAndClose(onCancel);
+        }
+    };
+
+    const setAmountDraft = (id: string, incomplete: boolean) => {
+        if (incomplete) incompleteAmounts.current.add(id);
+        else incompleteAmounts.current.delete(id);
     };
 
     const validateCurrentState = (): TransactionCreateValidationErrors => {
@@ -309,10 +348,11 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     };
 
     const saveTransactionHandler = async () => {
-        if (savingRef.current) return;
+        if (!open || savingRef.current) return;
         const nextValidationErrors = validateCurrentState();
 
         if (Object.keys(nextValidationErrors).length > 0 || !state.date) {
+            validationScrollRequested.current = true;
             setValidationErrors(nextValidationErrors);
             return;
         }
@@ -392,13 +432,6 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
         resetAndClose(onSubmit);
     };
 
-    const saveLabel = {
-        [TransactionType.EXPENSE]: t("transactions.saveExpense"),
-        [TransactionType.INCOME]: t("transactions.saveIncome"),
-        [TransactionType.TRANSFER]: t("transactions.saveTransfer"),
-        [TransactionType.INTERNAL_TRANSFER]: t("transactions.saveInternalTransfer"),
-        [TransactionType.CORRECTION]: t("transactions.saveCorrection"),
-    }[state.mode];
     const isSaving = isCreatingCorrection || isCreating || isCreatingTransfer || isCreatingInternalTransfer || isCreatingLinked;
     const savingRef = React.useRef(false);
     const primaryTypes = [TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER];
@@ -412,141 +445,162 @@ const TransactionCreate: React.FC<TransactionCreateProps> = ({
     const additionalType = !primaryTypes.includes(state.mode);
 
     return (
-        <div className="transactions-create-form">
-            <div className="transaction-type-buttons" role="group" aria-label={t("transactions.type")}
-                onKeyDownCapture={event => {
-                    if (moreOpen && event.key === "Escape") {
-                        event.preventDefault(); event.stopPropagation(); setMoreOpen(false); moreButton.current?.focus();
-                    }
-                }}>
-                {primaryTypes.map(mode => <Button key={mode} aria-pressed={state.mode === mode}
-                    disabled={isSaving} onClick={() => { if (mode !== state.mode) setModeHandler(mode); }}>
-                    {typeLabels[mode]}
-                </Button>)}
-                <AntDropdown trigger={["click"]} open={moreOpen} onOpenChange={setMoreOpen} menu={{
-                    id: "transaction-additional-types",
-                    selectable: true, selectedKeys: additionalType ? [state.mode] : [],
-                    items: [TransactionType.CORRECTION, TransactionType.INTERNAL_TRANSFER].map(mode => ({ key: mode, label: typeLabels[mode] })),
-                    onClick: ({ key }) => {
-                        setMoreOpen(false); moreButton.current?.focus();
-                        if (key !== state.mode) setModeHandler(key as TransactionType);
-                    },
-                }} getPopupContainer={trigger => trigger.closest<HTMLElement>(".ant-drawer-content") ?? document.body}>
-                    <Button disabled={isSaving} ref={moreButton} aria-pressed={additionalType} aria-haspopup="menu"
-                        aria-expanded={moreOpen} aria-controls={moreOpen ? "transaction-additional-types" : undefined}
-                        onKeyDown={event => { if (event.key === "ArrowDown") { event.preventDefault(); setMoreOpen(true); } }}
-                        className="transaction-type-more">
-                        {additionalType ? typeLabels[state.mode] : t("transactions.moreTypes")} <ChevronDown size={14} aria-hidden="true" />
-                    </Button>
-                </AntDropdown>
-            </div>
+        <>
+            <FormDrawer
+                afterOpenChange={afterOpenChange}
+                busy={!open || isSaving}
+                error={formError}
+                onClose={requestClose}
+                open={open}
+                submitAction={(
+                    <InExButton aria-busy={isSaving} disabled={!open || isSaving} kind="primary" onClick={saveTransactionHandler}>
+                        {t(isSaving ? "transactions.saving" : "common.create")}
+                    </InExButton>
+                )}
+                title={t("transactions.addTransaction")}
+            >
+                <div className="transactions-create-form" ref={formContent}>
+                    <div className="transaction-type-buttons" role="group" aria-label={t("transactions.type")}
+                        onKeyDownCapture={event => {
+                            if (moreOpen && event.key === "Escape") {
+                                event.preventDefault(); event.stopPropagation(); setMoreOpen(false); moreButton.current?.focus();
+                            }
+                        }}>
+                        {primaryTypes.map(mode => <Button key={mode} aria-pressed={state.mode === mode}
+                            disabled={isSaving} onClick={() => { if (mode !== state.mode) setModeHandler(mode); }}>
+                            {typeLabels[mode]}
+                        </Button>)}
+                        <AntDropdown trigger={["click"]} open={moreOpen} onOpenChange={setMoreOpen} menu={{
+                            id: "transaction-additional-types",
+                            selectable: true, selectedKeys: additionalType ? [state.mode] : [],
+                            items: [TransactionType.CORRECTION, TransactionType.INTERNAL_TRANSFER].map(mode => ({ key: mode, label: typeLabels[mode] })),
+                            onClick: ({ key }) => {
+                                setMoreOpen(false); moreButton.current?.focus();
+                                if (key !== state.mode) setModeHandler(key as TransactionType);
+                            },
+                        }} getPopupContainer={trigger => trigger.closest<HTMLElement>(".ant-drawer-content") ?? document.body}>
+                            <Button disabled={isSaving} ref={moreButton} aria-pressed={additionalType} aria-haspopup="menu"
+                                aria-expanded={moreOpen} aria-controls={moreOpen ? "transaction-additional-types" : undefined}
+                                onKeyDown={event => { if (event.key === "ArrowDown") { event.preventDefault(); setMoreOpen(true); } }}
+                                className="transaction-type-more">
+                                {additionalType ? typeLabels[state.mode] : t("transactions.moreTypes")} <ChevronDown size={14} aria-hidden="true" />
+                            </Button>
+                        </AntDropdown>
+                    </div>
 
-            {state.mode === TransactionType.EXPENSE && (
-                <TransactionCreateExpenseForm
-                    accounts={accounts}
-                    category={state.category}
-                    categories={categoryTree}
-                    recentCategories={recentCategories}
-                    onSelectRecentCategory={selectRecentCategory}
-                    comment={state.comment}
-                    date={state.date}
-                    fromAccount={state.fromAccount}
-                    fromAmount={state.fromAmount}
-                    onSetCategory={setCategoryHandler}
-                    onSetComment={setCommentHandler}
-                    onSetDate={setDateHandler}
-                    onSetFromAccount={setFromAccountHandler}
-                    onSetFromAmount={setFromAmountHandler}
-                    validationErrors={validationErrors}
-                />
-            )}
+                    {state.mode === TransactionType.EXPENSE && (
+                        <TransactionCreateExpenseForm
+                            accounts={accounts}
+                            category={state.category}
+                            categories={categoryTree}
+                            recentCategories={recentCategories}
+                            onSelectRecentCategory={selectRecentCategory}
+                            comment={state.comment}
+                            date={state.date}
+                            fromAccount={state.fromAccount}
+                            fromAmount={state.fromAmount}
+                            onAmountDraftChange={setAmountDraft}
+                            onSetCategory={setCategoryHandler}
+                            onSetComment={setCommentHandler}
+                            onSetDate={setDateHandler}
+                            onSetFromAccount={setFromAccountHandler}
+                            onSetFromAmount={setFromAmountHandler}
+                            validationErrors={validationErrors}
+                        />
+                    )}
 
-            {state.mode === TransactionType.INCOME && (
-                <TransactionCreateIncomeForm
-                    accounts={accounts}
-                    category={state.category}
-                    categories={categoryTree}
-                    recentCategories={recentCategories}
-                    onSelectRecentCategory={selectRecentCategory}
-                    comment={state.comment}
-                    date={state.date}
-                    onSetCategory={setCategoryHandler}
-                    onSetComment={setCommentHandler}
-                    onSetDate={setDateHandler}
-                    onSetToAccount={setToAccountHandler}
-                    onSetToAmount={setToAmountHandler}
-                    toAccount={state.toAccount}
-                    toAmount={state.toAmount}
-                    validationErrors={validationErrors}
-                />
-            )}
+                    {state.mode === TransactionType.INCOME && (
+                        <TransactionCreateIncomeForm
+                            accounts={accounts}
+                            category={state.category}
+                            categories={categoryTree}
+                            recentCategories={recentCategories}
+                            onSelectRecentCategory={selectRecentCategory}
+                            comment={state.comment}
+                            date={state.date}
+                            onAmountDraftChange={setAmountDraft}
+                            onSetCategory={setCategoryHandler}
+                            onSetComment={setCommentHandler}
+                            onSetDate={setDateHandler}
+                            onSetToAccount={setToAccountHandler}
+                            onSetToAmount={setToAmountHandler}
+                            toAccount={state.toAccount}
+                            toAmount={state.toAmount}
+                            validationErrors={validationErrors}
+                        />
+                    )}
 
-            {state.mode === TransactionType.TRANSFER && (
-                <TransactionCreateTransferForm
-                    accounts={accounts}
-                    comment={state.comment}
-                    date={state.date}
-                    fromAccount={state.fromAccount}
-                    fromAmount={state.fromAmount}
-                    onSetComment={setCommentHandler}
-                    onSetDate={setDateHandler}
-                    onSetFromAccount={setFromAccountHandler}
-                    onSetFromAmount={setFromAmountHandler}
-                    onSetToAccount={setToAccountHandler}
-                    onSetToAmount={setToAmountHandler}
-                    toAccount={state.toAccount}
-                    toAmount={state.toAmount}
-                    validationErrors={validationErrors}
-                />
-            )}
+                    {state.mode === TransactionType.TRANSFER && (
+                        <TransactionCreateTransferForm
+                            accounts={accounts}
+                            comment={state.comment}
+                            date={state.date}
+                            fromAccount={state.fromAccount}
+                            fromAmount={state.fromAmount}
+                            onAmountDraftChange={setAmountDraft}
+                            onSetComment={setCommentHandler}
+                            onSetDate={setDateHandler}
+                            onSetFromAccount={setFromAccountHandler}
+                            onSetFromAmount={setFromAmountHandler}
+                            onSetToAccount={setToAccountHandler}
+                            onSetToAmount={setToAmountHandler}
+                            toAccount={state.toAccount}
+                            toAmount={state.toAmount}
+                            validationErrors={validationErrors}
+                        />
+                    )}
 
-            {state.mode === TransactionType.INTERNAL_TRANSFER && (
-                <>
-                <Form layout="vertical">
-                    <Form.Item label={t("transferRequests.recipient")}>
-                        <Select allowClear style={{ width: "100%" }} value={linkedUserId}
-                            placeholder={t("transferRequests.manual")}
-                            onChange={(value: number | undefined) => { setLinkedUserId(value); submissionKey.current = crypto.randomUUID(); }}
-                            options={(linkedAccounts ?? []).map(user => ({ value: user.id, label: user.username }))} />
-                    </Form.Item>
-                </Form>
-                {linkedUserId && <Alert type="info" showIcon message={t("transferRequests.creationNotice")} />}
-                <TransactionCreateInternalTransferForm
-                    account={state.fromAccount}
-                    accounts={accounts}
-                    amount={state.fromAmount}
-                    comment={state.comment}
-                    date={state.date}
-                    direction={state.internalTransferDirection}
-                    onSetAccount={setFromAccountHandler}
-                    onSetAmount={setFromAmountHandler}
-                    onSetComment={setCommentHandler}
-                    onSetDate={setDateHandler}
-                    onSetDirection={setInternalTransferDirectionHandler}
-                    validationErrors={validationErrors}
-                />
-                </>
-            )}
+                    {state.mode === TransactionType.INTERNAL_TRANSFER && (
+                        <>
+                            <Form layout="vertical">
+                                <Form.Item label={t("transferRequests.recipient")}>
+                                    <Select allowClear style={{ width: "100%" }} value={linkedUserId}
+                                        placeholder={t("transferRequests.manual")}
+                                        onChange={(value: number | undefined) => { setLinkedUserId(value); submissionKey.current = crypto.randomUUID(); }}
+                                        options={(linkedAccounts ?? []).map(user => ({ value: user.id, label: user.username }))} />
+                                </Form.Item>
+                            </Form>
+                            {linkedUserId && <Alert type="info" showIcon message={t("transferRequests.creationNotice")} />}
+                            <TransactionCreateInternalTransferForm
+                                account={state.fromAccount}
+                                accounts={accounts}
+                                amount={state.fromAmount}
+                                comment={state.comment}
+                                date={state.date}
+                                direction={state.internalTransferDirection}
+                                onAmountDraftChange={setAmountDraft}
+                                onSetAccount={setFromAccountHandler}
+                                onSetAmount={setFromAmountHandler}
+                                onSetComment={setCommentHandler}
+                                onSetDate={setDateHandler}
+                                onSetDirection={setInternalTransferDirectionHandler}
+                                validationErrors={validationErrors}
+                            />
+                        </>
+                    )}
 
-            {state.mode === TransactionType.CORRECTION && (
-                <TransactionCreateInternalTransferForm
-                    correction
-                    account={state.fromAccount} accounts={accounts} amount={state.fromAmount}
-                    comment={state.comment} date={state.date} direction={state.internalTransferDirection}
-                    onSetAccount={setFromAccountHandler} onSetAmount={setFromAmountHandler}
-                    onSetComment={setCommentHandler} onSetDate={setDateHandler}
-                    onSetDirection={setInternalTransferDirectionHandler} validationErrors={validationErrors}
-                />
-            )}
-            <div className="transactions-drawer-actions inex-drawer-actions inex-drawer-actions--sticky">
-                <InExButton kind="default" onClick={() => resetAndClose(onCancel)}>
-                    {t("transactions.cancel")}
-                </InExButton>
-                <InExButton disabled={isSaving} kind="primary" onClick={saveTransactionHandler}>
-                    {isSaving ? t("transactions.saving") : saveLabel}
-                </InExButton>
-            </div>
-        </div>
+                    {state.mode === TransactionType.CORRECTION && (
+                        <TransactionCreateInternalTransferForm
+                            correction
+                            account={state.fromAccount} accounts={accounts} amount={state.fromAmount}
+                            comment={state.comment} date={state.date} direction={state.internalTransferDirection}
+                            onAmountDraftChange={setAmountDraft}
+                            onSetAccount={setFromAccountHandler} onSetAmount={setFromAmountHandler}
+                            onSetComment={setCommentHandler} onSetDate={setDateHandler}
+                            onSetDirection={setInternalTransferDirectionHandler} validationErrors={validationErrors}
+                        />
+                    )}
+                </div>
+            </FormDrawer>
+            <TransactionDiscardDialog
+                open={confirmDiscard}
+                onKeepEditing={() => setConfirmDiscard(false)}
+                onDiscard={() => {
+                    setConfirmDiscard(false);
+                    resetAndClose(onCancel);
+                }}
+            />
+        </>
     );
 };
 
