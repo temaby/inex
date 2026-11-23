@@ -1,13 +1,8 @@
 import * as React from "react";
-import dayjs from "dayjs";
-import {
-    Lock,
-    Target,
-} from "lucide-react";
+import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { HIERARCHY_DEPTH_INCREMENT, HierarchyBranchToggle, Num } from "../../components/primitives";
-import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { type CategorySpendStat, isSystemCategory } from "./categories.utils";
 
@@ -16,12 +11,11 @@ interface CategoryRowProps {
     depth: number;
     hasChildren: boolean;
     isCollapsed: boolean;
+    isIncomeRoot?: boolean;
     readOnly?: boolean;
     paletteColor: string;
-    periodLabel: string;
     stats?: CategorySpendStat;
     statsAvailable: boolean;
-    budget?: BudgetDetails;
     currency: string;
     onEdit: React.MouseEventHandler<HTMLButtonElement>;
     onBranchToggle: () => void;
@@ -32,30 +26,38 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     depth,
     hasChildren,
     isCollapsed,
+    isIncomeRoot = false,
     readOnly = false,
     paletteColor,
-    periodLabel,
     stats,
     statsAvailable,
-    budget,
     currency,
     onEdit,
     onBranchToggle,
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
+    const operationsDescriptionId = React.useId();
     const locked = isSystemCategory(category);
-    const hasActivity = statsAvailable && (stats?.transactionCount ?? 0) > 0;
+    const count = stats?.transactionCount ?? 0;
+    const hasActivity = statsAvailable && count > 0;
     const spend = stats?.totalSpend ?? 0;
+    const lastOperationTimestamp = stats?.lastActiveDate;
+    const lastOperationDate = hasActivity && lastOperationTimestamp ? new Date(lastOperationTimestamp) : null;
     const description = category.description?.trim() ?? "";
     const showDescription =
         description.length > 0 &&
         description.localeCompare(category.name.trim(), undefined, { sensitivity: "accent" }) !== 0;
     const noActivityLabel = statsAvailable
-        ? t("categories.activity.noTransactions")
-        : t("categories.activity.unavailable");
+        ? t("categories.operations.noTransactions")
+        : t("categories.operations.unavailable");
     const noSpendLabel = statsAvailable
-        ? t("categories.activity.noSpend")
-        : t("categories.activity.spendUnavailable");
+        ? t("categories.operations.noSpend")
+        : t("categories.operations.spendUnavailable");
+    const countLabel = hasActivity ? t("transactions.kpi.transactionCount", { count }) : noActivityLabel;
+    const lastOperationLabel = lastOperationDate && t("categories.operations.lastTransaction", {
+        date: lastOperationDate.toLocaleDateString(locale, { dateStyle: "long" }),
+    });
     const rowKindClass = hasChildren
         ? "category-row--parent"
         : depth > 0
@@ -67,6 +69,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
         "inex-hierarchy-row",
         hasChildren ? "inex-hierarchy-row--parent" : "inex-hierarchy-row--leaf",
         rowKindClass,
+        isIncomeRoot ? "category-row--income-root" : "",
         !category.isEnabled ? "is-disabled" : "",
     ]
         .filter(Boolean)
@@ -103,21 +106,12 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 {!category.isEnabled ? (
                     <span className="category-row__chip">{t("categories.disabled")}</span>
                 ) : null}
-                {budget ? (
-                    <span className="category-row__chip category-row__chip--budget">
-                        <Target size={11} aria-hidden="true" />
-                        {t("categories.budgeted")}
-                    </span>
-                ) : null}
             </span>
             <span className="category-row__spent">
                 {hasActivity && spend > 0 ? (
-                    <React.Fragment>
-                        <strong>
-                            <Num value={spend} currency={currency} kind="expense" />
-                        </strong>
-                        <small>{periodLabel}</small>
-                    </React.Fragment>
+                    <strong>
+                        <Num value={spend} currency={currency} kind="expense" />
+                    </strong>
                 ) : (
                     <strong
                         className="category-row__placeholder"
@@ -128,25 +122,23 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                     </strong>
                 )}
             </span>
-            <span className="category-row__activity r-category-activity">
+            <span className="category-row__operations">
                 {hasActivity ? (
-                    <React.Fragment>
-                        <strong>
-                            {stats?.transactionCount}{" "}
-                            {t(
-                                (stats?.transactionCount ?? 0) === 1
-                                    ? "categories.activity.txn"
-                                    : "categories.activity.txns",
-                            )}
-                        </strong>
-                        <small>
-                            {t("categories.activity.lastActive", {
-                                date: stats?.lastActiveDate
-                                    ? dayjs(stats.lastActiveDate).format("D MMM")
-                                    : "",
-                            })}
-                        </small>
-                    </React.Fragment>
+                    <>
+                        <strong>{countLabel}</strong>
+                        {lastOperationDate && (
+                            <time
+                                dateTime={lastOperationTimestamp ?? undefined}
+                                title={lastOperationLabel ?? undefined}
+                            >
+                                {lastOperationDate.toLocaleDateString(locale, {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: lastOperationDate.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+                                })}
+                            </time>
+                        )}
+                    </>
                 ) : (
                     <strong
                         className="category-row__placeholder"
@@ -169,6 +161,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 <div className="category-row__edit category-row__edit--readonly">{content}</div>
             ) : (
                 <button
+                    aria-describedby={operationsDescriptionId}
                     aria-haspopup="dialog"
                     aria-label={t("categories.drawer.edit", { category: category.name })}
                     className="category-row__edit"
@@ -176,6 +169,9 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                     type="button"
                 >
                     {content}
+                    <span hidden id={operationsDescriptionId}>
+                        {lastOperationLabel ? `${countLabel}. ${lastOperationLabel}` : countLabel}
+                    </span>
                 </button>
             )}
             {hasChildren ? (

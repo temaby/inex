@@ -86,6 +86,14 @@ const states = [
     scenario: "populated",
   },
   {
+    name: "populated-all-ru-360",
+    screenshot: "populated-all-ru-360.png",
+    viewport: { width: 360, height: 800 },
+    scenario: "populated-ru",
+    interaction: "show-all",
+    locale: "ru",
+  },
+  {
     name: "collapsed-branch-1440",
     screenshot: "collapsed-branch-1440.png",
     viewport: { width: 1440, height: 1000 },
@@ -211,8 +219,12 @@ function createApiHandler(fixture, requestLog, unhandledApiRequests, scenarioRef
         if (scenario === "categories-error") {
           return problemResponse("Categories fixture failure", "Controlled Categories load failure.", 500);
         }
+        const categories = fixture.categoriesVisualFixtureCategories;
         return jsonResponse({
-          data: scenario === "empty" ? [] : fixture.categoriesVisualFixtureCategories,
+          data: scenario === "empty" ? [] : categories.map((category) =>
+            scenario === "populated-ru" && category.key === "archived"
+              ? { ...category, name: "Архивные покупки и расходы на содержание дома" }
+              : category),
         });
       }
       if (url.pathname === "/api/budgets" && method === "GET") {
@@ -259,6 +271,10 @@ async function applyInteraction(client, state) {
         const firstRow = document.querySelector(".category-row");
         return firstRow && firstRow.textContent && firstRow.textContent.includes("Rent");
       })()`);
+      return;
+    case "show-all":
+      await evaluate(client, clickButtonByTextExpression("Все"));
+      await waitFor(client, "Boolean(document.querySelector('.category-row.is-disabled'))");
       return;
     case "search-no-match":
       await evaluate(client, `(() => {
@@ -320,18 +336,17 @@ async function openEditDrawer(client, name) {
 }
 
 async function waitForCategoriesReady(client, state) {
-  if (state.locale === "ru") {
-    await waitFor(client, "document.body.innerText.includes('Категории') && document.body.innerText.includes('Groceries')");
-    return;
-  }
-  await waitFor(client, "document.body.innerText.includes('Categories')");
+  const title = state.locale === "ru" ? "Категории" : "Categories";
+  await waitFor(client, `document.body.innerText.includes(${JSON.stringify(title)})`);
 
   if (state.scenario === "categories-error") {
     await waitFor(client, "document.body.innerText.includes('Failed to load categories')");
   } else if (state.scenario === "empty") {
     await waitFor(client, "document.body.innerText.includes('Create your first category')");
   } else {
-    await waitFor(client, "document.body.innerText.includes('Groceries') && document.body.innerText.includes('April 2026')");
+    const period = state.locale === "ru" ? "апрель 2026" : "April 2026";
+    await waitFor(client, `document.querySelector('[data-qa="hero-primary-label"]')?.textContent.includes(${JSON.stringify(period)}) &&
+      document.body.innerText.includes('Groceries') && Boolean(document.querySelector('.category-row__operations time'))`);
   }
 }
 
@@ -356,7 +371,7 @@ async function collectMetrics(client, state, apiRequestCount) {
     const rows = Array.from(document.querySelectorAll(".category-row"));
     const columnHeaders = Array.from(document.querySelectorAll(".categories-list .inex-list-panel__columns span"));
     const firstRowCells = rows[0]
-      ? Array.from(rows[0].querySelectorAll(":scope > .category-row__edit > span"))
+      ? Array.from(rows[0].querySelectorAll(":scope > .category-row__edit > span:not([hidden])"))
       : [];
     const branchToggles = Array.from(document.querySelectorAll(".category-row__branch-toggle"));
     const expandedRows = branchToggles.filter((toggle) => toggle.getAttribute("aria-expanded") === "true");
@@ -454,11 +469,30 @@ async function collectMetrics(client, state, apiRequestCount) {
       drawerPreservesRowHeights: window.categoryRowsBeforeEdit
         ? JSON.stringify(window.categoryRowsBeforeEdit) === JSON.stringify(rows.map((row) => row.getBoundingClientRect().height))
         : null,
-      overlappingBudgetBadge: rows.some((row) => {
-        const badge = row.querySelector('.category-row__chip--budget');
-        const amount = row.querySelector('.category-row__spent [role="text"]');
-        return badge && amount && badge.getBoundingClientRect().right > amount.getBoundingClientRect().left;
+      rowHasBudgetBadge: rows.some((row) => row.querySelector('.category-row__chip--budget')),
+      rowHasSpendSubtitle: rows.some((row) => row.querySelector('.category-row__spent small')),
+      drawerHasGroceriesBudget: Boolean(information?.textContent.includes('Groceries cap')),
+      incomeRootNames: rows.filter((row) => row.classList.contains('category-row--income-root'))
+        .map((row) => row.querySelector('.category-row__title strong')?.textContent),
+      operationsHeader: columnHeaders[2]?.textContent,
+      visibleOperationDates: rows.flatMap((row) => {
+        const date = row.querySelector('.category-row__operations time');
+        return date?.getClientRects().length ? [date.textContent] : [];
       }),
+      operationTextDoesNotFit: rows.some((row) => {
+        const operations = row.querySelector('.category-row__operations');
+        const count = operations.querySelector('strong:not(.category-row__placeholder)');
+        if (!count) return false;
+        const column = operations.getBoundingClientRect();
+        return [count, operations.querySelector('time')].some((element) => {
+          if (!element) return true;
+          const text = document.createRange();
+          text.selectNodeContents(element);
+          const [bounds, extraLine] = text.getClientRects();
+          return !bounds || Boolean(extraLine) || bounds.left < column.left - 1 || bounds.right > column.right + 1;
+        });
+      }),
+      smallestRowHeight: rows.length ? Math.min(...rows.map((row) => row.querySelector('.category-row__edit').getBoundingClientRect().height)) : null,
       rowCount: rows.length,
       expandedRowCount: expandedRows.length,
       branchToggleCount: branchToggles.length,
@@ -581,8 +615,20 @@ function collectAdditionalFailures(stateResults) {
     if (state.toolbarLabels.length !== 1) {
       failures.push(`${state.name}: Categories should display only the status label`);
     }
-    if (state.overlappingBudgetBadge) {
-      failures.push(`${state.name}: a category budget badge overlaps the displayed amount`);
+    if (state.rowHasBudgetBadge || state.rowHasSpendSubtitle) {
+      failures.push(`${state.name}: a row still shows a budget badge or a spend period subtitle`);
+    }
+    if (state.rowCount > 0) {
+      const bySpend = state.interaction === "select-spend-view" || state.interaction === "open-edit-from-spend";
+      const expectedIncomeRoots = bySpend ? [] : ["Income"];
+      const operationsHeader = state.locale === "ru" ? "Операции" : "Transactions";
+      if (state.operationsHeader !== operationsHeader || state.visibleOperationDates.length === 0 || state.operationTextDoesNotFit ||
+          state.smallestRowHeight < 44 || JSON.stringify(state.incomeRootNames) !== JSON.stringify(expectedIncomeRoots)) {
+        failures.push(`${state.name}: the operations label, visible dates, row targets, or income styling did not match`);
+      }
+    }
+    if (state.interaction === "open-edit-information" && !state.drawerHasGroceriesBudget) {
+      failures.push(`${state.name}: the drawer no longer shows the Groceries budget`);
     }
     const editing = state.interaction?.startsWith("open-edit-");
     if (editing || state.interaction === "open-add-drawer") {
@@ -676,6 +722,9 @@ function buildSummary({ stateResults, requestLog, unhandledApiRequests, failures
       "desktop hero summary column and divider are 320px from the hero card edge",
       "desktop search control is 260px wide and right-aligned in the toolbar",
       "desktop category table headers align with rendered row columns",
+      "rows omit budget badges and period subtitles while the drawer retains the budget",
+      "operation counts stay on one line and last-operation dates remain visible on mobile",
+      "only the income root receives distinctive styling in the tree",
     ],
     screenshots: stateResults.map((state) => state.screenshot),
     apiRequests: requestLog,

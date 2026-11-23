@@ -271,6 +271,10 @@
     width: 100%;
 }
 
+.category-row--income-root {
+    background: var(--income-50);
+}
+
 .category-row__edit {
     align-items: stretch;
     background: transparent;
@@ -280,6 +284,7 @@
     display: grid;
     font: inherit;
     grid-template-columns: var(--categories-list-columns);
+    min-height: 44px;
     padding: 0;
     text-align: left;
     width: 100%;
@@ -293,17 +298,18 @@
     background: var(--bg-stripe);
 }
 
-.category-row.is-disabled {
+.category-row.is-disabled .category-row__name,
+.category-row.is-disabled .category-row__branch-toggle {
     opacity: 0.58;
 }
 
 .category-row__name,
-.category-row__activity,
+.category-row__operations,
 .category-row__spent {
     align-items: center;
     display: flex;
     min-width: 0;
-    padding: 11px 16px;
+    padding: 8px 16px;
 }
 
 .category-row__name {
@@ -356,13 +362,16 @@
 }
 
 .category-row__title small,
-.category-row__activity small,
-.category-row__spent small {
+.category-row__operations time {
     color: var(--fg-4);
     font-size: 11px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.category-row__operations time {
+    color: var(--fg-2);
 }
 
 .category-row__lock {
@@ -379,29 +388,28 @@
     flex: 0 0 auto;
     font-size: 11px;
     font-weight: 600;
-    gap: 4px;
     padding: 2px 8px;
 }
 
-.category-row__chip--budget {
-    background: var(--income-50);
-    color: var(--income-600);
-    margin-left: auto;
-}
-
-.category-row__activity,
+.category-row__operations,
 .category-row__spent {
     align-items: flex-end;
     flex-direction: column;
     justify-content: center;
 }
 
-.category-row__activity strong,
 .category-row__spent strong {
     color: var(--fg-2);
     font-family: var(--font-num);
     font-size: 14px;
     font-variant-numeric: tabular-nums;
+}
+
+.category-row__operations strong {
+    color: var(--fg-2);
+    font-size: var(--fs-13);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .category-row__placeholder {
@@ -528,15 +536,14 @@
     }
 
     .category-row__edit {
+        grid-template-areas: "name spend" "name operations";
         grid-template-columns: minmax(0, 1fr) minmax(96px, max-content);
-    }
-
-    .category-row__activity {
-        display: none;
+        grid-template-rows: 1fr auto;
     }
 
     .category-row__name {
         gap: 8px;
+        grid-area: name;
         overflow: hidden;
         padding-left: calc(16px + var(--category-indent, 0px)) !important;
         padding-right: 8px;
@@ -549,6 +556,26 @@
     }
 
     .category-row__spent {
-        padding: 10px 16px 10px 8px;
+        grid-area: spend;
+        line-height: var(--lh-snug);
+        padding: 4px 16px 4px 8px;
+    }
+
+    .category-row__edit:has(.category-row__operations strong:not(.category-row__placeholder)) .category-row__spent {
+        padding-bottom: 0;
+    }
+
+    .category-row__operations {
+        grid-area: operations;
+        line-height: var(--lh-snug);
+        padding: 0 16px 4px 8px;
+    }
+
+    .category-row__operations strong {
+        font-size: var(--fs-12);
+    }
+
+    .category-row__operations:has(.category-row__placeholder) {
+        display: none;
     }
 }

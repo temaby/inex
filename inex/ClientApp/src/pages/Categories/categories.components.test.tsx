@@ -1,18 +1,23 @@
 import { render, screen } from "@testing-library/react";
+import { createInstance } from "i18next";
 import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 
-import type { BudgetDetails } from "../../model/Budget/BudgetDetails";
+import ru from "../../../public/locales/ru/translation.json";
 import type { CategoryResponse } from "../../store/categories/categories-api";
 import { CategoriesToolbar } from "./CategoriesToolbar";
 import { CategoryRow } from "./CategoryRow";
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
-        t: (key: string) => key,
+        i18n: { language: "ru" },
+        t: (key: string, options?: { count?: number; date?: string }) => translations.t(key, options),
     }),
 }));
+
+const translations = createInstance();
+await translations.init({ lng: "ru", resources: { ru: { translation: ru } } });
 
 const category = (overrides: Partial<CategoryResponse> = {}): CategoryResponse => ({
     id: 1,
@@ -27,8 +32,6 @@ const category = (overrides: Partial<CategoryResponse> = {}): CategoryResponse =
 });
 
 const renderRow = (overrides: Partial<ComponentProps<typeof CategoryRow>> = {}) => {
-    const budget = overrides.budget as BudgetDetails | undefined;
-
     return render(
         <CategoryRow
             category={category()}
@@ -36,9 +39,7 @@ const renderRow = (overrides: Partial<ComponentProps<typeof CategoryRow>> = {}) 
             hasChildren={false}
             isCollapsed={false}
             paletteColor="#0f766e"
-            periodLabel="June 2026"
             statsAvailable
-            budget={budget}
             currency="USD"
             onEdit={vi.fn()}
             onBranchToggle={vi.fn()}
@@ -63,14 +64,14 @@ describe("Categories toolbar", () => {
             />,
         );
 
-        expect(screen.getByText("categories.controlLabels.status")).toBeInTheDocument();
-        expect(screen.queryByText("categories.controlLabels.view")).not.toBeInTheDocument();
-        expect(screen.getByRole("group", { name: "categories.controlLabels.view" })).toBeInTheDocument();
-        expect(screen.getByRole("searchbox", { name: "categories.search.label" })).toHaveAttribute(
+        expect(screen.getByText(translations.t("categories.controlLabels.status"))).toBeInTheDocument();
+        expect(screen.queryByText(translations.t("categories.controlLabels.view"))).not.toBeInTheDocument();
+        expect(screen.getByRole("group", { name: translations.t("categories.controlLabels.view") })).toBeInTheDocument();
+        expect(screen.getByRole("searchbox", { name: translations.t("categories.search.label") })).toHaveAttribute(
             "placeholder",
-            "categories.search.placeholder",
+            translations.t("categories.search.placeholder"),
         );
-        expect(screen.queryByText("common.add")).not.toBeInTheDocument();
+        expect(screen.queryByText(translations.t("common.add"))).not.toBeInTheDocument();
     });
 });
 
@@ -97,22 +98,49 @@ describe("Category row", () => {
         expect(container.querySelector(".category-row")).not.toHaveClass("category-row--parent");
     });
 
-    it("renders activity and spend values when stats are available", () => {
+    it.each([[1, "1 операция"], [2, "2 операции"], [5, "5 операций"], [13, "13 операций"], [21, "21 операция"]])(
+        "localizes the Russian operation count %i",
+        (transactionCount, label) => {
+            renderRow({ stats: { categoryId: 1, transactionCount, totalSpend: 42.5, lastActiveDate: null } });
+            expect(screen.getByText(label, { selector: "strong" })).toBeVisible();
+        },
+    );
+
+    it("shows the expense amount and concise date, with the full date on hover", () => {
+        const year = new Date().getFullYear();
         renderRow({
             stats: {
                 categoryId: 1,
                 transactionCount: 3,
                 totalSpend: 42.5,
-                lastActiveDate: "2026-06-08T12:00:00Z",
+                lastActiveDate: `${year}-11-21T12:00:00`,
             },
             statsAvailable: true,
         });
 
-        const row = screen.getByRole("button", { name: "categories.drawer.edit" });
-        expect(row).toHaveTextContent("3 categories.activity.txns");
+        const row = screen.getByRole("button", { name: translations.t("categories.drawer.edit", { category: "Groceries" }) });
+        expect(row).toHaveTextContent("3 операции");
         expect(row).toHaveTextContent("42.50 USD");
-        expect(screen.queryByLabelText("categories.activity.unavailable")).not.toBeInTheDocument();
-        expect(screen.queryByLabelText("categories.activity.spendUnavailable")).not.toBeInTheDocument();
+        expect(screen.getByText("21 нояб.", { selector: "time" })).toHaveAttribute(
+            "title", `Последняя операция: 21 ноября ${year} г.`,
+        );
+        expect(row).toHaveAccessibleDescription(`3 операции. Последняя операция: 21 ноября ${year} г.`);
+        expect(row.querySelector(".category-row__spent small")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(translations.t("categories.operations.unavailable"))).not.toBeInTheDocument();
+    });
+
+    it("includes the year when the last-operation date is from an earlier year", () => {
+        const year = new Date().getFullYear() - 1;
+        renderRow({
+            stats: { categoryId: 1, transactionCount: 1, totalSpend: 42.5, lastActiveDate: `${year}-11-21T12:00:00` },
+        });
+        expect(screen.getByText(`21 нояб. ${year} г.`, { selector: "time" })).toBeInTheDocument();
+    });
+
+    it("shows the existing placeholder and no date for categories without expenses", () => {
+        const { container } = renderRow();
+        expect(screen.getByLabelText("Нет расходных операций")).toHaveTextContent("—");
+        expect(container.querySelector("time")).not.toBeInTheDocument();
     });
 
     it("separates branch collapse from row editing", async () => {
@@ -121,14 +149,14 @@ describe("Category row", () => {
         const onBranchToggle = vi.fn();
         renderRow({ hasChildren: true, onEdit, onBranchToggle });
 
-        const branchToggle = screen.getByRole("button", { name: "categories.branch.collapse" });
+        const branchToggle = screen.getByRole("button", { name: translations.t("categories.branch.collapse", { category: "Groceries" }) });
         expect(branchToggle).toHaveAttribute("aria-expanded", "true");
 
         await user.click(branchToggle);
         expect(onBranchToggle).toHaveBeenCalledOnce();
         expect(onEdit).not.toHaveBeenCalled();
 
-        const row = screen.getByRole("button", { name: "categories.drawer.edit" });
+        const row = screen.getByRole("button", { name: translations.t("categories.drawer.edit", { category: "Groceries" }) });
         await user.click(row);
         await user.keyboard(" ");
         expect(onEdit).toHaveBeenCalledTimes(2);
@@ -146,7 +174,6 @@ describe("Category row", () => {
                 hasChildren={true}
                 isCollapsed={false}
                 paletteColor="#0f766e"
-                periodLabel="June 2026"
                 statsAvailable
                 currency="USD"
                 onEdit={vi.fn()}
