@@ -1,4 +1,5 @@
 import * as React from "react";
+import dayjs from "dayjs";
 import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -41,7 +42,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
     const hasActivity = statsAvailable && count > 0;
     const spend = stats?.totalSpend ?? 0;
     const lastOperationTimestamp = stats?.lastActiveDate;
-    const lastOperationDate = hasActivity && lastOperationTimestamp ? new Date(lastOperationTimestamp) : null;
+    const lastOperationDate = hasActivity && lastOperationTimestamp ? dayjs(lastOperationTimestamp) : null;
     const description = category.description?.trim() ?? "";
     const showDescription =
         description.length > 0 &&
@@ -53,8 +54,9 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
         ? t("categories.operations.noSpend")
         : t("categories.operations.spendUnavailable");
     const countLabel = hasActivity ? t("transactions.kpi.transactionCount", { count }) : noActivityLabel;
-    const lastOperationLabel = lastOperationDate && t("categories.operations.lastTransaction", {
-        date: lastOperationDate.toLocaleDateString(locale, { dateStyle: "long" }),
+    const operationDate = lastOperationDate?.isValid() ? lastOperationDate.toDate() : null;
+    const lastOperationLabel = operationDate && t("categories.operations.lastTransaction", {
+        date: operationDate.toLocaleDateString(locale, { dateStyle: "long" }),
     });
     const rowKindClass = hasChildren
         ? "category-row--parent"
@@ -105,9 +107,17 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 ) : null}
             </span>
             <span className="category-row__spent">
-                {hasActivity && spend > 0 ? (
+                {hasActivity ? (
                     <strong>
-                        <Num value={spend} currency={currency} kind="expense" />
+                        <Num
+                            value={spend}
+                            currency={currency}
+                            fractionDigits="currency"
+                            kind="expense"
+                            locale={locale}
+                            signage={spend < 0 ? "negative-only" : undefined}
+                            suppressRoundedZeroSign
+                        />
                     </strong>
                 ) : (
                     <strong
@@ -123,17 +133,20 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({
                 {hasActivity ? (
                     <>
                         <strong>{countLabel}</strong>
-                        {lastOperationDate && (
+                        {operationDate ? (
                             <time
+                                className="category-row__operation-date"
                                 dateTime={lastOperationTimestamp ?? undefined}
                                 title={lastOperationLabel ?? undefined}
                             >
-                                {lastOperationDate.toLocaleDateString(locale, {
+                                {operationDate.toLocaleDateString(locale, {
                                     day: "numeric",
-                                    month: "short",
-                                    year: lastOperationDate.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+                                    month: "long",
+                                    year: operationDate.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
                                 })}
                             </time>
+                        ) : (
+                            <small className="category-row__operation-date category-row__placeholder">—</small>
                         )}
                     </>
                 ) : (
