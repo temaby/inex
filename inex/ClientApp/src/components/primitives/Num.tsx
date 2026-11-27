@@ -14,6 +14,7 @@ export interface NumProps {
     bare?: boolean;
     compact?: boolean;
     fractionDigits?: 0 | 1 | 2 | "currency";
+    suppressRoundedZeroSign?: boolean;
     muted?: boolean;
     signage?: Signage;
     locale?: string;
@@ -87,6 +88,7 @@ export const Num: React.FC<NumProps> = ({
     bare = false,
     compact = false,
     fractionDigits = 2,
+    suppressRoundedZeroSign = false,
     muted = false,
     signage,
     locale,
@@ -104,7 +106,9 @@ export const Num: React.FC<NumProps> = ({
     const resolvedKind = kind ?? inferKind(value);
     const resolvedSignage = signage ?? contextSignage;
     const digits = fractionDigits === "currency" ? getCurrencyFractionDigits(currency) : fractionDigits;
-    const formattedValue = `${getPrefix(value, resolvedKind, resolvedSignage)}${formatAmount(value, compact, digits, locale)}`;
+    const roundsToZero = suppressRoundedZeroSign && Math.abs(value) < 0.5 / 10 ** digits;
+    const prefix = roundsToZero ? "" : getPrefix(value, resolvedKind, resolvedSignage);
+    const formattedValue = `${prefix}${formatAmount(value, compact, digits, locale)}`;
     const visibleValue = bare || !currency ? formattedValue : `${formattedValue} ${currency}`;
     const accessibleValue = accessibleCurrency ? `${formattedValue} ${accessibleCurrency}` : visibleValue;
     const kindLabel = accessibleLabel ?? t(`primitives.kindLabel.${resolvedKind}`);

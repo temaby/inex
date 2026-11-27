@@ -153,7 +153,7 @@ describe("Category row", () => {
         expect(container.querySelector(".category-row")).not.toHaveClass("category-row--parent");
     });
 
-    it.each([[1, "1 операция"], [2, "2 операции"], [5, "5 операций"], [13, "13 операций"], [21, "21 операция"]])(
+    it.each([[1, "1 операция"], [2, "2 операции"], [5, "5 операций"], [11, "11 операций"], [21, "21 операция"]])(
         "localizes the Russian operation count %i",
         (transactionCount, label) => {
             renderRow({ stats: { categoryId: 1, transactionCount, totalSpend: 42.5, lastActiveDate: null } });
@@ -161,7 +161,34 @@ describe("Category row", () => {
         },
     );
 
-    it("shows the expense amount and concise date, with the full date on hover", () => {
+    it.each([
+        ["ru", "USD", 0, true, 42.5, "42,50 USD"],
+        ["ru", "USD", 1, true, 1_355.51, "1\u00a0355,51 USD"],
+        ["ru", "USD", 2, false, 0.1 + 0.2, "0,30 USD"],
+        ["ru", "USD", 2, false, 0, "0,00 USD"],
+        ["ru", "USD", 2, false, -0, "0,00 USD"],
+        ["ru", "USD", 2, false, -0.004, "0,00 USD"],
+        ["ru", "USD", 2, false, -0.005, "-0,01 USD"],
+        ["en", "USD", 0, false, 1_355.51, "1,355.51 USD"],
+        ["en", "JPY", 0, false, 1_355.51, "1,356 JPY"],
+        ["en", "JPY", 0, false, -0.4, "0 JPY"],
+        ["ru", "KWD", 2, false, -1_234_567.1234, "-1\u00a0234\u00a0567,123 KWD"],
+    ])("formats %s %s amounts at depth %i (parent %s), value %s", async (
+        locale, currency, depth, hasChildren, totalSpend, expected,
+    ) => {
+        await translations.changeLanguage(locale);
+        try {
+            const { container } = renderRow({
+                currency, depth, hasChildren,
+                stats: { categoryId: 1, transactionCount: 1, totalSpend, lastActiveDate: null },
+            });
+            expect(container.querySelector(".category-row__spent")?.textContent).toBe(expected);
+        } finally {
+            await translations.changeLanguage("ru");
+        }
+    });
+
+    it("shows the full current-year month and retains the full date in the accessible description", () => {
         const year = new Date().getFullYear();
         renderRow({
             stats: {
@@ -175,8 +202,8 @@ describe("Category row", () => {
 
         const row = screen.getByRole("button", { name: translations.t("categories.drawer.edit", { category: "Groceries" }) });
         expect(row).toHaveTextContent("3 операции");
-        expect(row).toHaveTextContent("42.50 USD");
-        expect(screen.getByText("21 нояб.", { selector: "time" })).toHaveAttribute(
+        expect(row).toHaveTextContent("42,50 USD");
+        expect(screen.getByText("21 ноября", { selector: "time" })).toHaveAttribute(
             "title", `Последняя операция: 21 ноября ${year} г.`,
         );
         expect(row).toHaveAccessibleDescription(`3 операции. Последняя операция: 21 ноября ${year} г.`);
@@ -184,16 +211,40 @@ describe("Category row", () => {
         expect(screen.queryByLabelText(translations.t("categories.operations.unavailable"))).not.toBeInTheDocument();
     });
 
-    it("includes the year when the last-operation date is from an earlier year", () => {
-        const year = new Date().getFullYear() - 1;
-        renderRow({
-            stats: { categoryId: 1, transactionCount: 1, totalSpend: 42.5, lastActiveDate: `${year}-11-21T12:00:00` },
+    it.each([
+        ["ru", "2025-09-22", "22 сентября 2025 г."],
+        ["ru", "2025-12-31", "31 декабря 2025 г."],
+        ["ru", "2026-01-01", "1 января"],
+        ["en", "2026-01-01", "January 1"],
+        ["en", "2025-12-31", "December 31, 2025"],
+    ])("formats %s calendar date %s across the year boundary", async (locale, lastActiveDate, expected) => {
+        await translations.changeLanguage(locale);
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(new Date(2026, 0, 1, 12));
+        try {
+            renderRow({
+                stats: { categoryId: 1, transactionCount: 1, totalSpend: 42.5, lastActiveDate },
+            });
+            expect(screen.getByText(expected, { selector: "time" })).toHaveAttribute("dateTime", lastActiveDate);
+        } finally {
+            vi.useRealTimers();
+            await translations.changeLanguage("ru");
+        }
+    });
+
+    it("shows a secondary dash when the operation count is known and the date is missing", () => {
+        const { container } = renderRow({
+            stats: { categoryId: 1, transactionCount: 1, totalSpend: 42.5, lastActiveDate: null },
         });
-        expect(screen.getByText(`21 нояб. ${year} г.`, { selector: "time" })).toBeInTheDocument();
+        expect(screen.getByText("1 операция", { selector: "strong" })).toBeVisible();
+        expect(container.querySelector(".category-row__operation-date")).toHaveTextContent("—");
+        expect(container.querySelector("time")).not.toBeInTheDocument();
     });
 
     it("shows the existing placeholder and no date for categories without expenses", () => {
-        const { container } = renderRow();
+        const { container } = renderRow({
+            stats: { categoryId: 1, transactionCount: 0, totalSpend: 0, lastActiveDate: null },
+        });
         expect(screen.getByLabelText("Нет расходных операций")).toHaveTextContent("—");
         expect(container.querySelector("time")).not.toBeInTheDocument();
     });
